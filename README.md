@@ -1,4 +1,4 @@
-# PROJECT_NAME
+# whatdidyougetdonetoday
 
 A modern SaaS template with authentication, payments, and a beautiful UI. This template was originally built as an AI-powered spreadsheet tool, which is why you might notice some table-related naming conventions in the codebase.
 
@@ -61,8 +61,8 @@ Contact the project maintainer to get the required environment variables. You'll
 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/PROJECT_NAME.git
-cd PROJECT_NAME
+git clone https://github.com/your-username/whatdidyougetdonetoday-ai.git
+cd whatdidyougetdonetoday-ai
 ```
 
 2. Install dependencies

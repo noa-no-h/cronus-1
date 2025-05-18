@@ -39,7 +39,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center justify-between w-full">
           <Link to="/" className="text-xl font-bold mr-8">
-            PROJECT_NAME
+            What Did You Get Done Today?
           </Link>
 
           {/* Desktop Navigation */}

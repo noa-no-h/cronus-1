@@ -50,18 +50,18 @@ function AppContent() {
   return (
     <>
       <Helmet>
-        <title>PROJECT_NAME</title>
+        <title>What Did You Get Done This Week?</title>
         <meta name="description" content="PROJECT_DESCRIPTION" />
-        <meta property="og:title" content="PROJECT_NAME" />
+        <meta property="og:title" content="What Did You Get Done This Week?" />
         <meta property="og:description" content="PROJECT_DESCRIPTION" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://PROJECT_CLIENT_DOMAIN/linkpreview.png" />
-        <meta property="og:url" content="https://PROJECT_CLIENT_DOMAIN" />
+        <meta property="og:image" content="https://whatdidyougetdonetoday.ai/linkpreview.png" />
+        <meta property="og:url" content="https://whatdidyougetdonetoday.ai" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="PROJECT_NAME" />
+        <meta name="twitter:title" content="What Did You Get Done This Week?" />
         <meta name="twitter:description" content="PROJECT_DESCRIPTION" />
-        <meta name="twitter:image" content="https://PROJECT_CLIENT_DOMAIN/linkpreview.png" />
-        <link rel="canonical" href="https://PROJECT_CLIENT_DOMAIN" />
+        <meta name="twitter:image" content="https://whatdidyougetdonetoday.ai/linkpreview.png" />
+        <link rel="canonical" href="https://whatdidyougetdonetoday.ai" />
       </Helmet>
       <div className="min-h-screen bg-background text-foreground w-full">
         <Routes>
@@ -151,7 +151,7 @@ function App() {
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <HelmetProvider>
-            <ThemeProvider defaultTheme="system" storageKey="PROJECT_NAME-theme">
+            <ThemeProvider defaultTheme="system" storageKey="whatdidyougetdonetoday-theme">
               <Router>
                 <SidebarProvider>
                   <AppContent />

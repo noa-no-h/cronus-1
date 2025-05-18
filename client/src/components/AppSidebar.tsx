@@ -75,7 +75,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center p-[0.12rem] justify-between">
           <h2 className="text-lg ml-2 font-semibold">
-            <Link to="/home">PROJECT_NAME</Link>
+            <Link to="/home">What Did You Get Done Today?</Link>
           </h2>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={handleCreateNew} className="h-6 w-6">

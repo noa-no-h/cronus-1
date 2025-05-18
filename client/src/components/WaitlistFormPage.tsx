@@ -170,7 +170,7 @@ const WaitlistFormPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="useCase">How do you plan to use PROJECT_NAME?</Label>
+              <Label htmlFor="useCase">How do you plan to use whatdidyougetdonetoday?</Label>
               <Textarea
                 id="useCase"
                 name="useCase"

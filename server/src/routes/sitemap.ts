@@ -6,7 +6,7 @@ const router = Router();
 router.get('/sitemap.xml', async (req, res) => {
   try {
     const smStream = new SitemapStream({
-      hostname: 'https://PROJECT_CLIENT_DOMAIN',
+      hostname: 'https://whatdidyougetdonetoday.ai',
     });
 
     // Get all public tables

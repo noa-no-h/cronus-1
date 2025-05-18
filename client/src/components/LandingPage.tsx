@@ -58,7 +58,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ landingPageKeyword }) => {
       </div>
 
       <div className="flex flex-row items-center justify-center mt-12 mb-8">
-        <p className="text-muted-foreground">© 2025 PROJECT_NAME Inc.</p>
+        <p className="text-muted-foreground">© 2025 whatdidyougetdonetoday labs inc.</p>
       </div>
     </div>
   );

@@ -41,7 +41,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:3000',
-      'https://PROJECT_CLIENT_DOMAIN',
+      'https://whatdidyougetdonetoday.ai',
       'https://PROJECT_SERVER_DOMAIN',
     ],
     credentials: true,
@@ -129,7 +129,7 @@ app.use(
 );
 
 // MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/PROJECT_NAME';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whatdidyougetdonetoday';
 
 mongoose
   .connect(MONGODB_URI)
