@@ -111,6 +111,12 @@ This project uses a monorepo structure with three main packages:
 - Used by both client and server
 - Ensures type safety across the stack
 
+### Electron App (`/electron-app`)
+
+- A desktop application built with Electron, React, and TypeScript.
+- Provides a native desktop experience.
+- For more details, see the [Electron App README](./electron-app/README.md).
+
 ## Customization
 
 Search for "PROJECT_NAME" in the codebase to find all instances that need to be replaced with your own brand name. Key files to check:
