@@ -104,10 +104,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
     }
 
-    if (frontmostWindow) {
+if (frontmostWindow) {
         NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
         NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
-        NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];  // Get title directly
+        NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
         CGWindowID windowId = [windowNumber unsignedIntValue];
         
         // Create base window info
@@ -119,12 +119,20 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             @"timestamp": @([[NSDate date] timeIntervalSince1970])
         } mutableCopy];
         
-        // Add Chrome tab info if it's Chrome
+        // Check for browser windows
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
             NSDictionary *chromeInfo = [self getChromeTabInfo];
             if (chromeInfo) {
                 [windowInfo addEntriesFromDictionary:chromeInfo];
-                windowInfo[@"type"] = @"chrome";
+                windowInfo[@"type"] = @"browser";
+                windowInfo[@"browser"] = @"chrome";
+            }
+        } else if ([windowOwnerName isEqualToString:@"Safari"]) {
+            NSDictionary *safariInfo = [self getSafariTabInfo];
+            if (safariInfo) {
+                [windowInfo addEntriesFromDictionary:safariInfo];
+                windowInfo[@"type"] = @"browser";
+                windowInfo[@"browser"] = @"safari";
             }
         }
         
@@ -233,6 +241,75 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     }
     
     return tabInfo;
+}
+
+- (NSDictionary*)getSafariTabInfo {
+    NSMutableDictionary *tabInfo = [NSMutableDictionary dictionary];
+    
+    // First try to get just the URL and title
+    NSString *basicScript = @"tell application \"Safari\"\n"
+                            "  try\n"
+                            "    set currentTab to current tab of front window\n"
+                            "    set tabUrl to URL of currentTab\n"
+                            "    set tabTitle to name of currentTab\n"
+                            "    return tabUrl & \"|\" & tabTitle\n"
+                            "  on error errMsg\n"
+                            "    return \"ERROR|\" & errMsg\n"
+                            "  end try\n"
+                            "end tell";
+    
+    NSAppleScript *basicAppleScript = [[NSAppleScript alloc] initWithSource:basicScript];
+    NSDictionary *error = nil;
+    NSAppleEventDescriptor *basicResult = [basicAppleScript executeAndReturnError:&error];
+    
+    if (!error && basicResult) {
+        NSString *basicInfo = [basicResult stringValue];
+        if (basicInfo && ![basicInfo hasPrefix:@"ERROR|"]) {
+            NSArray *components = [basicInfo componentsSeparatedByString:@"|"];
+            if (components.count >= 2) {
+                tabInfo[@"url"] = components[0];
+                tabInfo[@"title"] = components[1];
+                
+                // Now try to get the content
+                NSString *contentScript = @"tell application \"Safari\"\n"
+                                        "  try\n"
+                                        "    set currentTab to current tab of front window\n"
+                                        "    set tabContent to do JavaScript \"document.body.innerText\" in currentTab\n"
+                                        "    return tabContent\n"
+                                        "  on error errMsg\n"
+                                        "    if errMsg contains \"JavaScript\" then\n"
+                                        "      return \"JS_DISABLED\"\n"
+                                        "    end if\n"
+                                        "    return \"ERROR|\" & errMsg\n"
+                                        "  end try\n"
+                                        "end tell";
+                
+                NSAppleScript *contentAppleScript = [[NSAppleScript alloc] initWithSource:contentScript];
+                NSAppleEventDescriptor *contentResult = [contentAppleScript executeAndReturnError:&error];
+                
+                if (!error && contentResult) {
+                    NSString *content = [contentResult stringValue];
+                    if (content && ![content hasPrefix:@"ERROR|"]) {
+                        if ([content isEqualToString:@"JS_DISABLED"]) {
+                            NSLog(@"JavaScript is disabled in Safari. Please enable it in Safari > Settings > Advanced > Allow JavaScript from Apple Events");
+                        } else {
+                            tabInfo[@"content"] = content;
+                            NSLog(@"Successfully got Safari content, length: %lu", (unsigned long)[content length]);
+                        }
+                    }
+                }
+                
+                tabInfo[@"browser"] = @"safari";
+                return tabInfo;
+            }
+        }
+    }
+    
+    if (error) {
+        NSLog(@"Safari AppleScript error: %@", error);
+    }
+    
+    return nil;
 }
 
 - (void) removeWindowObserver

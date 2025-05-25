@@ -29,7 +29,8 @@ export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetail
           <span className="truncate text-gray-800">{windowDetails.title}</span>
         </div>
 
-        {windowDetails.type === 'chrome' && windowDetails.url && (
+        {/* Show URL for both Chrome and Safari */}
+        {windowDetails.type === 'browser' && windowDetails.url && (
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-gray-800">URL:</span>
             <a
@@ -43,11 +44,14 @@ export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetail
           </div>
         )}
 
-        {windowDetails.type === 'chrome' && windowDetails.content && (
+        {/* Show content for both Chrome and Safari */}
+        {windowDetails.type === 'browser' && windowDetails.content && (
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-gray-800">Content Preview:</span>
+                <span className="font-semibold text-gray-800">
+                  Content Preview ({windowDetails.browser}):
+                </span>
                 {windowDetails.content.length > 500 && (
                   <span className="text-xs text-gray-500">
                     {windowDetails.content.length} characters
