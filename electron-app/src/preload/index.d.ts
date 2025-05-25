@@ -3,8 +3,13 @@ import type { ActiveWindowDetails } from '../native-modules/native-windows'
 
 // Define ActiveWindowDetails here, as it's used by the api type
 export interface ActiveWindowDetails {
-  id: number | string
+  id: number
   ownerName: string
+  type: 'window' | 'chrome'
+  title: string
+  url?: string
+  content?: string
+  timestamp?: number
 }
 
 declare global {

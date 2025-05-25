@@ -93,7 +93,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSDictionary*)getActiveWindow {
-    NSArray *windows = (__bridge_transfer NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+    NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
     NSDictionary *frontmostWindow = nil;
 
     for (NSDictionary *window in windows) {
@@ -107,17 +107,16 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     if (frontmostWindow) {
         NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
         NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
+        NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];  // Get title directly
         CGWindowID windowId = [windowNumber unsignedIntValue];
-        
-        // Get the window title
-        NSString *windowTitle = [self getWindowTitle:windowId];
         
         // Create base window info
         NSMutableDictionary *windowInfo = [@{
             @"id": windowNumber,
             @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown",
-            @"title": windowTitle,
-            @"type": @"window"
+            @"title": windowTitle ? windowTitle : @"",
+            @"type": @"window",
+            @"timestamp": @([[NSDate date] timeIntervalSince1970])
         } mutableCopy];
         
         // Add Chrome tab info if it's Chrome
@@ -149,28 +148,91 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSDictionary*)getChromeTabInfo {
-    NSString *script = @"tell application \"Google Chrome\"\n"
-                      "  set activeTab to active tab of front window\n"
-                      "  set tabUrl to URL of activeTab\n"
-                      "  set tabTitle to title of activeTab\n"
-                      "  return tabUrl & \"|\" & tabTitle\n"
-                      "end tell";
+    NSLog(@"Starting Chrome tab info gathering...");
     
-    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:script];
+    // First check if Chrome is running
+    NSRunningApplication *chromeApp = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.google.Chrome"] firstObject];
+    if (!chromeApp) {
+        NSLog(@"Chrome is not running");
+        return nil;
+    }
+    
+    // Check if Chrome is frontmost
+    if (![chromeApp isActive]) {
+        NSLog(@"Chrome is not the active application");
+        return nil;
+    }
+    
+    // First try to get just the URL and title without JavaScript
+    NSString *basicScript = @"tell application \"Google Chrome\"\n"
+                           "  try\n"
+                           "    set activeTab to active tab of front window\n"
+                           "    set tabUrl to URL of activeTab\n"
+                           "    set tabTitle to title of activeTab\n"
+                           "    return tabUrl & \"|\" & tabTitle\n"
+                           "  on error errMsg\n"
+                           "    return \"ERROR|\" & errMsg\n"
+                           "  end try\n"
+                           "end tell";
+    
+    NSAppleScript *basicAppleScript = [[NSAppleScript alloc] initWithSource:basicScript];
     NSDictionary *error = nil;
-    NSAppleEventDescriptor *result = [appleScript executeAndReturnError:&error];
+    NSAppleEventDescriptor *basicResult = [basicAppleScript executeAndReturnError:&error];
     
-    if (!error) {
-        NSString *tabInfo = [result stringValue];
-        NSArray *components = [tabInfo componentsSeparatedByString:@"|"];
-        if (components.count == 2) {
-            return @{
-                @"url": components[0],
-                @"title": components[1]
-            };
+    if (error) {
+        NSLog(@"Basic AppleScript error: %@", error);
+        return nil;
+    }
+    
+    NSString *basicInfo = [basicResult stringValue];
+    if (!basicInfo || [basicInfo hasPrefix:@"ERROR|"]) {
+        NSLog(@"Basic script error: %@", basicInfo);
+        return nil;
+    }
+    
+    NSArray *basicComponents = [basicInfo componentsSeparatedByString:@"|"];
+    if (basicComponents.count < 2) {
+        NSLog(@"Invalid basic info components");
+        return nil;
+    }
+    
+    // Create base info with URL and title
+    NSMutableDictionary *tabInfo = [@{
+        @"url": basicComponents[0],
+        @"title": basicComponents[1],
+        @"type": @"chrome",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970])
+    } mutableCopy];
+    
+    // Try to get content with JavaScript if possible
+    NSString *jsScript = @"tell application \"Google Chrome\"\n"
+                        "  try\n"
+                        "    set activeTab to active tab of front window\n"
+                        "    set tabContent to execute activeTab javascript \"document.body.innerText\"\n"
+                        "    return tabContent\n"
+                        "  on error errMsg\n"
+                        "    if errMsg contains \"JavaScript\" then\n"
+                        "      return \"JS_DISABLED\"\n"
+                        "    end if\n"
+                        "    return \"ERROR|\" & errMsg\n"
+                        "  end try\n"
+                        "end tell";
+    
+    NSAppleScript *jsAppleScript = [[NSAppleScript alloc] initWithSource:jsScript];
+    NSAppleEventDescriptor *jsResult = [jsAppleScript executeAndReturnError:&error];
+    
+    if (!error && jsResult) {
+        NSString *jsInfo = [jsResult stringValue];
+        if (jsInfo && ![jsInfo hasPrefix:@"ERROR|"]) {
+            if ([jsInfo isEqualToString:@"JS_DISABLED"]) {
+                NSLog(@"JavaScript is disabled in Chrome. Please enable it in View > Developer > Allow JavaScript from Apple Events");
+            } else {
+                tabInfo[@"content"] = jsInfo;
+            }
         }
     }
-    return nil;
+    
+    return tabInfo;
 }
 
 - (void) removeWindowObserver

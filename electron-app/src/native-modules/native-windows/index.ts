@@ -1,11 +1,13 @@
 import path from 'path'
 
 export interface ActiveWindowDetails {
-  id: number | string
+  id: number
   ownerName: string
-  title: string
   type: 'window' | 'chrome'
+  title: string
   url?: string
+  content?: string
+  timestamp?: number
 }
 
 interface Addon {
