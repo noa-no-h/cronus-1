@@ -6,6 +6,7 @@ import { FadeIn } from './components/animations/FadeIn'
 import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
 import { createTrpcClient, trpc } from './utils/trpc'
+import { ActiveWindowInfo } from './components/active-window-info'
 
 // GOOGLE_CLIENT_ID will now be fetched from main process
 console.log('App.tsx rendering -- TOP LEVEL') // ADD THIS
@@ -20,11 +21,19 @@ function App(): React.JSX.Element {
   const [googleClientId, setGoogleClientId] = useState<string | null>(null) // State for fetched ID
   const [configError, setConfigError] = useState<string | null>(null) // State for config errors
   const [isLoadingConfig, setIsLoadingConfig] = useState(true) // State for loading config
+  const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
 
   // In App.tsx, before the final return
   console.log('App.tsx - googleClientId:', googleClientId)
   console.log('App.tsx - isLoadingConfig:', isLoadingConfig)
   console.log('App.tsx - configError:', configError)
+
+  useEffect(() => {
+    const cleanup = window.api.onActiveWindowChanged((details) => {
+      setActiveWindow(details)
+    })
+    return cleanup
+  }, [])
 
   useEffect(() => {
     // Fetch Google Client ID from main process via preload
@@ -59,11 +68,11 @@ function App(): React.JSX.Element {
     }
   }, [])
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (): void => {
     setIsAuthenticated(true)
   }
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     setIsAuthenticated(false)
@@ -123,16 +132,11 @@ function App(): React.JSX.Element {
                   >
                     Productivity Dashboard
                   </motion.h1>
-                  {activeAppName && (
-                    <motion.p
-                      className="text-lg text-gray-500 mt-2"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Currently active: {activeAppName}
-                    </motion.p>
-                  )}
+                  <FadeIn delay={0.5}>
+                    <div className="mt-4 mb-8">
+                      <ActiveWindowInfo windowDetails={activeWindow} />
+                    </div>
+                  </FadeIn>
                 </FadeIn>
 
                 <FadeIn delay={0.5}>

@@ -40,7 +40,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     <div className={cn('flex flex-col gap-6 items-center w-full p-8', className)} {...props}>
       <div className="w-full max-w-md mx-auto shadow-lg rounded-lg p-8 bg-white">
         <div className="text-center">
-          <h1 className="text-2xl font-semibold">Welcome</h1>
+          <h1 className="text-2xl text-gray-800 font-semibold">Welcome</h1>
           <p className="text-sm text-gray-600 mb-6">Sign in with your Google account</p>
         </div>
         <div className="flex justify-center">

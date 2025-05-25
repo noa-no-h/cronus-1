@@ -1,8 +1,11 @@
 import path from 'path'
 
 export interface ActiveWindowDetails {
-  id: number | string // kCGWindowNumber is usually a number
+  id: number | string
   ownerName: string
+  title: string
+  type: 'window' | 'chrome'
+  url?: string
 }
 
 interface Addon {

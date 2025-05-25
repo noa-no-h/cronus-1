@@ -6,7 +6,6 @@ ActiveWindowObserver *windowObserver;
 
 auto napiCallback = [](Napi::Env env, Napi::Function jsCallback, std::string* data) {
     jsCallback.Call({Napi::String::New(env, *data)});
-
     delete data;
 };
 
@@ -108,12 +107,68 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     if (frontmostWindow) {
         NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
         NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
-        // NSLog(@"%@ activeWindow", frontmostWindow); // You can keep this for debugging if you want
-
-        return @{
+        CGWindowID windowId = [windowNumber unsignedIntValue];
+        
+        // Get the window title
+        NSString *windowTitle = [self getWindowTitle:windowId];
+        
+        // Create base window info
+        NSMutableDictionary *windowInfo = [@{
             @"id": windowNumber,
-            @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown" // Provide a default if ownerName is nil
-        };
+            @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown",
+            @"title": windowTitle,
+            @"type": @"window"
+        } mutableCopy];
+        
+        // Add Chrome tab info if it's Chrome
+        if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
+            NSDictionary *chromeInfo = [self getChromeTabInfo];
+            if (chromeInfo) {
+                [windowInfo addEntriesFromDictionary:chromeInfo];
+                windowInfo[@"type"] = @"chrome";
+            }
+        }
+        
+        return windowInfo;
+    }
+    return nil;
+}
+
+- (NSString*)getWindowTitle:(CGWindowID)windowId {
+    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, windowId);
+    if (windowList) {
+        NSArray *windows = (__bridge_transfer NSArray*)windowList;
+        for (NSDictionary *window in windows) {
+            NSString *title = window[(__bridge NSString*)kCGWindowName];
+            if (title && title.length > 0) {
+                return title;
+            }
+        }
+    }
+    return @"";
+}
+
+- (NSDictionary*)getChromeTabInfo {
+    NSString *script = @"tell application \"Google Chrome\"\n"
+                      "  set activeTab to active tab of front window\n"
+                      "  set tabUrl to URL of activeTab\n"
+                      "  set tabTitle to title of activeTab\n"
+                      "  return tabUrl & \"|\" & tabTitle\n"
+                      "end tell";
+    
+    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:script];
+    NSDictionary *error = nil;
+    NSAppleEventDescriptor *result = [appleScript executeAndReturnError:&error];
+    
+    if (!error) {
+        NSString *tabInfo = [result stringValue];
+        NSArray *components = [tabInfo componentsSeparatedByString:@"|"];
+        if (components.count == 2) {
+            return @{
+                @"url": components[0],
+                @"title": components[1]
+            };
+        }
     }
     return nil;
 }
