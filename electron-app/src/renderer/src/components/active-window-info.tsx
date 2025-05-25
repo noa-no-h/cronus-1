@@ -10,7 +10,6 @@ export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetail
     return <div className="text-gray-500">No active window detected</div>
   }
 
-  // Truncate content if it's too long
   const truncatedContent =
     windowDetails.content && windowDetails.content.length > 500
       ? `${windowDetails.content.substring(0, 500)}...`
@@ -29,7 +28,6 @@ export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetail
           <span className="truncate text-gray-800">{windowDetails.title}</span>
         </div>
 
-        {/* Show URL for both Chrome and Safari */}
         {windowDetails.type === 'browser' && windowDetails.url && (
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-gray-800">URL:</span>
@@ -44,7 +42,6 @@ export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetail
           </div>
         )}
 
-        {/* Show content for both Chrome and Safari */}
         {windowDetails.type === 'browser' && windowDetails.content && (
           <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="space-y-2">

@@ -3,7 +3,8 @@ import path from 'path'
 export interface ActiveWindowDetails {
   id: number
   ownerName: string
-  type: 'window' | 'chrome'
+  type: 'window' | 'browser'
+  browser: 'chrome' | 'safari'
   title: string
   url?: string
   content?: string
