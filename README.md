@@ -36,6 +36,9 @@ A modern SaaS template with authentication, payments, and a beautiful UI. This t
 └── shared/               # Shared types and utilities
     ├── types.ts         # Shared TypeScript types
     └── package.json     # Shared package configuration
+├── electron-app/           # Electron desktop application
+│   ├── src/                # Source code (main, preload, renderer)
+│   └── package.json        # Electron app dependencies
 ```
 
 ## Getting Started
