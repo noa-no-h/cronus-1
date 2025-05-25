@@ -4,11 +4,14 @@
   "private": true,
   "workspaces": [
     "client",
+    "electron-app",
     "server",
     "shared"
   ],
   "scripts": {
     "dev": "bun --filter '*' dev",
+    "dev:electron": "bun --filter @saas-template-may-2025/electron-app dev",
+    "rebuild:electron:arm": "bun --filter @saas-template-may-2025/electron-app native-modules:rebuild:arm",
     "build": "bun --filter '*' build",
     "start": "bun --filter '*' start",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",

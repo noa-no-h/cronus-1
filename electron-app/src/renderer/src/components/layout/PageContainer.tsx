@@ -1,0 +1,20 @@
+import { motion } from 'framer-motion'
+import { ReactNode } from 'react'
+
+interface PageContainerProps {
+  children: ReactNode
+  className?: string
+}
+
+export function PageContainer({ children, className = '' }: PageContainerProps): React.JSX.Element {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className={`min-h-screen bg-gray-900 text-white flex items-center justify-center ${className}`}
+    >
+      {children}
+    </motion.div>
+  )
+}
