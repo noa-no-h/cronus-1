@@ -90,6 +90,14 @@ cd server
 bun dev
 ```
 
+### Running the Server and Electron App Together
+
+To run both the backend server and the Electron application concurrently for development:
+
+```bash
+bun run dev:electron-server
+```
+
 ## Monorepo Structure
 
 This project uses a monorepo structure with three main packages:
