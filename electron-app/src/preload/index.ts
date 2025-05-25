@@ -12,7 +12,9 @@ const api = {
     return () => {
       ipcRenderer.removeListener('active-window-changed', listener)
     }
-  }
+  },
+  // New function to get environment variables
+  getEnvVariables: () => ipcRenderer.invoke('get-env-vars')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

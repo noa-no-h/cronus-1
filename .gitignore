@@ -35,3 +35,12 @@ lerna-debug.log
 *.tgz
 my-app*
 /.changelog
+
+*.env
+
+# Electron app specific
+electron-app/dist/
+electron-app/out/
+**/.eslintcache
+electron-app/src/native-modules/**/bin/
+electron-app/src/native-modules/**/build/

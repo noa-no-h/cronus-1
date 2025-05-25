@@ -86,7 +86,7 @@ export const authRouter = router({
         };
       } catch (error) {
         console.error('Google login error:', error);
-        throw new Error('Authentication failed');
+        throw new Error(`Authentication failed: ${(error as Error).message}`);
       }
     }),
 

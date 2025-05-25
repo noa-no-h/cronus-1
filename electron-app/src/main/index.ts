@@ -1,8 +1,12 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
-import { join } from 'path'
+import { join, resolve as pathResolve } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { ActiveWindowDetails, nativeWindows } from '../native-modules/native-windows/index'
+
+// Load .env file from the electron-app directory relative to where this file will be in `out/main`
+dotenv.config({ path: pathResolve(__dirname, '../../.env') })
 
 let mainWindow: BrowserWindow | null
 
@@ -29,8 +33,22 @@ function createWindow(): void {
     if (mainWindow) mainWindow.show()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https://accounts.google.com/')) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 600,
+          height: 700,
+          autoHideMenuBar: true,
+          webPreferences: {
+            // No nodeIntegration or preload script for external auth pages typically
+          }
+        }
+      }
+    }
+    // Open all other links in the user's default browser
+    shell.openExternal(url)
     return { action: 'deny' }
   })
 
@@ -40,6 +58,11 @@ function createWindow(): void {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+
+  // Open DevTools automatically in development
+  if (is.dev) {
+    mainWindow.webContents.openDevTools()
   }
 }
 
@@ -59,6 +82,14 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // IPC handler for environment variables, placed after createWindow
+  ipcMain.handle('get-env-vars', () => {
+    return {
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
+      // Add other vars you want to expose from your .env file
+    }
+  })
 
   createWindow()
 

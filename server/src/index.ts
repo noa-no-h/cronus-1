@@ -18,6 +18,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 import { authRouter } from './routers/auth';
 import { paymentsRouter } from './routers/payments';
 
+// Export types used in router signatures
+export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
+
 // Create app router
 export const appRouter = router({
   auth: authRouter,

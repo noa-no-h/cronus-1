@@ -9,4 +9,7 @@ out
 src/native-modules/**/bin
 src/native-modules/**/build
 
+# Environment variables
+.env
+
 

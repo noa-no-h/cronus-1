@@ -57,7 +57,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
       // Store tokens with both the new and old keys
       localStorage.setItem('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
-      localStorage.setItem('token', response.accessToken); // For backward compatibility
 
       console.log('Successfully stored tokens');
 

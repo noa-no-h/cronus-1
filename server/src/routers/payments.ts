@@ -11,11 +11,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 const PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 
 // Define return types for better type inference
-interface CheckoutSessionResponse {
+export interface CheckoutSessionResponse {
   url: string | null;
 }
 
-interface PortalSessionResponse {
+export interface PortalSessionResponse {
   url: string;
 }
 

@@ -14,5 +14,5 @@
       "@renderer/*": ["src/renderer/src/*"]
     }
   },
-  "references": [{ "path": "../../shared" }]
+  "references": [{ "path": "../shared" }, { "path": "../server" }]
 }
