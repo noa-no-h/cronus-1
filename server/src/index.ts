@@ -18,6 +18,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
 import { paymentsRouter } from './routers/payments';
+import { s3Router } from './routers/s3Router';
 
 // Export types used in router signatures
 export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
@@ -27,6 +28,7 @@ export const appRouter = router({
   auth: authRouter,
   payments: paymentsRouter,
   activeWindowEvents: activeWindowEventsRouter,
+  s3: s3Router,
 });
 
 export type AppRouter = typeof appRouter;
