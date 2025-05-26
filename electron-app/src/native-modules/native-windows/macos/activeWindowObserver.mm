@@ -414,10 +414,20 @@ if (frontmostWindow) {
         return;
     }
     
-    // Add screenshot to window info
-    NSString *base64Screenshot = [screenshotData base64EncodedStringWithOptions:0];
+    // Save screenshot to a temporary file
+    NSString *tempDir = NSTemporaryDirectory();
+    NSString *fileName = [NSString stringWithFormat:@"%@.jpg", [[NSUUID UUID] UUIDString]];
+    NSString *filePath = [tempDir stringByAppendingPathComponent:fileName];
+    BOOL success = [screenshotData writeToFile:filePath atomically:YES];
+
+    if (!success) {
+        NSLog(@"Failed to save screenshot to temp file: %@", filePath);
+        return;
+    }
+
+    // Add screenshot path to window info
     NSMutableDictionary *updatedInfo = [windowInfo mutableCopy];
-    updatedInfo[@"screenshot"] = base64Screenshot;
+    updatedInfo[@"localScreenshotPath"] = filePath; // Send path instead of base64
     updatedInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970]);
     
     // Send to JavaScript
@@ -431,7 +441,7 @@ if (frontmostWindow) {
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     std::string* result = new std::string([jsonString UTF8String]);
     activeWindowChangedCallback.BlockingCall(result, napiCallback);
-    NSLog(@"Screenshot captured and sent");
+    NSLog(@"Screenshot captured, saved to %@, and event sent", filePath);
 }
 
 - (void) removeWindowObserver

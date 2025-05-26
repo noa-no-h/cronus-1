@@ -18,6 +18,8 @@ export interface ActiveWindowDetails {
   url?: string | null;
   content?: string | null;
   timestamp?: number;
+  localScreenshotPath?: string | null;
+  screenshotS3Url?: string | null;
 }
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {

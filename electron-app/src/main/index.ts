@@ -2,8 +2,9 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join, resolve as pathResolve } from 'path'
+import { ActiveWindowDetails } from 'shared'
 import icon from '../../resources/icon.png?asset'
-import { ActiveWindowDetails, nativeWindows } from '../native-modules/native-windows/index'
+import { nativeWindows } from '../native-modules/native-windows/index'
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })

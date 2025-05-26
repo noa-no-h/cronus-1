@@ -137,6 +137,8 @@ function App(): React.JSX.Element {
                 transition={{ duration: 0.8, delay: 0.6 }}
               >
                 Welcome! You are logged in. User ID: {currentUserId || 'N/A'}
+                <br />
+                You're using {activeAppName}
               </motion.p>
             </FadeIn>
 
