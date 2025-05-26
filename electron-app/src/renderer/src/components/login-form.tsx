@@ -1,17 +1,19 @@
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
 import { cn } from '@renderer/lib/utils'
 import { useCallback } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 
 // GOOGLE_CLIENT_ID is now provided by App.tsx through GoogleOAuthProvider
 // const defaultPageAfterLogin = '/' // This can be removed if not used
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
-  onLoginSuccess: () => void
+  onLoginSuccess?: () => void
 }
 
 export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
   const googleLoginMutation = trpc.auth.googleLogin.useMutation()
+  const { login } = useAuth()
 
   const handleGoogleSuccess = useCallback(
     async (credentialResponse: CredentialResponse) => {
@@ -22,16 +24,15 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
           credential: credentialResponse.credential
         })
 
-        localStorage.setItem('accessToken', response.accessToken)
-        localStorage.setItem('refreshToken', response.refreshToken)
+        login(response.accessToken, response.refreshToken, response.user)
 
-        console.log('Electron App: Successfully stored tokens')
-        onLoginSuccess()
+        console.log('Electron App: Login via context successful')
+        onLoginSuccess?.()
       } catch (error) {
         console.error('Electron App: Login failed:', error)
       }
     },
-    [googleLoginMutation, onLoginSuccess]
+    [googleLoginMutation, login, onLoginSuccess]
   )
 
   // Removed the direct GOOGLE_CLIENT_ID check here, App.tsx handles global config check

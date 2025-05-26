@@ -8,3 +8,18 @@ export interface User {
   isWaitlisted?: boolean;
   tokenVersion?: number;
 }
+
+export interface ActiveWindowDetails {
+  windowId: number;
+  ownerName: string;
+  type: 'window' | 'browser';
+  browser?: 'chrome' | 'safari' | null;
+  title: string;
+  url?: string | null;
+  content?: string | null;
+  timestamp?: number;
+}
+
+export interface ActiveWindowEvent extends ActiveWindowDetails {
+  userId: string;
+}

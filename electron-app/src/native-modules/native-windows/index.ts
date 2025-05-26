@@ -1,15 +1,5 @@
 import path from 'path'
-
-export interface ActiveWindowDetails {
-  id: number
-  ownerName: string
-  type: 'window' | 'browser'
-  browser: 'chrome' | 'safari'
-  title: string
-  url?: string
-  content?: string
-  timestamp?: number
-}
+import { ActiveWindowDetails } from '../../../../shared/types'
 
 interface Addon {
   startActiveWindowObserver: (callback: (jsonString: string) => void) => void
@@ -37,7 +27,13 @@ class NativeWindows {
     addon.startActiveWindowObserver((jsonString: string) => {
       try {
         if (jsonString) {
-          const details: ActiveWindowDetails = JSON.parse(jsonString)
+          const detailsJson = JSON.parse(jsonString)
+          // Ensure that the id field from the native module is mapped to windowId
+          const details: ActiveWindowDetails = {
+            ...detailsJson,
+            windowId: detailsJson.id
+          }
+          delete (details as any).id // remove original id if it exists to avoid confusion
           callback(details)
         } else {
           callback(null) // Should not happen if native code sends valid JSON or calls back appropriately for errors

@@ -15,6 +15,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 });
 
 // Import routers
+import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
 import { paymentsRouter } from './routers/payments';
 
@@ -25,6 +26,7 @@ export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/p
 export const appRouter = router({
   auth: authRouter,
   payments: paymentsRouter,
+  activeWindowEvents: activeWindowEventsRouter,
 });
 
 export type AppRouter = typeof appRouter;

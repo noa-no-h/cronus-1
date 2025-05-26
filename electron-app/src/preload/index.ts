@@ -1,6 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import type { ActiveWindowDetails } from '../native-modules/native-windows'
+import { ActiveWindowDetails } from 'shared'
 
 // Custom APIs for renderer
 const api = {
