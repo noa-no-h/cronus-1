@@ -1,5 +1,6 @@
 #import "activeWindowObserver.h"
 #include <iostream>
+#import <CoreGraphics/CoreGraphics.h>
 
 Napi::ThreadSafeFunction activeWindowChangedCallback;
 ActiveWindowObserver *windowObserver;
@@ -34,6 +35,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 @implementation ActiveWindowObserver {
     NSNumber *processId;
     AXObserverRef observer;
+    NSTimer *screenshotTimer;
+    NSData *lastScreenshotData;
 }
 
 - (void) dealloc
@@ -42,13 +45,16 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     [super dealloc];
 }
 
-- (id) init
-{
+- (id)init {
     self = [super init];
     if (!self) return nil;
-
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(receiveAppChangeNotification:) name:NSWorkspaceDidActivateApplicationNotification object:nil];
-
+    
+    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self 
+                                                         selector:@selector(receiveAppChangeNotification:) 
+                                                             name:NSWorkspaceDidActivateApplicationNotification 
+                                                           object:nil];
+    
+    [self startScreenshotTimer];  // Add this line
     return self;
 }
 
@@ -98,7 +104,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
     for (NSDictionary *window in windows) {
         NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
-        if ([windowLayer intValue] == 0) { // Filter for windows in the normal window layer
+        if ([windowLayer intValue] == 0) { 
             frontmostWindow = window;
             break;
         }
@@ -312,6 +318,122 @@ if (frontmostWindow) {
     return nil;
 }
 
+// screenshot related
+
+- (NSData*)captureWindowScreenshot:(CGWindowID)windowId {
+    // Get window bounds
+    CGRect windowBounds;
+    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, windowId);
+    if (windowList) {
+        NSArray *windows = (__bridge_transfer NSArray*)windowList;
+        for (NSDictionary *window in windows) {
+            CGRect bounds;
+            CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)window[(__bridge NSString*)kCGWindowBounds], &bounds);
+            windowBounds = bounds;
+
+            // adjust window bounds 
+            windowBounds.size.width *= 0.5;
+            windowBounds.size.height *= 0.5;
+
+            NSLog(@"Window bounds (scaled): %@", NSStringFromRect(NSRectFromCGRect(bounds)));
+
+            break;
+        }
+    }
+
+    // Create an image of the window
+    CGImageRef windowImage = CGWindowListCreateImage(
+        windowBounds,
+        kCGWindowListOptionIncludingWindow,
+        windowId,
+        kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
+    );
+    
+    if (!windowImage) {
+        NSLog(@"Failed to create window image");
+        return nil;
+    }
+    
+      // Convert to JPEG with increased compression
+    NSMutableData *imageData = [NSMutableData data];
+    CGImageDestinationRef destination = CGImageDestinationCreateWithData(
+        (__bridge CFMutableDataRef)imageData,
+        kUTTypeJPEG,
+        1,
+        NULL
+    );
+    
+    if (!destination) {
+        CGImageRelease(windowImage);
+        return nil;
+    }
+    
+    // Set compression quality 
+    NSDictionary *properties = @{
+        (__bridge NSString *)kCGImageDestinationLossyCompressionQuality: @0.5
+    };
+    
+    CGImageDestinationAddImage(destination, windowImage, (__bridge CFDictionaryRef)properties);
+    CGImageDestinationFinalize(destination);
+    
+    // Clean up
+    CFRelease(destination);
+    CGImageRelease(windowImage);
+    
+    return imageData;
+}
+
+- (void)startScreenshotTimer {
+    [self stopScreenshotTimer];
+    
+    // Take screenshot every 30 seconds
+    screenshotTimer = [NSTimer scheduledTimerWithTimeInterval:30.0
+                                                     target:self
+                                                   selector:@selector(takeScreenshot)
+                                                   userInfo:nil
+                                                    repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:screenshotTimer forMode:NSRunLoopCommonModes];
+    NSLog(@"Screenshot timer started");
+}
+
+- (void)stopScreenshotTimer {
+    [screenshotTimer invalidate];
+    screenshotTimer = nil;
+    NSLog(@"Screenshot timer stopped");
+}
+
+- (void)takeScreenshot {
+    NSDictionary *windowInfo = [self getActiveWindow];
+    if (!windowInfo) return;
+    
+    CGWindowID windowId = [[windowInfo objectForKey:@"id"] unsignedIntValue];
+    NSData *screenshotData = [self captureWindowScreenshot:windowId];
+    
+    if (!screenshotData) {
+        NSLog(@"Failed to capture screenshot");
+        return;
+    }
+    
+    // Add screenshot to window info
+    NSString *base64Screenshot = [screenshotData base64EncodedStringWithOptions:0];
+    NSMutableDictionary *updatedInfo = [windowInfo mutableCopy];
+    updatedInfo[@"screenshot"] = base64Screenshot;
+    updatedInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970]);
+    
+    // Send to JavaScript
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:updatedInfo options:0 error:&error];
+    if (!jsonData) {
+        NSLog(@"Error creating JSON data: %@", error);
+        return;
+    }
+    
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    std::string* result = new std::string([jsonString UTF8String]);
+    activeWindowChangedCallback.BlockingCall(result, napiCallback);
+    NSLog(@"Screenshot captured and sent");
+}
+
 - (void) removeWindowObserver
 {
     if (observer != Nil) {
@@ -321,11 +443,12 @@ if (frontmostWindow) {
     }
 }
 
-- (void) cleanUp
-{
+- (void)cleanUp {
+    [self stopScreenshotTimer];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
 }
+
 @end
 
 void initActiveWindowObserver(Napi::Env env, Napi::Function windowCallback) {
