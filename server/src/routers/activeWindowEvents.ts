@@ -15,6 +15,7 @@ const activeWindowEventInputSchema = z.object({
   url: z.string().optional().nullable(),
   content: z.string().optional().nullable(),
   timestamp: z.number(),
+  screenshotS3Url: z.string().optional().nullable(),
 });
 
 export const activeWindowEventsRouter = router({
