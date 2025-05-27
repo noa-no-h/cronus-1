@@ -19,8 +19,6 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
-    console.log('input in activeWindowEventsRouter', input);
-
     const eventToSave: ActiveWindowEvent = {
       ...input,
     };

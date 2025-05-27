@@ -387,7 +387,7 @@ if (frontmostWindow) {
     [self stopScreenshotTimer];
     
     // Take screenshot every 30 seconds
-    screenshotTimer = [NSTimer scheduledTimerWithTimeInterval:30.0
+    screenshotTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
                                                      target:self
                                                    selector:@selector(takeScreenshot)
                                                    userInfo:nil

@@ -1,6 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
 import { ActiveWindowDetails } from 'shared'
 import icon from '../../resources/icon.png?asset'
@@ -14,8 +15,8 @@ let mainWindow: BrowserWindow | null
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1000,
+    height: 1270,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -89,6 +90,28 @@ app.whenReady().then(() => {
     return {
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
       // Add other vars you want to expose from your .env file
+    }
+  })
+
+  // Add IPC handler for reading files
+  ipcMain.handle('read-file', async (_event, filePath: string) => {
+    try {
+      // const fs = await import('fs/promises') // fs is already imported globally in this file
+      const buffer = await fs.readFile(filePath) // No checksum calculation
+      return buffer // Return only the buffer (which will be an ArrayBuffer on the client)
+    } catch (error) {
+      console.error('Error reading file:', error)
+      throw error
+    }
+  })
+
+  // Add IPC handler for deleting files
+  ipcMain.handle('delete-file', async (_event, filePath: string) => {
+    try {
+      await fs.unlink(filePath)
+    } catch (error) {
+      console.error('Error deleting file via IPC:', error)
+      // It's okay if this fails, it's a cleanup step
     }
   })
 

@@ -14,7 +14,11 @@ const api = {
     }
   },
   // New function to get environment variables
-  getEnvVariables: () => ipcRenderer.invoke('get-env-vars')
+  getEnvVariables: () => ipcRenderer.invoke('get-env-vars'),
+  // Updated function to read files (no checksum)
+  readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
+  // Add function to delete files
+  deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

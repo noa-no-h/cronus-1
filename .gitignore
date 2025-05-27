@@ -36,11 +36,24 @@ lerna-debug.log
 my-app*
 /.changelog
 
+# environment variables
 *.env
 
 # Electron app specific
 electron-app/dist/
 electron-app/out/
+
 **/.eslintcache
 electron-app/src/native-modules/**/bin/
 electron-app/src/native-modules/**/build/
+
+# Server specific build artifacts
+server/dist/
+server/dist_tsc/
+
+# Shared package specific build artifacts
+shared/dist/
+shared/dist_tsc/
+
+# TypeScript build info files (can be in various locations)
+**/*.tsbuildinfo

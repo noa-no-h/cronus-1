@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { generateUploadUrl, getPublicUrl } from '../services/s3';
+import { generateUploadUrl, getPublicUrl } from '../services/s3-v2';
 import { publicProcedure, router } from '../trpc'; // Using publicProcedure for now
 
 export const s3Router = router({

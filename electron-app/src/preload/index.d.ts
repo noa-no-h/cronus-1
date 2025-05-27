@@ -21,6 +21,8 @@ declare global {
       // Add the new function's type signature here
       getEnvVariables: () => Promise<{ GOOGLE_CLIENT_ID?: string; [key: string]: any }>
       // Define other methods of 'api' if you have them
+      readFile: (filePath: string) => Promise<ArrayBuffer>
+      deleteFile: (filePath: string) => Promise<void>
     }
   }
 }

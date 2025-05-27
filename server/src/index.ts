@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config(); // This will load .env from the current directory (server/)
+
 import * as trpcExpress from '@trpc/server/adapters/express';
 import cors from 'cors';
 import express from 'express';

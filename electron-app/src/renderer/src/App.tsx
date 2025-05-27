@@ -10,9 +10,6 @@ import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 
-// GOOGLE_CLIENT_ID will now be fetched from main process
-console.log('App.tsx rendering -- TOP LEVEL') // ADD THIS
-
 function App(): React.JSX.Element {
   const [activeAppName, setActiveAppName] = useState<string | null>(null)
   const { user, isAuthenticated, isLoading: isAuthLoading, logout } = useAuth()
