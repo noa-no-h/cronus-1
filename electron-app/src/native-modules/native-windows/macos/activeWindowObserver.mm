@@ -122,7 +122,7 @@ if (frontmostWindow) {
             @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown",
             @"title": windowTitle ? windowTitle : @"",
             @"type": @"window",
-            @"timestamp": @([[NSDate date] timeIntervalSince1970])
+            @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
         } mutableCopy];
         
         // Check for browser windows
@@ -215,7 +215,7 @@ if (frontmostWindow) {
         @"url": basicComponents[0],
         @"title": basicComponents[1],
         @"type": @"chrome",
-        @"timestamp": @([[NSDate date] timeIntervalSince1970])
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
     } mutableCopy];
     
     // Try to get content with JavaScript if possible
@@ -424,7 +424,7 @@ if (frontmostWindow) {
     // Add screenshot path to window info
     NSMutableDictionary *updatedInfo = [windowInfo mutableCopy];
     updatedInfo[@"localScreenshotPath"] = filePath; // Send path instead of base64
-    updatedInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970]);
+    updatedInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
     
     // Send to JavaScript
     NSError *error;

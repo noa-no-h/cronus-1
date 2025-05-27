@@ -36,4 +36,32 @@ export const activeWindowEventsRouter = router({
       });
     }
   }),
+
+  getTodayEvents: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        // Get start and end of today in UTC
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+
+        const events = await ActiveWindowEventModel.find({
+          userId: input.userId,
+          timestamp: {
+            $gte: startOfDay.getTime(),
+            $lt: endOfDay.getTime(),
+          },
+        }).sort({ timestamp: 1 });
+
+        return events.map((event) => event.toObject() as ActiveWindowEvent);
+      } catch (error) {
+        console.error("Error fetching today's events:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: "Failed to fetch today's events",
+        });
+      }
+    }),
 });
