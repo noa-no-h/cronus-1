@@ -100,8 +100,8 @@ function App(): React.JSX.Element {
             {/* Current Application Display */}
             <CurrentApplicationDisplay appName={activeAppName} />
 
-            {/* Main content area */}
-            <div className="flex-1 overflow-hidden p-4">
+            {/* Main content area - no padding here since CalendarView handles its own layout */}
+            <div className="flex-1 overflow-hidden">
               <CalendarView />
             </div>
 
