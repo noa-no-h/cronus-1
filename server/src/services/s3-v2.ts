@@ -22,7 +22,7 @@ export const generateUploadUrl = async (userId: string, fileType: string = 'imag
   const params = {
     Bucket: BUCKET_NAME,
     Key: key,
-    Expires: 300, // 5 minutes
+    Expires: 3000,
     ContentType: fileType,
   };
 

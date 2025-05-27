@@ -2,9 +2,10 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { generateUploadUrl, getPublicUrl } from '../services/s3-v2';
 import { publicProcedure, router } from '../trpc'; // Using publicProcedure for now
+import { verifyToken } from './auth'; // Import verifyToken
 
 export const s3Router = router({
-  getUploadUrl: publicProcedure // Changed to publicProcedure
+  getUploadUrl: publicProcedure
     .input(
       z.object({
         fileType: z.string().optional().default('image/jpeg'),
@@ -15,26 +16,24 @@ export const s3Router = router({
       })
     )
     .mutation(async ({ input }: { input: { fileType: string; token: string } }) => {
-      // TODO: Secure this properly. The following is a placeholder and might not align with your actual auth.
-      // This is a simplified way to get userId, assuming your token verification logic is elsewhere
-      // and can provide a userId. Ideally, this comes from ctx.user.id with a protectedProcedure.
-      let userId = 'temp-user-id'; // Placeholder
+      let userId: string;
       try {
-        // Example: const decoded = verifyToken(input.token); userId = decoded.userId;
-        // For now, we need a placeholder or a way to extract it. This part is critical for security.
-        // Since we don't have the verifyToken function here, we'll throw if token implies a real user is needed
-        // but for the sake of generating a URL, we might proceed with a generic path or block.
-        // This needs to be replaced with your actual user identification from the token.
         if (!input.token) {
-          // Basic check, real validation needed
           throw new TRPCError({
             code: 'UNAUTHORIZED',
             message: 'Authentication token is required.',
           });
         }
-        // Simulate getting userId from token - REPLACE THIS WITH ACTUAL LOGIC
-        // userId = getUserIdFromToken(input.token);
+        const decodedToken = verifyToken(input.token);
+        userId = decodedToken.userId;
       } catch (error) {
+        // Assuming verifyToken throws an error with a 'code' property for TRPCError
+        if (error instanceof Error && 'code' in error && error.code === 'UNAUTHORIZED') {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Invalid or expired token.',
+          });
+        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Authentication error.',
@@ -42,7 +41,7 @@ export const s3Router = router({
       }
 
       if (!userId) {
-        // Ensure userId is set after token processing
+        // This case should ideally be caught by verifyToken throwing an error
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'User ID could not be determined from token.',
