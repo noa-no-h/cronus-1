@@ -331,10 +331,6 @@ if (frontmostWindow) {
             CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)window[(__bridge NSString*)kCGWindowBounds], &bounds);
             windowBounds = bounds;
 
-            // adjust window bounds 
-            windowBounds.size.width *= 0.5;
-            windowBounds.size.height *= 0.5;
-
             NSLog(@"Window bounds (scaled): %@", NSStringFromRect(NSRectFromCGRect(bounds)));
 
             break;
