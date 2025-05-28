@@ -12,6 +12,7 @@ import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 import './assets/custom-title-bar.css'
 import Spinner from './components/ui/Spinner'
+import TopActivityWidget from './components/TopActivityWidget'
 
 function App(): React.JSX.Element {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
@@ -106,6 +107,7 @@ function App(): React.JSX.Element {
             <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
               <DistractionCategorizationResult activeWindow={activeWindow} />
               <GoalInputForm />
+              <TopActivityWidget />
             </div>
 
             {/* Settings Modal */}
