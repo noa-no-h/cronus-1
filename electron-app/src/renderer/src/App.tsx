@@ -10,6 +10,8 @@ import GoalInputForm from './components/ui/GoalInputForm'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
+import './assets/custom-title-bar.css'
+import Spinner from './components/ui/Spinner'
 
 function App(): React.JSX.Element {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
@@ -58,7 +60,10 @@ function App(): React.JSX.Element {
   if (isAuthLoading || isLoadingConfig) {
     return (
       <PageContainer>
-        <div>Loading app configuration or authenticating...</div>
+        <div className="flex flex-col items-center justify-center h-full">
+          <Spinner />
+          <div className="mt-4 text-gray-500">Loading app configuration or authenticating...</div>
+        </div>
       </PageContainer>
     )
   }
@@ -93,6 +98,7 @@ function App(): React.JSX.Element {
         ) : (
           <div className="h-full flex flex-col overflow-hidden">
             {/* App Header */}
+            <div className="custom-title-bar"></div>
             <AppHeader onSettingsClick={() => setIsSettingsOpen(true)} />
 
             {/* Current Application Display */}

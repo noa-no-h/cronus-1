@@ -18,6 +18,8 @@ function createWindow(): void {
     width: 1000,
     height: 1270,
     show: false,
+    frame: false,
+    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
