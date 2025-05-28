@@ -12,7 +12,6 @@ import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 
 function App(): React.JSX.Element {
-  const [activeAppName, setActiveAppName] = useState<string | null>(null)
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const currentUserId = user?.id
   const [googleClientId, setGoogleClientId] = useState<string | null>(null)
@@ -26,7 +25,6 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const cleanup = window.api.onActiveWindowChanged((details) => {
       setActiveWindow(details)
-      setActiveAppName(details.ownerName)
 
       if (details && isAuthenticated && currentUserId) {
         uploadActiveWindowEvent(currentUserId, details, eventCreationMutation.mutateAsync)
@@ -100,7 +98,7 @@ function App(): React.JSX.Element {
             {/* Current Application Display */}
 
             <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
-              <DistractionCategorizationResult activeAppName={activeAppName || ''} />
+              <DistractionCategorizationResult activeWindow={activeWindow} />
               <GoalInputForm />
             </div>
 

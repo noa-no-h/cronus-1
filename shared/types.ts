@@ -7,6 +7,14 @@ export interface User {
   stripeCustomerId?: string;
   isWaitlisted?: boolean;
   tokenVersion?: number;
+  electronAppSettings?: {
+    calendarZoomLevel?: number;
+  };
+  userGoals?: {
+    weeklyGoal: string;
+    dailyGoal: string;
+    lifeGoal: string;
+  };
 }
 
 export interface ActiveWindowDetails {
