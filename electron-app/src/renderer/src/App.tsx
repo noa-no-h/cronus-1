@@ -2,11 +2,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import { useEffect, useState } from 'react'
 import { ActiveWindowDetails } from 'shared'
 import { AppHeader } from './components/AppHeader'
-import { CalendarView } from './components/CalendarView'
-import { CurrentApplicationDisplay } from './components/CurrentApplicationDisplay'
 import { Settings } from './components/Settings'
 import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
+import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
+import GoalInputForm from './components/ui/GoalInputForm'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
@@ -93,16 +93,15 @@ function App(): React.JSX.Element {
         {!isAuthenticated ? (
           <LoginForm />
         ) : (
-          <div className="h-full flex w-full flex-col">
+          <div className="h-full flex flex-col overflow-hidden">
             {/* App Header */}
             <AppHeader onSettingsClick={() => setIsSettingsOpen(true)} />
 
             {/* Current Application Display */}
-            <CurrentApplicationDisplay appName={activeAppName} />
 
-            {/* Main content area - no padding here since CalendarView handles its own layout */}
-            <div className="flex-1 overflow-hidden">
-              <CalendarView />
+            <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
+              <DistractionCategorizationResult activeAppName={activeAppName || ''} />
+              <GoalInputForm />
             </div>
 
             {/* Settings Modal */}

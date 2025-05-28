@@ -48,6 +48,20 @@ const userSchema = new mongoose.Schema({
       max: 120,
     },
   },
+  userGoals: {
+    weeklyGoal: {
+      type: String,
+      default: '',
+    },
+    dailyGoal: {
+      type: String,
+      default: '',
+    },
+    lifeGoal: {
+      type: String,
+      default: '',
+    },
+  },
 });
 
 export const User = mongoose.model('User', userSchema);
