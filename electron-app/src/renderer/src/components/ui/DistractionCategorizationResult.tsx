@@ -1,6 +1,7 @@
 import { ActiveWindowDetails } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
+import { useEffect } from 'react'
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -8,7 +9,7 @@ interface DistractionCategorizationResultProps {
 
 const DistractionCategorizationResult = ({
   activeWindow
-}: DistractionCategorizationResultProps) => {
+}: DistractionCategorizationResultProps): JSX.Element => {
   const { token } = useAuth()
 
   const queryActiveWindowDetails = activeWindow
@@ -34,6 +35,42 @@ const DistractionCategorizationResult = ({
       refetchInterval: 5000
     }
   )
+
+  const getStatusText = (): string => {
+    if (!distractionResult) return 'Checking...'
+    switch (distractionResult.isDistraction) {
+      case 'no':
+        return 'This seems productive. Keep it up!'
+      case 'yes':
+        return 'This might be distracting you.'
+      case 'maybe':
+      default:
+        return 'Hmm, not sure if this aligns with your goals.'
+    }
+  }
+
+  useEffect(() => {
+    if (distractionResult && activeWindow && distractionResult.isDistraction === 'yes') {
+      const appName = activeWindow.ownerName || 'No active application'
+      const statusText = getStatusText()
+      const motivationalText = distractionResult.motivationalText || ''
+
+      const notificationTitle = `Activity Alert: ${appName}`
+      let notificationBody = `${statusText}`
+      if (motivationalText) {
+        notificationBody += `\n${motivationalText}`
+      }
+
+      // Ensure we are in a context where Notification API is available (renderer process)
+      if (window.Notification) {
+        new window.Notification(notificationTitle, { body: notificationBody }).onclick = () => {
+          console.log('Notification clicked')
+          // We could add functionality here, e.g., focus the app window
+          // window.api.focusApp(); // Example: if you add such an IPC call
+        }
+      }
+    }
+  }, [distractionResult, activeWindow])
 
   if (!activeWindow) {
     return null
@@ -68,7 +105,7 @@ const DistractionCategorizationResult = ({
     )
   }
 
-  const getStatusColor = () => {
+  const getStatusColor = (): string => {
     if (!distractionResult) return 'text-gray-500'
     switch (distractionResult.isDistraction) {
       case 'no':
@@ -78,19 +115,6 @@ const DistractionCategorizationResult = ({
       case 'maybe':
       default:
         return 'text-yellow-500'
-    }
-  }
-
-  const getStatusText = () => {
-    if (!distractionResult) return 'Checking...'
-    switch (distractionResult.isDistraction) {
-      case 'no':
-        return 'This seems productive. Keep it up!'
-      case 'yes':
-        return 'This might be distracting you.'
-      case 'maybe':
-      default:
-        return 'Hmm, not sure if this aligns with your goals.'
     }
   }
 
