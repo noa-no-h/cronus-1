@@ -4,10 +4,27 @@ import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 
 export function CalendarView(): React.JSX.Element {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [events, setEvents] = useState<ActiveWindowEvent[]>([])
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [hourHeight, setHourHeight] = useState(60) // Default hour height
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // Fetch user settings
+  const { data: userSettings } = trpc.user.getElectronAppSettings.useQuery(
+    { token: token || '' },
+    { enabled: !!token }
+  )
+
+  // Update hour height when settings are loaded
+  useEffect(() => {
+    if (userSettings?.calendarZoomLevel) {
+      setHourHeight(userSettings.calendarZoomLevel)
+    }
+  }, [userSettings])
+
+  // Mutation for updating zoom level
+  const updateZoomMutation = trpc.user.updateElectronAppSettings.useMutation()
 
   const {
     data: todayEvents,
@@ -39,7 +56,6 @@ export function CalendarView(): React.JSX.Element {
       const currentHour = new Date().getHours()
       // Scroll to current hour minus 2 hours for context, but not less than 0
       const targetHour = Math.max(0, currentHour - 2)
-      const hourHeight = 60 // min-h-[60px] from the hour rows
       const scrollPosition = targetHour * hourHeight
 
       setTimeout(() => {
@@ -49,7 +65,25 @@ export function CalendarView(): React.JSX.Element {
         })
       }, 100) // Small delay to ensure DOM is ready
     }
-  }, [events])
+  }, [events, hourHeight])
+
+  // Handle zoom in/out
+  const handleZoom = async (delta: number) => {
+    const newZoom = Math.max(40, Math.min(120, hourHeight + delta))
+    setHourHeight(newZoom)
+
+    // Save to server
+    if (token) {
+      try {
+        await updateZoomMutation.mutateAsync({
+          token,
+          calendarZoomLevel: newZoom
+        })
+      } catch (error) {
+        console.error('Failed to save zoom level:', error)
+      }
+    }
+  }
 
   // Generate hours for the day (0-23)
   const hours = Array.from({ length: 24 }, (_, i) => i)
@@ -108,16 +142,48 @@ export function CalendarView(): React.JSX.Element {
     <div className="h-full flex flex-col">
       {/* Header - not scrollable */}
       <div className="flex-shrink-0 bg-gray-900 border-b border-gray-700 p-4">
-        <h2 className="text-xl font-semibold text-white">Today's Activity</h2>
-        <p className="text-sm text-gray-400">
-          {currentTime.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </p>
-        <p className="text-xs text-gray-500 mt-1">{events.length} events tracked today</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-white">Today's Activity</h2>
+            <p className="text-sm text-gray-400">
+              {currentTime.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">{events.length} events tracked today</p>
+          </div>
+
+          {/* Zoom controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleZoom(-10)}
+              className="p-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+              title="Zoom out"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+              </svg>
+            </button>
+            <span className="text-xs text-gray-400 min-w-[40px] text-center">{hourHeight}px</span>
+            <button
+              onClick={() => handleZoom(10)}
+              className="p-1.5 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+              title="Zoom in"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Scrollable calendar content */}
@@ -137,7 +203,11 @@ export function CalendarView(): React.JSX.Element {
               const currentMinutes = currentTime.getMinutes()
 
               return (
-                <div key={hour} className="flex border-b border-gray-800 min-h-[60px] relative">
+                <div
+                  key={hour}
+                  className="flex border-b border-gray-800 relative"
+                  style={{ minHeight: `${hourHeight}px` }}
+                >
                   {/* Time Label */}
                   <div className="w-20 flex-shrink-0 text-right pr-4 py-2 text-sm text-gray-500">
                     {formatHour(hour)}

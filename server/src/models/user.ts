@@ -40,6 +40,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  electronAppSettings: {
+    calendarZoomLevel: {
+      type: Number,
+      default: 60, // Default hour height in pixels
+      min: 40,
+      max: 120,
+    },
+  },
 });
 
 export const User = mongoose.model('User', userSchema);
