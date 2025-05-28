@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ActiveWindowEvent } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
+import { getFaviconURL } from '../utils/favicon'
 import { trpc } from '../utils/trpc'
 
 export function CalendarView(): React.JSX.Element {
@@ -240,7 +241,7 @@ export function CalendarView(): React.JSX.Element {
                       return (
                         <div
                           key={`${event.timestamp}-${idx}`}
-                          className={`absolute left-0 right-0 mx-1 px-2 py-1 rounded text-white text-sm ${getEventColor(event)} opacity-90 hover:opacity-100 transition-opacity cursor-pointer`}
+                          className={`absolute left-0 right-0 mx-1 px-2 py-1 rounded text-white text-sm ${getEventColor(event)} opacity-90 hover:opacity-100 transition-opacity cursor-pointer opacity-20 hover:opacity-100`}
                           style={{
                             top: `${topOffset}%`,
                             minHeight: '24px'
@@ -251,7 +252,20 @@ export function CalendarView(): React.JSX.Element {
                             hour12: true
                           })}`}
                         >
-                          <div className="font-medium truncate">{event.ownerName}</div>
+                          <div className="font-medium truncate flex items-center gap-1">
+                            {/* Favicon for browser events */}
+                            {event.type === 'browser' && event.url && (
+                              <img
+                                src={getFaviconURL(event.url)}
+                                alt=""
+                                className="inline-block w-4 h-4 mr-1 align-middle rounded"
+                                onError={(e) => {
+                                  ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            )}
+                            {event.ownerName}
+                          </div>
                           {event.title && (
                             <div className="text-xs opacity-80 truncate">{event.title}</div>
                           )}
