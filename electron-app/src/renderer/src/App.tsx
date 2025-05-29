@@ -13,6 +13,7 @@ import { trpc } from './utils/trpc'
 import './assets/custom-title-bar.css'
 import Spinner from './components/ui/Spinner'
 import TopActivityWidget from './components/TopActivityWidget'
+import { CalendarView } from './components/CalendarView'
 
 function App(): React.JSX.Element {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
@@ -108,6 +109,7 @@ function App(): React.JSX.Element {
               <DistractionCategorizationResult activeWindow={activeWindow} />
               <GoalInputForm />
               <TopActivityWidget />
+              <CalendarView />
             </div>
 
             {/* Settings Modal */}
