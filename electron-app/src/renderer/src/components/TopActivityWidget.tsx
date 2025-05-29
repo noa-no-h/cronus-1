@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import Spinner from './ui/Spinner'
@@ -50,7 +50,15 @@ const TopActivityWidget: React.FC = () => {
       return
     }
 
-    const sortedEvents = [...todayRawEvents].sort((a, b) => a.timestamp - b.timestamp)
+    const validEvents = todayRawEvents.filter((event) => typeof event.timestamp === 'number')
+
+    if (validEvents.length === 0) {
+      setTopApps([])
+      setTotalTrackedTimeMs(0)
+      return
+    }
+
+    const sortedEvents = [...validEvents].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
 
     const appDurations: Record<string, number> = {}
     let currentTotalTrackedMs = 0
@@ -58,11 +66,13 @@ const TopActivityWidget: React.FC = () => {
     for (let i = 0; i < sortedEvents.length; i++) {
       const currentEvent = sortedEvents[i]
       let durationMs = 0
+      const currentTimestamp = currentEvent.timestamp || 0
 
       if (i < sortedEvents.length - 1) {
-        durationMs = sortedEvents[i + 1].timestamp - currentEvent.timestamp
+        const nextTimestamp = sortedEvents[i + 1].timestamp || 0
+        durationMs = nextTimestamp - currentTimestamp
       } else {
-        durationMs = Math.min(Date.now() - currentEvent.timestamp, 15 * 60 * 1000)
+        durationMs = Math.min(Date.now() - currentTimestamp, 15 * 60 * 1000)
       }
       durationMs = Math.max(0, durationMs)
       durationMs = Math.min(durationMs, 15 * 60 * 1000)
@@ -124,15 +134,15 @@ const TopActivityWidget: React.FC = () => {
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
-                {index + 1}. {app.name}
+                {app.name}
               </span>
-              <span className="text-sm font-semibold text-gray-300">
+              <span className="text-sm font-normal text-gray-300">
                 {formatDuration(app.durationMs)}
               </span>
             </div>
             <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 rounded-full"
+                className="h-full bg-gradient-to-r from-blue-500  to-purple-500 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${app.percentage || 0}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.1 + 0.2 }}

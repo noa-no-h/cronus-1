@@ -38,7 +38,10 @@ const getDistractionAnalysis = async (
   const { weeklyGoal, dailyGoal, lifeGoal } = userGoals;
 
   if (isVeryLikelyProductive(activeWindowDetails)) {
-    console.log('Very likely productive, skipping analysis');
+    console.log(
+      'Very likely productive, skipping analysis',
+      activeWindowDetails.url || activeWindowDetails.title
+    );
 
     return {
       isDistraction: 'no',
