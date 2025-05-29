@@ -1,19 +1,18 @@
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { useEffect, useState } from 'react'
 import { ActiveWindowDetails } from 'shared'
+import './assets/custom-title-bar.css'
 import { AppHeader } from './components/AppHeader'
 import { Settings } from './components/Settings'
+import TopActivityWidget from './components/TopActivityWidget'
 import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
 import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
 import GoalInputForm from './components/ui/GoalInputForm'
+import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
-import './assets/custom-title-bar.css'
-import Spinner from './components/ui/Spinner'
-import TopActivityWidget from './components/TopActivityWidget'
-import { CalendarView } from './components/CalendarView'
 
 function App(): React.JSX.Element {
   const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
@@ -109,7 +108,6 @@ function App(): React.JSX.Element {
               <DistractionCategorizationResult activeWindow={activeWindow} />
               <GoalInputForm />
               <TopActivityWidget />
-              <CalendarView />
             </div>
 
             {/* Settings Modal */}

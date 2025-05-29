@@ -1,5 +1,6 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
 import { ActiveWindowDetails } from 'shared'
+import { isVeryLikelyProductive } from 'shared/distractionRules'
 import type { AppRouter } from '../../../../../server/src'
 import { deleteLocalFile, readFileFromMain, uploadToS3 } from './s3Uploader'
 
@@ -48,41 +49,43 @@ export const uploadActiveWindowEvent = async (
 
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {
+    ...windowDetails,
     userId,
-    windowId: windowDetails.windowId,
-    ownerName: windowDetails.ownerName,
-    type: windowDetails.type,
-    browser: windowDetails.browser,
-    title: windowDetails.title,
-    url: windowDetails.url,
-    content: windowDetails.content,
-    timestamp: windowDetails.timestamp || Date.now()
+    timestamp: windowDetails.timestamp || Date.now(),
+    screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
   }
 
   try {
-    // If we have a local screenshot, upload it to S3 first
-    if (windowDetails.localScreenshotPath) {
-      try {
-        // Get pre-signed URL from server
-        const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
-          fileType: 'image/jpeg',
-          token: localStorage.getItem('accessToken') || ''
-        })
-
-        // Read the local file from the main process (no checksum)
-        const fileBuffer = await readFileFromMain(windowDetails.localScreenshotPath)
-
-        // Upload to S3 with content type
-        await uploadToS3(uploadUrl, fileBuffer, 'image/jpeg')
-
-        // Add the S3 URL to the event data
-        eventData.screenshotS3Url = publicUrl
-
-        // Clean up the local file
+    // dont burden s3 with too many image if 99% likelyhood of it being productive
+    if (isVeryLikelyProductive(windowDetails)) {
+      if (windowDetails.localScreenshotPath) {
         await deleteLocalFile(windowDetails.localScreenshotPath)
-      } catch (error) {
-        console.error('Error handling screenshot upload:', error)
-        // Continue with event upload even if screenshot upload fails
+      }
+    } else {
+      // If we have a local screenshot, upload it to S3 first
+      if (windowDetails.localScreenshotPath) {
+        try {
+          // Get pre-signed URL from server
+          const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
+            fileType: 'image/jpeg',
+            token: localStorage.getItem('accessToken') || ''
+          })
+
+          // Read the local file from the main process (no checksum)
+          const fileBuffer = await readFileFromMain(windowDetails.localScreenshotPath)
+
+          // Upload to S3 with content type
+          await uploadToS3(uploadUrl, fileBuffer, 'image/jpeg')
+
+          // Add the S3 URL to the event data
+          eventData.screenshotS3Url = publicUrl
+
+          // Clean up the local file
+          await deleteLocalFile(windowDetails.localScreenshotPath)
+        } catch (error) {
+          console.error('Error handling screenshot upload:', error)
+          // Continue with event upload even if screenshot upload fails
+        }
       }
     }
 

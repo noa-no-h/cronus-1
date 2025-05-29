@@ -1,6 +1,7 @@
 import { ActiveWindowDetails } from '@shared/types';
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
+import { isVeryLikelyProductive } from 'shared/distractionRules';
 import { z } from 'zod';
 
 // Initialize OpenAI client
@@ -19,7 +20,7 @@ export type DistractionStatus = z.infer<typeof DistractionAnalysisSchema>['distr
 // potentially empty if not a distraction or if the LLM deems it so.
 export type DistractionDeterminationResult = {
   isDistraction: DistractionStatus;
-  motivationalText: string;
+  motivationalText?: string;
 };
 
 type UserGoals = {
@@ -35,6 +36,14 @@ const getDistractionAnalysis = async (
 ): Promise<DistractionDeterminationResult> => {
   const { ownerName, title, url, content, type, browser } = activeWindowDetails;
   const { weeklyGoal, dailyGoal, lifeGoal } = userGoals;
+
+  if (isVeryLikelyProductive(activeWindowDetails)) {
+    console.log('Very likely productive, skipping analysis');
+
+    return {
+      isDistraction: 'no',
+    };
+  }
 
   // Truncate URL to keep prompt manageable
   const MAX_URL_LENGTH = 150;

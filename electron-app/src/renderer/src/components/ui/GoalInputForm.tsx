@@ -65,7 +65,7 @@ const GoalInputForm = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-800 rounded-lg shadow-sm">
+      <div className="p-4 bg-gray-800 rounded-lg shadow-sm">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
@@ -80,7 +80,7 @@ const GoalInputForm = () => {
 
   return (
     <div
-      className={`p-6 bg-gray-800 rounded-lg shadow-sm${!isEditing ? ' cursor-pointer' : ''}`}
+      className={`p-4 bg-gray-800 rounded-lg shadow-sm${!isEditing ? ' cursor-pointer' : ''}`}
       onClick={() => {
         if (!isEditing) setIsEditing(true)
       }}
@@ -88,8 +88,8 @@ const GoalInputForm = () => {
       role="button"
       aria-label={!isEditing ? 'Click to edit your goals' : undefined}
     >
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-white">Your Goals</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-md font-semibold text-gray-100 mb-3">Your Goals</h2>
       </div>
 
       <div className="space-y-4">
