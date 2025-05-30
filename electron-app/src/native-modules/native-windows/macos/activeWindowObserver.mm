@@ -115,6 +115,11 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
         NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
         CGWindowID windowId = [windowNumber unsignedIntValue];
+
+        // filter out specific apps 
+        if ([self shouldExcludeApp:windowOwnerName withTitle:windowTitle]) {
+            return nil;
+        }
         
         // Create base window info
         NSMutableDictionary *windowInfo = [@{
@@ -832,6 +837,28 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSLog(@"📊 DEFAULT CHARACTER COUNT: %lu characters", (unsigned long)defaultMessage.length);
     NSLog(@"📋 DEFAULT CONTENT: '%@'", defaultMessage);
     return defaultMessage;
+}
+
+- (BOOL)shouldExcludeApp:(NSString*)ownerName withTitle:(NSString*)title {
+    if (!ownerName) return NO;
+    
+    // For now, only exclude Electron apps (our productivity tracker)
+    // but can also include other app names for example when we deploy this
+    if ([ownerName isEqualToString:@"Electron"]) {
+        // Get current process ID to compare
+        int currentAppPid = [NSProcessInfo processInfo].processIdentifier;
+        
+        // Check if this Electron window belongs to our current process
+        if (processId && processId.intValue == currentAppPid) {
+            NSLog(@"🚫 EXCLUDING CURRENT ELECTRON APP");
+            return YES;
+        }
+        
+        // If it's a different Electron app, allow it to be tracked
+        NSLog(@"✅ ALLOWING OTHER ELECTRON APP: %@ (different process)", title ?: @"Unknown");
+    }
+    
+    return NO;
 }
 
 @end
