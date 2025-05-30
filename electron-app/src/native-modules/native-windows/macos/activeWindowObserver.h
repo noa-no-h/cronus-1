@@ -14,5 +14,11 @@ void stopActiveWindowObserver(Napi::Env env);
 - (void) removeWindowObserver;
 - (void) receiveAppChangeNotification:(NSNotification *) notification;
 - (NSDictionary*)getActiveWindow;
-
+- (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId;
+- (NSString*)getGenericAccessibilityText:(CGWindowID)windowId;
+- (NSString*)getCodeEditorText:(CGWindowID)windowId;
+- (NSString*)getTerminalText:(CGWindowID)windowId;
+- (NSString*)getMessagingAppText:(CGWindowID)windowId;
+- (NSString*)getTextEditorContent:(CGWindowID)windowId;
+- (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId;
 @end

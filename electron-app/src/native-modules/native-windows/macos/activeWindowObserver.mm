@@ -54,7 +54,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                                                              name:NSWorkspaceDidActivateApplicationNotification 
                                                            object:nil];
     
-    [self startScreenshotTimer];  // Add this line
+    // [self startScreenshotTimer];  // comment out for only text based content handling 
     return self;
 }
 
@@ -110,7 +110,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
     }
 
-if (frontmostWindow) {
+    if (frontmostWindow) {
         NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
         NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
         NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
@@ -124,6 +124,11 @@ if (frontmostWindow) {
             @"type": @"window",
             @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
         } mutableCopy];
+
+        NSLog(@"🔍 ACTIVE WINDOW CHANGED:");
+        NSLog(@"   Owner: %@", windowOwnerName);
+        NSLog(@"   Title: %@", windowTitle);
+        NSLog(@"   Type: %@", windowInfo[@"type"]);
         
         // Check for browser windows
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
@@ -140,6 +145,16 @@ if (frontmostWindow) {
                 windowInfo[@"type"] = @"browser";
                 windowInfo[@"browser"] = @"safari";
             }
+        } else {
+            NSLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
+            NSString *extractedText = [self getAppTextContent:windowOwnerName windowId:windowId];
+        if (extractedText && extractedText.length > 0) {
+            windowInfo[@"content"] = extractedText;
+            NSLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
+            NSLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+        } else {
+            NSLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+        }
         }
         
         return windowInfo;
@@ -242,6 +257,11 @@ if (frontmostWindow) {
                 NSLog(@"JavaScript is disabled in Chrome. Please enable it in View > Developer > Allow JavaScript from Apple Events");
             } else {
                 tabInfo[@"content"] = jsInfo;
+                NSLog(@"🎯 CHROME CONTENT CAPTURED:");
+                NSLog(@"   App: %@", tabInfo[@"url"]);
+                NSLog(@"   Title: %@", tabInfo[@"title"]);
+                NSLog(@"   Content Length: %lu characters", (unsigned long)[jsInfo length]);
+                NSLog(@"   Content Preview (first 200 chars): %@", [jsInfo length] > 200 ? [jsInfo substringToIndex:200] : jsInfo);
             }
         }
     }
@@ -301,6 +321,11 @@ if (frontmostWindow) {
                         } else {
                             tabInfo[@"content"] = content;
                             NSLog(@"Successfully got Safari content, length: %lu", (unsigned long)[content length]);
+                            NSLog(@"🎯 SAFARI CONTENT CAPTURED:");
+                            NSLog(@"   URL: %@", tabInfo[@"url"]);
+                            NSLog(@"   Title: %@", tabInfo[@"title"]);
+                            NSLog(@"   Content Length: %lu characters", (unsigned long)[content length]);
+                            NSLog(@"   Content Preview (first 200 chars): %@", [content length] > 200 ? [content substringToIndex:200] : content);
                         }
                     }
                 }
@@ -453,6 +478,360 @@ if (frontmostWindow) {
     [self stopScreenshotTimer];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
+}
+
+- (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId {
+    NSLog(@"🔍 Attempting to extract text from: %@", ownerName);
+    
+    // Different strategies for different app types
+    if ([ownerName containsString:@"Code"] || [ownerName containsString:@"Cursor"] || [ownerName containsString:@"Xcode"]) {
+        return [self getCodeEditorText:windowId];
+    } else if ([ownerName containsString:@"Terminal"] || [ownerName containsString:@"iTerm"]) {
+        return [self getTerminalText:windowId];
+    } else if ([ownerName containsString:@"Mail"] || [ownerName containsString:@"Slack"] || [ownerName containsString:@"Discord"]) {
+        return [self getMessagingAppText:windowId];
+    } else if ([ownerName containsString:@"TextEdit"] || [ownerName containsString:@"Notes"]) {
+        return [self getTextEditorContent:windowId];
+    }
+    
+    // Generic accessibility text extraction
+    return [self getGenericAccessibilityText:windowId];
+}
+
+- (NSString*)getGenericAccessibilityText:(CGWindowID)windowId {
+    @try {
+        // Get the accessibility element for the window
+        AXUIElementRef systemElement = AXUIElementCreateSystemWide();
+        CFArrayRef windowList;
+        AXUIElementCopyAttributeValues(systemElement, kAXWindowsAttribute, 0, 100, &windowList);
+        
+        if (windowList) {
+            NSArray *windows = (__bridge NSArray *)windowList;
+            
+            for (id windowElement in windows) {
+                AXUIElementRef window = (__bridge AXUIElementRef)windowElement;
+                
+                // Try to get text content from the window
+                CFStringRef textContent;
+                AXError result = AXUIElementCopyAttributeValue(window, kAXValueAttribute, (CFTypeRef*)&textContent);
+                
+                if (result == kAXErrorSuccess && textContent) {
+                    NSString *text = (__bridge NSString *)textContent;
+                    CFRelease(textContent);
+                    CFRelease(windowList);
+                    CFRelease(systemElement);
+                    
+                    NSLog(@"✅ Generic accessibility text extracted: %lu chars", (unsigned long)[text length]);
+                    return text;
+                }
+                
+                // Try alternative: get focused element's text
+                AXUIElementRef focusedElement;
+                result = AXUIElementCopyAttributeValue(window, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
+                
+                if (result == kAXErrorSuccess && focusedElement) {
+                    result = AXUIElementCopyAttributeValue(focusedElement, kAXValueAttribute, (CFTypeRef*)&textContent);
+                    
+                    if (result == kAXErrorSuccess && textContent) {
+                        NSString *text = (__bridge NSString *)textContent;
+                        CFRelease(textContent);
+                        CFRelease(focusedElement);
+                        CFRelease(windowList);
+                        CFRelease(systemElement);
+                        
+                        NSLog(@"✅ Focused element text extracted: %lu chars", (unsigned long)[text length]);
+                        return text;
+                    }
+                    CFRelease(focusedElement);
+                }
+            }
+            CFRelease(windowList);
+        }
+        CFRelease(systemElement);
+    } @catch (NSException *exception) {
+        NSLog(@"❌ Error extracting accessibility text: %@", exception.reason);
+    }
+    
+    return nil;
+}
+
+// Add the missing method implementations:
+- (NSString*)getCodeEditorText:(CGWindowID)windowId {
+    NSLog(@"📝 Trying specialized code editor extraction...");
+    
+    // Check accessibility permissions first
+    BOOL accessibilityEnabled = AXIsProcessTrusted();
+    NSLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
+    
+    if (!accessibilityEnabled) {
+        NSLog(@"❌ Need to enable accessibility permissions:");
+        NSLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
+        NSLog(@"   Add this Electron app to the list");
+        return [self getCodeEditorFallback:windowId];
+    }
+    
+    NSString *accessibilityText = [self getCodeEditorAccessibilityText:windowId];
+    if (accessibilityText && accessibilityText.length > 0) {
+        return accessibilityText;
+    }
+    
+    return [self getCodeEditorFallback:windowId];
+}
+
+- (NSString*)getTerminalText:(CGWindowID)windowId {
+    NSLog(@"⌨️ Trying to extract terminal text...");
+    // For now, use generic accessibility - can be enhanced later
+    return [self getGenericAccessibilityText:windowId];
+}
+
+- (NSString*)getMessagingAppText:(CGWindowID)windowId {
+    NSLog(@"💬 Trying to extract messaging app text...");
+    // For now, use generic accessibility - can be enhanced later
+    return [self getGenericAccessibilityText:windowId];
+}
+
+- (NSString*)getTextEditorContent:(CGWindowID)windowId {
+    NSLog(@"📄 Trying to extract text editor content...");
+    
+    // Get the PID for this window  
+    pid_t windowPid = 0;
+    NSString *appName = @"";
+    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, windowId);
+    
+    if (windowList) {
+        NSArray *windows = (__bridge_transfer NSArray*)windowList;
+        
+        for (NSDictionary *window in windows) {
+            NSNumber *pid = window[(__bridge NSString*)kCGWindowOwnerPID];
+            NSString *owner = window[(__bridge NSString*)kCGWindowOwnerName];
+            
+            if (pid && ([owner containsString:@"TextEdit"] || [owner isEqualToString:@"Notes"])) {
+                windowPid = [pid intValue];
+                appName = owner;
+                NSLog(@"✅ Found text editor: %@ with PID: %d", owner, windowPid);
+                break;
+            }
+        }
+    }
+    
+    if (windowPid == 0) {
+        NSLog(@"❌ Could not find text editor PID");
+        return [self getGenericAccessibilityText:windowId];
+    }
+    
+    @try {
+        AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
+        if (!appElement) {
+            NSLog(@"❌ Could not create accessibility element for %@", appName);
+            return [self getGenericAccessibilityText:windowId];
+        }
+        
+        // Try to get focused element
+        AXUIElementRef focusedElement = NULL;
+        AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
+        
+        NSLog(@"🎯 %@ focus result: %d", appName, focusResult);
+        
+        NSString *result = nil;
+        
+        if (focusResult == kAXErrorSuccess && focusedElement) {
+            CFStringRef textContent = NULL;
+            AXError textResult = AXUIElementCopyAttributeValue(focusedElement, kAXValueAttribute, (CFTypeRef*)&textContent);
+            
+            if (textResult == kAXErrorSuccess && textContent) {
+                NSString *text = (__bridge NSString*)textContent;
+                NSLog(@"✅ %@ SUCCESS! Extracted %lu characters", appName, (unsigned long)text.length);
+                NSLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)text.length);
+                NSLog(@"📋 CONTENT PREVIEW: '%@'", [text length] > 200 ? [text substringToIndex:200] : text);
+                
+                // Create a copy to return (important for memory management)
+                result = [NSString stringWithString:text];
+                
+                // Clean up
+                CFRelease(textContent);
+            }
+            CFRelease(focusedElement);
+        }
+        
+        // Always release the app element
+        CFRelease(appElement);
+        
+        if (result) {
+            return result;
+        }
+        
+        NSLog(@"❌ No accessible text found in %@", appName);
+        
+    } @catch (NSException *exception) {
+        NSLog(@"💥 Exception in %@ accessibility: %@", appName, exception.reason);
+    }
+    
+    return [self getGenericAccessibilityText:windowId];
+}
+
+- (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
+    NSLog(@"🔍 Starting detailed Cursor accessibility extraction...");
+    
+    @try {
+        // Get the PID for this window
+        pid_t windowPid = 0;
+        CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, windowId);
+        
+        if (windowList) {
+            NSArray *windows = (__bridge_transfer NSArray*)windowList;
+            NSLog(@"🔍 Found %lu windows in list", (unsigned long)windows.count);
+            
+            for (NSDictionary *window in windows) {
+                NSNumber *pid = window[(__bridge NSString*)kCGWindowOwnerPID];
+                NSString *owner = window[(__bridge NSString*)kCGWindowOwnerName];
+                NSLog(@"   Window: %@ (PID: %@)", owner, pid);
+                
+                if (pid && [owner isEqualToString:@"Cursor"]) {
+                    windowPid = [pid intValue];
+                    NSLog(@"✅ Found Cursor window with PID: %d", windowPid);
+                    break;
+                }
+            }
+        }
+        
+        if (windowPid == 0) {
+            NSLog(@"❌ Could not find Cursor PID");
+            return nil;
+        }
+        
+        // Create accessibility element
+        AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
+        if (!appElement) {
+            NSLog(@"❌ Could not create accessibility element for Cursor");
+            return nil;
+        }
+        
+        NSLog(@"✅ Created accessibility element for Cursor");
+        
+        // Try to get focused element
+        AXUIElementRef focusedElement = NULL;
+        AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
+        
+        NSLog(@"🎯 Focus result: %d", focusResult);
+        
+        if (focusResult == kAXErrorSuccess && focusedElement) {
+            NSLog(@"✅ Found focused element");
+            
+            // Get focused element role
+            CFStringRef role = NULL;
+            AXError roleResult = AXUIElementCopyAttributeValue(focusedElement, kAXRoleAttribute, (CFTypeRef*)&role);
+            if (roleResult == kAXErrorSuccess && role) {
+                NSLog(@"🎭 Focused element role: %@", (__bridge NSString*)role);
+                CFRelease(role);
+            }
+            
+            // Try different text attributes
+            NSArray *textAttributes = @[
+                (__bridge NSString*)kAXValueAttribute,
+                (__bridge NSString*)kAXSelectedTextAttribute,
+                (__bridge NSString*)kAXTitleAttribute,
+                (__bridge NSString*)kAXDescriptionAttribute,
+                (__bridge NSString*)kAXHelpAttribute
+            ];
+            
+            for (NSString *attribute in textAttributes) {
+                CFStringRef textContent = NULL;
+                AXError textResult = AXUIElementCopyAttributeValue(focusedElement, (__bridge CFStringRef)attribute, (CFTypeRef*)&textContent);
+                
+                NSLog(@"📝 Trying attribute %@: result %d", attribute, textResult);
+                
+                if (textResult == kAXErrorSuccess && textContent) {
+                    NSString *text = (__bridge NSString*)textContent;
+                    NSLog(@"✅ Got text from %@: %lu chars", attribute, (unsigned long)text.length);
+                    
+                    if (text && text.length > 0) {
+                        NSLog(@"📖 Content preview: %@", [text length] > 100 ? [text substringToIndex:100] : text);
+                        CFRelease(textContent);
+                        CFRelease(focusedElement);
+                        CFRelease(appElement);
+                        return text;
+                    }
+                    CFRelease(textContent);
+                }
+            }
+            
+            CFRelease(focusedElement);
+        } else {
+            NSLog(@"❌ Could not get focused element");
+        }
+        
+        CFRelease(appElement);
+        NSLog(@"❌ No accessible text found in Cursor");
+        
+    } @catch (NSException *exception) {
+        NSLog(@"💥 Exception in Cursor accessibility: %@", exception.reason);
+    }
+    
+    return nil;
+}
+
+- (NSString*)getCodeEditorFallback:(CGWindowID)windowId {
+    NSString *windowTitle = [self getWindowTitle:windowId];
+    NSLog(@"📝 Cursor fallback with title: '%@'", windowTitle);
+    
+    if (windowTitle && windowTitle.length > 0) {
+        // Parse useful information from the window title
+        NSMutableArray *contextParts = [NSMutableArray array];
+        
+        // Extract filename (look for parts with file extensions)
+        NSArray *titleParts = [windowTitle componentsSeparatedByString:@" "];
+        for (NSString *part in titleParts) {
+            if ([part containsString:@"."] && part.length > 2) {
+                // Found a filename
+                [contextParts addObject:[NSString stringWithFormat:@"Editing file: %@", part]];
+                
+                // Detect file type for additional context
+                NSString *lowerPart = [part lowercaseString];
+                if ([lowerPart hasSuffix:@".ts"] || [lowerPart hasSuffix:@".js"]) {
+                    [contextParts addObject:@"Working on TypeScript/JavaScript code"];
+                } else if ([lowerPart hasSuffix:@".mm"] || [lowerPart hasSuffix:@".m"]) {
+                    [contextParts addObject:@"Working on Objective-C/Objective-C++ code"];
+                } else if ([lowerPart hasSuffix:@".py"]) {
+                    [contextParts addObject:@"Working on Python code"];
+                } else if ([lowerPart hasSuffix:@".java"]) {
+                    [contextParts addObject:@"Working on Java code"];
+                } else if ([lowerPart hasSuffix:@".cpp"] || [lowerPart hasSuffix:@".cc"]) {
+                    [contextParts addObject:@"Working on C++ code"];
+                } else if ([lowerPart hasSuffix:@".tsx"] || [lowerPart hasSuffix:@".jsx"]) {
+                    [contextParts addObject:@"Working on React/JSX code"];
+                }
+                break;
+            }
+        }
+        
+        // Extract project name (usually after the "—" character)
+        if ([windowTitle containsString:@"—"]) {
+            NSArray *projectParts = [windowTitle componentsSeparatedByString:@"—"];
+            if (projectParts.count >= 2) {
+                NSString *projectName = [projectParts.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                [contextParts addObject:[NSString stringWithFormat:@"In project: %@", projectName]];
+            }
+        }
+        
+        if (contextParts.count > 0) {
+            NSString *context = [contextParts componentsJoinedByString:@". "];
+            NSLog(@"📝 Generated rich context: %@", context);
+            NSLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)context.length);
+            NSLog(@"📋 EXACT CONTENT: '%@'", context);
+            return context;
+        } else {
+            // Fallback: use the full window title
+            NSString *fallback = [NSString stringWithFormat:@"Working in Cursor: %@", windowTitle];
+            NSLog(@"📊 FALLBACK CHARACTER COUNT: %lu characters", (unsigned long)fallback.length);
+            NSLog(@"📋 FALLBACK CONTENT: '%@'", fallback);
+            return fallback;
+        }
+    }
+    
+    NSString *defaultMessage = @"Working in Cursor code editor";
+    NSLog(@"📊 DEFAULT CHARACTER COUNT: %lu characters", (unsigned long)defaultMessage.length);
+    NSLog(@"📋 DEFAULT CONTENT: '%@'", defaultMessage);
+    return defaultMessage;
 }
 
 @end

@@ -139,5 +139,3 @@ export const determineDistraction = async (
 ): Promise<DistractionDeterminationResult> => {
   return getDistractionAnalysis(userGoals, activeWindowDetails);
 };
-
-// generateMotivationalText is now fully integrated and no longer exported separately.

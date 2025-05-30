@@ -6,6 +6,20 @@ interface ActiveWindowInfoProps {
 }
 
 export const ActiveWindowInfo: React.FC<ActiveWindowInfoProps> = ({ windowDetails }) => {
+  React.useEffect(() => {
+    if (windowDetails) {
+      console.log('🎯 RECEIVED WINDOW DETAILS:', {
+        ownerName: windowDetails.ownerName,
+        title: windowDetails.title,
+        type: windowDetails.type,
+        browser: windowDetails.browser,
+        url: windowDetails.url,
+        contentLength: windowDetails.content?.length || 0,
+        contentPreview: windowDetails.content?.substring(0, 200) || 'No content'
+      })
+    }
+  }, [windowDetails])
+
   if (!windowDetails) {
     return <div className="text-gray-500">No active window detected</div>
   }
