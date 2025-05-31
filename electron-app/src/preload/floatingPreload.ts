@@ -5,6 +5,7 @@ export interface FloatingWindowApi {
     callback: (status: 'productive' | 'unproductive' | 'maybe') => void
   ) => () => void
   moveWindow: (deltaX: number, deltaY: number) => void
+  hideFloatingWindow: () => void
 }
 
 const floatingApi: FloatingWindowApi = {
@@ -18,6 +19,9 @@ const floatingApi: FloatingWindowApi = {
   },
   moveWindow: (deltaX: number, deltaY: number) => {
     ipcRenderer.send('move-floating-window', { deltaX, deltaY })
+  },
+  hideFloatingWindow: () => {
+    ipcRenderer.send('hide-floating-window')
   }
 }
 

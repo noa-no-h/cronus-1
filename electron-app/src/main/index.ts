@@ -54,11 +54,23 @@ function createFloatingWindow(): void {
     return
   }
 
+  // Listeners for visibility changes to inform the main window
+  floatingWindow.on('show', () => {
+    console.log('Floating window event: show (from createFloatingWindow setup)')
+    mainWindow?.webContents.send('floating-window-visibility-changed', true)
+  })
+  floatingWindow.on('hide', () => {
+    console.log('Floating window event: hide (from createFloatingWindow setup)')
+    mainWindow?.webContents.send('floating-window-visibility-changed', false)
+  })
+
   // On macOS, this makes the window appear on the currently active space.
   // To make it appear on ALL spaces, use setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }).
   if (process.platform === 'darwin') {
     floatingWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
-    console.log('Floating window set to be visible on all workspaces for macOS.')
+    console.log(
+      'Floating window set to be visible on all workspaces for macOS (in createFloatingWindow).'
+    )
   }
 
   floatingWindow.webContents.on('did-finish-load', () => {
@@ -96,6 +108,31 @@ function createFloatingWindow(): void {
       const currentX = currentPosition[0]
       const currentY = currentPosition[1]
       floatingWindow.setPosition(currentX + deltaX, currentY + deltaY)
+    }
+  })
+
+  ipcMain.on('hide-floating-window', () => {
+    if (floatingWindow && floatingWindow.isVisible()) {
+      floatingWindow.hide()
+      console.log('Floating window hidden by user.')
+      mainWindow?.webContents.send('floating-window-visibility-changed', false)
+    }
+  })
+
+  ipcMain.on('show-floating-window', () => {
+    if (floatingWindow) {
+      // Ensure position is set before showing, in case it was moved or never shown
+      const primaryDisplay = screen.getPrimaryDisplay()
+      const { width: screenWidth } = primaryDisplay.workAreaSize
+      const x = Math.round(screenWidth / 2 - FLOATING_WINDOW_WIDTH / 2)
+      const y = 0 // Position at the very top of the work area
+      floatingWindow.setPosition(x, y, false) // false for animate parameter
+      floatingWindow.show() // This will trigger the 'show' event and send IPC
+      // console.log('Floating window shown via AppHeader button.') // Covered by event listener
+      // mainWindow?.webContents.send('floating-window-visibility-changed', true) // Covered by event listener
+    } else {
+      createFloatingWindow() // This will create, attach listeners, and eventually show & send IPC
+      console.log('Floating window was null, created new one. Visibility will be reported.')
     }
   })
 
@@ -206,22 +243,10 @@ app.whenReady().then(() => {
       if (floatingWindow) {
         console.log(`Main process: Attempting to send status ('${status}') to floating window.`)
         floatingWindow.webContents.send('floating-window-status-updated', status)
-        if (!floatingWindow.isVisible()) {
-          console.log('Main process: Floating window was not visible, calling show().')
-          // Ensure position is set before showing for the first time if not set during creation or if it moved
-          const primaryDisplay = screen.getPrimaryDisplay()
-          const { width: screenWidth } = primaryDisplay.workAreaSize
-          const x = Math.round(screenWidth / 2 - FLOATING_WINDOW_WIDTH / 2)
-          const y = 0
-          if (floatingWindow.getPosition()[0] !== x || floatingWindow.getPosition()[1] !== y) {
-            console.log(
-              `Main process: Repositioning floating window to top-center (${x},${y}) before showing.`
-            )
-            floatingWindow.setPosition(x, y, false) // false for animate parameter
-          }
-          floatingWindow.show()
+        if (floatingWindow.isVisible()) {
+          console.log('Main process: Status sent to VISIBLE floating window.')
         } else {
-          console.log('Main process: Floating window is already visible.')
+          console.log('Main process: Status sent to HIDDEN floating window (will not auto-show).')
         }
       } else {
         console.warn('Main process: Received status update, but floatingWindow is null.')

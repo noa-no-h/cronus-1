@@ -22,8 +22,15 @@ function App(): React.JSX.Element {
   const [isLoadingConfig, setIsLoadingConfig] = useState(true)
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation()
+
+  const handleOpenMiniTimer = () => {
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.send('show-floating-window')
+    }
+  }
 
   useEffect(() => {
     const cleanup = window.api.onActiveWindowChanged((details) => {
@@ -56,6 +63,23 @@ function App(): React.JSX.Element {
       .finally(() => {
         setIsLoadingConfig(false)
       })
+  }, [])
+
+  useEffect(() => {
+    // Listener for floating window visibility changes
+    const handleVisibilityChange = (_event, isVisible: boolean) => {
+      setIsMiniTimerVisible(isVisible)
+      console.log('App.tsx: Mini timer visibility changed to:', isVisible)
+    }
+
+    window.electron?.ipcRenderer?.on('floating-window-visibility-changed', handleVisibilityChange)
+
+    return () => {
+      window.electron?.ipcRenderer?.removeListener(
+        'floating-window-visibility-changed',
+        handleVisibilityChange
+      )
+    }
   }, [])
 
   if (isAuthLoading || isLoadingConfig) {
@@ -100,7 +124,11 @@ function App(): React.JSX.Element {
           <div className="h-full flex flex-col overflow-hidden">
             {/* App Header */}
             <div className="custom-title-bar"></div>
-            <AppHeader onSettingsClick={() => setIsSettingsOpen(true)} />
+            <AppHeader
+              onSettingsClick={() => setIsSettingsOpen(true)}
+              onOpenMiniTimerClick={handleOpenMiniTimer}
+              isMiniTimerVisible={isMiniTimerVisible}
+            />
 
             {/* Current Application Display */}
 

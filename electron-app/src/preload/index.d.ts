@@ -1,4 +1,4 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
+import { ElectronAPI as BaseElectronAPI } from '@electron-toolkit/preload'
 import type { ActiveWindowDetails } from '../native-modules/native-windows'
 
 // Define ActiveWindowDetails here, as it's used by the api type
@@ -13,9 +13,23 @@ export interface ActiveWindowDetails {
   timestamp?: number
 }
 
+// Define a more specific type for ipcRenderer if BaseElectronAPI is not sufficient
+interface CustomIpcRenderer extends BaseElectronAPI['ipcRenderer'] {
+  removeListener: (channel: string, listener: (...args: any[]) => void) => void
+  // Potentially include other methods like on, send, invoke if they also need explicit typing
+  // For now, let's assume BaseElectronAPI['ipcRenderer'] has them, and we only add/ensure removeListener
+  on: (channel: string, listener: (...args: any[]) => void) => void
+  send: (channel: string, ...args: any[]) => void
+  invoke: (channel: string, ...args: any[]) => Promise<any>
+}
+
+interface CustomElectronAPI extends BaseElectronAPI {
+  ipcRenderer: CustomIpcRenderer
+}
+
 declare global {
   interface Window {
-    electron: ElectronAPI
+    electron: CustomElectronAPI // Use the custom, more specific type
     api: {
       onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void // Return type for cleanup function
       // Add the new function's type signature here

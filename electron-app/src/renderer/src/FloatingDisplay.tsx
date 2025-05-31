@@ -54,7 +54,9 @@ const FloatingDisplay: React.FC = () => {
 
   const handleClose = () => {
     console.log('Close button clicked')
-    // Future: window.floatingApi.requestClose() or similar
+    if (window.floatingApi) {
+      window.floatingApi.hideFloatingWindow()
+    }
   }
 
   if (!isVisible && status === null) {
