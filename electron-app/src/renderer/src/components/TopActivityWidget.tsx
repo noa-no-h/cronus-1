@@ -5,6 +5,7 @@ import { trpc } from '../utils/trpc'
 import Spinner from './ui/Spinner'
 import AppIcon from './AppIcon'
 import { getFaviconURL } from '../utils/favicon'
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 
 interface WebsiteUsage {
   domain: string
@@ -305,15 +306,19 @@ const TopActivityWidget: React.FC = () => {
   }
 
   return (
-    <div className="p-4 bg-gray-800 rounded-xl shadow-lg">
-      <h3 className="text-md font-semibold text-gray-100 mb-3">Today&apos;s Focus Zones</h3>
-      {renderContent()}
-      {totalTrackedTimeMs > 0 && topApps.length > 0 && (
-        <p className="text-xs text-gray-500 mt-3 pt-2 border-t border-gray-700">
-          Total actively tracked time today: {formatDuration(totalTrackedTimeMs)}
-        </p>
-      )}
-    </div>
+    <Card className="bg-gray-800 border-gray-600">
+      <CardHeader>
+        <CardTitle className="text-gray-100">Today&apos;s Focus Zones</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {renderContent()}
+        {totalTrackedTimeMs > 0 && topApps.length > 0 && (
+          <p className="text-xs text-gray-500 mt-3 pt-2 border-t border-gray-700">
+            Total actively tracked time today: {formatDuration(totalTrackedTimeMs)}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
