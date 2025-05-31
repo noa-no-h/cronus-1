@@ -10,6 +10,7 @@ import figmaIcon from '../assets/icons/figma.png'
 import notionIcon from '../assets/icons/notion.png'
 import slackIcon from '../assets/icons/slack.png'
 import githubIcon from '../assets/icons/github.png'
+import terminalIcon from '../assets/icons/terminal.png'
 
 interface AppIconProps {
   appName: string
@@ -30,7 +31,8 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     Figma: figmaIcon,
     Notion: notionIcon,
     Slack: slackIcon,
-    GitHub: githubIcon
+    GitHub: githubIcon,
+    Terminal: terminalIcon
   }
 
   // Try to find exact match or partial match

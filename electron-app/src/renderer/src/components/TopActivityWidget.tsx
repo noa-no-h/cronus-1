@@ -1,15 +1,76 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import Spinner from './ui/Spinner'
 import AppIcon from './AppIcon'
 
+interface WebsiteUsage {
+  domain: string
+  title: string
+  url: string
+  durationMs: number
+}
+
 interface AppUsage {
   name: string
   durationMs: number
   percentage?: number
   iconPath?: string | null
+  websites?: WebsiteUsage[]
+  isExpanded?: boolean
+}
+
+const extractWebsiteInfo = (url: string, title: string): { domain: string; title: string } => {
+  try {
+    const urlObj = new URL(url)
+    const domain = urlObj.hostname.replace('www.', '')
+
+    // Clean up title
+    let cleanTitle = title
+      .replace(/ - Google Chrome$/i, '')
+      .replace(/ - Chrome$/i, '')
+      .replace(/^\([0-9]+\) /, '') // Remove notification counts like "(2) Gmail"
+      .trim()
+
+    // Fallback to domain if title is empty
+    if (!cleanTitle || cleanTitle.length < 3) {
+      cleanTitle = domain
+    }
+
+    return { domain, title: cleanTitle }
+  } catch {
+    return { domain: 'unknown', title: title || 'Unknown Website' }
+  }
+}
+
+const WebsiteFavicon: React.FC<{ domain: string; className?: string }> = ({
+  domain,
+  className = ''
+}) => {
+  const [faviconError, setFaviconError] = useState(false)
+
+  if (faviconError) {
+    // Fallback to letter icon
+    return (
+      <div
+        className={`w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded text-white font-bold text-xs ${className}`}
+      >
+        {domain.charAt(0).toUpperCase()}
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+      alt={`${domain} favicon`}
+      width={16}
+      height={16}
+      className={`rounded ${className}`}
+      onError={() => setFaviconError(true)}
+    />
+  )
 }
 
 // Helper function to format milliseconds to a readable string
@@ -62,7 +123,12 @@ const TopActivityWidget: React.FC = () => {
 
     const sortedEvents = [...validEvents].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
 
+    // Separate tracking for apps and Chrome domains
     const appDurations: Record<string, number> = {}
+    const chromeDomainDurations: Record<
+      string,
+      { durationMs: number; title: string; url: string }
+    > = {}
     let currentTotalTrackedMs = 0
 
     for (let i = 0; i < sortedEvents.length; i++) {
@@ -79,19 +145,48 @@ const TopActivityWidget: React.FC = () => {
       durationMs = Math.max(0, durationMs)
       durationMs = Math.min(durationMs, 15 * 60 * 1000)
 
+      currentTotalTrackedMs += durationMs
+
+      if (currentEvent.ownerName === 'Google Chrome' && currentEvent.url) {
+        const { domain, title } = extractWebsiteInfo(currentEvent.url, currentEvent.title || '')
+
+        if (!chromeDomainDurations[domain]) {
+          chromeDomainDurations[domain] = {
+            durationMs: 0,
+            title,
+            url: currentEvent.url
+          }
+        }
+        chromeDomainDurations[domain].durationMs += durationMs
+      }
+
       appDurations[currentEvent.ownerName] =
         (appDurations[currentEvent.ownerName] || 0) + durationMs
-      currentTotalTrackedMs += durationMs
     }
 
     setTotalTrackedTimeMs(currentTotalTrackedMs)
 
+    const chromeWebsites: WebsiteUsage[] = Object.entries(chromeDomainDurations)
+      .map(([domain, data]) => ({
+        domain,
+        title: data.title,
+        url: data.url,
+        durationMs: data.durationMs
+      }))
+      .sort((a, b) => b.durationMs - a.durationMs)
+      .slice(0, 10)
+
+    // Process all apps
     const aggregatedApps = Object.entries(appDurations)
-      .map(([name, durationMs]) => ({ name, durationMs }))
+      .map(([name, durationMs]) => ({
+        name,
+        durationMs,
+        websites: name === 'Google Chrome' ? chromeWebsites : undefined,
+        isExpanded: false
+      }))
       .sort((a, b) => b.durationMs - a.durationMs)
 
-    const top3 = aggregatedApps.slice(0, 3)
-
+    const top3 = aggregatedApps.slice(0, 5)
     const maxDurationOfTop3 = top3.length > 0 ? top3[0].durationMs : 0
 
     setTopApps(
@@ -102,6 +197,12 @@ const TopActivityWidget: React.FC = () => {
       }))
     )
   }, [todayRawEvents])
+
+  const toggleChromeExpansion = (appName: string): void => {
+    setTopApps((prev) =>
+      prev.map((app) => (app.name === appName ? { ...app, isExpanded: !app.isExpanded } : app))
+    )
+  }
 
   const renderContent = (): React.ReactNode => {
     if (isLoadingRawEvents && topApps.length === 0) {
@@ -134,30 +235,79 @@ const TopActivityWidget: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <AppIcon
-                  appName={app.name}
-                  iconPath={app.iconPath}
-                  size={20}
-                  className="flex-shrink-0"
-                />
-                <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
-                  {app.name}
+            <div
+              className={`${app.websites ? 'cursor-pointer hover:bg-gray-750' : ''} rounded-lg p-2 transition-colors`}
+              onClick={() => app.websites && toggleChromeExpansion(app.name)}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <AppIcon
+                    appName={app.name}
+                    iconPath={app.iconPath}
+                    size={20}
+                    className="flex-shrink-0"
+                  />
+                  <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
+                    {app.name}
+                  </span>
+                  {app.websites && (
+                    <motion.span
+                      animate={{ rotate: app.isExpanded ? 90 : 0 }}
+                      className="text-gray-400 text-xs ml-1"
+                    >
+                      ▶
+                    </motion.span>
+                  )}
+                </div>
+                <span className="text-sm font-normal text-gray-300 ml-2">
+                  {formatDuration(app.durationMs)}
                 </span>
               </div>
-              <span className="text-sm font-normal text-gray-300 ml-2">
-                {formatDuration(app.durationMs)}
-              </span>
+
+              <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${app.percentage || 0}%` }}
+                  transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.1 + 0.2 }}
+                />
+              </div>
             </div>
-            <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${app.percentage || 0}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.1 + 0.2 }}
-              />
-            </div>
+
+            <AnimatePresence>
+              {app.isExpanded && app.websites && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="ml-6 mt-2 space-y-2 border-l-2 border-blue-500/30 pl-3 overflow-hidden"
+                >
+                  {app.websites.map((website, webIndex) => (
+                    <motion.div
+                      key={website.domain}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: webIndex * 0.05 }}
+                      className="flex items-center justify-between py-1.5 hover:bg-gray-750/50 rounded px-2"
+                    >
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <WebsiteFavicon domain={website.domain} />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-medium text-gray-300 truncate">
+                            {website.title}
+                          </span>
+                          <span className="text-xs text-gray-500 truncate">{website.domain}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
+                        {formatDuration(website.durationMs)}
+                      </span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.li>
         ))}
       </ul>
