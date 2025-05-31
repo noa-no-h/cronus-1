@@ -40,6 +40,7 @@
     "framer-motion": "^12.12.2",
     "lucide-react": "^0.511.0",
     "node-addon-api": "^4.3.0",
+    "react-router-dom": "^7.6.1",
     "shared": "workspace:*",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.24.1"

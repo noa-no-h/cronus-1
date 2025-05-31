@@ -1,16 +1,21 @@
 import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 interface AppHeaderProps {
-  onSettingsClick: () => void
   onOpenMiniTimerClick: () => void
   isMiniTimerVisible: boolean
 }
 
 export function AppHeader({
-  onSettingsClick,
   onOpenMiniTimerClick,
   isMiniTimerVisible
 }: AppHeaderProps): React.JSX.Element {
+  const navigate = useNavigate()
+
+  const handleSettingsClick = () => {
+    navigate('/settings')
+  }
+
   return (
     <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800 h-16">
       <div className="flex justify-between items-center h-16 px-4">
@@ -29,7 +34,7 @@ export function AppHeader({
             </button>
           )}
           <button
-            onClick={onSettingsClick}
+            onClick={handleSettingsClick}
             className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
             title="Settings"
           >

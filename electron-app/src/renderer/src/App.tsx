@@ -1,9 +1,9 @@
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { useEffect, useState } from 'react'
+import { HashRouter, Route, Routes } from 'react-router-dom'
 import { ActiveWindowDetails } from 'shared'
 import './assets/custom-title-bar.css'
 import { AppHeader } from './components/AppHeader'
-import { Settings } from './components/Settings'
 import TopActivityWidget from './components/TopActivityWidget'
 import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
@@ -12,16 +12,13 @@ import GoalInputForm from './components/ui/GoalInputForm'
 import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
+import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
 
-function App(): React.JSX.Element {
-  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth()
+function MainAppContent() {
+  const { user, isAuthenticated } = useAuth()
   const currentUserId = user?.id
-  const [googleClientId, setGoogleClientId] = useState<string | null>(null)
-  const [configError, setConfigError] = useState<string | null>(null)
-  const [isLoadingConfig, setIsLoadingConfig] = useState(true)
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation()
@@ -35,7 +32,6 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const cleanup = window.api.onActiveWindowChanged((details) => {
       setActiveWindow(details)
-
       if (details && isAuthenticated && currentUserId) {
         uploadActiveWindowEvent(currentUserId, details, eventCreationMutation.mutateAsync)
       }
@@ -44,7 +40,42 @@ function App(): React.JSX.Element {
   }, [isAuthenticated, currentUserId, eventCreationMutation.mutateAsync])
 
   useEffect(() => {
-    // Fetch Google Client ID from main process via preload
+    const handleVisibilityChange = (_event, isVisible: boolean) => {
+      setIsMiniTimerVisible(isVisible)
+      console.log('App.tsx: Mini timer visibility changed to:', isVisible)
+    }
+    window.electron?.ipcRenderer?.on('floating-window-visibility-changed', handleVisibilityChange)
+    return () => {
+      window.electron?.ipcRenderer?.removeListener(
+        'floating-window-visibility-changed',
+        handleVisibilityChange
+      )
+    }
+  }, [])
+
+  return (
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="custom-title-bar"></div>
+      <AppHeader
+        onOpenMiniTimerClick={handleOpenMiniTimer}
+        isMiniTimerVisible={isMiniTimerVisible}
+      />
+      <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
+        <DistractionCategorizationResult activeWindow={activeWindow} />
+        <GoalInputForm />
+        <TopActivityWidget />
+      </div>
+    </div>
+  )
+}
+
+function AppWrapper(): React.JSX.Element {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
+  const [googleClientId, setGoogleClientId] = useState<string | null>(null)
+  const [configError, setConfigError] = useState<string | null>(null)
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true)
+
+  useEffect(() => {
     setIsLoadingConfig(true)
     window.api
       .getEnvVariables()
@@ -63,23 +94,6 @@ function App(): React.JSX.Element {
       .finally(() => {
         setIsLoadingConfig(false)
       })
-  }, [])
-
-  useEffect(() => {
-    // Listener for floating window visibility changes
-    const handleVisibilityChange = (_event, isVisible: boolean) => {
-      setIsMiniTimerVisible(isVisible)
-      console.log('App.tsx: Mini timer visibility changed to:', isVisible)
-    }
-
-    window.electron?.ipcRenderer?.on('floating-window-visibility-changed', handleVisibilityChange)
-
-    return () => {
-      window.electron?.ipcRenderer?.removeListener(
-        'floating-window-visibility-changed',
-        handleVisibilityChange
-      )
-    }
   }, [])
 
   if (isAuthLoading || isLoadingConfig) {
@@ -105,7 +119,6 @@ function App(): React.JSX.Element {
   }
 
   if (!googleClientId) {
-    // This case should ideally be covered by configError, but as a fallback:
     return (
       <PageContainer>
         <div className="text-red-500 p-4 border border-red-500 rounded-md bg-red-50 max-w-md mx-auto mt-10">
@@ -121,29 +134,21 @@ function App(): React.JSX.Element {
         {!isAuthenticated ? (
           <LoginForm />
         ) : (
-          <div className="h-full flex flex-col overflow-hidden">
-            {/* App Header */}
-            <div className="custom-title-bar"></div>
-            <AppHeader
-              onSettingsClick={() => setIsSettingsOpen(true)}
-              onOpenMiniTimerClick={handleOpenMiniTimer}
-              isMiniTimerVisible={isMiniTimerVisible}
-            />
-
-            {/* Current Application Display */}
-
-            <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
-              <DistractionCategorizationResult activeWindow={activeWindow} />
-              <GoalInputForm />
-              <TopActivityWidget />
-            </div>
-
-            {/* Settings Modal */}
-            <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
-          </div>
+          <Routes>
+            <Route path="/" element={<MainAppContent />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
         )}
       </PageContainer>
     </GoogleOAuthProvider>
+  )
+}
+
+function App(): React.JSX.Element {
+  return (
+    <HashRouter>
+      <AppWrapper />
+    </HashRouter>
   )
 }
 

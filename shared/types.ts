@@ -34,3 +34,14 @@ export interface ActiveWindowDetails {
 export interface ActiveWindowEvent extends ActiveWindowDetails {
   userId: string;
 }
+
+export interface Category {
+  _id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  color: string; // Hex color code, e.g., "#FF5733"
+  isProductive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
