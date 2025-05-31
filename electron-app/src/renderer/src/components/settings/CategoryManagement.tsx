@@ -1,8 +1,13 @@
-import { Edit3, PlusCircle, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
+import { Check, Edit3, PlusCircle, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Category } from '../../../../../../shared/types' // Adjusted path
 import { useAuth } from '../../contexts/AuthContext' // Added useAuth import
 import { trpc } from '../../utils/trpc'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input' // Added shadcn/ui Input
+import { Label } from '../ui/label' // Added shadcn/ui Label
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover' // Added Popover imports
+import { Switch } from '../ui/switch' // Added shadcn/ui Switch
 
 // Basic Form for Create/Edit
 interface CategoryFormProps {
@@ -15,7 +20,7 @@ interface CategoryFormProps {
 function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps) {
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
-  const [color, setColor] = useState(initialData?.color || '#FFFFFF') // Default color
+  const [color, setColor] = useState(initialData?.color || '#3B82F6') // Default to a pleasant blue
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
@@ -35,13 +40,28 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
     onSave({ name, description, color, isProductive })
   }
 
+  const notionColors = [
+    '#3B82F6', // Blue (selected in example)
+    '#A855F7', // Purple
+    '#EC4899', // Pink
+    '#F97316', // Orange
+    '#CA8A04', // Gold
+    '#10B981', // Green (Emerald 500)
+    '#06B6D4', // Cyan
+    '#6B7280', // Gray 500
+    '#8B5CF6', // Violet 500
+    '#D946EF', // Fuchsia 500
+    '#F59E0B', // Amber 500
+    '#22C55E' // Lime 500
+  ]
+
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-gray-800 rounded-lg shadow-md space-y-4">
+    <form onSubmit={handleSubmit} className="p-6 bg-gray-800 rounded-lg shadow-md space-y-6">
       <div>
-        <label htmlFor="categoryName" className="block text-sm font-medium text-gray-300 mb-1">
+        <Label htmlFor="categoryName" className="block text-sm font-medium text-gray-300 mb-1">
           Name <span className="text-red-500">*</span>
-        </label>
-        <input
+        </Label>
+        <Input
           id="categoryName"
           type="text"
           value={name}
@@ -51,80 +71,95 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
         />
       </div>
       <div>
-        <label
+        <Label
           htmlFor="categoryDescription"
           className="block text-sm font-medium text-gray-300 mb-1"
         >
           Description
-        </label>
-        <textarea
+        </Label>
+        <Input
+          type="text"
           id="categoryDescription"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          rows={3}
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500 resize-none"
         />
       </div>
-      <div className="flex items-center space-x-4">
-        <div className="flex-1">
-          <label htmlFor="categoryColor" className="block text-sm font-medium text-gray-300 mb-1">
+      <div className="flex items-start space-x-4">
+        <div className="flex-1 space-y-4">
+          <div>
+            <Label className="block text-sm font-medium text-gray-300 mb-1">Type</Label>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isProductive"
+                checked={isProductive}
+                onCheckedChange={setIsProductive}
+                // TODO: hover is black for some reason - likely due to dark-mode issue
+                className="data-[state=checked]:bg-green-300 data-[state=unchecked]:bg-red-300 hover:bg-green-300"
+              />
+              <Label htmlFor="isProductive" className="text-white text-sm font-medium">
+                {isProductive ? 'Productive' : 'Unproductive'}
+              </Label>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-auto">
+          {' '}
+          {/* Adjusted width for popover trigger and input */}
+          <Label className="block text-sm font-medium text-gray-300 mb-2">
             Color <span className="text-red-500">*</span>
-          </label>
-          <div className="flex items-center">
-            <input
-              id="categoryColor"
-              type="color" // Use type="color" for a native color picker
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="p-1 h-10 w-14 block bg-gray-700 border border-gray-600 cursor-pointer rounded-md" // Basic styling for color input
-            />
-            <input
+          </Label>
+          <div className="flex items-center space-x-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-10 h-10 p-0 border-gray-600 hover:border-gray-400 flex-shrink-0"
+                  style={{ backgroundColor: color, transition: 'background-color 0.2s' }}
+                  aria-label="Pick a color"
+                  title={color}
+                >
+                  {/* This button's background will be the selected color */}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
+                  {notionColors.map((bgColor) => (
+                    <button
+                      type="button"
+                      key={bgColor}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-gray-600 hover:ring-2 hover:ring-white transition-all`}
+                      style={{ backgroundColor: bgColor }}
+                      onClick={() => {
+                        setColor(bgColor)
+                        // Consider closing popover on select, depends on Popover primitive or if we need manual control
+                      }}
+                      title={bgColor}
+                    >
+                      {color === bgColor && <Check size={18} className="text-white" />}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Input
               type="text"
               value={color}
               onChange={(e) => setColor(e.target.value.toUpperCase())}
               placeholder="#RRGGBB"
               maxLength={7}
-              className="ml-2 w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
+              className="w-28 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">Type</label>
-          <button
-            type="button"
-            onClick={() => setIsProductive(!isProductive)}
-            className={`p-2 rounded-md flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${
-              isProductive
-                ? 'bg-green-500 hover:bg-green-600 focus:ring-green-400'
-                : 'bg-red-500 hover:bg-red-600 focus:ring-red-400'
-            }`}
-          >
-            {isProductive ? (
-              <ToggleRight size={24} className="text-white" />
-            ) : (
-              <ToggleLeft size={24} className="text-white" />
-            )}
-            <span className="ml-2 text-white text-sm font-medium">
-              {isProductive ? 'Productive' : 'Unproductive'}
-            </span>
-          </button>
         </div>
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}
       <div className="flex justify-end space-x-3 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isSaving}
-          className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 hover:bg-gray-500 rounded-md disabled:opacity-50"
-        >
+        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 flex items-center"
-        >
+        </Button>
+        <Button type="submit" disabled={isSaving} className="flex items-center">
           {isSaving ? (
             <>
               <svg
@@ -152,7 +187,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
           ) : (
             'Save Category'
           )}
-        </button>
+        </Button>
       </div>
     </form>
   )
@@ -269,14 +304,14 @@ export function CategoryManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-100">Manage Categories</h2>
-        <button
+        <Button
           onClick={handleAddNew}
-          className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium"
+          className="flex items-center text-sm font-medium"
           disabled={!token} // Disable if no token
         >
           <PlusCircle size={18} className="mr-2" />
           Add New Category
-        </button>
+        </Button>
       </div>
 
       {isFormOpen && (
@@ -311,7 +346,7 @@ export function CategoryManagement() {
           <h3 className="mt-2 text-sm font-medium text-gray-200">No categories yet</h3>
           <p className="mt-1 text-sm text-gray-400">Get started by creating a new category.</p>
           <div className="mt-6">
-            <button
+            <Button
               onClick={handleAddNew}
               type="button"
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
@@ -319,7 +354,7 @@ export function CategoryManagement() {
             >
               <PlusCircle size={20} className="-ml-1 mr-2 h-5 w-5" />
               New Category
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -348,7 +383,9 @@ export function CategoryManagement() {
                     </div>
                   </div>
                   <div className="ml-2 flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleToggleProductive(category)}
                       title={category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'}
                       className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-750 ${
@@ -359,16 +396,20 @@ export function CategoryManagement() {
                       disabled={!token} // Disable if no token
                     >
                       {category.isProductive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleEdit(category)}
                       className="p-1.5 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-750 focus:ring-blue-500"
                       title="Edit category"
                       disabled={!token} // Disable if no token
                     >
                       <Edit3 size={18} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleDelete(category._id)}
                       disabled={
                         !token ||
@@ -401,7 +442,7 @@ export function CategoryManagement() {
                       ) : (
                         <Trash2 size={18} />
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </li>
