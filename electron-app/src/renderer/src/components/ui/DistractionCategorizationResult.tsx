@@ -3,6 +3,7 @@ import React, { JSX, useEffect, useMemo, useRef } from 'react'
 import { ActiveWindowDetails } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
+import { Card, CardContent, CardTitle, CardHeader } from './card'
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -154,30 +155,34 @@ const DistractionCategorizationResult = ({
 
   if (isLoading && queryActiveWindowDetails) {
     return (
-      <div className="p-4 bg-gray-800 rounded-lg">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-700 rounded w-1/3 mb-2"></div>
-          <div className="h-4 bg-gray-700 rounded w-2/3 mb-2"></div>
-          <div className="h-4 bg-gray-700 rounded w-1/2"></div>
-        </div>
-      </div>
+      <Card className="bg-gray-800 border-gray-600">
+        <CardContent className="pt-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-700 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-700 rounded w-2/3 mb-2"></div>
+            <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
   if (!distractionResult) {
     return (
-      <div className="p-4 bg-gray-800 rounded-lg space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">Currently using:</span>
-          <span className="text-sm font-medium text-white">
-            {activeWindow.ownerName || 'No active application'}
-            {activeWindow.title && activeWindow.title !== activeWindow.ownerName
-              ? ` - ${activeWindow.title}`
-              : ''}
-          </span>
-        </div>
-        <div className="text-sm text-gray-500">Categorizing activity...</div>
-      </div>
+      <Card className="bg-gray-800 border-gray-600">
+        <CardContent className="pt-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400">Currently using:</span>
+            <span className="text-sm font-medium text-white">
+              {activeWindow.ownerName || 'No active application'}
+              {activeWindow.title && activeWindow.title !== activeWindow.ownerName
+                ? ` - ${activeWindow.title}`
+                : ''}
+            </span>
+          </div>
+          <div className="text-sm text-gray-500">Categorizing activity...</div>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -195,28 +200,33 @@ const DistractionCategorizationResult = ({
   }
 
   return (
-    <div
+    <Card
       className={clsx(
-        'p-4  rounded-lg space-y-3',
+        'border-gray-600',
         distractionResult.isDistraction === 'no' ? 'bg-green-900' : 'bg-gray-800'
       )}
     >
-      <div className="flex gap-2 items-start justify-start">
-        <span className="text-sm text-gray-400 whitespace-nowrap">Currently using:</span>
-        <span className="text-sm font-medium text-white truncate min-w-0">
-          {activeWindow.ownerName || ''}
-          {activeWindow.title && activeWindow.title !== activeWindow.ownerName
-            ? ` - ${activeWindow.title}`
-            : ''}
-        </span>
-      </div>
+      <CardHeader>
+        <CardTitle className="text-gray-100">Focus Check</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex gap-2 items-start justify-start">
+          <span className="text-sm text-gray-400 whitespace-nowrap">Currently using:</span>
+          <span className="text-sm font-medium text-white truncate min-w-0">
+            {activeWindow.ownerName || ''}
+            {activeWindow.title && activeWindow.title !== activeWindow.ownerName
+              ? ` - ${activeWindow.title}`
+              : ''}
+          </span>
+        </div>
 
-      <div className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</div>
+        <div className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</div>
 
-      {distractionResult.motivationalText && (
-        <div className="text-sm text-gray-300 italic">{distractionResult.motivationalText}</div>
-      )}
-    </div>
+        {distractionResult.motivationalText && (
+          <div className="text-sm text-gray-300 italic">{distractionResult.motivationalText}</div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
