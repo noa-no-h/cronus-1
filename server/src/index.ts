@@ -20,6 +20,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 // Import routers
 import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
+import { categoryRouter } from './routers/categoryRouter';
 import { distractionsRouter } from './routers/distractions';
 import { paymentsRouter } from './routers/payments';
 import { s3Router } from './routers/s3Router';
@@ -36,6 +37,7 @@ export const appRouter = router({
   s3: s3Router,
   user: userRouter,
   distractions: distractionsRouter,
+  category: categoryRouter,
 });
 
 export type AppRouter = typeof appRouter;

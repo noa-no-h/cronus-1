@@ -36,6 +36,7 @@
     "electron-updater": "^6.3.9",
     "framer-motion": "^12.12.2",
     "node-addon-api": "^4.3.0",
+    "react-router-dom": "^7.6.1",
     "shared": "workspace:*",
     "tailwind-merge": "^2.4.0",
     "zod": "^3.24.1"
