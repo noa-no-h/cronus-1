@@ -157,7 +157,6 @@ const GoalInputForm = () => {
         </div>
       </div>
 
-      {/* Action Buttons */}
       {isEditing && (
         <div className="flex justify-end gap-3 mt-6">
           <button
