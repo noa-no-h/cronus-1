@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import StatusBox from './components/ui/StatusBox' // Import the new component
 
 type StatusType = 'productive' | 'unproductive' | 'maybe' | null
 
@@ -7,15 +8,12 @@ const FloatingDisplay: React.FC = () => {
   const [status, setStatus] = useState<StatusType>(null)
   const [isVisible, setIsVisible] = useState<boolean>(false)
 
-  // Ref for the draggable element itself to change cursor style
   const draggableRef = useRef<HTMLDivElement>(null)
-  // Ref to store initial mouse position and know if dragging is active
   const dragStartInfoRef = useRef<{ initialMouseX: number; initialMouseY: number } | null>(null)
 
   useEffect(() => {
     if (window.floatingApi) {
       const cleanup = window.floatingApi.onStatusUpdate((newStatus) => {
-        console.log('Floating window received status:', newStatus)
         setStatus(newStatus)
         setIsVisible(true)
       })
@@ -25,14 +23,9 @@ const FloatingDisplay: React.FC = () => {
   }, [])
 
   const handleGlobalMouseMove = useCallback((event: globalThis.MouseEvent) => {
-    if (!dragStartInfoRef.current || !window.floatingApi) {
-      return
-    }
-    // Calculate delta from the initial mouse down position
+    if (!dragStartInfoRef.current || !window.floatingApi) return
     const deltaX = event.clientX - dragStartInfoRef.current.initialMouseX
     const deltaY = event.clientY - dragStartInfoRef.current.initialMouseY
-
-    // Send IPC message to main process to move the window
     window.floatingApi.moveWindow(deltaX, deltaY)
   }, [])
 
@@ -46,67 +39,94 @@ const FloatingDisplay: React.FC = () => {
   }, [handleGlobalMouseMove])
 
   const handleMouseDownOnDraggable = (event: React.MouseEvent<HTMLDivElement>) => {
-    // Only allow dragging with the primary mouse button
     if (event.button !== 0) return
-
+    // Prevent drag if clicking on the close button itself
+    if ((event.target as HTMLElement).closest('.close-button-area')) {
+      return
+    }
     if (draggableRef.current) {
       draggableRef.current.style.cursor = 'grabbing'
     }
-    // Store the initial mouse position when drag starts
     dragStartInfoRef.current = { initialMouseX: event.clientX, initialMouseY: event.clientY }
-
     document.addEventListener('mousemove', handleGlobalMouseMove)
     document.addEventListener('mouseup', handleGlobalMouseUp)
   }
 
-  if (!isVisible) {
+  const handleClose = () => {
+    console.log('Close button clicked')
+    // Future: window.floatingApi.requestClose() or similar
+  }
+
+  if (!isVisible && status === null) {
     return null
   }
 
-  let displayText = ''
-  let textColor = 'text-gray-100'
-  let bgColor = 'bg-gray-700'
+  let productiveIsHighlighted = false
+  let productiveIsEnlarged = false
+  let productiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'green'
 
-  switch (status) {
-    case 'productive':
-      displayText = 'Productive'
-      textColor = 'text-green-400'
-      bgColor = 'bg-gray-800'
-      break
-    case 'unproductive':
-      displayText = 'Unproductive'
-      textColor = 'text-red-400'
-      bgColor = 'bg-gray-800'
-      break
-    case 'maybe':
-      displayText = 'Maybe'
-      textColor = 'text-yellow-400'
-      bgColor = 'bg-gray-800'
-      break
-    default:
-      displayText = 'Waiting...'
-      bgColor = 'bg-gray-800'
-      break
+  let unproductiveIsHighlighted = false
+  let unproductiveIsEnlarged = false
+  let unproductiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'red'
+  let unproductiveLabel = 'Unproductive'
+
+  if (status === 'productive') {
+    productiveIsHighlighted = true
+    productiveIsEnlarged = true
+  } else if (status === 'unproductive') {
+    unproductiveIsHighlighted = true
+    unproductiveIsEnlarged = true
+  } else if (status === 'maybe') {
+    unproductiveLabel = 'Uncertain' // Show "Uncertain" in the unproductive slot
+    unproductiveIsHighlighted = true
+    unproductiveIsEnlarged = true
+    unproductiveHighlightColor = 'orange'
   }
 
   return (
     <div
       ref={draggableRef}
       className={clsx(
-        'w-full h-full flex items-center justify-center p-2 rounded-md shadow-lg select-none',
-        'border-2 border-transparent',
-        status === 'productive' && 'border-green-500',
-        status === 'unproductive' && 'border-red-500',
-        status === 'maybe' && 'border-yellow-500',
-        bgColor
+        'w-full h-full flex items-center p-1.5 rounded-xl shadow-2xl select-none',
+        'bg-gray-800 backdrop-blur-xl border border-white/10' // Glassmorphic effect
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
-      style={{ cursor: 'grab' }} // Initial cursor style
+      style={{ cursor: 'grab' }}
     >
-      <span className={clsx('text-lg font-semibold pointer-events-none', textColor)}>
-        {displayText}
-      </span>
+      <button
+        onClick={handleClose}
+        className="close-button-area p-2 mr-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 focus:outline-none transition-colors pointer-events-auto h-full flex items-center justify-center"
+        title="Close"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+          className="w-4 h-4 text-gray-300"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="flex-grow flex items-stretch gap-1.5 h-full">
+        <StatusBox
+          label="Productive"
+          time="00:00:00"
+          isHighlighted={productiveIsHighlighted}
+          highlightColor={productiveHighlightColor}
+          isEnlarged={productiveIsEnlarged}
+        />
+        <StatusBox
+          label={unproductiveLabel}
+          time="00:00:00"
+          isHighlighted={unproductiveIsHighlighted}
+          highlightColor={unproductiveHighlightColor}
+          isEnlarged={unproductiveIsEnlarged}
+        />
+      </div>
     </div>
   )
 }

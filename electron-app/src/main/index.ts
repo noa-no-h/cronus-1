@@ -1,6 +1,6 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
 import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
 import { ActiveWindowDetails } from 'shared'
@@ -13,22 +13,41 @@ dotenv.config({ path: pathResolve(__dirname, '../../.env') })
 let mainWindow: BrowserWindow | null
 let floatingWindow: BrowserWindow | null
 
+const FLOATING_WINDOW_WIDTH = 400
+const FLOATING_WINDOW_HEIGHT = 60
+
 function createFloatingWindow(): void {
-  floatingWindow = new BrowserWindow({
-    width: 300,
-    height: 60,
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width: screenWidth } = primaryDisplay.workAreaSize // Use workAreaSize to avoid OS menu bars
+
+  const x = Math.round(screenWidth / 2 - FLOATING_WINDOW_WIDTH / 2)
+  const y = 0 // Position at the very top of the work area
+
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
+    width: FLOATING_WINDOW_WIDTH,
+    height: FLOATING_WINDOW_HEIGHT,
+    x: x,
+    y: y,
     frame: false,
     alwaysOnTop: true,
     transparent: true,
     resizable: false,
     maximizable: false,
-    show: false, // Initially hide; show when ready or when first status update comes
+    show: false,
     webPreferences: {
       preload: join(__dirname, '../preload/floatingPreload.js'),
       sandbox: false,
       contextIsolation: true
     }
-  })
+  }
+
+  // Temporarily remove macOS-specific vibrancy for testing solid background
+  // if (process.platform === 'darwin') {
+  //   windowOptions.vibrancy = 'sidebar'
+  //   windowOptions.visualEffectState = 'active'
+  // }
+
+  floatingWindow = new BrowserWindow(windowOptions)
 
   if (!floatingWindow) {
     console.error('Failed to create floating window')
@@ -74,9 +93,9 @@ function createFloatingWindow(): void {
   ipcMain.on('move-floating-window', (_event, { deltaX, deltaY }) => {
     if (floatingWindow) {
       const currentPosition = floatingWindow.getPosition()
-      const x = currentPosition[0]
-      const y = currentPosition[1]
-      floatingWindow.setPosition(x + deltaX, y + deltaY)
+      const currentX = currentPosition[0]
+      const currentY = currentPosition[1]
+      floatingWindow.setPosition(currentX + deltaX, currentY + deltaY)
     }
   })
 
@@ -88,8 +107,8 @@ function createFloatingWindow(): void {
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 1270,
+    width: 700,
+    height: 700,
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
@@ -189,6 +208,17 @@ app.whenReady().then(() => {
         floatingWindow.webContents.send('floating-window-status-updated', status)
         if (!floatingWindow.isVisible()) {
           console.log('Main process: Floating window was not visible, calling show().')
+          // Ensure position is set before showing for the first time if not set during creation or if it moved
+          const primaryDisplay = screen.getPrimaryDisplay()
+          const { width: screenWidth } = primaryDisplay.workAreaSize
+          const x = Math.round(screenWidth / 2 - FLOATING_WINDOW_WIDTH / 2)
+          const y = 0
+          if (floatingWindow.getPosition()[0] !== x || floatingWindow.getPosition()[1] !== y) {
+            console.log(
+              `Main process: Repositioning floating window to top-center (${x},${y}) before showing.`
+            )
+            floatingWindow.setPosition(x, y, false) // false for animate parameter
+          }
           floatingWindow.show()
         } else {
           console.log('Main process: Floating window is already visible.')
