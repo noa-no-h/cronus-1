@@ -72,14 +72,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (void)startPeriodicBackupTimer {
     [self stopPeriodicBackupTimer];
     
-    // Check every 2-3 minutes as backup 
-    periodicCheckTimer = [NSTimer scheduledTimerWithTimeInterval:150.0  
+    // Check every 5 minutes as backup 
+    periodicCheckTimer = [NSTimer scheduledTimerWithTimeInterval:300.0  
                                                         target:self
                                                       selector:@selector(periodicBackupCheck)
                                                       userInfo:nil
                                                        repeats:YES];
     [[NSRunLoop currentRunLoop] addTimer:periodicCheckTimer forMode:NSRunLoopCommonModes];
-    NSLog(@"📅 Periodic backup timer started (2.5 min intervals)");
+    NSLog(@"📅 Periodic backup timer started (5 min intervals)");
 }
 
 - (void)stopPeriodicBackupTimer {
@@ -93,21 +93,17 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSTimeInterval timeSinceLastSwitch = now - lastAppSwitchTime;
     
-    // Only do backup capture if user has been on same app for a while
-    if (timeSinceLastSwitch > 120.0) {  // 2+ minutes on same app
-        NSLog(@"📅 PERIODIC BACKUP: User on same app for %.1f minutes", timeSinceLastSwitch / 60.0);
-        
-        NSDictionary *windowInfo = [self getActiveWindow];
-        if (windowInfo) {
-            NSString *currentApp = windowInfo[@"ownerName"];
-            
-            // Only send if it's a significant change or long time passed
-            if (![currentApp isEqualToString:lastTrackedApp] || timeSinceLastSwitch > 600.0) {
-                NSLog(@"📅 BACKUP CAPTURE: %@", currentApp);
-                [self sendWindowInfoToJS:windowInfo withReason:@"periodic_backup"];
-                lastTrackedApp = currentApp;
-            }
-        }
+    NSLog(@"⏰ PERIODIC TIMER FIRED - Last switch: %.1f seconds ago", timeSinceLastSwitch);
+    
+    // Always capture periodic backup
+    NSLog(@"📅 PERIODIC BACKUP: Capturing current state");
+    
+    NSDictionary *windowInfo = [self getActiveWindow];
+    if (windowInfo) {
+        NSString *currentApp = windowInfo[@"ownerName"];
+        NSLog(@"📅 BACKUP CAPTURE: %@", currentApp);
+        [self sendWindowInfoToJS:windowInfo withReason:@"periodic_backup"];
+        lastTrackedApp = currentApp;
     }
 }
 
@@ -912,20 +908,32 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (BOOL)shouldExcludeApp:(NSString*)ownerName withTitle:(NSString*)title {
     if (!ownerName) return NO;
     
-    // For now, only exclude Electron apps (our productivity tracker)
-    // but can also include other app names for example when we deploy this
     if ([ownerName isEqualToString:@"Electron"]) {
-        // Get current process ID to compare
+        // Get the current app's PID
         int currentAppPid = [NSProcessInfo processInfo].processIdentifier;
         
-        // Check if this Electron window belongs to our current process
-        if (processId && processId.intValue == currentAppPid) {
-            NSLog(@"🚫 EXCLUDING CURRENT ELECTRON APP");
-            return YES;
-        }
+        // 🎯 FIX: Get the PID of the Electron window we're examining
+        // instead of using processId (which is the active app's PID)
+        NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(
+            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 
+            kCGNullWindowID
+        );
         
-        // If it's a different Electron app, allow it to be tracked
-        NSLog(@"✅ ALLOWING OTHER ELECTRON APP: %@ (different process)", title ?: @"Unknown");
+        for (NSDictionary *window in windows) {
+            NSString *windowOwner = [window objectForKey:(id)kCGWindowOwnerName];
+            NSNumber *windowPid = [window objectForKey:(id)kCGWindowOwnerPID];
+            NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
+            
+            // Check if this is the frontmost Electron window
+            if ([windowOwner isEqualToString:@"Electron"] && 
+                [windowLayer intValue] == 0 && 
+                windowPid && 
+                [windowPid intValue] == currentAppPid) {
+                
+                NSLog(@"🚫 EXCLUDING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
+                return YES;
+            }
+        }
     }
     
     return NO;

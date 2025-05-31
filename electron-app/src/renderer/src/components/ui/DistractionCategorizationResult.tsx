@@ -70,22 +70,24 @@ const DistractionCategorizationResult = ({
     },
     {
       enabled: !!token && !!queryActiveWindowDetails,
-      refetchInterval: () => {
-        // 🎯 NEW: Smart refetch based on capture reason
-        if (!activeWindow?.captureReason) return 5000
 
-        // If it was an app switch, check quickly for changes
-        if (activeWindow.captureReason === 'app_switch') {
-          return 3000 // Check every 3 seconds after app switch
-        }
+      // comment out bc switching to polling only when app switch is detected and every 5 minutes otherwise
+      // refetchInterval: () => {
+      //   // 🎯 NEW: Smart refetch based on capture reason
+      //   if (!activeWindow?.captureReason) return 5000
 
-        // If it was periodic backup, check less frequently
-        if (activeWindow.captureReason === 'periodic_backup') {
-          return 30000 // Check every 30 seconds for periodic captures
-        }
+      //   // If it was an app switch, check quickly for changes
+      //   if (activeWindow.captureReason === 'app_switch') {
+      //     return 3000 // Check every 3 seconds after app switch
+      //   }
 
-        return 5000
-      },
+      //   // If it was periodic backup, check less frequently
+      //   if (activeWindow.captureReason === 'periodic_backup') {
+      //     return 30000 // Check every 30 seconds for periodic captures
+      //   }
+
+      //   return 5000
+      // },
       onSuccess: () => {
         prevWindowSignificantDetailsRef.current = currentWindowSignificantDetailsJSON
       }
