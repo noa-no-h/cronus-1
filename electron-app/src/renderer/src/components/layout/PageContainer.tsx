@@ -12,7 +12,7 @@ export function PageContainer({ children, className = '' }: PageContainerProps):
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className={`h-screen bg-gray-900 text-white flex flex-col ${className}`}
+      className={`h-screen bg-background text-foreground flex flex-col ${className}`}
     >
       {children}
     </motion.div>

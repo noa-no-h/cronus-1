@@ -3,7 +3,7 @@ import React, { JSX, useEffect, useMemo, useRef } from 'react'
 import { ActiveWindowDetails } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
-import { Card, CardContent, CardTitle, CardHeader } from './card'
+import { Card, CardContent, CardHeader, CardTitle } from './card'
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -155,12 +155,12 @@ const DistractionCategorizationResult = ({
 
   if (isLoading && queryActiveWindowDetails) {
     return (
-      <Card className="bg-gray-800 border-gray-600">
+      <Card className="bg-card border-border">
         <CardContent className="pt-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-700 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-gray-700 rounded w-2/3 mb-2"></div>
-            <div className="h-4 bg-gray-700 rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-2/3 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         </CardContent>
       </Card>
@@ -169,30 +169,30 @@ const DistractionCategorizationResult = ({
 
   if (!distractionResult) {
     return (
-      <Card className="bg-gray-800 border-gray-600">
+      <Card className="bg-card border-border">
         <CardContent className="pt-6 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Currently using:</span>
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm text-muted-foreground">Currently using:</span>
+            <span className="text-sm font-medium text-foreground">
               {activeWindow.ownerName || 'No active application'}
               {activeWindow.title && activeWindow.title !== activeWindow.ownerName
                 ? ` - ${activeWindow.title}`
                 : ''}
             </span>
           </div>
-          <div className="text-sm text-gray-500">Categorizing activity...</div>
+          <div className="text-sm text-muted-foreground">Categorizing activity...</div>
         </CardContent>
       </Card>
     )
   }
 
   const getStatusColor = (): string => {
-    if (!distractionResult) return 'text-gray-500'
+    if (!distractionResult) return 'text-muted-foreground'
     switch (distractionResult.isDistraction) {
       case 'no':
-        return 'text-green-400'
+        return 'dark:text-green-300 text-green-800'
       case 'yes':
-        return 'text-red-400'
+        return 'dark:text-red-300 text-red-800'
       case 'maybe':
       default:
         return 'text-yellow-500'
@@ -202,17 +202,19 @@ const DistractionCategorizationResult = ({
   return (
     <Card
       className={clsx(
-        'border-gray-600',
-        distractionResult.isDistraction === 'no' ? 'bg-green-900' : 'bg-gray-800'
+        'border-border',
+        distractionResult.isDistraction === 'no'
+          ? 'dark:bg-green-900 bg-green-200'
+          : 'dark:bg-red-900 bg-red-200'
       )}
     >
       <CardHeader>
-        <CardTitle className="text-gray-100">Focus Check</CardTitle>
+        <CardTitle className="text-card-foreground">Focus Check</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex gap-2 items-start justify-start">
-          <span className="text-sm text-gray-400 whitespace-nowrap">Currently using:</span>
-          <span className="text-sm font-medium text-white truncate min-w-0">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Currently using:</span>
+          <span className="text-sm font-medium text-foreground truncate min-w-0">
             {activeWindow.ownerName || ''}
             {activeWindow.title && activeWindow.title !== activeWindow.ownerName
               ? ` - ${activeWindow.title}`
@@ -223,7 +225,9 @@ const DistractionCategorizationResult = ({
         <div className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</div>
 
         {distractionResult.motivationalText && (
-          <div className="text-sm text-gray-300 italic">{distractionResult.motivationalText}</div>
+          <div className="text-sm text-muted-foreground italic">
+            {distractionResult.motivationalText}
+          </div>
         )}
       </CardContent>
     </Card>

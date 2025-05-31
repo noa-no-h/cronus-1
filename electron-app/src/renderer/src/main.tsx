@@ -1,3 +1,4 @@
+import '../assets/custom-title-bar.css'
 import './styles/index.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -5,6 +6,7 @@ import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import { AuthProvider } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { createTrpcClient, trpc } from './utils/trpc'
 
 const Main = () => {
@@ -16,7 +18,9 @@ const Main = () => {
       <trpc.Provider client={trpcClientInstance} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <App />
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
           </AuthProvider>
         </QueryClientProvider>
       </trpc.Provider>

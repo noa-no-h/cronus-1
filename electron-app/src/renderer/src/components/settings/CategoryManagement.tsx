@@ -56,9 +56,9 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
   ]
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-gray-800 rounded-lg shadow-md space-y-6">
+    <form onSubmit={handleSubmit} className="p-6 bg-card rounded-lg shadow-md space-y-6">
       <div>
-        <Label htmlFor="categoryName" className="block text-sm font-medium text-gray-300 mb-1">
+        <Label htmlFor="categoryName" className="block text-sm font-medium text-foreground mb-1">
           Name <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -66,14 +66,14 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary"
           required
         />
       </div>
       <div>
         <Label
           htmlFor="categoryDescription"
-          className="block text-sm font-medium text-gray-300 mb-1"
+          className="block text-sm font-medium text-foreground mb-1"
         >
           Description
         </Label>
@@ -82,22 +82,21 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
           id="categoryDescription"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary resize-none"
         />
       </div>
       <div className="flex items-start space-x-4">
         <div className="flex-1 space-y-4">
           <div>
-            <Label className="block text-sm font-medium text-gray-300 mb-1">Type</Label>
+            <Label className="block text-sm font-medium text-foreground mb-1">Type</Label>
             <div className="flex items-center space-x-2">
               <Switch
                 id="isProductive"
                 checked={isProductive}
                 onCheckedChange={setIsProductive}
-                // TODO: hover is black for some reason - likely due to dark-mode issue
-                className="data-[state=checked]:bg-green-300 data-[state=unchecked]:bg-red-300 hover:bg-green-300"
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
               />
-              <Label htmlFor="isProductive" className="text-white text-sm font-medium">
+              <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
                 {isProductive ? 'Productive' : 'Unproductive'}
               </Label>
             </div>
@@ -106,8 +105,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
 
         <div className="w-auto">
           {' '}
-          {/* Adjusted width for popover trigger and input */}
-          <Label className="block text-sm font-medium text-gray-300 mb-2">
+          <Label className="block text-sm font-medium text-foreground mb-2">
             Color <span className="text-red-500">*</span>
           </Label>
           <div className="flex items-center space-x-2">
@@ -115,25 +113,22 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-10 h-10 p-0 border-gray-600 hover:border-gray-400 flex-shrink-0"
+                  className="w-10 h-10 p-0 border-border hover:border-ring flex-shrink-0"
                   style={{ backgroundColor: color, transition: 'background-color 0.2s' }}
                   aria-label="Pick a color"
                   title={color}
-                >
-                  {/* This button's background will be the selected color */}
-                </Button>
+                ></Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+              <PopoverContent className="w-auto p-0 bg-popover border-border">
                 <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
                   {notionColors.map((bgColor) => (
                     <button
                       type="button"
                       key={bgColor}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-gray-600 hover:ring-2 hover:ring-white transition-all`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-border hover:ring-2 hover:ring-ring transition-all`}
                       style={{ backgroundColor: bgColor }}
                       onClick={() => {
                         setColor(bgColor)
-                        // Consider closing popover on select, depends on Popover primitive or if we need manual control
                       }}
                       title={bgColor}
                     >
@@ -149,12 +144,12 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
               onChange={(e) => setColor(e.target.value.toUpperCase())}
               placeholder="#RRGGBB"
               maxLength={7}
-              className="w-28 px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
+              className="w-28 px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary"
             />
           </div>
         </div>
       </div>
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-destructive-foreground">{error}</p>}
       <div className="flex justify-end space-x-3 pt-2">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
@@ -163,7 +158,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
           {isSaving ? (
             <>
               <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -194,7 +189,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
 }
 
 export function CategoryManagement() {
-  const { token } = useAuth() // Get token
+  const { token } = useAuth()
   const utils = trpc.useUtils()
   const {
     data: categories,
@@ -204,10 +199,10 @@ export function CategoryManagement() {
     data: Category[] | undefined
     isLoading: boolean
     error: any
-  } // Explicitly type the destructured data
+  }
   const createMutation = trpc.category.createCategory.useMutation({
     onSuccess: () => {
-      utils.category.getCategories.invalidate({ token: token || '' }) // Invalidate with token
+      utils.category.getCategories.invalidate({ token: token || '' })
       setIsFormOpen(false)
       setEditingCategory(null)
     },
@@ -217,7 +212,7 @@ export function CategoryManagement() {
   })
   const updateMutation = trpc.category.updateCategory.useMutation({
     onSuccess: () => {
-      utils.category.getCategories.invalidate({ token: token || '' }) // Invalidate with token
+      utils.category.getCategories.invalidate({ token: token || '' })
       setIsFormOpen(false)
       setEditingCategory(null)
     },
@@ -227,7 +222,7 @@ export function CategoryManagement() {
   })
   const deleteMutation = trpc.category.deleteCategory.useMutation({
     onSuccess: (data) => {
-      utils.category.getCategories.invalidate({ token: token || '' }) // Invalidate with token
+      utils.category.getCategories.invalidate({ token: token || '' })
     },
     onError: (err) => {
       alert(`Error deleting category: ${err.message}`)
@@ -238,7 +233,7 @@ export function CategoryManagement() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
   const handleAddNew = () => {
-    setEditingCategory(null) // Ensure no initial data for new category
+    setEditingCategory(null)
     setIsFormOpen(true)
   }
 
@@ -253,7 +248,7 @@ export function CategoryManagement() {
       return
     }
     if (window.confirm('Are you sure you want to delete this category?')) {
-      await deleteMutation.mutateAsync({ id, token }) // Pass token
+      await deleteMutation.mutateAsync({ id, token })
     }
   }
 
@@ -265,9 +260,9 @@ export function CategoryManagement() {
       return
     }
     if (editingCategory) {
-      await updateMutation.mutateAsync({ id: editingCategory._id, ...data, token }) // Pass token
+      await updateMutation.mutateAsync({ id: editingCategory._id, ...data, token })
     } else {
-      await createMutation.mutateAsync({ ...data, token }) // Pass token
+      await createMutation.mutateAsync({ ...data, token })
     }
   }
 
@@ -279,12 +274,11 @@ export function CategoryManagement() {
     await updateMutation.mutateAsync({
       id: category._id,
       isProductive: !category.isProductive,
-      token // Pass token
+      token
     })
   }
 
   if (!token && !isLoading) {
-    // If no token and not initial loading state for categories query
     return (
       <div className="p-4 text-center text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-md">
         Please log in to manage categories.
@@ -292,10 +286,11 @@ export function CategoryManagement() {
     )
   }
 
-  if (isLoading) return <div className="text-center p-4 text-gray-400">Loading categories...</div>
+  if (isLoading)
+    return <div className="text-center p-4 text-muted-foreground">Loading categories...</div>
   if (fetchError)
     return (
-      <div className="text-center p-4 text-red-500">
+      <div className="text-center p-4 text-destructive-foreground">
         Error loading categories: {fetchError.message}
       </div>
     )
@@ -303,11 +298,11 @@ export function CategoryManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-100">Manage Categories</h2>
+        <h2 className="text-xl font-semibold text-foreground">Manage Categories</h2>
         <Button
           onClick={handleAddNew}
           className="flex items-center text-sm font-medium"
-          disabled={!token} // Disable if no token
+          disabled={!token}
         >
           <PlusCircle size={18} className="mr-2" />
           Add New Category
@@ -327,9 +322,9 @@ export function CategoryManagement() {
       )}
 
       {!isFormOpen && (!categories || categories.length === 0) && (
-        <div className="text-center py-8 px-4 bg-gray-800 rounded-lg">
+        <div className="text-center py-8 px-4 bg-card rounded-lg">
           <svg
-            className="mx-auto h-12 w-12 text-gray-500"
+            className="mx-auto h-12 w-12 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -343,14 +338,16 @@ export function CategoryManagement() {
               d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-200">No categories yet</h3>
-          <p className="mt-1 text-sm text-gray-400">Get started by creating a new category.</p>
+          <h3 className="mt-2 text-sm font-medium text-foreground">No categories yet</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Get started by creating a new category.
+          </p>
           <div className="mt-6">
             <Button
               onClick={handleAddNew}
               type="button"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-blue-500"
-              disabled={!token} // Disable if no token
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary"
+              disabled={!token}
             >
               <PlusCircle size={20} className="-ml-1 mr-2 h-5 w-5" />
               New Category
@@ -360,23 +357,25 @@ export function CategoryManagement() {
       )}
 
       {!isFormOpen && categories && categories.length > 0 && (
-        <div className="bg-gray-800 rounded-lg shadow overflow-hidden">
-          <ul role="list" className="divide-y divide-gray-700">
+        <div className="bg-card rounded-lg shadow overflow-hidden">
+          <ul role="list" className="divide-y divide-border">
             {categories.map((category) => (
               <li
                 key={category._id}
-                className="px-4 py-4 sm:px-6 hover:bg-gray-750 transition-colors"
+                className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <span
                       style={{ backgroundColor: category.color }}
-                      className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-gray-600"
+                      className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
                     ></span>
                     <div>
-                      <p className="text-md font-medium text-gray-100 truncate">{category.name}</p>
+                      <p className="text-md font-medium text-foreground truncate">
+                        {category.name}
+                      </p>
                       {category.description && (
-                        <p className="text-sm text-gray-400 truncate max-w-xs">
+                        <p className="text-sm text-muted-foreground truncate max-w-xs">
                           {category.description}
                         </p>
                       )}
@@ -388,12 +387,12 @@ export function CategoryManagement() {
                       size="icon"
                       onClick={() => handleToggleProductive(category)}
                       title={category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'}
-                      className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-750 ${
+                      className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${
                         category.isProductive
-                          ? 'text-green-400 hover:bg-green-500/20 focus:ring-green-500'
-                          : 'text-red-400 hover:bg-red-500/20 focus:ring-red-500'
+                          ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500'
+                          : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'
                       }`}
-                      disabled={!token} // Disable if no token
+                      disabled={!token}
                     >
                       {category.isProductive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
                     </Button>
@@ -401,9 +400,9 @@ export function CategoryManagement() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleEdit(category)}
-                      className="p-1.5 rounded-full text-gray-400 hover:text-blue-400 hover:bg-blue-500/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-750 focus:ring-blue-500"
+                      className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
                       title="Edit category"
-                      disabled={!token} // Disable if no token
+                      disabled={!token}
                     >
                       <Edit3 size={18} />
                     </Button>
@@ -415,12 +414,12 @@ export function CategoryManagement() {
                         !token ||
                         (deleteMutation.isLoading && deleteMutation.variables?.id === category._id)
                       }
-                      className="p-1.5 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-gray-750 focus:ring-red-500 disabled:opacity-50"
+                      className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-destructive disabled:opacity-50"
                       title="Delete category"
                     >
                       {deleteMutation.isLoading && deleteMutation.variables?.id === category._id ? (
                         <svg
-                          className="animate-spin h-4 w-4 text-gray-400"
+                          className="animate-spin h-4 w-4 text-muted-foreground"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"

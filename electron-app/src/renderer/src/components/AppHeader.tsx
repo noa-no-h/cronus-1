@@ -17,7 +17,7 @@ export function AppHeader({
   }
 
   return (
-    <div className="sticky top-0 z-30 bg-gray-900 border-b border-gray-800 h-16">
+    <div className="sticky top-0 z-30 bg-background border-b border-border h-16">
       <div className="flex justify-between items-center h-16 px-4">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
           Productivity Dashboard
@@ -26,7 +26,7 @@ export function AppHeader({
           {!isMiniTimerVisible && (
             <button
               onClick={onOpenMiniTimerClick}
-              className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-400 hover:text-white flex items-center gap-1"
+              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground flex items-center gap-1"
               title="Open Mini Timer"
             >
               <ExternalLink size={20} />
@@ -35,7 +35,7 @@ export function AppHeader({
           )}
           <button
             onClick={handleSettingsClick}
-            className="p-2 rounded-lg hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
+            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground"
             title="Settings"
           >
             <SettingsIcon size={24} />

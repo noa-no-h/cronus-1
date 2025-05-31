@@ -1,11 +1,11 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { trpc } from '../utils/trpc'
-import Spinner from './ui/Spinner'
-import AppIcon from './AppIcon'
 import { getFaviconURL } from '../utils/favicon'
-import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
+import { trpc } from '../utils/trpc'
+import AppIcon from './AppIcon'
+import Spinner from './ui/Spinner'
 
 interface WebsiteUsage {
   domain: string
@@ -187,18 +187,18 @@ const TopActivityWidget: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center h-32">
           <Spinner />
-          <p className="mt-2 text-sm text-gray-400">Loading activity...</p>
+          <p className="mt-2 text-sm text-muted-foreground">Loading activity...</p>
         </div>
       )
     }
 
     if (rawEventsError) {
-      return <p className="text-sm text-red-400">Error loading data.</p>
+      return <p className="text-sm text-destructive-foreground">Error loading data.</p>
     }
 
     if (topApps.length === 0) {
       return (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           No significant activity tracked yet today to show top apps.
         </p>
       )
@@ -214,7 +214,7 @@ const TopActivityWidget: React.FC = () => {
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
             <div
-              className={`${app.websites ? 'cursor-pointer hover:bg-gray-750' : ''} rounded-lg p-2 transition-colors`}
+              className={`${app.websites ? 'cursor-pointer hover:bg-accent' : ''} rounded-lg p-2 transition-colors`}
               onClick={() => app.websites && toggleChromeExpansion(app.name)}
             >
               <div className="flex items-center justify-between mb-1">
@@ -225,24 +225,24 @@ const TopActivityWidget: React.FC = () => {
                     size={20}
                     className="flex-shrink-0"
                   />
-                  <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
+                  <span className="text-sm font-medium text-foreground truncate" title={app.name}>
                     {app.name}
                   </span>
                   {app.websites && (
                     <motion.span
                       animate={{ rotate: app.isExpanded ? 90 : 0 }}
-                      className="text-gray-400 text-xs ml-1"
+                      className="text-muted-foreground text-xs ml-1"
                     >
                       ▶
                     </motion.span>
                   )}
                 </div>
-                <span className="text-sm font-normal text-gray-300 ml-2">
+                <span className="text-sm font-normal text-secondary-foreground ml-2">
                   {formatDuration(app.durationMs)}
                 </span>
               </div>
 
-              <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                   initial={{ width: 0 }}
@@ -259,7 +259,7 @@ const TopActivityWidget: React.FC = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="ml-6 mt-2 space-y-2 border-l-2 border-blue-500/30 pl-3 overflow-hidden"
+                  className="ml-6 mt-2 space-y-2 border-l-2 border-primary/30 pl-3 overflow-hidden"
                 >
                   {app.websites.map((website, webIndex) => (
                     <motion.div
@@ -267,7 +267,7 @@ const TopActivityWidget: React.FC = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: webIndex * 0.05 }}
-                      className="flex items-center justify-between py-1.5 hover:bg-gray-750/50 rounded px-2"
+                      className="flex items-center justify-between py-1.5 hover:bg-accent/50 rounded px-2"
                     >
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {!faviconErrors.has(website.domain) ? (
@@ -279,19 +279,21 @@ const TopActivityWidget: React.FC = () => {
                             onError={() => handleFaviconError(website.domain)}
                           />
                         ) : (
-                          <div className="w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded border border-gray-600 text-white font-bold text-xs">
+                          <div className="w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded border border-border text-white font-bold text-xs">
                             {website.domain.charAt(0).toUpperCase()}
                           </div>
                         )}
 
                         <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-medium text-gray-300 truncate">
+                          <span className="text-xs font-medium text-secondary-foreground truncate">
                             {website.title}
                           </span>
-                          <span className="text-xs text-gray-500 truncate">{website.domain}</span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {website.domain}
+                          </span>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-400 ml-2 flex-shrink-0">
+                      <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
                         {formatDuration(website.durationMs)}
                       </span>
                     </motion.div>
@@ -306,14 +308,14 @@ const TopActivityWidget: React.FC = () => {
   }
 
   return (
-    <Card className="bg-gray-800 border-gray-600">
+    <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-gray-100">Today&apos;s Focus Zones</CardTitle>
+        <CardTitle className="text-card-foreground">Today&apos;s Focus Zones</CardTitle>
       </CardHeader>
       <CardContent>
         {renderContent()}
         {totalTrackedTimeMs > 0 && topApps.length > 0 && (
-          <p className="text-xs text-gray-500 mt-3 pt-2 border-t border-gray-700">
+          <p className="text-xs text-muted-foreground mt-3 pt-2 border-t border-border">
             Total actively tracked time today: {formatDuration(totalTrackedTimeMs)}
           </p>
         )}

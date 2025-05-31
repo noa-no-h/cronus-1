@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 
@@ -66,14 +66,14 @@ const GoalInputForm = () => {
 
   if (isLoading) {
     return (
-      <Card className="bg-gray-800 border-gray-600">
+      <Card className="bg-card border-border">
         <CardContent className="pt-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-muted rounded w-1/4 mb-4"></div>
             <div className="space-y-3">
-              <div className="h-10 bg-gray-700 rounded"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
-              <div className="h-10 bg-gray-700 rounded"></div>
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-10 bg-muted rounded"></div>
             </div>
           </div>
         </CardContent>
@@ -83,7 +83,7 @@ const GoalInputForm = () => {
 
   return (
     <Card
-      className={`bg-gray-800 border-gray-600${!isEditing ? ' cursor-pointer' : ''}`}
+      className={`bg-card border-border${!isEditing ? ' cursor-pointer' : ''}`}
       onClick={() => {
         if (!isEditing) setIsEditing(true)
       }}
@@ -92,12 +92,12 @@ const GoalInputForm = () => {
       aria-label={!isEditing ? 'Click to edit your goals' : undefined}
     >
       <CardHeader>
-        <CardTitle className="text-gray-100">Your Goals</CardTitle>
+        <CardTitle className="text-card-foreground">Your Goals</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Life Goal */}
         <div>
-          <label htmlFor="lifeGoal" className="block text-sm font-medium text-gray-200 mb-1">
+          <label htmlFor="lifeGoal" className="block text-sm font-medium text-foreground mb-1">
             Life Goal (5 Year Vision)
           </label>
           {isEditing ? (
@@ -105,20 +105,22 @@ const GoalInputForm = () => {
               id="lifeGoal"
               value={goals.lifeGoal}
               onChange={(e) => handleInputChange('lifeGoal', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-700 text-white placeholder-gray-400"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
               rows={2}
               placeholder="What do you want to achieve in the next 5 years?"
             />
           ) : (
-            <p className="px-3 py-2 bg-gray-700 rounded-md text-white min-h-[2.5rem]">
-              {goals.lifeGoal || <span className="text-gray-400 italic">No life goal set</span>}
+            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+              {goals.lifeGoal || (
+                <span className="text-muted-foreground italic">No life goal set</span>
+              )}
             </p>
           )}
         </div>
 
         {/* Weekly Goal */}
         <div>
-          <label htmlFor="weeklyGoal" className="block text-sm font-medium text-gray-200 mb-1">
+          <label htmlFor="weeklyGoal" className="block text-sm font-medium text-foreground mb-1">
             Goal for This Week
           </label>
           {isEditing ? (
@@ -126,20 +128,22 @@ const GoalInputForm = () => {
               id="weeklyGoal"
               value={goals.weeklyGoal}
               onChange={(e) => handleInputChange('weeklyGoal', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-700 text-white placeholder-gray-400"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
               rows={2}
               placeholder="What do you want to accomplish this week?"
             />
           ) : (
-            <p className="px-3 py-2 bg-gray-700 rounded-md text-white min-h-[2.5rem]">
-              {goals.weeklyGoal || <span className="text-gray-400 italic">No weekly goal set</span>}
+            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+              {goals.weeklyGoal || (
+                <span className="text-muted-foreground italic">No weekly goal set</span>
+              )}
             </p>
           )}
         </div>
 
         {/* Daily Goal */}
         <div>
-          <label htmlFor="dailyGoal" className="block text-sm font-medium text-gray-200 mb-1">
+          <label htmlFor="dailyGoal" className="block text-sm font-medium text-foreground mb-1">
             Goal for Today
           </label>
           {isEditing ? (
@@ -147,13 +151,15 @@ const GoalInputForm = () => {
               id="dailyGoal"
               value={goals.dailyGoal}
               onChange={(e) => handleInputChange('dailyGoal', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-gray-700 text-white placeholder-gray-400"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
               rows={2}
               placeholder="What's your main focus for today?"
             />
           ) : (
-            <p className="px-3 py-2 bg-gray-700 rounded-md text-white min-h-[2.5rem]">
-              {goals.dailyGoal || <span className="text-gray-400 italic">No daily goal set</span>}
+            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+              {goals.dailyGoal || (
+                <span className="text-muted-foreground italic">No daily goal set</span>
+              )}
             </p>
           )}
         </div>
@@ -163,14 +169,14 @@ const GoalInputForm = () => {
             <button
               onClick={handleCancel}
               disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 border border-gray-600 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-muted border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save Goals'}
             </button>
