@@ -1,0 +1,67 @@
+---
+description: understand layout and tech used in this codebase
+globs: 
+alwaysApply: false
+---
+# Project: whatdidyougetdonetoday-ai
+
+This project is a modern SaaS application built with a monorepo structure. It aims to provide a template for applications requiring authentication, payments, and a user-friendly UI.
+
+## Core Technologies Across the Project
+
+-   **Runtime & Package Manager**: Bun (provides a fast JavaScript runtime and package manager).
+-   **Language**: TypeScript (for static typing and improved code quality).
+-   **API Layer**: tRPC (enables type-safe API calls between the frontend and backend).
+-   **Styling**: Tailwind CSS (a utility-first CSS framework for rapid UI development).
+-   **UI Components**: Shadcn UI (a collection of beautifully designed, accessible, and customizable React components built with Radix UI and Tailwind CSS).
+
+## Monorepo Package Structure
+
+The project is organized into several distinct packages, each with a specific role:
+
+### 1. `client/`
+
+-   **Purpose**: Houses the main web application frontend.
+-   **Framework**: React (built using Create React App, with customizations managed by Craco to avoid ejecting).
+-   **Styling**: Utilizes Tailwind CSS and Shadcn UI components.
+-   **API Communication**: Implements a tRPC client to interact with the `server/` package.
+-   **Key Libraries**:
+    -   `react-router-dom` for client-side routing.
+    -   `@tanstack/react-query` (via `@trpc/react-query`) for data fetching, caching, and state management.
+    -   `zod` for schema declaration and validation.
+
+### 2. `server/`
+
+-   **Purpose**: Contains the backend logic, API endpoints, and database interactions.
+-   **Runtime**: Bun.
+-   **API Framework**: tRPC is used to define type-safe API endpoints.
+-   **Database**: MongoDB (with Mongoose as the ODM for interacting with the database).
+-   **Payments**: Integrated with Stripe for handling payment processing.
+-   **Key Libraries**:
+    -   `express` (often used as the server adapter for tRPC).
+    -   `mongoose` for MongoDB object modeling.
+    -   `zod` for input validation and data integrity.
+    -   `jsonwebtoken` for handling JWT-based authentication.
+
+### 3. `electron-app/`
+
+-   **Purpose**: Provides a desktop application version of the software.
+-   **Framework**: Electron (allows building cross-platform desktop apps with web technologies).
+-   **Renderer UI**: Built with React and TypeScript, similar to the `client/` package.
+-   **Builder**: `electron-vite` (a build toolchain optimized for Electron development with Vite).
+-   **API Communication**: Likely uses a tRPC client to communicate with the `server/` package or local Electron main process services.
+-   **Key Features**: Can leverage native desktop capabilities and offer an installed application experience.
+
+### 4. `shared/`
+
+-   **Purpose**: A dedicated package for code that needs to be shared across different parts of the monorepo (e.g., `client/`, `server/`, `electron-app/`).
+-   **Contents**: Typically includes TypeScript types, interfaces, validation schemas (Zod), and utility functions.
+-   **Benefit**: Ensures type safety, consistency, and reduces code duplication across the different applications.
+
+## General Development Guidelines
+
+-   **Type Safety**: Prioritize using and defining shared types from the `shared/` package for any data structures exchanged between the client, server, or Electron app.
+-   **UI Development**: When building UI, leverage Shadcn UI components as a foundation and customize them using Tailwind CSS to maintain consistency and development speed.
+-   **API Development**: Adhere to the established tRPC patterns for defining routers and procedures on the server and for making type-safe calls from the client and Electron app.
+-   **Environment Variables**: Be mindful of the environment variables required for different services (MongoDB, Stripe, Google OAuth, etc.) as outlined in the main `README.md`.
+-   **Bun Usage**: Utilize Bun for running scripts, managing dependencies, and as the runtime environment, especially for the server.
