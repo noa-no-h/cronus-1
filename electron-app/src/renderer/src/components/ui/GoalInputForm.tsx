@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 
@@ -65,22 +66,24 @@ const GoalInputForm = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4 bg-gray-800 rounded-lg shadow-sm">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-10 bg-gray-700 rounded"></div>
-            <div className="h-10 bg-gray-700 rounded"></div>
-            <div className="h-10 bg-gray-700 rounded"></div>
+      <Card className="bg-gray-800 border-gray-600">
+        <CardContent className="pt-6">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-700 rounded w-1/4 mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-10 bg-gray-700 rounded"></div>
+              <div className="h-10 bg-gray-700 rounded"></div>
+              <div className="h-10 bg-gray-700 rounded"></div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div
-      className={`p-4 bg-gray-800 rounded-lg shadow-sm${!isEditing ? ' cursor-pointer' : ''}`}
+    <Card
+      className={`bg-gray-800 border-gray-600${!isEditing ? ' cursor-pointer' : ''}`}
       onClick={() => {
         if (!isEditing) setIsEditing(true)
       }}
@@ -88,11 +91,10 @@ const GoalInputForm = () => {
       role="button"
       aria-label={!isEditing ? 'Click to edit your goals' : undefined}
     >
-      <div className="flex justify-between items-center">
-        <h2 className="text-md font-semibold text-gray-100 mb-3">Your Goals</h2>
-      </div>
-
-      <div className="space-y-4">
+      <CardHeader>
+        <CardTitle className="text-gray-100">Your Goals</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         {/* Life Goal */}
         <div>
           <label htmlFor="lifeGoal" className="block text-sm font-medium text-gray-200 mb-1">
@@ -155,27 +157,27 @@ const GoalInputForm = () => {
             </p>
           )}
         </div>
-      </div>
 
-      {isEditing && (
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={handleCancel}
-            disabled={isSaving}
-            className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 border border-gray-600 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSaving ? 'Saving...' : 'Save Goals'}
-          </button>
-        </div>
-      )}
-    </div>
+        {isEditing && (
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 border border-gray-600 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? 'Saving...' : 'Save Goals'}
+            </button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
