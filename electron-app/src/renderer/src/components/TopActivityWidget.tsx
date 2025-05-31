@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import Spinner from './ui/Spinner'
 import AppIcon from './AppIcon'
+import { getFaviconURL } from '../utils/favicon'
 
 interface WebsiteUsage {
   domain: string
@@ -44,35 +45,6 @@ const extractWebsiteInfo = (url: string, title: string): { domain: string; title
   }
 }
 
-const WebsiteFavicon: React.FC<{ domain: string; className?: string }> = ({
-  domain,
-  className = ''
-}) => {
-  const [faviconError, setFaviconError] = useState(false)
-
-  if (faviconError) {
-    // Fallback to letter icon
-    return (
-      <div
-        className={`w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded text-white font-bold text-xs ${className}`}
-      >
-        {domain.charAt(0).toUpperCase()}
-      </div>
-    )
-  }
-
-  return (
-    <img
-      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
-      alt={`${domain} favicon`}
-      width={16}
-      height={16}
-      className={`rounded ${className}`}
-      onError={() => setFaviconError(true)}
-    />
-  )
-}
-
 // Helper function to format milliseconds to a readable string
 const formatDuration = (ms: number): string => {
   if (ms < 0) ms = 0
@@ -96,6 +68,7 @@ const TopActivityWidget: React.FC = () => {
   const { user } = useAuth()
   const [topApps, setTopApps] = useState<AppUsage[]>([])
   const [totalTrackedTimeMs, setTotalTrackedTimeMs] = useState(0)
+  const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
 
   const {
     data: todayRawEvents,
@@ -204,6 +177,10 @@ const TopActivityWidget: React.FC = () => {
     )
   }
 
+  const handleFaviconError = (domain: string): void => {
+    setFaviconErrors((prev) => new Set([...prev, domain]))
+  }
+
   const renderContent = (): React.ReactNode => {
     if (isLoadingRawEvents && topApps.length === 0) {
       return (
@@ -292,7 +269,20 @@ const TopActivityWidget: React.FC = () => {
                       className="flex items-center justify-between py-1.5 hover:bg-gray-750/50 rounded px-2"
                     >
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <WebsiteFavicon domain={website.domain} />
+                        {!faviconErrors.has(website.domain) ? (
+                          <img
+                            src={getFaviconURL(website.url)}
+                            alt="favicon"
+                            width={20}
+                            height={20}
+                            onError={() => handleFaviconError(website.domain)}
+                          />
+                        ) : (
+                          <div className="w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded border border-gray-600 text-white font-bold text-xs">
+                            {website.domain.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+
                         <div className="flex flex-col min-w-0">
                           <span className="text-xs font-medium text-gray-300 truncate">
                             {website.title}
