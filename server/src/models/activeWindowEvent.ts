@@ -14,6 +14,7 @@ const activeWindowEventSchema = new Schema({
   content: { type: String }, // Optional: content of the window, e.g. for active browser tab
   timestamp: { type: Number, required: true, default: Date.now, index: true }, // Unix timestamp
   screenshotS3Url: { type: String }, // URL of the screenshot stored in S3
+  captureReason: { type: String, enum: ['app_switch', 'periodic_backup', null] },
 });
 
 // Compound index for efficient querying by userId and timestamp

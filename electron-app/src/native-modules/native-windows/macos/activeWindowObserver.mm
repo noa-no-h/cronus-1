@@ -37,6 +37,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     AXObserverRef observer;
     NSTimer *screenshotTimer;
     NSData *lastScreenshotData;
+    NSTimer *periodicCheckTimer;          
+    NSString *lastTrackedApp;             
+    NSTimeInterval lastAppSwitchTime;    
+    BOOL isCurrentlyTracking;           
 }
 
 - (void) dealloc
@@ -49,17 +53,65 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     self = [super init];
     if (!self) return nil;
     
+    // App switch notifications (keep this - it's perfect!)
     [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self 
                                                          selector:@selector(receiveAppChangeNotification:) 
                                                              name:NSWorkspaceDidActivateApplicationNotification 
                                                            object:nil];
     
-    // [self startScreenshotTimer];  // comment out for only text based content handling 
+    // Start periodic backup timer 
+    [self startPeriodicBackupTimer];
+
+    // comment out for only text based content handling 
+    // [self startScreenshotTimer]; 
+    
     return self;
 }
 
-- (void) receiveAppChangeNotification:(NSNotification *) notification
-{
+// periodic backup timer
+- (void)startPeriodicBackupTimer {
+    [self stopPeriodicBackupTimer];
+    
+    // Check every 2-3 minutes as backup 
+    periodicCheckTimer = [NSTimer scheduledTimerWithTimeInterval:150.0  
+                                                        target:self
+                                                      selector:@selector(periodicBackupCheck)
+                                                      userInfo:nil
+                                                       repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:periodicCheckTimer forMode:NSRunLoopCommonModes];
+    NSLog(@"📅 Periodic backup timer started (2.5 min intervals)");
+}
+
+- (void)stopPeriodicBackupTimer {
+    [periodicCheckTimer invalidate];
+    periodicCheckTimer = nil;
+    NSLog(@"📅 Periodic backup timer stopped");
+}
+
+// Backup check (only if user hasn't switched apps recently)
+- (void)periodicBackupCheck {
+    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval timeSinceLastSwitch = now - lastAppSwitchTime;
+    
+    // Only do backup capture if user has been on same app for a while
+    if (timeSinceLastSwitch > 120.0) {  // 2+ minutes on same app
+        NSLog(@"📅 PERIODIC BACKUP: User on same app for %.1f minutes", timeSinceLastSwitch / 60.0);
+        
+        NSDictionary *windowInfo = [self getActiveWindow];
+        if (windowInfo) {
+            NSString *currentApp = windowInfo[@"ownerName"];
+            
+            // Only send if it's a significant change or long time passed
+            if (![currentApp isEqualToString:lastTrackedApp] || timeSinceLastSwitch > 600.0) {
+                NSLog(@"📅 BACKUP CAPTURE: %@", currentApp);
+                [self sendWindowInfoToJS:windowInfo withReason:@"periodic_backup"];
+                lastTrackedApp = currentApp;
+            }
+        }
+    }
+}
+
+- (void) receiveAppChangeNotification:(NSNotification *) notification {
     [self removeWindowObserver];
 
     int currentAppPid = [NSProcessInfo processInfo].processIdentifier;
@@ -71,18 +123,15 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     }
 
     processId = selectedProcessId;
+    
+    // 🎯 NEW: Track app switch timing
+    lastAppSwitchTime = [[NSDate date] timeIntervalSince1970];
 
     NSDictionary *details = [self getActiveWindow];
     if (details) {
-        NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:details options:0 error:&error];
-        if (!jsonData) {
-            NSLog(@"Error creating JSON data in receiveAppChangeNotification: %@", error);
-        } else {
-            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            std::string* result = new std::string([jsonString UTF8String]);
-            activeWindowChangedCallback.BlockingCall(result, napiCallback);
-        }
+        NSLog(@"🚀 INSTANT APP SWITCH: %@", details[@"ownerName"]);
+        lastTrackedApp = details[@"ownerName"];
+        [self sendWindowInfoToJS:details withReason:@"app_switch"];
     }
 
     AXUIElementRef appElem = AXUIElementCreateApplication(processId.intValue);
@@ -96,6 +145,26 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     AXObserverAddNotification(observer, appElem, kAXMainWindowChangedNotification, (__bridge void *)(self));
     CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], AXObserverGetRunLoopSource(observer), kCFRunLoopDefaultMode);
     NSLog(@"Observers added");
+}
+
+// Centralized method to send data to JavaScript
+- (void)sendWindowInfoToJS:(NSDictionary*)windowInfo withReason:(NSString*)reason {
+    NSMutableDictionary *enrichedInfo = [windowInfo mutableCopy];
+    enrichedInfo[@"captureReason"] = reason;  // "app_switch" or "periodic_backup"
+    enrichedInfo[@"timestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
+    
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:enrichedInfo options:0 error:&error];
+    if (!jsonData) {
+        NSLog(@"Error creating JSON data: %@", error);
+        return;
+    }
+    
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    std::string* result = new std::string([jsonString UTF8String]);
+    activeWindowChangedCallback.BlockingCall(result, napiCallback);
+    
+    NSLog(@"📤 SENT TO JS: %@ (%@)", enrichedInfo[@"ownerName"], reason);
 }
 
 - (NSDictionary*)getActiveWindow {
@@ -480,7 +549,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (void)cleanUp {
-    [self stopScreenshotTimer];
+    [self stopScreenshotTimer];        
+    [self stopPeriodicBackupTimer];    
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
 }

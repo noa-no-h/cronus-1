@@ -28,6 +28,7 @@ export interface ActiveWindowDetails {
   timestamp?: number;
   localScreenshotPath?: string | null;
   screenshotS3Url?: string | null;
+  captureReason?: 'app_switch' | 'periodic_backup' | null;
 }
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {

@@ -71,16 +71,22 @@ const DistractionCategorizationResult = ({
     {
       enabled: !!token && !!queryActiveWindowDetails,
       refetchInterval: () => {
-        // If the significant details of the window haven't changed since the last successful fetch,
-        // disable interval-based refetching.
-        if (prevWindowSignificantDetailsRef.current === currentWindowSignificantDetailsJSON) {
-          return false
+        // 🎯 NEW: Smart refetch based on capture reason
+        if (!activeWindow?.captureReason) return 5000
+
+        // If it was an app switch, check quickly for changes
+        if (activeWindow.captureReason === 'app_switch') {
+          return 3000 // Check every 3 seconds after app switch
         }
-        // Otherwise, use the default 5-second interval.
+
+        // If it was periodic backup, check less frequently
+        if (activeWindow.captureReason === 'periodic_backup') {
+          return 30000 // Check every 30 seconds for periodic captures
+        }
+
         return 5000
       },
       onSuccess: () => {
-        // After a successful fetch, update the reference to the current window's significant details.
         prevWindowSignificantDetailsRef.current = currentWindowSignificantDetailsJSON
       }
     }
