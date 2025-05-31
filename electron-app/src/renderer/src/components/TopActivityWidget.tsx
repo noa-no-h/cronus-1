@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import Spinner from './ui/Spinner'
+import AppIcon from './AppIcon'
 
 interface AppUsage {
   name: string
   durationMs: number
   percentage?: number
+  iconPath?: string | null
 }
 
 // Helper function to format milliseconds to a readable string
@@ -133,16 +135,24 @@ const TopActivityWidget: React.FC = () => {
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
-                {app.name}
-              </span>
-              <span className="text-sm font-normal text-gray-300">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <AppIcon
+                  appName={app.name}
+                  iconPath={app.iconPath}
+                  size={20}
+                  className="flex-shrink-0"
+                />
+                <span className="text-sm font-medium text-gray-200 truncate" title={app.name}>
+                  {app.name}
+                </span>
+              </div>
+              <span className="text-sm font-normal text-gray-300 ml-2">
                 {formatDuration(app.durationMs)}
               </span>
             </div>
             <div className="h-2 w-full bg-gray-700 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-blue-500  to-purple-500 rounded-full"
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${app.percentage || 0}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut', delay: index * 0.1 + 0.2 }}
