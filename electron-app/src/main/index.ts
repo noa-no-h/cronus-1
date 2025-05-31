@@ -11,9 +11,82 @@ import { nativeWindows } from '../native-modules/native-windows/index'
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })
 
 let mainWindow: BrowserWindow | null
+let floatingWindow: BrowserWindow | null
+
+function createFloatingWindow(): void {
+  floatingWindow = new BrowserWindow({
+    width: 300,
+    height: 60,
+    frame: false,
+    alwaysOnTop: true,
+    transparent: true,
+    resizable: false,
+    maximizable: false,
+    show: false, // Initially hide; show when ready or when first status update comes
+    webPreferences: {
+      preload: join(__dirname, '../preload/floatingPreload.js'),
+      sandbox: false,
+      contextIsolation: true
+    }
+  })
+
+  if (!floatingWindow) {
+    console.error('Failed to create floating window')
+    return
+  }
+
+  // On macOS, this makes the window appear on the currently active space.
+  // To make it appear on ALL spaces, use setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }).
+  if (process.platform === 'darwin') {
+    floatingWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+    console.log('Floating window set to be visible on all workspaces for macOS.')
+  }
+
+  floatingWindow.webContents.on('did-finish-load', () => {
+    console.log('Floating window content finished loading.')
+    if (is.dev) {
+      floatingWindow?.webContents.openDevTools({ mode: 'detach' })
+    }
+  })
+
+  floatingWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+    console.error(`Floating window failed to load: ${errorCode}, ${errorDescription}`)
+  })
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    const floatingUrl = `${process.env['ELECTRON_RENDERER_URL']}/floating.html`
+    console.log(`Loading floating window URL (dev): ${floatingUrl}`)
+    floatingWindow
+      .loadURL(floatingUrl)
+      .catch((err) => console.error('Failed to load floating URL (dev):', err))
+  } else {
+    const floatingFilePath = join(__dirname, '../renderer/floating.html')
+    console.log(`Loading floating window file (prod): ${floatingFilePath}`)
+    floatingWindow
+      .loadFile(floatingFilePath)
+      .catch((err) => console.error('Failed to load floating file (prod):', err))
+  }
+
+  floatingWindow.on('ready-to-show', () => {
+    // Do not show immediately; wait for the first status update
+  })
+
+  ipcMain.on('move-floating-window', (_event, { deltaX, deltaY }) => {
+    if (floatingWindow) {
+      const currentPosition = floatingWindow.getPosition()
+      const x = currentPosition[0]
+      const y = currentPosition[1]
+      floatingWindow.setPosition(x + deltaX, y + deltaY)
+    }
+  })
+
+  floatingWindow.on('closed', () => {
+    floatingWindow = null
+    console.log('Floating window closed.')
+  })
+}
 
 function createWindow(): void {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 1270,
@@ -24,7 +97,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      contextIsolation: true
     }
   })
 
@@ -51,20 +125,16 @@ function createWindow(): void {
         }
       }
     }
-    // Open all other links in the user's default browser
     shell.openExternal(url)
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  // Open DevTools automatically in development
   if (is.dev) {
     mainWindow.webContents.openDevTools()
   }
@@ -74,7 +144,6 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
   // Default open or close DevTools by F12 in development
@@ -84,10 +153,8 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  // IPC handler for environment variables, placed after createWindow
   ipcMain.handle('get-env-vars', () => {
     return {
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
@@ -95,19 +162,16 @@ app.whenReady().then(() => {
     }
   })
 
-  // Add IPC handler for reading files
   ipcMain.handle('read-file', async (_event, filePath: string) => {
     try {
-      // const fs = await import('fs/promises') // fs is already imported globally in this file
-      const buffer = await fs.readFile(filePath) // No checksum calculation
-      return buffer // Return only the buffer (which will be an ArrayBuffer on the client)
+      const buffer = await fs.readFile(filePath)
+      return buffer
     } catch (error) {
       console.error('Error reading file:', error)
       throw error
     }
   })
 
-  // Add IPC handler for deleting files
   ipcMain.handle('delete-file', async (_event, filePath: string) => {
     try {
       await fs.unlink(filePath)
@@ -117,11 +181,30 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.on(
+    'update-floating-window-status',
+    (_event, status: 'productive' | 'unproductive' | 'maybe') => {
+      if (floatingWindow) {
+        console.log(`Main process: Attempting to send status ('${status}') to floating window.`)
+        floatingWindow.webContents.send('floating-window-status-updated', status)
+        if (!floatingWindow.isVisible()) {
+          console.log('Main process: Floating window was not visible, calling show().')
+          floatingWindow.show()
+        } else {
+          console.log('Main process: Floating window is already visible.')
+        }
+      } else {
+        console.warn('Main process: Received status update, but floatingWindow is null.')
+      }
+    }
+  )
+
   createWindow()
+  createFloatingWindow()
 
   nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {
     if (windowInfo) {
-      console.log('Active window info:', windowInfo)
+      // console.log('Active window info:', windowInfo) // Too noisy for general use
       if (mainWindow) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }

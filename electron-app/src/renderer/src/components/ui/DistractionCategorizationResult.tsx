@@ -88,11 +88,29 @@ const DistractionCategorizationResult = ({
 
       //   return 5000
       // },
-      onSuccess: () => {
+      onSuccess: (data) => {
         prevWindowSignificantDetailsRef.current = currentWindowSignificantDetailsJSON
+        // Send status to main process for the floating window
+        if (window.electron?.ipcRenderer && data?.isDistraction) {
+          let status: 'productive' | 'unproductive' | 'maybe' = 'maybe'
+          if (data.isDistraction === 'no') status = 'productive'
+          else if (data.isDistraction === 'yes') status = 'unproductive'
+          window.electron.ipcRenderer.send('update-floating-window-status', status)
+        }
       }
     }
   )
+
+  // Effect to also send status if distractionResult changes from other sources (e.g. cache)
+  useEffect(() => {
+    if (distractionResult?.isDistraction && window.electron?.ipcRenderer) {
+      let status: 'productive' | 'unproductive' | 'maybe' = 'maybe'
+      if (distractionResult.isDistraction === 'no') status = 'productive'
+      else if (distractionResult.isDistraction === 'yes') status = 'unproductive'
+      // console.log('Sending status from useEffect in DistractionCategorizationResult:', status) // For debugging
+      window.electron.ipcRenderer.send('update-floating-window-status', status)
+    }
+  }, [distractionResult])
 
   const getStatusText = (): string => {
     if (!distractionResult) return 'Checking...'
