@@ -26,7 +26,7 @@ interface MutateAsyncFunction {
 
 // Define the event data type
 interface EventData {
-  userId: string
+  token: string
   windowId: number
   ownerName: string
   type: 'window' | 'browser'
@@ -39,18 +39,24 @@ interface EventData {
 }
 
 export const uploadActiveWindowEvent = async (
-  userId: string,
+  token: string,
   windowDetails: ActiveWindowDetails,
   mutateEvent: MutateAsyncFunction
 ): Promise<void> => {
-  if (!userId || !windowDetails) {
+  if (!token || !windowDetails) {
     return
   }
 
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {
-    ...windowDetails,
-    userId,
+    token,
+    windowId: windowDetails.windowId,
+    ownerName: windowDetails.ownerName,
+    type: windowDetails.type,
+    browser: windowDetails.browser,
+    title: windowDetails.title,
+    url: windowDetails.url,
+    content: windowDetails.content,
     timestamp: windowDetails.timestamp || Date.now(),
     screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
   }

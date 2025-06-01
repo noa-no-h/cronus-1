@@ -8,7 +8,6 @@ import TopActivityWidget from './components/TopActivityWidget'
 import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
 import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
-import GoalInputForm from './components/ui/GoalInputForm'
 import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
@@ -16,7 +15,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
 
 function MainAppContent() {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, token } = useAuth()
   const currentUserId = user?.id
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
@@ -32,12 +31,12 @@ function MainAppContent() {
   useEffect(() => {
     const cleanup = window.api.onActiveWindowChanged((details) => {
       setActiveWindow(details)
-      if (details && isAuthenticated && currentUserId) {
-        uploadActiveWindowEvent(currentUserId, details, eventCreationMutation.mutateAsync)
+      if (details && isAuthenticated && token) {
+        uploadActiveWindowEvent(token, details, eventCreationMutation.mutateAsync)
       }
     })
     return cleanup
-  }, [isAuthenticated, currentUserId, eventCreationMutation.mutateAsync])
+  }, [isAuthenticated, token, eventCreationMutation.mutateAsync])
 
   useEffect(() => {
     const handleVisibilityChange = (_event, isVisible: boolean) => {

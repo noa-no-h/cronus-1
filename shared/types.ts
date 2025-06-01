@@ -33,6 +33,7 @@ export interface ActiveWindowDetails {
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {
   userId: string;
+  categoryId?: string | null;
 }
 
 export interface Category {

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import React, { JSX, useEffect, useMemo, useRef } from 'react'
-import { ActiveWindowDetails } from 'shared'
+import React, { JSX, useEffect, useMemo } from 'react'
+import { ActiveWindowDetails, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 import { Card, CardContent, CardHeader, CardTitle } from './card'
@@ -9,24 +9,21 @@ interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
 }
 
-// Custom comparison function for React.memo
+// Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
+// For now, let's keep it, but its role might change.
 const arePropsEqual = (
   prevProps: DistractionCategorizationResultProps,
   nextProps: DistractionCategorizationResultProps
 ): boolean => {
   if (!prevProps.activeWindow && !nextProps.activeWindow) return true
   if (!prevProps.activeWindow || !nextProps.activeWindow) return false
-
   const p = prevProps.activeWindow
   const n = nextProps.activeWindow
-
-  // Compare key fields that determine if the window content has changed.
-  // Omitting timestamp and windowId as they don't signify a change in content for this purpose.
   return (
     p.ownerName === n.ownerName &&
     p.title === n.title &&
     p.url === n.url &&
-    p.content === n.content &&
+    p.content === n.content && // Assuming content changes are also significant for display
     p.type === n.type &&
     p.browser === n.browser
   )
@@ -36,199 +33,158 @@ const DistractionCategorizationResult = ({
   activeWindow
 }: DistractionCategorizationResultProps): JSX.Element | null => {
   const { token } = useAuth()
-  const prevWindowSignificantDetailsRef = useRef<string | null>(null)
 
-  const currentWindowSignificantDetailsJSON = useMemo(() => {
-    if (!activeWindow) return null
-    const details = {
-      ownerName: activeWindow.ownerName,
-      title: activeWindow.title,
-      url: activeWindow.url,
-      content: activeWindow.content,
-      type: activeWindow.type,
-      browser: activeWindow.browser
-    }
-    return JSON.stringify(details)
-  }, [activeWindow])
-
-  const queryActiveWindowDetails = activeWindow
-    ? {
-        windowId: activeWindow.windowId || 0,
-        ownerName: activeWindow.ownerName || '',
-        type: activeWindow.type || 'window',
-        browser: activeWindow.browser || null,
-        title: activeWindow.title || '',
-        url: activeWindow.url || null,
-        content: activeWindow.content || null,
-        timestamp: activeWindow.timestamp || Date.now()
+  // Fetch the latest active window event
+  const { data: latestEvent, isLoading: isLoadingLatestEvent } =
+    trpc.activeWindowEvents.getLatestEvent.useQuery(
+      {
+        token: token || ''
+      },
+      {
+        enabled: !!token,
+        refetchInterval: 5000 // Poll for the latest event every 5 seconds
+        // onSuccess might not be needed here if we rely on the derived category query
       }
-    : null
+    )
 
-  const { data: distractionResult, isLoading } = trpc.distractions.checkDistraction.useQuery(
-    {
-      token: token || '',
-      activeWindowDetails: queryActiveWindowDetails!
-    },
-    {
-      enabled: !!token && !!queryActiveWindowDetails,
+  const categoryId = latestEvent?.categoryId
 
-      // comment out bc switching to polling only when app switch is detected and every 5 minutes otherwise
-      // refetchInterval: () => {
-      //   // 🎯 NEW: Smart refetch based on capture reason
-      //   if (!activeWindow?.captureReason) return 5000
-
-      //   // If it was an app switch, check quickly for changes
-      //   if (activeWindow.captureReason === 'app_switch') {
-      //     return 3000 // Check every 3 seconds after app switch
-      //   }
-
-      //   // If it was periodic backup, check less frequently
-      //   if (activeWindow.captureReason === 'periodic_backup') {
-      //     return 30000 // Check every 30 seconds for periodic captures
-      //   }
-
-      //   return 5000
-      // },
-      onSuccess: (data) => {
-        prevWindowSignificantDetailsRef.current = currentWindowSignificantDetailsJSON
-        // Send status to main process for the floating window
-        if (window.electron?.ipcRenderer && data?.isDistraction) {
-          let status: 'productive' | 'unproductive' | 'maybe' = 'maybe'
-          if (data.isDistraction === 'no') status = 'productive'
-          else if (data.isDistraction === 'yes') status = 'unproductive'
-          window.electron.ipcRenderer.send('update-floating-window-status', status)
+  // Fetch category details if categoryId is available from the latestEvent
+  const { data: categoryDetails, isLoading: isLoadingCategory } =
+    trpc.category.getCategoryById.useQuery(
+      {
+        token: token || '',
+        categoryId: categoryId || ''
+      },
+      {
+        enabled: !!token && !!categoryId,
+        // onSuccess can be used to send status to main process for floating window
+        onSuccess: (data: Category | null) => {
+          if (window.electron?.ipcRenderer && data) {
+            let status: 'productive' | 'unproductive' | 'maybe' = 'maybe'
+            if (data.isProductive === true) status = 'productive'
+            else if (data.isProductive === false) status = 'unproductive'
+            window.electron.ipcRenderer.send('update-floating-window-status', status)
+          }
         }
       }
-    }
-  )
+    )
 
-  // Effect to also send status if distractionResult changes from other sources (e.g. cache)
+  // Effect to send status if categoryDetails changes (e.g. from cache or subsequent fetch)
   useEffect(() => {
-    if (distractionResult?.isDistraction && window.electron?.ipcRenderer) {
+    if (categoryDetails && window.electron?.ipcRenderer) {
       let status: 'productive' | 'unproductive' | 'maybe' = 'maybe'
-      if (distractionResult.isDistraction === 'no') status = 'productive'
-      else if (distractionResult.isDistraction === 'yes') status = 'unproductive'
-      // console.log('Sending status from useEffect in DistractionCategorizationResult:', status) // For debugging
+      if (categoryDetails.isProductive === true) status = 'productive'
+      else if (categoryDetails.isProductive === false) status = 'unproductive'
       window.electron.ipcRenderer.send('update-floating-window-status', status)
     }
-  }, [distractionResult])
+  }, [categoryDetails])
 
+  // Motivational text and notifications would now depend on categoryDetails
+  // For simplicity, motivationalText is not handled here but could be added to Category type or fetched separately
   const getStatusText = (): string => {
-    if (!distractionResult) return 'Checking...'
-    switch (distractionResult.isDistraction) {
-      case 'no':
-        return 'This seems productive. Keep it up!'
-      case 'yes':
-        return 'This might be distracting you.'
-      case 'maybe':
-      default:
-        return 'Hmm, not sure if this aligns with your goals.'
-    }
+    if (!latestEvent) return 'Waiting for activity data...'
+    if (!categoryId) return 'Activity not yet categorized.'
+    if (!categoryDetails) return 'Loading category info...'
+
+    if (categoryDetails.isProductive === true)
+      return `${categoryDetails.name}: Seems productive. Keep it up!`
+    if (categoryDetails.isProductive === false)
+      return `${categoryDetails.name}: Might be distracting.`
+    return `${categoryDetails.name}: Neutral or Uncategorized.`
   }
 
   useEffect(() => {
-    if (distractionResult && activeWindow && distractionResult.isDistraction === 'yes') {
-      const appName = activeWindow.ownerName || 'No active application'
-      const statusText = getStatusText()
-      const motivationalText = distractionResult.motivationalText || ''
+    if (categoryDetails && activeWindow && categoryDetails.isProductive === false) {
+      const appName = activeWindow.ownerName || 'Current Application'
+      const statusText = getStatusText() // This will now reflect category name and productive status
+      // const motivationalText = categoryDetails.motivationalText || '' // If you add motivationalText to Category
 
-      const notificationTitle = `Activity Alert: ${appName}`
+      const notificationTitle = `Focus Alert: ${appName}`
       let notificationBody = `${statusText}`
-      if (motivationalText) {
-        notificationBody += `\n${motivationalText}`
-      }
+      // if (motivationalText) {
+      //   notificationBody += `\n${motivationalText}`
+      // }
 
-      // Ensure we are in a context where Notification API is available (renderer process)
       if (window.Notification) {
         new window.Notification(notificationTitle, { body: notificationBody }).onclick = () => {
           console.log('Notification clicked')
-          // We could add functionality here, e.g., focus the app window
-          // window.api.focusApp(); // Example: if you add such an IPC call
         }
       }
     }
-  }, [distractionResult, activeWindow])
+  }, [categoryDetails, activeWindow]) // Re-run if category or activeWindow details change
 
-  if (!activeWindow) {
-    return null
-  }
+  // Display for current application (from prop)
+  const currentAppDisplay = useMemo(() => {
+    if (!activeWindow) return 'No active application.'
+    return (
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-sm text-muted-foreground">Currently using:</span>
+        <span className="text-sm font-medium text-foreground truncate min-w-0">
+          {activeWindow.ownerName || ''}
+          {activeWindow.title && activeWindow.title !== activeWindow.ownerName
+            ? ` - ${activeWindow.title}`
+            : ''}
+        </span>
+      </div>
+    )
+  }, [activeWindow])
 
-  if (isLoading && queryActiveWindowDetails) {
+  const cardBgColor = useMemo(() => {
+    if (!categoryDetails) return 'bg-card'
+    if (categoryDetails.isProductive === true) return 'dark:bg-green-900 bg-green-200'
+    if (categoryDetails.isProductive === false) return 'dark:bg-red-900 bg-red-200'
+    return 'dark:bg-yellow-900 bg-yellow-200' // Or a neutral color
+  }, [categoryDetails])
+
+  if (isLoadingLatestEvent && !latestEvent) {
     return (
       <Card className="bg-card border-border">
-        <CardContent className="pt-6">
+        {currentAppDisplay}
+        <CardContent className="pt-2">
           <div className="animate-pulse">
             <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-2/3 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-2/3"></div>
           </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!distractionResult) {
-    return (
-      <Card className="bg-card border-border">
-        <CardContent className="pt-6 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Currently using:</span>
-            <span className="text-sm font-medium text-foreground">
-              {activeWindow.ownerName || 'No active application'}
-              {activeWindow.title && activeWindow.title !== activeWindow.ownerName
-                ? ` - ${activeWindow.title}`
-                : ''}
-            </span>
-          </div>
-          <div className="text-sm text-muted-foreground">Categorizing activity...</div>
         </CardContent>
       </Card>
     )
   }
 
   const getStatusColor = (): string => {
-    if (!distractionResult) return 'text-muted-foreground'
-    switch (distractionResult.isDistraction) {
-      case 'no':
-        return 'dark:text-green-300 text-green-800'
-      case 'yes':
-        return 'dark:text-red-300 text-red-800'
-      case 'maybe':
-      default:
-        return 'text-yellow-500'
-    }
+    if (!categoryDetails) return 'text-muted-foreground'
+    if (categoryDetails.isProductive === true) return 'dark:text-green-300 text-green-800'
+    if (categoryDetails.isProductive === false) return 'dark:text-red-300 text-red-800'
+    return 'text-yellow-500' // For 'maybe' or uncategorized
   }
 
   return (
-    <Card
-      className={clsx(
-        'border-border',
-        distractionResult.isDistraction === 'no'
-          ? 'dark:bg-green-900 bg-green-200'
-          : 'dark:bg-red-900 bg-red-200'
-      )}
-    >
+    <Card className={clsx('border-border', cardBgColor)}>
       <CardHeader>
         <CardTitle className="text-card-foreground">Focus Check</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex gap-2 items-start justify-start">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Currently using:</span>
-          <span className="text-sm font-medium text-foreground truncate min-w-0">
-            {activeWindow.ownerName || ''}
-            {activeWindow.title && activeWindow.title !== activeWindow.ownerName
-              ? ` - ${activeWindow.title}`
-              : ''}
-          </span>
-        </div>
-
-        <div className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</div>
-
-        {distractionResult.motivationalText && (
-          <div className="text-sm text-muted-foreground italic">
-            {distractionResult.motivationalText}
+        {currentAppDisplay}
+        {isLoadingCategory && categoryId && (
+          <div className="text-sm text-muted-foreground">Fetching category details...</div>
+        )}
+        <div className={`text-lg font-semibold ${getStatusColor()}`}>{getStatusText()}</div>
+        {/* Display category color if available */}
+        {categoryDetails?.color && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Category Color:</span>
+            <div
+              className="w-4 h-4 rounded-full border"
+              style={{ backgroundColor: categoryDetails.color }}
+            ></div>
           </div>
         )}
+        {/* Placeholder for motivational text based on category if desired */}
+        {/* {categoryDetails && categoryDetails.motivationalText && (
+          <div className="text-sm text-muted-foreground italic">
+            {categoryDetails.motivationalText}
+          </div>
+        )} */}
       </CardContent>
     </Card>
   )

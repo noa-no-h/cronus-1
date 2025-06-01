@@ -2,11 +2,13 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
+import { categorizeActivity } from '../services/categorizationService';
 import { publicProcedure, router } from '../trpc';
+import { verifyToken } from './auth';
 
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
-  userId: z.string(),
+  token: z.string(),
   windowId: z.number(),
   ownerName: z.string(),
   type: z.enum(['window', 'browser']),
@@ -20,14 +22,37 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
+    const decodedToken = verifyToken(input.token);
+    const userId = decodedToken.userId;
+
+    // Destructure relevant details from input for categorization
+    const { windowId, ownerName, type, browser, title, url, content, timestamp, screenshotS3Url } =
+      input;
+    const activityDetails = { ownerName, type, browser, title, url, content }; // Pass only necessary fields
+
+    const categorizationResult = await categorizeActivity(userId, activityDetails);
+    const categoryId = categorizationResult.categoryId;
+
     const eventToSave: ActiveWindowEvent = {
-      ...input,
+      userId,
+      windowId,
+      ownerName,
+      type,
+      browser,
+      title,
+      url,
+      content,
+      timestamp,
+      screenshotS3Url,
+      categoryId, // Add categoryId from categorization service
     };
 
     try {
       const newEvent = new ActiveWindowEventModel(eventToSave);
 
-      console.log(`[${newEvent.timestamp}] newEvent: ${newEvent.ownerName || newEvent.title}`);
+      console.log(
+        `[${new Date(newEvent?.timestamp || 0).toISOString()}] newEvent: ${newEvent.ownerName || newEvent.title}`
+      );
 
       await newEvent.save();
       return newEvent.toObject() as ActiveWindowEvent;
@@ -64,6 +89,42 @@ export const activeWindowEventsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: "Failed to fetch today's events",
+        });
+      }
+    }),
+
+  getLatestEvent: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      try {
+        const decodedToken = verifyToken(input.token);
+        const userId = decodedToken.userId;
+
+        const latestEvent = await ActiveWindowEventModel.findOne({
+          userId: userId,
+        })
+          .sort({ timestamp: -1 })
+          .limit(1);
+
+        if (!latestEvent) {
+          return null; // Or throw a TRPCError if an event is always expected
+        }
+        return latestEvent.toObject() as ActiveWindowEvent;
+      } catch (error) {
+        console.error('Error fetching latest event:', error);
+        // Handle token verification errors specifically if verifyToken throws them
+        if (
+          error instanceof Error &&
+          (error.message.includes('jwt') || error.message.includes('token'))
+        ) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Invalid or expired token.',
+          });
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch latest event',
         });
       }
     }),

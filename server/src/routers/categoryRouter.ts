@@ -137,6 +137,30 @@ export const categoryRouter = router({
       const createdCategories = await CategoryModel.insertMany(defaultCategoriesData(userId));
       return createdCategories.map((cat) => cat.toJSON());
     }),
+
+  getCategoryById: publicProcedure
+    .input(
+      z.object({
+        token: z.string(), // For auth consistency, userId from token could be used for an ownership check if needed in future
+        categoryId: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
+          message: 'Invalid Object ID for categoryId',
+        }),
+      })
+    )
+    .query(async ({ input }) => {
+      verifyToken(input.token); // Verify token for access, even if userId isn't used in query
+      const { categoryId } = input;
+
+      const category = await CategoryModel.findById(categoryId);
+
+      if (!category) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Category not found',
+        });
+      }
+      return category.toJSON();
+    }),
 });
 
 export type CategoryRouter = typeof categoryRouter;
