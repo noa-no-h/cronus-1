@@ -1,6 +1,25 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 import { Category as SharedCategory } from '../../../shared/types'; // Alias for clarity
 
+export const defaultCategoriesData = (userId: string) => [
+  {
+    userId,
+    name: 'Work',
+    description:
+      'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
+    color: '#3B82F6', // Blue
+    isProductive: true,
+  },
+  {
+    userId,
+    name: 'Distraction',
+    description:
+      'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
+    color: '#EF4444', // Red
+    isProductive: false,
+  },
+];
+
 // Interface for the Mongoose document, reflecting stored types
 export interface ICategoryDoc extends Document {
   _id: Types.ObjectId; // Explicitly define _id as Mongoose uses it

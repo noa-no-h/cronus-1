@@ -26,6 +26,9 @@ export const activeWindowEventsRouter = router({
 
     try {
       const newEvent = new ActiveWindowEventModel(eventToSave);
+
+      console.log(`[${newEvent.timestamp}] newEvent: ${newEvent.ownerName || newEvent.title}`);
+
       await newEvent.save();
       return newEvent.toObject() as ActiveWindowEvent;
     } catch (error) {

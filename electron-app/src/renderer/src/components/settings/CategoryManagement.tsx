@@ -9,6 +9,7 @@ import { Input } from '../ui/input' // Added shadcn/ui Input
 import { Label } from '../ui/label' // Added shadcn/ui Label
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover' // Added Popover imports
 import { Switch } from '../ui/switch' // Added shadcn/ui Switch
+import { Textarea } from '../ui/textarea'
 
 // Basic Form for Create/Edit
 interface CategoryFormProps {
@@ -78,8 +79,8 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
         >
           Description
         </Label>
-        <Input
-          type="text"
+        <Textarea
+          rows={2}
           id="categoryDescription"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -230,6 +231,18 @@ export function CategoryManagement() {
     }
   })
 
+  const resetToDefaultMutation = trpc.category.resetToDefault.useMutation({
+    onSuccess: () => {
+      utils.category.getCategories.invalidate({ token: token || '' })
+      setIsFormOpen(false) // Close form if open
+      setEditingCategory(null) // Clear editing state
+      alert('Categories have been reset to default.')
+    },
+    onError: (err) => {
+      alert(`Error resetting categories: ${err.message}`)
+    }
+  })
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
@@ -250,6 +263,20 @@ export function CategoryManagement() {
     }
     if (window.confirm('Are you sure you want to delete this category?')) {
       await deleteMutation.mutateAsync({ id, token })
+    }
+  }
+
+  const handleResetToDefault = async () => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    if (
+      window.confirm(
+        'Are you sure you want to reset all categories to their default settings? This action cannot be undone.'
+      )
+    ) {
+      await resetToDefaultMutation.mutateAsync({ token })
     }
   }
 
@@ -306,14 +333,31 @@ export function CategoryManagement() {
               Organize your activities by creating and managing categories.
             </CardDescription>
           </div>
-          <Button
-            onClick={handleAddNew}
-            className="flex items-center text-sm font-medium"
-            disabled={!token || isFormOpen} // Disable if form is open
-          >
-            <PlusCircle size={18} className="mr-2" />
-            Add New Category
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={handleResetToDefault}
+              variant="outline"
+              className="text-sm font-medium"
+              disabled={
+                !token ||
+                isFormOpen ||
+                resetToDefaultMutation.isLoading ||
+                createMutation.isLoading ||
+                updateMutation.isLoading ||
+                deleteMutation.isLoading
+              }
+            >
+              Reset to Default
+            </Button>
+            <Button
+              onClick={handleAddNew}
+              className="flex items-center text-sm font-medium"
+              disabled={!token || isFormOpen} // Disable if form is open
+            >
+              <PlusCircle size={18} className="mr-2" />
+              Add New Category
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isFormOpen && (

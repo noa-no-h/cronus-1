@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import mongoose from 'mongoose';
 import { z } from 'zod';
-import { CategoryModel } from '../models/category';
+import { CategoryModel, defaultCategoriesData } from '../models/category';
 import { publicProcedure, router } from '../trpc'; // Changed to publicProcedure
 import { verifyToken } from './auth'; // Added import for verifyToken
 
@@ -123,6 +123,19 @@ export const categoryRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
       return { success: true, id };
+    }),
+
+  resetToDefault: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      // Delete all existing categories for the user
+      await CategoryModel.deleteMany({ userId });
+
+      const createdCategories = await CategoryModel.insertMany(defaultCategoriesData(userId));
+      return createdCategories.map((cat) => cat.toJSON());
     }),
 });
 

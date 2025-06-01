@@ -2,6 +2,7 @@ import { User } from '@shared/types';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
+import { CategoryModel, defaultCategoriesData } from '../models/category';
 import { User as UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 
@@ -58,6 +59,8 @@ export const authRouter = router({
             googleId: payload.sub,
             picture: payload.picture,
           });
+
+          await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
         }
 
         // Generate access token (short-lived)
