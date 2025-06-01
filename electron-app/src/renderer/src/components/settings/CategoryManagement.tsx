@@ -1,5 +1,6 @@
 import { Check, Edit3, PlusCircle, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ComparableCategory, defaultComparableCategories } from 'shared/categories'
 import { Category } from '../../../../../../shared/types' // Adjusted path
 import { useAuth } from '../../contexts/AuthContext' // Added useAuth import
 import { trpc } from '../../utils/trpc'
@@ -10,6 +11,53 @@ import { Label } from '../ui/label' // Added shadcn/ui Label
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover' // Added Popover imports
 import { Switch } from '../ui/switch' // Added shadcn/ui Switch
 import { Textarea } from '../ui/textarea'
+
+function checkCategoriesAgainstDefaults(
+  currentCategories: Category[] | undefined,
+  defaults: ComparableCategory[]
+): boolean {
+  if (!currentCategories) {
+    // If currentCategories is undefined (e.g. loading), or null
+    // they are not considered matching the defaults.
+    return false
+  }
+
+  // Normalize current categories for comparison
+  const normalizedCurrentCategories: ComparableCategory[] = currentCategories.map((cat) => ({
+    name: cat.name,
+    description: cat.description || '', // Treat undefined/null description as empty string
+    color: cat.color.toUpperCase(),
+    isProductive: cat.isProductive
+  }))
+
+  const normalizedDefaults: ComparableCategory[] = defaults.map((def) => ({
+    ...def,
+    description: def.description || '', // Treat undefined/null description as empty string
+    color: def.color.toUpperCase()
+  }))
+
+  if (normalizedCurrentCategories.length !== normalizedDefaults.length) {
+    return false // Different number of categories
+  }
+
+  for (const defaultCat of normalizedDefaults) {
+    const currentCatMatch = normalizedCurrentCategories.find((cc) => cc.name === defaultCat.name)
+
+    if (!currentCatMatch) {
+      return false // A default category name is missing from current
+    }
+
+    // Compare properties
+    if (
+      currentCatMatch.description !== defaultCat.description ||
+      currentCatMatch.isProductive !== defaultCat.isProductive
+    ) {
+      return false // Properties don't match
+    }
+  }
+
+  return true // All defaults found and match current categories
+}
 
 // Basic Form for Create/Edit
 interface CategoryFormProps {
@@ -245,6 +293,16 @@ export function CategoryManagement() {
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [areCategoriesMatchingDefaults, setAreCategoriesMatchingDefaults] = useState(false)
+
+  useEffect(() => {
+    // Update whether categories match defaults whenever 'categories' data changes
+    // or when loading state finishes.
+    if (!isLoading) {
+      const result = checkCategoriesAgainstDefaults(categories, defaultComparableCategories)
+      setAreCategoriesMatchingDefaults(result)
+    }
+  }, [categories, isLoading])
 
   const handleAddNew = () => {
     setEditingCategory(null)
@@ -334,21 +392,24 @@ export function CategoryManagement() {
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              onClick={handleResetToDefault}
-              variant="outline"
-              className="text-sm font-medium"
-              disabled={
-                !token ||
-                isFormOpen ||
-                resetToDefaultMutation.isLoading ||
-                createMutation.isLoading ||
-                updateMutation.isLoading ||
-                deleteMutation.isLoading
-              }
-            >
-              Reset to Default
-            </Button>
+            {!areCategoriesMatchingDefaults &&
+              categories && ( // Show only if not matching defaults and categories are loaded
+                <Button
+                  onClick={handleResetToDefault}
+                  variant="outline"
+                  className="text-sm font-medium"
+                  disabled={
+                    !token ||
+                    isFormOpen ||
+                    resetToDefaultMutation.isLoading ||
+                    createMutation.isLoading ||
+                    updateMutation.isLoading ||
+                    deleteMutation.isLoading
+                  }
+                >
+                  Reset to Default
+                </Button>
+              )}
             <Button
               onClick={handleAddNew}
               className="flex items-center text-sm font-medium"

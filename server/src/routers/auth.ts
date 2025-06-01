@@ -1,8 +1,9 @@
 import { User } from '@shared/types';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
-import { CategoryModel, defaultCategoriesData } from '../models/category';
+import { CategoryModel } from '../models/category';
 import { User as UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 

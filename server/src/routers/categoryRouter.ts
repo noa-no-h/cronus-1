@@ -1,15 +1,17 @@
 import { TRPCError } from '@trpc/server';
 import mongoose from 'mongoose';
+import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
-import { CategoryModel, defaultCategoriesData } from '../models/category';
-import { publicProcedure, router } from '../trpc'; // Changed to publicProcedure
-import { verifyToken } from './auth'; // Added import for verifyToken
+import { CategoryModel } from '../models/category';
+
+import { publicProcedure, router } from '../trpc';
+import { verifyToken } from './auth';
 
 export const categoryRouter = router({
-  createCategory: publicProcedure // Changed to publicProcedure
+  createCategory: publicProcedure
     .input(
       z.object({
-        token: z.string(), // Added token to input
+        token: z.string(),
         name: z.string().min(1, 'Name is required'),
         description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format (e.g., #FF5733)'),
@@ -17,7 +19,6 @@ export const categoryRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // ctx removed, input used directly
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
       const { name, description, color, isProductive } = input;
@@ -41,20 +42,17 @@ export const categoryRouter = router({
       return category.toJSON();
     }),
 
-  getCategories: publicProcedure // Changed to publicProcedure
-    .input(z.object({ token: z.string() })) // Added token to input
-    .query(async ({ input }) => {
-      // ctx removed, input used directly
-      const decodedToken = verifyToken(input.token);
-      const userId = decodedToken.userId;
-      const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
-      return categories.map((cat) => cat.toJSON());
-    }),
+  getCategories: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
+    const decodedToken = verifyToken(input.token);
+    const userId = decodedToken.userId;
+    const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+    return categories.map((cat) => cat.toJSON());
+  }),
 
-  updateCategory: publicProcedure // Changed to publicProcedure
+  updateCategory: publicProcedure
     .input(
       z.object({
-        token: z.string(), // Added token to input
+        token: z.string(),
         id: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
           message: 'Invalid Object ID',
         }),
@@ -68,12 +66,10 @@ export const categoryRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      // ctx removed, input used directly
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
       const { id, ...updateData } = input;
 
-      // Remove token from updateData if it exists to prevent trying to save it to the DB
       const { token, ...restOfUpdateData } = updateData as any;
 
       const category = await CategoryModel.findOne({ _id: id, userId });
@@ -82,7 +78,6 @@ export const categoryRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
 
-      // Check for name conflict if name is being changed
       if (restOfUpdateData.name && restOfUpdateData.name !== category.name) {
         const existingCategory = await CategoryModel.findOne({
           userId,
@@ -102,17 +97,16 @@ export const categoryRouter = router({
       return category.toJSON();
     }),
 
-  deleteCategory: publicProcedure // Changed to publicProcedure
+  deleteCategory: publicProcedure
     .input(
       z.object({
-        token: z.string(), // Added token to input
+        token: z.string(),
         id: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
           message: 'Invalid Object ID',
         }),
       })
     )
     .mutation(async ({ input }) => {
-      // ctx removed, input used directly
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
       const { id } = input;
@@ -131,7 +125,6 @@ export const categoryRouter = router({
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
 
-      // Delete all existing categories for the user
       await CategoryModel.deleteMany({ userId });
 
       const createdCategories = await CategoryModel.insertMany(defaultCategoriesData(userId));
@@ -141,14 +134,14 @@ export const categoryRouter = router({
   getCategoryById: publicProcedure
     .input(
       z.object({
-        token: z.string(), // For auth consistency, userId from token could be used for an ownership check if needed in future
+        token: z.string(),
         categoryId: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
           message: 'Invalid Object ID for categoryId',
         }),
       })
     )
     .query(async ({ input }) => {
-      verifyToken(input.token); // Verify token for access, even if userId isn't used in query
+      verifyToken(input.token);
       const { categoryId } = input;
 
       const category = await CategoryModel.findById(categoryId);
