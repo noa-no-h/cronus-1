@@ -15,8 +15,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
 
 function MainAppContent() {
-  const { user, isAuthenticated, token } = useAuth()
-  const currentUserId = user?.id
+  const { isAuthenticated, token } = useAuth()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
 

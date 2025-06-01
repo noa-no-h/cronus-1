@@ -11,7 +11,7 @@ export function ThemeSwitcher() {
   const [previousTheme, setPreviousTheme] = useState<Theme>(theme)
 
   // Fetch electron app settings
-  const { data: electronAppSettings, isLoading: isLoadingSettings } =
+  const { data: _electronAppSettings, isLoading: isLoadingSettings } =
     trpc.user.getElectronAppSettings.useQuery(
       { token: token || '' },
       {

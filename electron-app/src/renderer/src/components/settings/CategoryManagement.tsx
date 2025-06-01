@@ -271,7 +271,7 @@ export function CategoryManagement() {
     }
   })
   const deleteMutation = trpc.category.deleteCategory.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       utils.category.getCategories.invalidate({ token: token || '' })
     },
     onError: (err) => {
