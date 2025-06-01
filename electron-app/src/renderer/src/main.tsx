@@ -1,4 +1,4 @@
-import '../assets/custom-title-bar.css'
+import './assets/custom-title-bar.css'
 import './styles/index.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

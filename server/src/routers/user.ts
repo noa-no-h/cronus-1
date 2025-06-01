@@ -9,6 +9,7 @@ export const userRouter = router({
       z.object({
         token: z.string(),
         calendarZoomLevel: z.number().min(40).max(120).optional(),
+        theme: z.enum(['light', 'dark', 'system']).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -18,6 +19,9 @@ export const userRouter = router({
       const updateData: any = {};
       if (input.calendarZoomLevel !== undefined) {
         updateData['electronAppSettings.calendarZoomLevel'] = input.calendarZoomLevel;
+      }
+      if (input.theme !== undefined) {
+        updateData['electronAppSettings.theme'] = input.theme;
       }
 
       const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
@@ -44,7 +48,7 @@ export const userRouter = router({
         throw new Error('User not found');
       }
 
-      return user.electronAppSettings || { calendarZoomLevel: 60 };
+      return user.electronAppSettings || { calendarZoomLevel: 60, theme: 'system' };
     }),
 
   updateUserGoals: publicProcedure
