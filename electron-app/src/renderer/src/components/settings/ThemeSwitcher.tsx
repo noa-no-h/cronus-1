@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Theme } from '../../contexts/ThemeContext'
@@ -65,57 +66,65 @@ export function ThemeSwitcher() {
 
   if (isLoadingSettings) {
     return (
-      <div className="p-6 bg-card rounded-lg">
-        <h2 className="text-xl font-semibold text-card-foreground mb-4">Theme</h2>
-        <div className="animate-pulse">
-          <div className="flex space-x-2">
-            <div className="h-10 w-20 bg-muted rounded-md"></div>
-            <div className="h-10 w-20 bg-muted rounded-md"></div>
-            <div className="h-10 w-20 bg-muted rounded-md"></div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Theme</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse">
+            <div className="flex space-x-2">
+              <div className="h-10 w-20 bg-muted rounded-md"></div>
+              <div className="h-10 w-20 bg-muted rounded-md"></div>
+              <div className="h-10 w-20 bg-muted rounded-md"></div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="p-6 bg-card rounded-lg">
-      <h2 className="text-xl font-semibold text-card-foreground mb-4">Theme</h2>
-      <div className="flex space-x-2">
-        <button
-          onClick={() => handleSetTheme('light')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            theme === 'light'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted hover:bg-accent text-muted-foreground'
-          }`}
-          disabled={updateSettingsMutation.isLoading}
-        >
-          Light
-        </button>
-        <button
-          onClick={() => handleSetTheme('dark')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            theme === 'dark'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted hover:bg-accent text-muted-foreground'
-          }`}
-          disabled={updateSettingsMutation.isLoading}
-        >
-          Dark
-        </button>
-        <button
-          onClick={() => handleSetTheme('system')}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            theme === 'system'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted hover:bg-accent text-muted-foreground'
-          }`}
-          disabled={updateSettingsMutation.isLoading}
-        >
-          System
-        </button>
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Theme</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleSetTheme('light')}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              theme === 'light'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted hover:bg-accent text-muted-foreground'
+            }`}
+            disabled={updateSettingsMutation.isLoading}
+          >
+            Light
+          </button>
+          <button
+            onClick={() => handleSetTheme('dark')}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              theme === 'dark'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted hover:bg-accent text-muted-foreground'
+            }`}
+            disabled={updateSettingsMutation.isLoading}
+          >
+            Dark
+          </button>
+          <button
+            onClick={() => handleSetTheme('system')}
+            className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              theme === 'system'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted hover:bg-accent text-muted-foreground'
+            }`}
+            disabled={updateSettingsMutation.isLoading}
+          >
+            System
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

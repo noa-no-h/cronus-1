@@ -30,7 +30,7 @@ export function AppHeader({
               title="Open Mini Timer"
             >
               <ExternalLink size={20} />
-              <span className="text-sm hidden sm:block">Open Mini Timer</span>
+              <span className="text-sm">Open Mini Timer</span>
             </button>
           )}
           <button

@@ -4,6 +4,7 @@ import { Category } from '../../../../../../shared/types' // Adjusted path
 import { useAuth } from '../../contexts/AuthContext' // Added useAuth import
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card' // Added Card components
 import { Input } from '../ui/input' // Added shadcn/ui Input
 import { Label } from '../ui/label' // Added shadcn/ui Label
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover' // Added Popover imports
@@ -297,158 +298,174 @@ export function CategoryManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-foreground">Manage Categories</h2>
-        <Button
-          onClick={handleAddNew}
-          className="flex items-center text-sm font-medium"
-          disabled={!token}
-        >
-          <PlusCircle size={18} className="mr-2" />
-          Add New Category
-        </Button>
-      </div>
-
-      {isFormOpen && (
-        <CategoryForm
-          initialData={editingCategory || undefined}
-          onSave={handleSaveCategory}
-          onCancel={() => {
-            setIsFormOpen(false)
-            setEditingCategory(null)
-          }}
-          isSaving={createMutation.isLoading || updateMutation.isLoading}
-        />
-      )}
-
-      {!isFormOpen && (!categories || categories.length === 0) && (
-        <div className="text-center py-8 px-4 bg-card rounded-lg">
-          <svg
-            className="mx-auto h-12 w-12 text-muted-foreground"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              vectorEffect="non-scaling-stroke"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-            />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-foreground">No categories yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Get started by creating a new category.
-          </p>
-          <div className="mt-6">
-            <Button
-              onClick={handleAddNew}
-              type="button"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary"
-              disabled={!token}
-            >
-              <PlusCircle size={20} className="-ml-1 mr-2 h-5 w-5" />
-              New Category
-            </Button>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-xl">Manage Categories</CardTitle>
+            <CardDescription>
+              Organize your activities by creating and managing categories.
+            </CardDescription>
           </div>
-        </div>
-      )}
+          <Button
+            onClick={handleAddNew}
+            className="flex items-center text-sm font-medium"
+            disabled={!token || isFormOpen} // Disable if form is open
+          >
+            <PlusCircle size={18} className="mr-2" />
+            Add New Category
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isFormOpen && (
+            <CategoryForm
+              initialData={editingCategory || undefined}
+              onSave={handleSaveCategory}
+              onCancel={() => {
+                setIsFormOpen(false)
+                setEditingCategory(null)
+              }}
+              isSaving={createMutation.isLoading || updateMutation.isLoading}
+            />
+          )}
 
-      {!isFormOpen && categories && categories.length > 0 && (
-        <div className="bg-card rounded-lg shadow overflow-hidden">
-          <ul role="list" className="divide-y divide-border">
-            {categories.map((category) => (
-              <li
-                key={category._id}
-                className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
+          {!isFormOpen && (!categories || categories.length === 0) && (
+            <div className="text-center py-8 px-4 bg-muted/50 rounded-lg border border-dashed border-border">
+              <svg
+                className="mx-auto h-12 w-12 text-muted-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span
-                      style={{ backgroundColor: category.color }}
-                      className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
-                    ></span>
-                    <div>
-                      <p className="text-md font-medium text-foreground truncate">
-                        {category.name}
-                      </p>
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground truncate max-w-xs">
-                          {category.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="ml-2 flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleToggleProductive(category)}
-                      title={category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'}
-                      className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${
-                        category.isProductive
-                          ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500'
-                          : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'
-                      }`}
-                      disabled={!token}
-                    >
-                      {category.isProductive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(category)}
-                      className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
-                      title="Edit category"
-                      disabled={!token}
-                    >
-                      <Edit3 size={18} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(category._id)}
-                      disabled={
-                        !token ||
-                        (deleteMutation.isLoading && deleteMutation.variables?.id === category._id)
-                      }
-                      className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-destructive disabled:opacity-50"
-                      title="Delete category"
-                    >
-                      {deleteMutation.isLoading && deleteMutation.variables?.id === category._id ? (
-                        <svg
-                          className="animate-spin h-4 w-4 text-muted-foreground"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
+                <path
+                  vectorEffect="non-scaling-stroke"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-foreground">No categories yet</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Get started by creating a new category.
+              </p>
+              <div className="mt-6">
+                <Button
+                  onClick={handleAddNew}
+                  type="button"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:ring-primary"
+                  disabled={!token}
+                >
+                  <PlusCircle size={20} className="-ml-1 mr-2 h-5 w-5" />
+                  New Category
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {!isFormOpen && categories && categories.length > 0 && (
+            <div className="border border-border rounded-lg overflow-hidden">
+              <ul role="list" className="divide-y divide-border">
+                {categories.map((category) => (
+                  <li
+                    key={category._id}
+                    className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span
+                          style={{ backgroundColor: category.color }}
+                          className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
+                        ></span>
+                        <div>
+                          <p className="text-md font-medium text-foreground truncate">
+                            {category.name}
+                          </p>
+                          {category.description && (
+                            <p className="text-sm text-muted-foreground truncate max-w-xs">
+                              {category.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="ml-2 flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleProductive(category)}
+                          title={
+                            category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'
+                          }
+                          className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${
+                            category.isProductive
+                              ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500'
+                              : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'
+                          }`}
+                          disabled={!token}
                         >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      ) : (
-                        <Trash2 size={18} />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                          {category.isProductive ? (
+                            <ToggleRight size={22} />
+                          ) : (
+                            <ToggleLeft size={22} />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(category)}
+                          className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
+                          title="Edit category"
+                          disabled={!token}
+                        >
+                          <Edit3 size={18} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(category._id)}
+                          disabled={
+                            !token ||
+                            (deleteMutation.isLoading &&
+                              deleteMutation.variables?.id === category._id)
+                          }
+                          className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-destructive disabled:opacity-50"
+                          title="Delete category"
+                        >
+                          {deleteMutation.isLoading &&
+                          deleteMutation.variables?.id === category._id ? (
+                            <svg
+                              className="animate-spin h-4 w-4 text-muted-foreground"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

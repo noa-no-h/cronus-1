@@ -62,7 +62,7 @@ function MainAppContent() {
       />
       <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-4">
         <DistractionCategorizationResult activeWindow={activeWindow} />
-        <GoalInputForm />
+
         <TopActivityWidget />
       </div>
     </div>

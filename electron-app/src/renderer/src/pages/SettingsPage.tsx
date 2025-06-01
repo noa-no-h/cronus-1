@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
 import { CategoryManagement } from '../components/settings/CategoryManagement' // We'll create this next
 import { ThemeSwitcher } from '../components/settings/ThemeSwitcher'
+import GoalInputForm from '@renderer/components/ui/GoalInputForm'
 
 export function SettingsPage() {
   const navigate = useNavigate()
@@ -41,8 +42,9 @@ export function SettingsPage() {
           </button>
         </div> */}
         <div className="space-y-8">
-          <ThemeSwitcher />
           <CategoryManagement />
+          <GoalInputForm />
+          <ThemeSwitcher />
         </div>
       </div>
     </PageContainer>

@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@renderer/components/ui/card'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
@@ -93,6 +99,7 @@ const GoalInputForm = () => {
     >
       <CardHeader>
         <CardTitle className="text-card-foreground">Your Goals</CardTitle>
+        <CardDescription>Adding your goals helps our AI categorize your activity.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Life Goal */}
