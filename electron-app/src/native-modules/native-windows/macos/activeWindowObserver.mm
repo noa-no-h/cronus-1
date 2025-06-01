@@ -936,8 +936,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 windowPid && 
                 [windowPid intValue] == currentAppPid) {
                 
-                NSLog(@"🚫 EXCLUDING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
-                return YES;
+                NSLog(@"🔎 TRACKING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
+                // return YES; // No longer excluding
             }
         }
     }

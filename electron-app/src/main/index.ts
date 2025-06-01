@@ -145,7 +145,7 @@ function createFloatingWindow(): void {
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 700,
-    height: 700,
+    height: 1700,
     show: false,
     frame: false,
     titleBarStyle: 'hidden',

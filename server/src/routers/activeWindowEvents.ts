@@ -51,7 +51,7 @@ export const activeWindowEventsRouter = router({
       const newEvent = new ActiveWindowEventModel(eventToSave);
 
       console.log(
-        `[${new Date(newEvent?.timestamp || 0).toISOString()}] newEvent: ${newEvent.ownerName || newEvent.title}`
+        `[${new Date(newEvent?.timestamp || 0).toISOString().split('T')[1].split('.')[0]}] newEvent: ${newEvent.ownerName || newEvent.title}`
       );
 
       await newEvent.save();
