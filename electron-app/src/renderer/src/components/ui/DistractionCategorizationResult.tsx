@@ -4,6 +4,7 @@ import { ActiveWindowDetails, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 import { Card, CardContent, CardHeader, CardTitle } from './card'
+import AppIcon from '../AppIcon'
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -101,7 +102,7 @@ const DistractionCategorizationResult = ({
       // const motivationalText = categoryDetails.motivationalText || '' // If you add motivationalText to Category
 
       const notificationTitle = `Focus Alert: ${appName}`
-      let notificationBody = `${statusText}`
+      const notificationBody = `${statusText}`
       // if (motivationalText) {
       //   notificationBody += `\n${motivationalText}`
       // }
@@ -118,14 +119,21 @@ const DistractionCategorizationResult = ({
   const currentAppDisplay = useMemo(() => {
     if (!activeWindow) return 'No active application.'
     return (
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm text-muted-foreground">Currently using:</span>
-        <span className="text-sm font-medium text-foreground truncate min-w-0">
-          {activeWindow.ownerName || ''}
-          {activeWindow.title && activeWindow.title !== activeWindow.ownerName
-            ? ` - ${activeWindow.title}`
-            : ''}
-        </span>
+      <div className="flex items-center gap-3 mb-2">
+        <AppIcon
+          appName={activeWindow.ownerName || 'Unknown'}
+          size={20}
+          className="flex-shrink-0"
+        />
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-sm text-muted-foreground">Currently using:</span>
+          <span className="text-sm font-medium text-foreground truncate min-w-0">
+            {activeWindow.ownerName || ''}
+            {activeWindow.title && activeWindow.title !== activeWindow.ownerName
+              ? ` - ${activeWindow.title}`
+              : ''}
+          </span>
+        </div>
       </div>
     )
   }, [activeWindow])
