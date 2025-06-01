@@ -1,17 +1,24 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 
+// Define the structure of the data being sent
+interface FloatingStatusUpdate {
+  latestStatus: 'productive' | 'unproductive' | 'maybe' | null
+  dailyProductiveMs: number
+  dailyUnproductiveMs: number
+}
+
 export interface FloatingWindowApi {
   onStatusUpdate: (
-    callback: (status: 'productive' | 'unproductive' | 'maybe') => void
+    callback: (data: FloatingStatusUpdate) => void // Expect the full data object
   ) => () => void
   moveWindow: (deltaX: number, deltaY: number) => void
   hideFloatingWindow: () => void
 }
 
 const floatingApi: FloatingWindowApi = {
-  onStatusUpdate: (callback: (status: 'productive' | 'unproductive' | 'maybe') => void) => {
-    const listener = (_event: IpcRendererEvent, status: 'productive' | 'unproductive' | 'maybe') =>
-      callback(status)
+  onStatusUpdate: (callback: (data: FloatingStatusUpdate) => void) => {
+    // The listener now expects the full FloatingStatusUpdate object
+    const listener = (_event: IpcRendererEvent, data: FloatingStatusUpdate) => callback(data)
     ipcRenderer.on('floating-window-status-updated', listener)
     return () => {
       ipcRenderer.removeListener('floating-window-status-updated', listener)

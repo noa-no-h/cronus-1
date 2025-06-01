@@ -66,7 +66,7 @@ const formatDuration = (ms: number): string => {
 }
 
 const TopActivityWidget: React.FC = () => {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [topApps, setTopApps] = useState<AppUsage[]>([])
   const [totalTrackedTimeMs, setTotalTrackedTimeMs] = useState(0)
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
@@ -76,8 +76,8 @@ const TopActivityWidget: React.FC = () => {
     isLoading: isLoadingRawEvents,
     error: rawEventsError
   } = trpc.activeWindowEvents.getTodayEvents.useQuery(
-    { userId: user?.id || '' },
-    { enabled: !!user?.id, refetchInterval: 60000 }
+    { token: token || '' },
+    { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 60000 }
   )
 
   useEffect(() => {

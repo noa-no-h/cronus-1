@@ -66,9 +66,12 @@ export const activeWindowEventsRouter = router({
   }),
 
   getTodayEvents: publicProcedure
-    .input(z.object({ userId: z.string() }))
+    .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
       try {
+        const decodedToken = verifyToken(input.token);
+        const userId = decodedToken.userId;
+
         // Get start and end of today in UTC
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -76,7 +79,7 @@ export const activeWindowEventsRouter = router({
         endOfDay.setDate(endOfDay.getDate() + 1);
 
         const events = await ActiveWindowEventModel.find({
-          userId: input.userId,
+          userId: userId,
           timestamp: {
             $gte: startOfDay.getTime(),
             $lt: endOfDay.getTime(),

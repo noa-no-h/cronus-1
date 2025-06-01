@@ -1,11 +1,30 @@
+import { Button } from '@renderer/components/ui/button'
 import clsx from 'clsx'
+import { X } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import StatusBox from './components/ui/StatusBox' // Import the new component
+import StatusBox from './components/ui/StatusBox'
 
-type StatusType = 'productive' | 'unproductive' | 'maybe' | null
+type LatestStatusType = 'productive' | 'unproductive' | 'maybe' | null
+
+interface FloatingStatusUpdate {
+  latestStatus: LatestStatusType
+  dailyProductiveMs: number
+  dailyUnproductiveMs: number
+}
+
+// Helper to format milliseconds to HH:MM:SS
+const formatMsToTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
 
 const FloatingDisplay: React.FC = () => {
-  const [status, setStatus] = useState<StatusType>(null)
+  const [latestStatus, setLatestStatus] = useState<LatestStatusType>(null)
+  const [displayedProductiveTimeMs, setDisplayedProductiveTimeMs] = useState<number>(0)
+  const [dailyUnproductiveMs, setDailyUnproductiveMs] = useState<number>(0)
   const [isVisible, setIsVisible] = useState<boolean>(false)
 
   const draggableRef = useRef<HTMLDivElement>(null)
@@ -13,14 +32,30 @@ const FloatingDisplay: React.FC = () => {
 
   useEffect(() => {
     if (window.floatingApi) {
-      const cleanup = window.floatingApi.onStatusUpdate((newStatus) => {
-        setStatus(newStatus)
+      const cleanup = window.floatingApi.onStatusUpdate((data: FloatingStatusUpdate) => {
+        setLatestStatus(data.latestStatus)
+        setDisplayedProductiveTimeMs(data.dailyProductiveMs)
+        setDailyUnproductiveMs(data.dailyUnproductiveMs)
         setIsVisible(true)
       })
       return cleanup
     }
     return () => {}
   }, [])
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined = undefined
+    if (latestStatus === 'productive') {
+      intervalId = setInterval(() => {
+        setDisplayedProductiveTimeMs((prevMs) => prevMs + 1000)
+      }, 1000)
+    }
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [latestStatus])
 
   const handleGlobalMouseMove = useCallback((event: globalThis.MouseEvent) => {
     if (!dragStartInfoRef.current || !window.floatingApi) return
@@ -40,7 +75,6 @@ const FloatingDisplay: React.FC = () => {
 
   const handleMouseDownOnDraggable = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
-    // Prevent drag if clicking on the close button itself
     if ((event.target as HTMLElement).closest('.close-button-area')) {
       return
     }
@@ -53,13 +87,12 @@ const FloatingDisplay: React.FC = () => {
   }
 
   const handleClose = () => {
-    console.log('Close button clicked')
     if (window.floatingApi) {
       window.floatingApi.hideFloatingWindow()
     }
   }
 
-  if (!isVisible && status === null) {
+  if (!isVisible && latestStatus === null) {
     return null
   }
 
@@ -70,16 +103,20 @@ const FloatingDisplay: React.FC = () => {
   let unproductiveIsHighlighted = false
   let unproductiveIsEnlarged = false
   let unproductiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'red'
-  let unproductiveLabel = 'Unproductive'
+  let unproductiveLabel = 'Distracted' // Default label for the second box
 
-  if (status === 'productive') {
+  const productiveTimeFormatted = formatMsToTime(displayedProductiveTimeMs)
+  const unproductiveTimeFormatted = formatMsToTime(dailyUnproductiveMs)
+
+  if (latestStatus === 'productive') {
     productiveIsHighlighted = true
     productiveIsEnlarged = true
-  } else if (status === 'unproductive') {
+  } else if (latestStatus === 'unproductive') {
     unproductiveIsHighlighted = true
     unproductiveIsEnlarged = true
-  } else if (status === 'maybe') {
-    unproductiveLabel = 'Uncertain' // Show "Uncertain" in the unproductive slot
+  } else if (latestStatus === 'maybe') {
+    // For 'maybe' status, highlight the second box with orange and a neutral label
+    unproductiveLabel = 'Uncertain'
     unproductiveIsHighlighted = true
     unproductiveIsEnlarged = true
     unproductiveHighlightColor = 'orange'
@@ -90,40 +127,33 @@ const FloatingDisplay: React.FC = () => {
       ref={draggableRef}
       className={clsx(
         'w-full h-full flex items-center p-1.5 rounded-xl shadow-2xl select-none',
-        'bg-gray-800 backdrop-blur-xl border border-white/10' // Glassmorphic effect
+        'bg-card/80 backdrop-blur-xl border border-border' // Updated to use theme colors
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
       style={{ cursor: 'grab' }}
     >
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={handleClose}
-        className="close-button-area p-2 mr-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 focus:outline-none transition-colors pointer-events-auto h-full flex items-center justify-center"
+        className="close-button-area p-1 rounded-lg m-auto"
         title="Close"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-4 h-4 text-gray-300"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+        <X className="w-4 h-4 text-muted-foreground" />
+      </Button>
 
       <div className="flex-grow flex items-stretch gap-1.5 h-full">
         <StatusBox
           label="Productive"
-          time="00:00:00"
+          time={productiveTimeFormatted}
           isHighlighted={productiveIsHighlighted}
           highlightColor={productiveHighlightColor}
           isEnlarged={productiveIsEnlarged}
         />
         <StatusBox
           label={unproductiveLabel}
-          time="00:00:00"
+          time={unproductiveTimeFormatted}
           isHighlighted={unproductiveIsHighlighted}
           highlightColor={unproductiveHighlightColor}
           isEnlarged={unproductiveIsEnlarged}

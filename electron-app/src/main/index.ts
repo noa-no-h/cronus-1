@@ -239,14 +239,21 @@ app.whenReady().then(() => {
 
   ipcMain.on(
     'update-floating-window-status',
-    (_event, status: 'productive' | 'unproductive' | 'maybe') => {
+    (
+      _event,
+      data: {
+        latestStatus: 'productive' | 'unproductive' | 'maybe' | null
+        dailyProductiveMs: number
+        dailyUnproductiveMs: number
+      }
+    ) => {
       if (floatingWindow) {
-        console.log(`Main process: Attempting to send status ('${status}') to floating window.`)
-        floatingWindow.webContents.send('floating-window-status-updated', status)
+        console.log(`Main process: Attempting to send data to floating window:`, data)
+        floatingWindow.webContents.send('floating-window-status-updated', data) // Send the whole data object
         if (floatingWindow.isVisible()) {
-          console.log('Main process: Status sent to VISIBLE floating window.')
+          console.log('Main process: Data sent to VISIBLE floating window.')
         } else {
-          console.log('Main process: Status sent to HIDDEN floating window (will not auto-show).')
+          console.log('Main process: Data sent to HIDDEN floating window (will not auto-show).')
         }
       } else {
         console.warn('Main process: Received status update, but floatingWindow is null.')
