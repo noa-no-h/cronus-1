@@ -50,8 +50,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
   return (
     <div
       className={clsx(
-        'rounded-md border flex items-center justify-center h-full transition-all duration-300 ease-in-out',
-        bgColorCls,
+        'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out',
         borderColorCls,
         isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-1 w-[32%] px-1 py-0.5'
       )}
@@ -60,8 +59,9 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         className={clsx(
           'font-sm font-medium pointer-events-none',
           labelColorCls,
-          isEnlarged ? 'text-sm ' : 'text-xs'
+          isEnlarged && 'pr-2'
         )}
+        style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
       >
         {label}
       </span>

@@ -126,8 +126,9 @@ const FloatingDisplay: React.FC = () => {
     <div
       ref={draggableRef}
       className={clsx(
-        'w-full h-full flex items-center p-1.5 rounded-xl shadow-2xl select-none',
-        'bg-card/80 backdrop-blur-xl border border-border' // Updated to use theme colors
+        'w-full h-full flex items-center py-1 px-1.5 rounded-xl shadow-lg select-none',
+        // somehow some tailwind classes like bg-card/80 are not working here
+        'backdrop-blur-xl border-2 border-secondary/50'
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
