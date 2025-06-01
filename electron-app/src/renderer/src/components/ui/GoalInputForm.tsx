@@ -9,7 +9,12 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 
-const GoalInputForm = () => {
+interface GoalInputFormProps {
+  onboardingMode?: boolean
+  onComplete?: () => void
+}
+
+const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProps) => {
   const { token } = useAuth()
   const [goals, setGoals] = useState({
     weeklyGoal: '',
@@ -22,7 +27,7 @@ const GoalInputForm = () => {
   // Fetch user goals
   const { data: userGoals, isLoading } = trpc.user.getUserGoals.useQuery(
     { token: token || '' },
-    { enabled: !!token }
+    { enabled: !!token && !onboardingMode }
   )
 
   // Update goals mutation
@@ -30,6 +35,11 @@ const GoalInputForm = () => {
     onSuccess: (data) => {
       setGoals(data.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' })
       setIsEditing(false)
+
+      // Call onComplete if in onboarding mode
+      if (onboardingMode && onComplete) {
+        onComplete()
+      }
     },
     onError: (error) => {
       console.error('Failed to update goals:', error)
@@ -42,8 +52,17 @@ const GoalInputForm = () => {
 
   // Load goals when data is fetched
   useEffect(() => {
-    setGoals(userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' })
+    if (userGoals) {
+      setGoals(userGoals)
+    }
   }, [userGoals])
+
+  // Auto-edit mode for onboarding
+  useEffect(() => {
+    if (onboardingMode) {
+      setIsEditing(true)
+    }
+  }, [onboardingMode])
 
   const handleSave = async () => {
     if (!token) return
@@ -56,11 +75,18 @@ const GoalInputForm = () => {
   }
 
   const handleCancel = () => {
-    // Reset to original values
-    if (userGoals) {
-      setGoals(userGoals)
+    if (onboardingMode) {
+      // Skip goals in onboarding
+      if (onComplete) {
+        onComplete()
+      }
+    } else {
+      // Reset to original values
+      if (userGoals) {
+        setGoals(userGoals)
+      }
+      setIsEditing(false)
     }
-    setIsEditing(false)
   }
 
   const handleInputChange = (field: keyof typeof goals, value: string) => {
@@ -70,7 +96,7 @@ const GoalInputForm = () => {
     }))
   }
 
-  if (isLoading) {
+  if (isLoading && !onboardingMode) {
     return (
       <Card className="bg-card border-border">
         <CardContent className="pt-6">
@@ -89,20 +115,31 @@ const GoalInputForm = () => {
 
   return (
     <Card
-      className={`bg-card border-border${!isEditing ? ' cursor-pointer' : ''}`}
-      onClick={() => {
-        if (!isEditing) setIsEditing(true)
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={!isEditing ? 'Click to edit your goals' : undefined}
+      className={`bg-card border-border ${
+        onboardingMode ? '' : !isEditing ? 'cursor-pointer' : ''
+      }`}
+      onClick={
+        onboardingMode
+          ? undefined
+          : () => {
+              if (!isEditing) setIsEditing(true)
+            }
+      }
+      tabIndex={onboardingMode ? undefined : 0}
+      role={onboardingMode ? undefined : 'button'}
+      aria-label={!onboardingMode && !isEditing ? 'Click to edit your goals' : undefined}
     >
       <CardHeader>
-        <CardTitle className="text-card-foreground">Your Goals</CardTitle>
-        <CardDescription>Adding your goals helps our AI categorize your activity.</CardDescription>
+        <CardTitle className="text-card-foreground">
+          {onboardingMode ? 'What are your goals?' : 'Your Goals'}
+        </CardTitle>
+        <CardDescription>
+          {onboardingMode
+            ? 'Help us understand what productivity means to you.'
+            : 'Adding your goals helps our AI categorize your activity.'}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Life Goal */}
         <div>
           <label htmlFor="lifeGoal" className="block text-sm font-medium text-foreground mb-1">
             Life Goal (5 Year Vision)
@@ -178,14 +215,14 @@ const GoalInputForm = () => {
               disabled={isSaving}
               className="px-4 py-2 text-sm font-medium text-foreground bg-muted border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel
+              {onboardingMode ? 'Skip for Now' : 'Cancel'}
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving}
               className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? 'Saving...' : 'Save Goals'}
+              {isSaving ? 'Saving...' : onboardingMode ? 'Save & Continue' : 'Save Goals'}
             </button>
           </div>
         )}

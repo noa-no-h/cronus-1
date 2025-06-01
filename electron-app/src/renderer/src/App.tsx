@@ -13,14 +13,25 @@ import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
+import { OnboardingModal } from './components/OnboardingModal'
 
 function MainAppContent() {
-  const { isAuthenticated, token } = useAuth()
+  const { isAuthenticated, token, user } = useAuth()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation()
 
+  useEffect(() => {
+    if (user && !user.hasCompletedOnboarding) {
+      setShowOnboarding(true)
+    }
+  }, [user])
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false)
+  }
   const handleOpenMiniTimer = () => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.send('show-floating-window')
@@ -63,6 +74,7 @@ function MainAppContent() {
 
         <TopActivityWidget />
       </div>
+      {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
     </div>
   )
 }

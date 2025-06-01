@@ -5,9 +5,11 @@ import { PageContainer } from '../components/layout/PageContainer'
 import { CategoryManagement } from '../components/settings/CategoryManagement' // We'll create this next
 import { ThemeSwitcher } from '../components/settings/ThemeSwitcher'
 import GoalInputForm from '@renderer/components/ui/GoalInputForm'
+import { useAuth } from '../contexts/AuthContext'
 
 export function SettingsPage() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
 
   return (
     <PageContainer>
@@ -45,6 +47,17 @@ export function SettingsPage() {
           <CategoryManagement />
           <GoalInputForm />
           <ThemeSwitcher />
+        </div>
+      </div>
+      <div className="p-4 md:p-6 pt-4">
+        <div className="space-y-8">
+          <div className="bg-muted/30 rounded-lg p-6 border border-border">
+            <h2 className="text-xl font-semibold mb-4">Account</h2>
+            <p className="text-muted-foreground mb-4">Logged in as: {user?.email || 'Unknown'}</p>
+            <Button onClick={logout} variant="destructive" size="sm">
+              Logout
+            </Button>
+          </div>
         </div>
       </div>
     </PageContainer>

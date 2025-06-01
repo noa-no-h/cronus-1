@@ -161,6 +161,7 @@ export const authRouter = router({
         picture: user.picture,
         hasSubscription: user.hasSubscription,
         isWaitlisted: user.isWaitlisted,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
       } satisfies User;
     } catch (error) {
       console.error('Get user error:', error);
@@ -244,6 +245,27 @@ export const authRouter = router({
       } catch (error) {
         console.error('Refresh token error:', error);
         throw error; // Use the original error to preserve code/status
+      }
+    }),
+
+  markOnboardingComplete: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        const decoded = verifyToken(input.token);
+        const user = await UserModel.findById(decoded.userId);
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        user.hasCompletedOnboarding = true;
+        await user.save();
+
+        return { success: true };
+      } catch (error) {
+        console.error('Mark onboarding complete error:', error);
+        throw new Error('Failed to mark onboarding as complete');
       }
     }),
 });

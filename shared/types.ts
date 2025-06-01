@@ -7,6 +7,7 @@ export interface User {
   stripeCustomerId?: string;
   isWaitlisted?: boolean;
   tokenVersion?: number;
+  hasCompletedOnboarding?: boolean;
   electronAppSettings?: {
     calendarZoomLevel?: number;
   };
