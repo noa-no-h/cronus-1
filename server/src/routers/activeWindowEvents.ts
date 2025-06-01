@@ -51,7 +51,7 @@ export const activeWindowEventsRouter = router({
       const newEvent = new ActiveWindowEventModel(eventToSave);
 
       console.log(
-        `[${new Date(newEvent?.timestamp || 0).toISOString().split('T')[1].split('.')[0]}] newEvent: ${newEvent.ownerName || newEvent.title}`
+        `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent: ${newEvent.ownerName || newEvent.title}`
       );
 
       await newEvent.save();

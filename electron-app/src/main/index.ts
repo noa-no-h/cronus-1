@@ -143,9 +143,17 @@ function createFloatingWindow(): void {
 }
 
 function createWindow(): void {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+
+  const windowWidth = 800
+  const windowHeight = screenHeight // Or screenHeight if you want it to fill the height
+
   mainWindow = new BrowserWindow({
-    width: 700,
-    height: 1700,
+    width: windowWidth,
+    height: windowHeight,
+    x: screenWidth - windowWidth,
+    y: 0, // Position at the top of the work area
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
