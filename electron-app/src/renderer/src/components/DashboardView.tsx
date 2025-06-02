@@ -44,14 +44,17 @@ export function DashboardView() {
     calculateTimestamps()
   }, [selectedDate, viewMode])
 
-  const { data: eventsData, isLoading: isLoadingFetchedEvents } =
-    trpc.activeWindowEvents.getEventsForDateRange.useQuery(
-      { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
-      {
-        enabled: !!token && startDateMs !== null && endDateMs !== null,
-        refetchOnWindowFocus: false
-      }
-    )
+  const {
+    data: eventsData,
+    isLoading: isLoadingFetchedEvents,
+    refetch: refetchEvents
+  } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
+    { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
+    {
+      enabled: !!token && startDateMs !== null && endDateMs !== null,
+      refetchOnWindowFocus: false
+    }
+  )
 
   useEffect(() => {
     if (isLoadingFetchedEvents) {
@@ -80,6 +83,9 @@ export function DashboardView() {
         <ActivitiesByCategoryWidget
           activityEvents={activityEvents}
           isLoadingEvents={isLoadingEvents}
+          startDateMs={startDateMs}
+          endDateMs={endDateMs}
+          refetchEvents={refetchEvents}
         />
         <TopActivityWidget activityEvents={activityEvents} isLoadingEvents={isLoadingEvents} />
       </div>

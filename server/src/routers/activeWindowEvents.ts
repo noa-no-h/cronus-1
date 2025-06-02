@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
@@ -133,6 +134,100 @@ export const activeWindowEventsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to fetch latest event',
+        });
+      }
+    }),
+
+  updateEventsCategoryInDateRange: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        startDateMs: z.number(),
+        endDateMs: z.number(),
+        activityIdentifier: z.string(), // ownerName for app, domain for website
+        itemType: z.enum(['app', 'website']),
+        newCategoryId: z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
+          message: 'Invalid Object ID for newCategoryId',
+        }),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId } = input;
+
+      console.log('input in updateEventsCategoryInDateRange', input);
+
+      const queryConditions: any = {
+        userId: userId,
+        timestamp: {
+          $gte: startDateMs,
+          $lt: endDateMs,
+        },
+      };
+
+      if (itemType === 'app') {
+        queryConditions.ownerName = activityIdentifier;
+      } else {
+        // itemType === 'website'
+        // Function to escape special characters for regex
+        const escapeRegExp = (string: string): string => {
+          return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+        };
+        const escapedIdentifier = escapeRegExp(activityIdentifier);
+
+        queryConditions.$or = [
+          // Option 1: activityIdentifier is a domain present in a URL
+          { url: { $regex: `(^|[^A-Za-z0-9_])${escapedIdentifier}([:\\/]|$)`, $options: 'i' } },
+          // Option 2: activityIdentifier is a title, for a browser event where URL is null or empty
+          {
+            title: activityIdentifier, // Exact match for title
+            ownerName: {
+              $in: [
+                'Google Chrome',
+                'Chrome',
+                'Safari',
+                'Firefox',
+                'firefox',
+                'Microsoft Edge',
+                'msedge',
+                'Brave Browser',
+                'Brave',
+                'Opera',
+                'opera',
+                'Vivaldi',
+                'Arc',
+                // Add more browser ownerNames if needed
+              ],
+            },
+            $or: [{ url: null }, { url: '' }], // URL is either null or an empty string
+          },
+        ];
+      }
+
+      console.log(
+        'queryConditions in updateEventsCategoryInDateRange',
+        JSON.stringify(queryConditions, null, 2)
+      );
+
+      try {
+        const updateResult = await ActiveWindowEventModel.updateMany(queryConditions, {
+          $set: { categoryId: newCategoryId },
+        });
+
+        console.log(
+          `[EventsRouter] Updated ${updateResult.modifiedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
+        );
+        return {
+          success: true,
+          updatedCount: updateResult.modifiedCount,
+        };
+      } catch (error) {
+        console.error('[EventsRouter] Error updating event categories:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update event categories in date range.',
         });
       }
     }),

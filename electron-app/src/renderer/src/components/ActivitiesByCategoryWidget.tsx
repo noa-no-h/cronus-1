@@ -33,6 +33,9 @@ interface ProcessedCategory {
 interface ActivitiesByCategoryWidgetProps {
   activityEvents: ActiveWindowEvent[] | null
   isLoadingEvents: boolean
+  startDateMs: number | null
+  endDateMs: number | null
+  refetchEvents: () => void
 }
 
 // Helper function to extract website info
@@ -163,7 +166,10 @@ const processActivityEvents = (
 
 const ActivitiesByCategoryWidget = ({
   activityEvents: todayEvents,
-  isLoadingEvents: isLoadingEventsProp
+  isLoadingEvents: isLoadingEventsProp,
+  startDateMs,
+  endDateMs,
+  refetchEvents
 }: ActivitiesByCategoryWidgetProps) => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
@@ -173,6 +179,16 @@ const ActivitiesByCategoryWidget = ({
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
   const categories = categoriesData as SharedCategory[] | undefined
+
+  const updateCategoryMutation =
+    trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
+      onSuccess: () => {
+        refetchEvents()
+      },
+      onError: (error) => {
+        console.error('Error updating category:', error)
+      }
+    })
 
   useEffect(() => {
     if (isLoadingCategories || isLoadingEventsProp) {
@@ -245,10 +261,25 @@ const ActivitiesByCategoryWidget = ({
     setFaviconErrors((prev) => new Set(prev).add(identifier))
   }
 
+  const handleMoveActivity = (activity: ActivityItem, targetCategoryId: string) => {
+    if (!token || startDateMs === null || endDateMs === null) {
+      console.error('Missing token or date range for move operation')
+      return
+    }
+    updateCategoryMutation.mutate({
+      token,
+      startDateMs,
+      endDateMs,
+      activityIdentifier: activity.identifier,
+      itemType: activity.itemType,
+      newCategoryId: targetCategoryId
+    })
+  }
+
   const renderActivityList = (
     activities: ActivityItem[],
-    currentCategory: ProcessedCategory, // Pass the full current category
-    allUserCategories: SharedCategory[] | undefined // Pass all categories for finding the "other" one
+    currentCategory: ProcessedCategory,
+    allUserCategories: SharedCategory[] | undefined
   ) => {
     let dotColorClass = 'bg-yellow-500' // Neutral default
     if (currentCategory.isProductive === true) dotColorClass = 'bg-blue-500'
@@ -258,12 +289,27 @@ const ActivitiesByCategoryWidget = ({
       const activityKey = `${activity.identifier}-${activity.name}`
       let targetMoveCategory: SharedCategory | undefined = undefined
       if (allUserCategories && allUserCategories.length > 0) {
-        if (allUserCategories.length === 2) {
-          // Specific logic for 2 categories
+        if (allUserCategories.length === 1 && allUserCategories[0]._id === currentCategory.id) {
+          // Only one category exists and it's the current one, so no target to move to.
+          targetMoveCategory = undefined
+        } else if (allUserCategories.length === 2) {
           targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
         } else {
-          // Fallback for > 2 categories: find first different one (can be improved)
+          // Fallback for > 2 categories: find first different one (can be improved, e.g. show a dropdown)
+          // For now, let's ensure we don't pick the current category if possible.
           targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
+          // If all categories are the same (should not happen with distinct IDs), then undefined.
+          if (
+            targetMoveCategory &&
+            targetMoveCategory._id === currentCategory.id &&
+            allUserCategories.length > 1
+          ) {
+            // This case is unlikely if categories have unique IDs and there's more than one.
+            // If it somehow happens, try to find any other category.
+            const otherCategories = allUserCategories.filter((c) => c._id !== currentCategory.id)
+            if (otherCategories.length > 0) targetMoveCategory = otherCategories[0]
+            else targetMoveCategory = undefined // Cannot move if truly only one distinct category exists
+          }
         }
       }
 
@@ -306,7 +352,23 @@ const ActivitiesByCategoryWidget = ({
                   <TooltipContent>
                     {activity.name}
                     <br />
-                    <i>{JSON.stringify(activity)}</i>
+                    <ul>
+                      <li>
+                        <strong>Name:</strong> {activity.name}
+                      </li>
+                      <li>
+                        <strong>Identifier:</strong> {activity.identifier}
+                      </li>
+                      <li>
+                        <strong>URL:</strong> {activity.originalUrl}
+                      </li>
+                      <li>
+                        <strong>Type:</strong> {activity.itemType}
+                      </li>
+                      <li>
+                        <strong>Duration:</strong> {formatDuration(activity.durationMs)}
+                      </li>
+                    </ul>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -314,9 +376,16 @@ const ActivitiesByCategoryWidget = ({
           </div>
           <div className="flex items-center flex-shrink-0 ml-2">
             {hoveredActivityKey === activityKey && targetMoveCategory && (
-              <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs mr-2">
-                Move: {targetMoveCategory.name.substring(0, 10)}
-                {targetMoveCategory.name.length > 10 ? '...' : ''}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-5 px-2 py-1 text-xs mr-2"
+                onClick={() => handleMoveActivity(activity, targetMoveCategory!._id)}
+                disabled={updateCategoryMutation.isLoading}
+              >
+                {updateCategoryMutation.isLoading
+                  ? 'Moving...'
+                  : `Move: ${targetMoveCategory.name.substring(0, 10)}${targetMoveCategory.name.length > 10 ? '...' : ''}`}
               </Button>
             )}
             {!(hoveredActivityKey === activityKey && targetMoveCategory) && (

@@ -157,10 +157,6 @@ export async function categorizeActivity(
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<CategorizationResult> {
-  console.log(
-    `[CategorizationService] Categorizing for user ${userId}: ${activeWindow.ownerName} - ${activeWindow.title || activeWindow.url}`
-  );
-
   // 1. History Check
   const historicalCategoryId = await checkActivityHistory(userId, activeWindow);
   if (historicalCategoryId) {
