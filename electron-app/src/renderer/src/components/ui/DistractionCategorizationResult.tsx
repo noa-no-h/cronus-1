@@ -37,7 +37,7 @@ const DistractionCategorizationResult = ({
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
     trpc.activeWindowEvents.getLatestEvent.useQuery(
       { token: token || '' },
-      { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 5000 }
+      { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 2500 }
     )
 
   const categoryId = latestEvent?.categoryId
@@ -230,6 +230,22 @@ const DistractionCategorizationResult = ({
   const isLoadingPrimary =
     isLoadingLatestEvent ||
     (token && !latestEvent && !isLoadingCategory && !isLoadingUserCategories)
+
+  console.log('DCRender:', {
+    activeWindowOwner: activeWindow?.ownerName,
+    activeWindowTitle: activeWindow?.title,
+    latestEventOwner: latestEvent?.ownerName,
+    latestEventTitle: latestEvent?.title,
+    latestEventCatId: latestEvent?.categoryId,
+    isCatLoading: isLoadingCategory,
+    categoryDetailsName:
+      typeof categoryDetails === 'object' && categoryDetails
+        ? (categoryDetails as Category).name
+        : String(categoryDetails),
+    statusText: getStatusText(),
+    bgColor: cardBgColor,
+    textColor: getStatusTextColor
+  })
 
   if (isLoadingPrimary) {
     return (
