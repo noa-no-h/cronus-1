@@ -65,33 +65,38 @@ export const activeWindowEventsRouter = router({
     }
   }),
 
-  getTodayEvents: publicProcedure
-    .input(z.object({ token: z.string() }))
+  getEventsForDateRange: publicProcedure
+    .input(z.object({ token: z.string(), startDateMs: z.number(), endDateMs: z.number() }))
     .query(async ({ input }) => {
       try {
         const decodedToken = verifyToken(input.token);
         const userId = decodedToken.userId;
 
-        // Get start and end of today in UTC
-        const now = new Date();
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const endOfDay = new Date(startOfDay);
-        endOfDay.setDate(endOfDay.getDate() + 1);
+        // Input times are already UTC milliseconds representing the user's local day/week boundaries
+        const { startDateMs, endDateMs } = input;
+
+        if (startDateMs >= endDateMs) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'startDateMs must be before endDateMs.',
+          });
+        }
 
         const events = await ActiveWindowEventModel.find({
           userId: userId,
           timestamp: {
-            $gte: startOfDay.getTime(),
-            $lt: endOfDay.getTime(),
+            $gte: startDateMs,
+            $lt: endDateMs,
           },
         }).sort({ timestamp: 1 });
 
         return events.map((event) => event.toObject() as ActiveWindowEvent);
       } catch (error) {
-        console.error("Error fetching today's events:", error);
+        if (error instanceof TRPCError) throw error;
+        console.error('Error fetching events for date range:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Failed to fetch today's events",
+          message: 'Failed to fetch events for date range',
         });
       }
     }),

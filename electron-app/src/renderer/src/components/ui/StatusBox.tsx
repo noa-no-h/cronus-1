@@ -31,13 +31,13 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       borderColorCls = `border-${highlightColor}-500`
       switch (highlightColor) {
         case 'green':
-          timeColorCls = 'text-green-500'
+          timeColorCls = 'text-green-300'
           break
         case 'red':
-          timeColorCls = 'text-red-500'
+          timeColorCls = 'text-red-300'
           break
         case 'orange':
-          timeColorCls = 'text-orange-500'
+          timeColorCls = 'text-orange-300'
           break
       }
     } else {

@@ -5,7 +5,9 @@ import { useAuth } from '../contexts/AuthContext'
 import { getFaviconURL } from '../utils/favicon' // Added for favicons
 import { trpc } from '../utils/trpc'
 import AppIcon from './AppIcon' // Added for app icons
+import { Button } from './ui/button' // Added Button import
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Skeleton } from './ui/skeleton' // Import Skeleton component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 // Max duration for a single event interval. Influenced by 5-min periodic backup
@@ -26,6 +28,11 @@ interface ProcessedCategory {
   isProductive: boolean
   totalDurationMs: number
   activities: ActivityItem[]
+}
+
+interface ActivitiesByCategoryWidgetProps {
+  activityEvents: ActiveWindowEvent[] | null
+  isLoadingEvents: boolean
 }
 
 // Helper function to extract website info
@@ -50,17 +57,18 @@ const extractActivityDetailsFromEvent = (
     identifier = websiteInfo.domain
     originalUrl = event.url
   } else if (
-    event.ownerName.toLowerCase().includes('google chrome') &&
+    // Sometimes url is missing but it a browser event
+    (event.ownerName.toLowerCase().includes('google chrome') ||
+      event.ownerName.toLowerCase().includes('safari') ||
+      event.ownerName.toLowerCase().includes('firefox')) &&
     event.title &&
     event.title.trim() !== ''
   ) {
     // Case 2: Event is from Google Chrome, has no URL, but has a usable title.
     // Treat this as a web-like activity, using the title as its name and identifier.
     activityName = event.title.trim()
-    itemType = 'website' // Or 'chrome_tab' or similar if you want to distinguish further
-    identifier = event.title.trim() // Using title as identifier; might need cleaning for consistency
-    // originalUrl remains undefined here
-    // console.log('Google Chrome event with TITLE but no URL (classified as website via title):', event);
+    itemType = 'website'
+    identifier = event.title.trim()
   } else {
     // Case 3: Fallback - treated as a generic app.
     // This will catch non-Chrome apps, or Chrome instances with no URL and no title.
@@ -153,31 +161,26 @@ const processActivityEvents = (
   return result // This is the array of categories with their aggregated activity times.
 }
 
-const ActivitiesByCategoryWidget = () => {
+const ActivitiesByCategoryWidget = ({
+  activityEvents: todayEvents,
+  isLoadingEvents: isLoadingEventsProp
+}: ActivitiesByCategoryWidgetProps) => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
-  const [isLoadingData, setIsLoadingData] = useState(true)
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set()) // Added for favicon error handling
+  const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null) // For hover state
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
   const categories = categoriesData as SharedCategory[] | undefined
 
-  const { data: todayEventsData, isLoading: isLoadingEvents } =
-    trpc.activeWindowEvents.getTodayEvents.useQuery(
-      { token: token || '' },
-      { enabled: !!token, refetchInterval: 60000 }
-    )
-  const todayEvents = todayEventsData as ActiveWindowEvent[] | undefined
-
   useEffect(() => {
-    if (isLoadingCategories || isLoadingEvents) {
-      setIsLoadingData(true)
+    if (isLoadingCategories || isLoadingEventsProp) {
+      setProcessedData([])
       return
     }
 
     if (!categories || !todayEvents) {
-      setIsLoadingData(false)
       setProcessedData([])
       return
     }
@@ -236,8 +239,7 @@ const ActivitiesByCategoryWidget = () => {
     )
 
     setProcessedData(finalResult)
-    setIsLoadingData(false)
-  }, [categories, todayEvents, isLoadingCategories, isLoadingEvents])
+  }, [categories, todayEvents, isLoadingCategories, isLoadingEventsProp])
 
   const handleFaviconError = (identifier: string): void => {
     setFaviconErrors((prev) => new Set(prev).add(identifier))
@@ -245,78 +247,138 @@ const ActivitiesByCategoryWidget = () => {
 
   const renderActivityList = (
     activities: ActivityItem[],
-    isProductive: boolean | null | undefined // Keep for potential fallback dot color, though primary is icon
+    currentCategory: ProcessedCategory, // Pass the full current category
+    allUserCategories: SharedCategory[] | undefined // Pass all categories for finding the "other" one
   ) => {
     let dotColorClass = 'bg-yellow-500' // Neutral default
-    if (isProductive === true) dotColorClass = 'bg-blue-500'
-    else if (isProductive === false) dotColorClass = 'bg-red-500'
+    if (currentCategory.isProductive === true) dotColorClass = 'bg-blue-500'
+    else if (currentCategory.isProductive === false) dotColorClass = 'bg-red-500'
 
-    return activities.map((activity) => (
-      <div
-        key={`${activity.identifier}-${activity.name}`}
-        className="flex items-center justify-between ml-4 py-0.5"
-      >
-        <div className="flex items-center min-w-0">
-          {activity.itemType === 'website' && activity.originalUrl ? (
-            !faviconErrors.has(activity.identifier) ? (
-              <img
-                src={getFaviconURL(activity.originalUrl)}
-                alt={activity.identifier.charAt(0).toUpperCase()} // More descriptive alt
-                width={16}
-                height={16}
-                className="mr-2 flex-shrink-0 rounded"
-                onError={() => handleFaviconError(activity.identifier)}
-              />
+    return activities.map((activity) => {
+      const activityKey = `${activity.identifier}-${activity.name}`
+      let targetMoveCategory: SharedCategory | undefined = undefined
+      if (allUserCategories && allUserCategories.length > 0) {
+        if (allUserCategories.length === 2) {
+          // Specific logic for 2 categories
+          targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
+        } else {
+          // Fallback for > 2 categories: find first different one (can be improved)
+          targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
+        }
+      }
+
+      return (
+        <div
+          key={activityKey}
+          className="flex items-center justify-between py-0.5 group w-full"
+          onMouseEnter={() => setHoveredActivityKey(activityKey)}
+          onMouseLeave={() => setHoveredActivityKey(null)}
+        >
+          <div className="flex items-center flex-1 min-w-0">
+            {activity.itemType === 'website' && activity.originalUrl ? (
+              !faviconErrors.has(activity.identifier) ? (
+                <img
+                  src={getFaviconURL(activity.originalUrl)}
+                  alt={activity.identifier.charAt(0).toUpperCase()} // More descriptive alt
+                  width={16}
+                  height={16}
+                  className="mr-2 flex-shrink-0 rounded"
+                  onError={() => handleFaviconError(activity.identifier)}
+                />
+              ) : (
+                <div className="w-4 h-4 flex items-center justify-center bg-muted text-muted-foreground rounded text-xs mr-2 flex-shrink-0">
+                  {activity.identifier.charAt(0).toUpperCase()}
+                </div>
+              )
+            ) : activity.itemType === 'app' ? (
+              <AppIcon appName={activity.identifier} size={16} className="mr-2 flex-shrink-0" />
             ) : (
-              <div className="w-4 h-4 flex items-center justify-center bg-muted text-muted-foreground rounded text-xs mr-2 flex-shrink-0">
-                {activity.identifier.charAt(0).toUpperCase()}
-              </div>
-            )
-          ) : activity.itemType === 'app' ? (
-            <AppIcon appName={activity.identifier} size={16} className="mr-2 flex-shrink-0" />
-          ) : (
-            <span className={`w-2 p-2 h-2 rounded-full mr-2 flex-shrink-0 ${dotColorClass}`}></span>
-          )}
-          <span className="text-sm text-foreground truncate" title={activity.name}>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>{activity.name}</span>
-                </TooltipTrigger>
-                <TooltipContent>{JSON.stringify(activity)}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </span>
+              <span
+                className={`w-2 p-2 h-2 rounded-full mr-2 flex-shrink-0 ${dotColorClass}`}
+              ></span>
+            )}
+            <span className="text-sm text-foreground block truncate" title={activity.name}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>{activity.name}</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {activity.name}
+                    <br />
+                    <i>{JSON.stringify(activity)}</i>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
+          </div>
+          <div className="flex items-center flex-shrink-0 ml-2">
+            {hoveredActivityKey === activityKey && targetMoveCategory && (
+              <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs mr-2">
+                Move: {targetMoveCategory.name.substring(0, 10)}
+                {targetMoveCategory.name.length > 10 ? '...' : ''}
+              </Button>
+            )}
+            <span className="text-sm text-muted-foreground">
+              {formatDuration(activity.durationMs)}
+            </span>
+          </div>
         </div>
-        <span className="text-sm text-muted-foreground flex-shrink-0 ml-2">
-          {formatDuration(activity.durationMs)}
-        </span>
-      </div>
-    ))
+      )
+    })
   }
 
-  if (isLoadingData) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Activity Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Loading activity data...</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (processedData.every((p) => p.totalDurationMs === 0)) {
+  if (isLoadingEventsProp || isLoadingCategories) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">Daily Activity Summary</CardTitle>
         </CardHeader>
         <CardContent className="pt-2 space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={`skel-cat-${i}`} className="space-y-2">
+              <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="h-5 w-1/4" />
+              </div>
+              {[...Array(2)].map((_, j) => (
+                <div
+                  key={`skel-act-${i}-${j}`}
+                  className="flex items-center justify-between py-0.5"
+                >
+                  <div className="flex items-center flex-1 min-w-0">
+                    <Skeleton className="h-4 w-4 mr-2 rounded-full" />
+                    <Skeleton className="h-4 flex-1" />
+                  </div>
+                  <Skeleton className="h-4 w-1/5 ml-2" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (
+    !todayEvents ||
+    todayEvents.length === 0 ||
+    processedData.every((p) => p.totalDurationMs === 0)
+  ) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Daily Activity Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-2 space-y-4">
+          {/* Show a message if there are no categories or if all categories have no time and no events */}
+          {(!categories || categories.length === 0) &&
+            (!todayEvents || todayEvents.length === 0) && (
+              <p>No activity data for the selected period, or no categories defined.</p>
+            )}
           {processedData.map((category) => {
-            if (category.totalDurationMs === 0) return null // Don't render categories with no time
+            if (category.totalDurationMs === 0 && (!todayEvents || todayEvents.length === 0))
+              return null // Don't render categories with no time if there are no events at all
 
             return (
               <div key={category.id}>
@@ -328,7 +390,7 @@ const ActivitiesByCategoryWidget = () => {
                     {formatDuration(category.totalDurationMs)}
                   </span>
                 </div>
-                {renderActivityList(category.activities, category.isProductive)}
+                {renderActivityList(category.activities, category, categories)}
               </div>
             )
           })}
@@ -344,7 +406,9 @@ const ActivitiesByCategoryWidget = () => {
       </CardHeader>
       <CardContent className="pt-2 space-y-4">
         {processedData.map((category) => {
-          if (category.totalDurationMs === 0) return null // Don't render categories with no time
+          if (category.totalDurationMs === 0 && (!todayEvents || todayEvents.length === 0)) {
+            return null // If no events at all for the day, and category is empty, skip it.
+          }
 
           return (
             <div key={category.id}>
@@ -356,7 +420,7 @@ const ActivitiesByCategoryWidget = () => {
                   {formatDuration(category.totalDurationMs)}
                 </span>
               </div>
-              {renderActivityList(category.activities, category.isProductive)}
+              {renderActivityList(category.activities, category, categories)}
             </div>
           )
         })}

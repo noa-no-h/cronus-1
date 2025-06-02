@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ActiveWindowDetails } from 'shared'
-import ActivitiesByCategoryWidget from './components/ActivitiesByCategoryWidget'
 import { AppHeader } from './components/AppHeader'
-import CalendarWidget from './components/CalendarWidget'
+import { DashboardView } from './components/DashboardView'
 import { OnboardingModal } from './components/OnboardingModal'
-import TopActivityWidget from './components/TopActivityWidget'
 import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
@@ -64,14 +62,12 @@ export function MainAppContent() {
         onOpenMiniTimerClick={handleOpenMiniTimer}
         isMiniTimerVisible={isMiniTimerVisible}
       />
-      <div className="flex-1 flex flex-row overflow-y-auto min-h-0 p-4 space-y-4">
-        <div className="flex flex-col gap-4">
-          <DistractionCategorizationResult activeWindow={activeWindow} />
-          <ActivitiesByCategoryWidget />
-          <TopActivityWidget />
-        </div>
-        <CalendarWidget />
+      <div className="p-4">
+        <DistractionCategorizationResult activeWindow={activeWindow} />
       </div>
+
+      <DashboardView />
+
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
     </div>
   )
