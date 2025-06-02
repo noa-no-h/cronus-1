@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget'
+import TopActivityWidget from './TopActivityWidget'
 
 export function DashboardView() {
   const { token } = useAuth()
@@ -80,6 +81,7 @@ export function DashboardView() {
           activityEvents={activityEvents}
           isLoadingEvents={isLoadingEvents}
         />
+        <TopActivityWidget activityEvents={activityEvents} isLoadingEvents={isLoadingEvents} />
       </div>
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget

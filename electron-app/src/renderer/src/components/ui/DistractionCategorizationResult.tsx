@@ -3,7 +3,7 @@ import React, { JSX, useEffect, useMemo } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
-import { Card, CardContent, CardHeader, CardTitle } from './card'
+import { Card, CardContent } from './card'
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -36,7 +36,7 @@ const DistractionCategorizationResult = ({
 
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
     trpc.activeWindowEvents.getLatestEvent.useQuery(
-      { token: token || '' }, // Use token || '' and rely on enabled
+      { token: token || '' },
       { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 5000 }
     )
 
@@ -44,7 +44,7 @@ const DistractionCategorizationResult = ({
 
   const { data: categoryDetails, isLoading: isLoadingCategory } =
     trpc.category.getCategoryById.useQuery(
-      { token: token || '', categoryId: categoryId || '' }, // Use token || '' and categoryId || ''
+      { token: token || '', categoryId: categoryId || '' },
       {
         enabled:
           !!token &&
@@ -52,24 +52,44 @@ const DistractionCategorizationResult = ({
           token.length > 0 &&
           !!categoryId &&
           categoryId !== ''
-      } // Ensure categoryId is not an empty string
+      }
     )
 
-  // Fetch all user categories for mapping categoryId to isProductive
   const { data: userCategories, isLoading: isLoadingUserCategories } =
     trpc.category.getCategories.useQuery(
-      { token: token || '' }, // Use token || '' and rely on enabled
+      { token: token || '' },
       { enabled: !!token && typeof token === 'string' && token.length > 0 }
     )
 
-  // Fetch today's events for duration calculation
+  const [currentDayStartDateMs, setCurrentDayStartDateMs] = React.useState<number | null>(null)
+  const [currentDayEndDateMs, setCurrentDayEndDateMs] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
+    setCurrentDayStartDateMs(startOfToday.getTime())
+    setCurrentDayEndDateMs(endOfToday.getTime())
+  }, [])
+
   const { data: todayEvents, isLoading: isLoadingTodayEvents } =
-    trpc.activeWindowEvents.getTodayEvents.useQuery(
-      { token: token || '' }, // Use token || '' and rely on enabled
-      { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 30000 } // Poll less frequently for all day events
+    trpc.activeWindowEvents.getEventsForDateRange.useQuery(
+      {
+        token: token || '',
+        startDateMs: currentDayStartDateMs!,
+        endDateMs: currentDayEndDateMs!
+      },
+      {
+        enabled:
+          !!token &&
+          typeof token === 'string' &&
+          token.length > 0 &&
+          currentDayStartDateMs !== null &&
+          currentDayEndDateMs !== null,
+        refetchInterval: 30000
+      }
     )
 
-  // Calculate and send daily totals and current status to floating window
   useEffect(() => {
     if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
       return
@@ -77,7 +97,7 @@ const DistractionCategorizationResult = ({
 
     let latestStatus: 'productive' | 'unproductive' | 'maybe' = 'maybe'
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
-      const fullCategoryDetails = categoryDetails as Category // Type assertion
+      const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) latestStatus = 'productive'
       else if (fullCategoryDetails.isProductive === false) latestStatus = 'unproductive'
     } else if (categoryDetails === null) {
@@ -89,7 +109,6 @@ const DistractionCategorizationResult = ({
 
     const categoriesMap = new Map((userCategories as Category[]).map((cat) => [cat._id, cat]))
 
-    // Filter for events with valid timestamps and sort them
     const validEvents = todayEvents.filter(
       (event) => typeof event.timestamp === 'number'
     ) as ActiveWindowEvent[]
@@ -106,7 +125,6 @@ const DistractionCategorizationResult = ({
       if (!eventCategory) continue
 
       let durationMs = 0
-      // Ensure currentEvent.timestamp is a number before using it in calculations
       const currentTimestamp = currentEvent.timestamp as number
 
       if (i < sortedEvents.length - 1) {
@@ -118,7 +136,6 @@ const DistractionCategorizationResult = ({
       durationMs = Math.min(durationMs, 5 * 60 * 1000)
 
       if (eventCategory.isProductive) {
-        // isProductive should exist on Category type
         dailyProductiveMs += durationMs
       } else {
         dailyUnproductiveMs += durationMs
@@ -130,21 +147,19 @@ const DistractionCategorizationResult = ({
       dailyProductiveMs,
       dailyUnproductiveMs
     })
-  }, [latestEvent, categoryDetails, userCategories, todayEvents, token]) // Re-run if these change
+  }, [latestEvent, categoryDetails, userCategories, todayEvents, token])
 
-  // Motivational text and notifications would now depend on categoryDetails
-  // For simplicity, motivationalText is not handled here but could be added to Category type or fetched separately
   const getStatusText = (): string => {
-    if (!latestEvent && !activeWindow) return 'Waiting for activity data...'
-    if (!latestEvent && activeWindow) return 'Processing current activity...'
-    if (!categoryId) return 'Activity not yet categorized.'
-    if (isLoadingCategory || isLoadingUserCategories) return 'Loading category info...'
+    if (!latestEvent && !activeWindow) return 'Waiting for activity...'
+    if (!latestEvent && activeWindow) return 'Processing...'
+    if (!categoryId) return 'Uncategorized'
+    if (isLoadingCategory || isLoadingUserCategories) return 'Loading category...'
 
     if (!categoryDetails || typeof categoryDetails !== 'object' || !('_id' in categoryDetails)) {
-      return categoryDetails === null ? 'Category not found.' : 'Category details unavailable.'
+      return categoryDetails === null ? 'Category not found' : 'Category unavailable'
     }
 
-    const fullCategoryDetails = categoryDetails as Category // Type assertion
+    const fullCategoryDetails = categoryDetails as Category
     if (fullCategoryDetails.isProductive === true) return `${fullCategoryDetails.name}: Productive`
     if (fullCategoryDetails.isProductive === false)
       return `${fullCategoryDetails.name}: Distracting`
@@ -158,7 +173,7 @@ const DistractionCategorizationResult = ({
       '_id' in categoryDetails &&
       activeWindow
     ) {
-      const fullCategoryDetails = categoryDetails as Category // Type assertion
+      const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === false) {
         const appName = activeWindow.ownerName || 'Current Application'
         const statusText = getStatusText()
@@ -174,92 +189,87 @@ const DistractionCategorizationResult = ({
     }
   }, [categoryDetails, activeWindow])
 
-  // Display for current application (from prop)
-  const currentAppDisplay = useMemo(() => {
-    const displayWindow = latestEvent || activeWindow // Prefer latestEvent for consistency, fallback to activeWindow
-    if (!displayWindow) return 'No active application.'
-    return (
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm text-muted-foreground">Currently:</span>
-        <span className="text-sm font-medium text-foreground truncate min-w-0">
-          {displayWindow.ownerName || ''}
-          {displayWindow.title && displayWindow.title !== displayWindow.ownerName
-            ? ` - ${displayWindow.title}`
-            : ''}
-        </span>
-      </div>
-    )
-  }, [activeWindow, latestEvent])
+  const displayWindowInfo = useMemo(() => {
+    const dw = latestEvent || activeWindow
+    if (!dw) return { ownerName: 'No active application', title: '' }
+    return {
+      ownerName: dw.ownerName || 'Unknown App',
+      title: dw.title && dw.title !== dw.ownerName ? dw.title : ''
+    }
+  }, [latestEvent, activeWindow])
 
   const cardBgColor = useMemo(() => {
-    if (!categoryDetails || typeof categoryDetails !== 'object' || !('_id' in categoryDetails))
-      return 'bg-card'
-
-    const fullCategoryDetails = categoryDetails as Category // Type assertion
-    if (fullCategoryDetails.isProductive === true) return 'dark:bg-green-900/30 bg-green-200/50'
-    if (fullCategoryDetails.isProductive === false) return 'dark:bg-red-900/30 bg-red-200/50'
-    return 'dark:bg-yellow-900/30 bg-yellow-200/50'
+    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
+      const fullCategoryDetails = categoryDetails as Category
+      if (fullCategoryDetails.isProductive === true) {
+        return 'bg-blue-100 dark:bg-blue-900/60'
+      } else {
+        // isProductive is false or neutral (uncategorized by isProductive field)
+        return 'bg-red-100 dark:bg-red-900/60'
+      }
+    }
+    // Default if categoryDetails is null, not found, or still loading, treat as not productive for background
+    return 'bg-red-100 dark:bg-red-900/60'
   }, [categoryDetails])
 
-  const isLoading =
-    isLoadingLatestEvent ||
-    (categoryId && (isLoadingCategory || isLoadingUserCategories)) ||
-    (token && isLoadingTodayEvents)
+  const getStatusTextColor = useMemo((): string => {
+    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
+      const fullCategoryDetails = categoryDetails as Category
+      if (fullCategoryDetails.isProductive === true) {
+        return 'text-blue-700 dark:text-blue-200'
+      } else if (fullCategoryDetails.isProductive === false) {
+        return 'text-red-700 dark:text-red-200'
+      }
+      // Neutral category, also using red background
+      return 'text-red-700 dark:text-red-200' // Or a more neutral like text-yellow-700 dark:text-yellow-200
+    }
+    // Default for uncategorized or loading states where background is red
+    return 'text-gray-700 dark:text-gray-300' // More contrast on red BG than muted-foreground
+  }, [categoryDetails])
 
-  if (isLoading && !latestEvent) {
+  const isLoadingPrimary =
+    isLoadingLatestEvent ||
+    (token && !latestEvent && !isLoadingCategory && !isLoadingUserCategories)
+
+  if (isLoadingPrimary) {
     return (
-      <Card className={clsx('border-border', cardBgColor)}>
-        {currentAppDisplay}
-        <CardContent className="pt-2">
-          <div className="animate-pulse">
-            <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-muted rounded w-2/3"></div>
+      <Card className={clsx('p-2 rounded-lg border-border', cardBgColor)}>
+        <div className="flex items-center justify-between gap-x-2 sm:gap-x-3">
+          <div className="animate-pulse flex-grow min-w-0">
+            <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
+            <div className="h-3 bg-muted rounded w-1/2"></div>
           </div>
-        </CardContent>
+          <div className="animate-pulse">
+            <div className="h-5 bg-muted rounded w-20"></div>
+          </div>
+        </div>
       </Card>
     )
   }
 
-  const getStatusColor = (): string => {
-    if (!categoryDetails || typeof categoryDetails !== 'object' || !('_id' in categoryDetails))
-      return 'text-muted-foreground'
-
-    const fullCategoryDetails = categoryDetails as Category // Type assertion
-    if (fullCategoryDetails.isProductive === true) return 'dark:text-green-300 text-green-700'
-    if (fullCategoryDetails.isProductive === false) return 'dark:text-red-300 text-red-700'
-    return 'text-yellow-400'
-  }
-
   return (
-    <Card className={clsx('border-border', cardBgColor)}>
-      <CardHeader>
-        <CardTitle className="text-card-foreground">Focus Check</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {currentAppDisplay}
-        {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
-          <div className="text-sm text-muted-foreground">Updating category & totals...</div>
-        )}
-        <div className={`text-lg font-semibold ${getStatusColor()}`}>{getStatusText()}</div>
-        {/* Display category color if available */}
-        {categoryDetails &&
-        typeof categoryDetails === 'object' &&
-        '_id' in categoryDetails &&
-        (categoryDetails as Category).color ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Category Color:</span>
-            <div
-              className="w-4 h-4 rounded-full border"
-              style={{ backgroundColor: (categoryDetails as Category).color }}
-            ></div>
+    <Card className={clsx('rounded-lg border-border', cardBgColor)}>
+      <CardContent className="p-2 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3">
+        <div className="flex-grow min-w-0">
+          <div
+            className="text-sm font-medium text-foreground truncate"
+            title={`${displayWindowInfo.ownerName}${displayWindowInfo.title ? ` - ${displayWindowInfo.title}` : ''}`}
+          >
+            {displayWindowInfo.ownerName}
           </div>
-        ) : null}
-        {/* Placeholder for motivational text based on category if desired */}
-        {/* {categoryDetails && categoryDetails.motivationalText && (
-          <div className="text-sm text-muted-foreground italic">
-            {categoryDetails.motivationalText}
-          </div>
-        )} */}
+          {displayWindowInfo.title && (
+            <div className="text-xs text-muted-foreground truncate" title={displayWindowInfo.title}>
+              {displayWindowInfo.title}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-shrink-0 text-right">
+          <div className={`text-sm font-semibold ${getStatusTextColor}`}>{getStatusText()}</div>
+          {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
+            <div className="text-xs text-muted-foreground mt-0.5">Updating...</div>
+          )}
+        </div>
       </CardContent>
     </Card>
   )

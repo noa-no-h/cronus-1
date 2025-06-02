@@ -319,9 +319,11 @@ const ActivitiesByCategoryWidget = ({
                 {targetMoveCategory.name.length > 10 ? '...' : ''}
               </Button>
             )}
-            <span className="text-sm text-muted-foreground">
-              {formatDuration(activity.durationMs)}
-            </span>
+            {!(hoveredActivityKey === activityKey && targetMoveCategory) && (
+              <span className="text-sm text-muted-foreground">
+                {formatDuration(activity.durationMs)}
+              </span>
+            )}
           </div>
         </div>
       )

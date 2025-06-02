@@ -1,11 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { ActiveWindowEvent } from 'shared'
 import { getFaviconURL } from '../utils/favicon'
-import { trpc } from '../utils/trpc'
 import AppIcon from './AppIcon'
-import Spinner from './ui/Spinner'
+import { Skeleton } from './ui/skeleton'
 
 interface WebsiteUsage {
   domain: string
@@ -21,6 +20,11 @@ interface AppUsage {
   iconPath?: string | null
   websites?: WebsiteUsage[]
   isExpanded?: boolean
+}
+
+interface TopActivityWidgetProps {
+  activityEvents: ActiveWindowEvent[] | null
+  isLoadingEvents: boolean
 }
 
 const extractWebsiteInfo = (url: string, title: string): { domain: string; title: string } => {
@@ -65,29 +69,22 @@ const formatDuration = (ms: number): string => {
   return '0m'
 }
 
-const TopActivityWidget: React.FC = () => {
-  const { user, token } = useAuth()
+const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
+  activityEvents,
+  isLoadingEvents
+}) => {
   const [topApps, setTopApps] = useState<AppUsage[]>([])
   const [totalTrackedTimeMs, setTotalTrackedTimeMs] = useState(0)
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
 
-  const {
-    data: todayRawEvents,
-    isLoading: isLoadingRawEvents,
-    error: rawEventsError
-  } = trpc.activeWindowEvents.getTodayEvents.useQuery(
-    { token: token || '' },
-    { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 60000 }
-  )
-
   useEffect(() => {
-    if (!todayRawEvents || todayRawEvents.length === 0) {
+    if (!activityEvents || activityEvents.length === 0) {
       setTopApps([])
       setTotalTrackedTimeMs(0)
       return
     }
 
-    const validEvents = todayRawEvents.filter((event) => typeof event.timestamp === 'number')
+    const validEvents = activityEvents.filter((event) => typeof event.timestamp === 'number')
 
     if (validEvents.length === 0) {
       setTopApps([])
@@ -170,7 +167,7 @@ const TopActivityWidget: React.FC = () => {
           maxDurationOfTop3 > 0 ? Math.round((app.durationMs / maxDurationOfTop3) * 100) : 0
       }))
     )
-  }, [todayRawEvents])
+  }, [activityEvents])
 
   const toggleChromeExpansion = (appName: string): void => {
     setTopApps((prev) =>
@@ -183,17 +180,23 @@ const TopActivityWidget: React.FC = () => {
   }
 
   const renderContent = (): React.ReactNode => {
-    if (isLoadingRawEvents && topApps.length === 0) {
+    if (isLoadingEvents && topApps.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-32">
-          <Spinner />
-          <p className="mt-2 text-sm text-muted-foreground">Loading activity...</p>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={`skel-top-app-${i}`} className="p-2">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <Skeleton className="h-5 w-5 rounded-full" />
+                  <Skeleton className="h-4 w-2/5" />
+                </div>
+                <Skeleton className="h-4 w-1/5" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+          ))}
         </div>
       )
-    }
-
-    if (rawEventsError) {
-      return <p className="text-sm text-destructive-foreground">Error loading data.</p>
     }
 
     if (topApps.length === 0) {
