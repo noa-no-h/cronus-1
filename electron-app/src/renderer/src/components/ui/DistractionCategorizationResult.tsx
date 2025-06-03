@@ -257,17 +257,12 @@ const DistractionCategorizationResult = ({
     <Card className={clsx('rounded-lg border-border', cardBgColor)}>
       <CardContent className="p-2 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3">
         <div className="flex-grow min-w-0">
-          <div
-            className="text-sm font-medium text-foreground truncate"
-            title={`${displayWindowInfo.ownerName}${displayWindowInfo.title ? ` - ${displayWindowInfo.title}` : ''}`}
-          >
+          <div className="text-sm font-medium text-foreground truncate">
             {displayWindowInfo.ownerName}
+            {displayWindowInfo.title && (
+              <span className="text-muted-foreground">{` - ${displayWindowInfo.title}`}</span>
+            )}
           </div>
-          {displayWindowInfo.title && (
-            <div className="text-xs text-muted-foreground truncate" title={displayWindowInfo.title}>
-              {displayWindowInfo.title}
-            </div>
-          )}
         </div>
 
         <div className="flex-shrink-0 text-right">
