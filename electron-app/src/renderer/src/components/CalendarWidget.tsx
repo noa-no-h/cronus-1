@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
+import { getFaviconURL } from '../utils/favicon'
+import AppIcon from './AppIcon'
+import type { ProcessedEventBlock } from './DashboardView'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { ScrollArea } from './ui/scroll-area'
-import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
-import { useAuth } from '../contexts/AuthContext'
-import { trpc } from '../utils/trpc'
-import AppIcon from './AppIcon'
-import { getFaviconURL } from '../utils/favicon'
 
 interface TimeBlock {
   startTime: Date
@@ -33,10 +32,19 @@ interface HourlyTimelineSegment {
 interface CalendarWidgetProps {
   selectedDate: Date
   onDateChange: (newDate: Date) => void
+  viewMode: 'day' | 'week'
+  onViewModeChange: (newMode: 'day' | 'week') => void
+  processedEvents: ProcessedEventBlock[] | null
+  isLoadingEvents: boolean
 }
 
-const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => {
-  const { token } = useAuth()
+// TODO: Add view mode (day, week)
+const CalendarWidget = ({
+  selectedDate,
+  onDateChange,
+  processedEvents,
+  isLoadingEvents
+}: CalendarWidgetProps) => {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
   const [currentTime, setCurrentTime] = useState(new Date())
   const currentHourRef = useRef<HTMLDivElement>(null)
@@ -62,59 +70,24 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
   // Check if we're viewing today
   const isToday = selectedDate.toDateString() === new Date().toDateString()
 
-  // Get events for the selected date
-  const startOfDay = new Date(selectedDate)
-  startOfDay.setHours(0, 0, 0, 0)
-  const endOfDay = new Date(selectedDate)
-  endOfDay.setHours(23, 59, 59, 999)
-
-  const { data: eventsData } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
-    {
-      token: token || '',
-      startDateMs: startOfDay.getTime(),
-      endDateMs: endOfDay.getTime()
-    },
-    { enabled: !!token }
-  )
-
   // Process events into time blocks
   useEffect(() => {
-    if (!eventsData) return
-
-    const sortedEvents = [...eventsData]
-      .filter((event) => typeof event.timestamp === 'number')
-      .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
-
-    const blocks: TimeBlock[] = []
-
-    for (let i = 0; i < sortedEvents.length; i++) {
-      const event = sortedEvents[i]
-      const startTime = new Date(event.timestamp as number)
-      let endTime: Date
-
-      if (i < sortedEvents.length - 1) {
-        endTime = new Date(sortedEvents[i + 1].timestamp as number)
-      } else {
-        const maxEndTime = new Date(startTime.getTime() + 15 * 60 * 1000)
-        const now = new Date()
-        endTime = now < maxEndTime ? now : maxEndTime
-      }
-
-      const durationMs = endTime.getTime() - startTime.getTime()
-      if (durationMs < 1000) continue
-
-      blocks.push({
-        startTime,
-        endTime,
-        durationMs,
-        name: event.ownerName,
-        description: event.title,
-        url: event.url || undefined
-      })
+    if (isLoadingEvents || !processedEvents) {
+      setTimeBlocks([])
+      return
     }
 
+    const blocks: TimeBlock[] = processedEvents.map((eventBlock) => ({
+      startTime: eventBlock.startTime,
+      endTime: eventBlock.endTime,
+      durationMs: eventBlock.durationMs,
+      name: eventBlock.name,
+      description: eventBlock.title,
+      url: eventBlock.url
+    }))
+
     setTimeBlocks(blocks)
-  }, [eventsData])
+  }, [processedEvents, isLoadingEvents])
 
   const getTimelineSegmentsForHour = (hour: number): HourlyTimelineSegment[] => {
     const hourBlocks = timeBlocks.filter((block) => {
@@ -244,8 +217,8 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
                   className="group relative flex min-h-[80px] hover:bg-muted/50 border-b border-slate-200 dark:border-slate-700"
                   ref={isCurrentHour ? currentHourRef : null}
                 >
-                  <div className="w-16 py-2 text-sm font-medium sticky left-0 bg-background flex items-start">
-                    <span className="px-2">{hour.toString().padStart(2, '0')}:00</span>
+                  <div className="w-12 py-2 text-xs text-muted-foreground font-medium sticky left-0 bg-background flex items-start">
+                    <span>{hour.toString().padStart(2, '0')}:00</span>
                   </div>
 
                   <div className="flex-1 border-l pl-4 py-2 relative">
@@ -362,7 +335,7 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
 
                     {showCurrentTime && (
                       <div className="absolute top-2 right-2 z-10">
-                        <span className="px-2 py-0.5 text-xs text-red-500 font-medium bg-white dark:bg-slate-800 rounded border">
+                        <span className="px-2 py-0.5 text-xs text-red-500 dark:text-red-300 font-medium bg-white dark:bg-slate-800 rounded border">
                           {currentTime.toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit'

@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { ActiveWindowEvent } from 'shared'
+// import { ActiveWindowEvent } from 'shared' // No longer directly needed for props
 import { getFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
+import type { ProcessedEventBlock } from './DashboardView' // Import ProcessedEventBlock
 import { Skeleton } from './ui/skeleton'
 
 interface WebsiteUsage {
@@ -23,7 +24,8 @@ interface AppUsage {
 }
 
 interface TopActivityWidgetProps {
-  activityEvents: ActiveWindowEvent[] | null
+  // activityEvents: ActiveWindowEvent[] | null // Old prop
+  processedEvents: ProcessedEventBlock[] | null // New prop
   isLoadingEvents: boolean
 }
 
@@ -70,7 +72,8 @@ const formatDuration = (ms: number): string => {
 }
 
 const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
-  activityEvents,
+  // activityEvents, // old
+  processedEvents,
   isLoadingEvents
 }) => {
   const [topApps, setTopApps] = useState<AppUsage[]>([])
@@ -78,23 +81,13 @@ const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    if (!activityEvents || activityEvents.length === 0) {
+    if (!processedEvents || processedEvents.length === 0) {
+      // new
       setTopApps([])
       setTotalTrackedTimeMs(0)
       return
     }
 
-    const validEvents = activityEvents.filter((event) => typeof event.timestamp === 'number')
-
-    if (validEvents.length === 0) {
-      setTopApps([])
-      setTotalTrackedTimeMs(0)
-      return
-    }
-
-    const sortedEvents = [...validEvents].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
-
-    // Separate tracking for apps and Chrome domains
     const appDurations: Record<string, number> = {}
     const chromeDomainDurations: Record<
       string,
@@ -102,19 +95,10 @@ const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
     > = {}
     let currentTotalTrackedMs = 0
 
-    for (let i = 0; i < sortedEvents.length; i++) {
-      const currentEvent = sortedEvents[i]
-      let durationMs = 0
-      const currentTimestamp = currentEvent.timestamp || 0
-
-      if (i < sortedEvents.length - 1) {
-        const nextTimestamp = sortedEvents[i + 1].timestamp || 0
-        durationMs = nextTimestamp - currentTimestamp
-      } else {
-        durationMs = Math.min(Date.now() - currentTimestamp, 15 * 60 * 1000)
-      }
-      durationMs = Math.max(0, durationMs)
-      durationMs = Math.min(durationMs, 15 * 60 * 1000)
+    for (const block of processedEvents) {
+      // new
+      const currentEvent = block.originalEvent // Use originalEvent for properties
+      const durationMs = block.durationMs // Use pre-calculated duration
 
       currentTotalTrackedMs += durationMs
 
@@ -167,7 +151,7 @@ const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
           maxDurationOfTop3 > 0 ? Math.round((app.durationMs / maxDurationOfTop3) * 100) : 0
       }))
     )
-  }, [activityEvents])
+  }, [processedEvents]) // new
 
   const toggleChromeExpansion = (appName: string): void => {
     setTopApps((prev) =>

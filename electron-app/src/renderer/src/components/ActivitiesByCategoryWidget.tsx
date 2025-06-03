@@ -5,14 +5,15 @@ import { useAuth } from '../contexts/AuthContext'
 import { getFaviconURL } from '../utils/favicon' // Added for favicons
 import { trpc } from '../utils/trpc'
 import AppIcon from './AppIcon' // Added for app icons
+import type { ProcessedEventBlock } from './DashboardView' // Import ProcessedEventBlock
 import { Button } from './ui/button' // Added Button import
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Skeleton } from './ui/skeleton' // Import Skeleton component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
-// Max duration for a single event interval. Influenced by 5-min periodic backup
-// in native code (activeWindowObserver.mm) to correctly handle last event duration.
-const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+// Max duration for a single event interval.
+// const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // Moved to DashboardView
+
 interface ActivityItem {
   name: string // Display name (app name or website title)
   durationMs: number
@@ -31,7 +32,7 @@ interface ProcessedCategory {
 }
 
 interface ActivitiesByCategoryWidgetProps {
-  activityEvents: ActiveWindowEvent[] | null
+  processedEvents: ProcessedEventBlock[] | null
   isLoadingEvents: boolean
   startDateMs: number | null
   endDateMs: number | null
@@ -81,7 +82,7 @@ const extractActivityDetailsFromEvent = (
 }
 
 const processActivityEvents = (
-  sortedEvents: (ActiveWindowEvent & { timestamp: number })[],
+  processedBlocks: ProcessedEventBlock[],
   categoriesMap: Map<string, SharedCategory>
 ): ProcessedCategory[] => {
   // This accumulator will hold activities grouped by their category ID.
@@ -92,12 +93,10 @@ const processActivityEvents = (
     { categoryDetails: SharedCategory; activitiesMap: Map<string, ActivityItem> }
   > = {}
 
-  // Iterate through events
-  for (let i = 0; i < sortedEvents.length; i++) {
-    const currentEvent = sortedEvents[i]
-
-    const categoryId = currentEvent.categoryId
-    if (!categoryId) continue // Skip events not assigned to a category
+  // Iterate through processed blocks
+  for (const block of processedBlocks) {
+    const categoryId = block.categoryId
+    if (!categoryId) continue
 
     const categoryDetails = categoriesMap.get(categoryId)
     if (!categoryDetails) {
@@ -105,22 +104,16 @@ const processActivityEvents = (
       continue
     }
 
-    // Calculate duration: time until the next event, or until Date.now() for the last event in the array.
-    // A periodic backup event is sent every 5 minutes from the native side, so intermediate durations should be low.
-    // This cap primarily affects the duration calculation for the *last* event if the app has been idle/closed
-    // for a while, preventing an overly long duration from being assigned to it.
-    let durationMs = 0
-    if (i < sortedEvents.length - 1) {
-      durationMs = sortedEvents[i + 1].timestamp - currentEvent.timestamp
-    } else {
-      durationMs = Date.now() - currentEvent.timestamp
-    }
-    durationMs = Math.max(0, Math.min(durationMs, MAX_SINGLE_EVENT_DURATION_MS))
-    if (durationMs === 0) continue // Skip if duration is negligible
+    // Duration is already calculated in ProcessedEventBlock
+    const durationMs = block.durationMs
+    // No need to cap or check for 0 duration here if DashboardView handles it, but good to be defensive
+    if (durationMs <= 0) continue
 
     // Extract display name, type (app/website), identifier (app name/domain), and URL for the current activity.
-    const { activityName, itemType, identifier, originalUrl } =
-      extractActivityDetailsFromEvent(currentEvent)
+    // Use block.originalEvent as extractActivityDetailsFromEvent expects ActiveWindowEvent
+    const { activityName, itemType, identifier, originalUrl } = extractActivityDetailsFromEvent(
+      block.originalEvent
+    )
 
     // Ensure an entry for the category exists in the accumulator.
     if (!categoryActivityAccumulator[categoryId]) {
@@ -165,7 +158,7 @@ const processActivityEvents = (
 }
 
 const ActivitiesByCategoryWidget = ({
-  activityEvents: todayEvents,
+  processedEvents: todayProcessedEvents,
   isLoadingEvents: isLoadingEventsProp,
   startDateMs,
   endDateMs,
@@ -196,7 +189,7 @@ const ActivitiesByCategoryWidget = ({
       return
     }
 
-    if (!categories || !todayEvents) {
+    if (!categories || !todayProcessedEvents) {
       setProcessedData([])
       return
     }
@@ -205,15 +198,9 @@ const ActivitiesByCategoryWidget = ({
       (categories || []).map((cat: SharedCategory) => [cat._id, cat])
     )
 
-    const sortedEvents = [...(todayEvents || [])]
-      .filter((event) => typeof event.timestamp === 'number')
-      .sort((a, b) => (a.timestamp as number) - (b.timestamp as number)) as (ActiveWindowEvent & {
-      timestamp: number
-    })[]
-
     let processedCategoriesResult: ProcessedCategory[] = []
 
-    if (sortedEvents.length === 0) {
+    if (todayProcessedEvents.length === 0) {
       processedCategoriesResult = (categories || [])
         .map((cat: SharedCategory) => ({
           id: cat._id,
@@ -230,7 +217,7 @@ const ActivitiesByCategoryWidget = ({
           return 0
         })
     } else {
-      processedCategoriesResult = processActivityEvents(sortedEvents, categoriesMap)
+      processedCategoriesResult = processActivityEvents(todayProcessedEvents, categoriesMap)
     }
 
     const allCategoryIdsWithActivity = new Set(processedCategoriesResult.map((r) => r.id))
@@ -255,7 +242,7 @@ const ActivitiesByCategoryWidget = ({
     )
 
     setProcessedData(finalResult)
-  }, [categories, todayEvents, isLoadingCategories, isLoadingEventsProp])
+  }, [categories, todayProcessedEvents, isLoadingCategories, isLoadingEventsProp])
 
   const handleFaviconError = (identifier: string): void => {
     setFaviconErrors((prev) => new Set(prev).add(identifier))
@@ -432,8 +419,8 @@ const ActivitiesByCategoryWidget = ({
   }
 
   if (
-    !todayEvents ||
-    todayEvents.length === 0 ||
+    !todayProcessedEvents ||
+    todayProcessedEvents.length === 0 ||
     processedData.every((p) => p.totalDurationMs === 0)
   ) {
     return (
@@ -441,11 +428,14 @@ const ActivitiesByCategoryWidget = ({
         <CardContent className="space-y-4">
           {/* Show a message if there are no categories or if all categories have no time and no events */}
           {(!categories || categories.length === 0) &&
-            (!todayEvents || todayEvents.length === 0) && (
+            (!todayProcessedEvents || todayProcessedEvents.length === 0) && (
               <p>No activity data for the selected period, or no categories defined.</p>
             )}
           {processedData.map((category) => {
-            if (category.totalDurationMs === 0 && (!todayEvents || todayEvents.length === 0))
+            if (
+              category.totalDurationMs === 0 &&
+              (!todayProcessedEvents || todayProcessedEvents.length === 0)
+            )
               return null // Don't render categories with no time if there are no events at all
 
             return (
@@ -471,7 +461,10 @@ const ActivitiesByCategoryWidget = ({
     <Card>
       <CardContent className="space-y-4 pt-2">
         {processedData.map((category) => {
-          if (category.totalDurationMs === 0 && (!todayEvents || todayEvents.length === 0)) {
+          if (
+            category.totalDurationMs === 0 &&
+            (!todayProcessedEvents || todayProcessedEvents.length === 0)
+          ) {
             return null // If no events at all for the day, and category is empty, skip it.
           }
 

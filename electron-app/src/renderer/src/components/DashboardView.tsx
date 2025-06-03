@@ -6,11 +6,27 @@ import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget'
 import TopActivityWidget from './TopActivityWidget'
 
+// Max duration for a single event interval.
+const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+
+export interface ProcessedEventBlock {
+  startTime: Date
+  endTime: Date
+  durationMs: number
+  name: string // event.ownerName
+  title?: string // event.title
+  url?: string
+  categoryId?: string | null // event.categoryId - updated to allow null
+  originalEvent: ActiveWindowEvent // Keep the original for flexibility
+}
+
 export function DashboardView() {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
-  const [activityEvents, setActivityEvents] = useState<ActiveWindowEvent[] | null>(null)
+  const [processedEventBlocks, setProcessedEventBlocks] = useState<ProcessedEventBlock[] | null>(
+    null
+  )
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
@@ -78,12 +94,50 @@ export function DashboardView() {
   useEffect(() => {
     if (isLoadingFetchedEvents) {
       setIsLoadingEvents(true)
-      setActivityEvents(null)
+      setProcessedEventBlocks(null)
     } else if (eventsData) {
-      setActivityEvents(eventsData as ActiveWindowEvent[])
+      const sortedEvents = [...eventsData]
+        .filter((event) => typeof event.timestamp === 'number')
+        .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+
+      const blocks: ProcessedEventBlock[] = []
+      for (let i = 0; i < sortedEvents.length; i++) {
+        const event = sortedEvents[i]
+        const startTime = new Date(event.timestamp as number)
+        let endTime: Date
+
+        let durationMs: number
+        if (i < sortedEvents.length - 1) {
+          endTime = new Date(sortedEvents[i + 1].timestamp as number)
+          durationMs = endTime.getTime() - startTime.getTime()
+        } else {
+          const now = new Date()
+          const potentialEndTime = new Date(startTime.getTime() + MAX_SINGLE_EVENT_DURATION_MS)
+          endTime = now < potentialEndTime ? now : potentialEndTime
+          durationMs = endTime.getTime() - startTime.getTime()
+        }
+
+        durationMs = Math.max(0, Math.min(durationMs, MAX_SINGLE_EVENT_DURATION_MS))
+
+        if (durationMs < 1000) {
+          continue
+        }
+
+        blocks.push({
+          startTime,
+          endTime,
+          durationMs,
+          name: event.ownerName,
+          title: event.title,
+          url: event.url || undefined,
+          categoryId: event.categoryId,
+          originalEvent: event
+        })
+      }
+      setProcessedEventBlocks(blocks)
       setIsLoadingEvents(false)
     } else {
-      setActivityEvents(null)
+      setProcessedEventBlocks(null)
       setIsLoadingEvents(false)
     }
   }, [eventsData, isLoadingFetchedEvents])
@@ -100,17 +154,22 @@ export function DashboardView() {
     <div className="flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4">
       <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <ActivitiesByCategoryWidget
-          activityEvents={activityEvents}
+          processedEvents={processedEventBlocks}
           isLoadingEvents={isLoadingEvents}
           startDateMs={startDateMs}
           endDateMs={endDateMs}
           refetchEvents={refetchEvents}
         />
-        <TopActivityWidget activityEvents={activityEvents} isLoadingEvents={isLoadingEvents} />
+        <TopActivityWidget
+          processedEvents={processedEventBlocks}
+          isLoadingEvents={isLoadingEvents}
+        />
       </div>
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget
           selectedDate={selectedDate}
+          processedEvents={processedEventBlocks}
+          isLoadingEvents={isLoadingEvents}
           viewMode={viewMode}
           onDateChange={handleDateChange}
           onViewModeChange={handleViewModeChange}
