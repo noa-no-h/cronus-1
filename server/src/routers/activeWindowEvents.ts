@@ -10,9 +10,9 @@ import { verifyToken } from './auth';
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
   token: z.string(),
-  windowId: z.number(),
+  windowId: z.number().optional(),
   ownerName: z.string(),
-  type: z.enum(['window', 'browser']),
+  type: z.enum(['window', 'browser', 'system']),
   browser: z.enum(['chrome', 'safari']).optional().nullable(),
   title: z.string(),
   url: z.string().optional().nullable(),

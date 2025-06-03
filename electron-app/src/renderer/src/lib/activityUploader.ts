@@ -27,9 +27,9 @@ interface MutateAsyncFunction {
 // Define the event data type
 interface EventData {
   token: string
-  windowId: number
+  windowId?: number
   ownerName: string
-  type: 'window' | 'browser'
+  type: 'window' | 'browser' | 'system'
   browser?: 'chrome' | 'safari' | null
   title: string
   url?: string | null
@@ -44,15 +44,29 @@ export const uploadActiveWindowEvent = async (
   mutateEvent: MutateAsyncFunction
 ): Promise<void> => {
   if (!token || !windowDetails) {
+    console.log('Skipping event upload - missing token or details:', {
+      token: !!token,
+      details: !!windowDetails
+    })
     return
   }
+
+  const isSystemEvent = ['System Sleep', 'System Wake', 'System Lock', 'System Unlock'].includes(
+    windowDetails.ownerName
+  )
+
+  console.log('Processing event:', {
+    isSystemEvent,
+    ownerName: windowDetails.ownerName,
+    type: isSystemEvent ? 'system' : windowDetails.type
+  })
 
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {
     token,
-    windowId: windowDetails.windowId,
+    windowId: isSystemEvent ? 0 : windowDetails.windowId,
     ownerName: windowDetails.ownerName,
-    type: windowDetails.type,
+    type: isSystemEvent ? 'system' : windowDetails.type,
     browser: windowDetails.browser,
     title: windowDetails.title,
     url: windowDetails.url,
@@ -62,35 +76,38 @@ export const uploadActiveWindowEvent = async (
   }
 
   try {
-    // dont burden s3 with too many image if 99% likelyhood of it being productive
-    if (isVeryLikelyProductive(windowDetails)) {
-      if (windowDetails.localScreenshotPath) {
-        await deleteLocalFile(windowDetails.localScreenshotPath)
-      }
-    } else {
-      // If we have a local screenshot, upload it to S3 first
-      if (windowDetails.localScreenshotPath) {
-        try {
-          // Get pre-signed URL from server
-          const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
-            fileType: 'image/jpeg',
-            token: localStorage.getItem('accessToken') || ''
-          })
-
-          // Read the local file from the main process (no checksum)
-          const fileBuffer = await readFileFromMain(windowDetails.localScreenshotPath)
-
-          // Upload to S3 with content type
-          await uploadToS3(uploadUrl, fileBuffer, 'image/jpeg')
-
-          // Add the S3 URL to the event data
-          eventData.screenshotS3Url = publicUrl
-
-          // Clean up the local file
+    if (!isSystemEvent) {
+      // Only handle screenshots for non-system events
+      // dont burden s3 with too many image if 99% likelyhood of it being productive
+      if (isVeryLikelyProductive(windowDetails)) {
+        if (windowDetails.localScreenshotPath) {
           await deleteLocalFile(windowDetails.localScreenshotPath)
-        } catch (error) {
-          console.error('Error handling screenshot upload:', error)
-          // Continue with event upload even if screenshot upload fails
+        }
+      } else {
+        // If we have a local screenshot, upload it to S3 first
+        if (windowDetails.localScreenshotPath) {
+          try {
+            // Get pre-signed URL from server
+            const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
+              fileType: 'image/jpeg',
+              token: localStorage.getItem('accessToken') || ''
+            })
+
+            // Read the local file from the main process (no checksum)
+            const fileBuffer = await readFileFromMain(windowDetails.localScreenshotPath)
+
+            // Upload to S3 with content type
+            await uploadToS3(uploadUrl, fileBuffer, 'image/jpeg')
+
+            // Add the S3 URL to the event data
+            eventData.screenshotS3Url = publicUrl
+
+            // Clean up the local file
+            await deleteLocalFile(windowDetails.localScreenshotPath)
+          } catch (error) {
+            console.error('Error handling screenshot upload:', error)
+            // Continue with event upload even if screenshot upload fails
+          }
         }
       }
     }

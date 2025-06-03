@@ -33,12 +33,14 @@ class NativeWindows {
           // Ensure that the id field from the native module is mapped to windowId
           const details: ActiveWindowDetails = {
             ...detailsJson,
-            windowId: detailsJson.id
+            windowId: detailsJson.id || 0 // Default to 0 if id is missing
           }
           delete (details as any).id // remove original id if it exists to avoid confusion
+          console.log('[NativeWindowsWrapper] Processed event:', details)
           callback(details)
         } else {
-          callback(null) // Should not happen if native code sends valid JSON or calls back appropriately for errors
+          console.log('[NativeWindowsWrapper] Received null event')
+          callback(null)
         }
       } catch (error) {
         console.error('Error parsing window details JSON:', error, 'Received string:', jsonString)
