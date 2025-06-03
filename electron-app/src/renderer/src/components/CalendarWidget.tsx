@@ -1,7 +1,8 @@
+'use client'
+
 import { useEffect, useState, useRef } from 'react'
-import { ActiveWindowEvent } from 'shared'
 import { Button } from './ui/button'
-import { Card, CardContent } from './ui/card'
+import { Card } from './ui/card'
 import { ScrollArea } from './ui/scroll-area'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
 import { useAuth } from '../contexts/AuthContext'
@@ -18,11 +19,15 @@ interface TimeBlock {
   url?: string
 }
 
-interface AggregatedBlock {
-  appName: string
-  totalDurationMs: number
-  blocks: TimeBlock[]
+interface HourlyTimelineSegment {
+  startMinute: number
+  endMinute: number
+  durationMs: number
+  name: string
+  description?: string
   url?: string
+  widthPercentage: number
+  leftPercentage: number
 }
 
 interface CalendarWidgetProps {
@@ -104,41 +109,87 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
         durationMs,
         name: event.ownerName,
         description: event.title,
-        url: event.url
+        url: event.url || undefined
       })
     }
 
     setTimeBlocks(blocks)
   }, [eventsData])
 
-  const getAggregatedBlocksForHour = (hour: number): AggregatedBlock[] => {
-    const hourBlocks = timeBlocks.filter((block) => block.startTime.getHours() === hour)
-
-    const aggregated = new Map<string, AggregatedBlock>()
-
-    hourBlocks.forEach((block) => {
-      const existing = aggregated.get(block.name)
-      if (existing) {
-        existing.totalDurationMs += block.durationMs
-        existing.blocks.push(block)
-      } else {
-        aggregated.set(block.name, {
-          appName: block.name,
-          totalDurationMs: block.durationMs,
-          blocks: [block],
-          url: block.url
-        })
-      }
+  const getTimelineSegmentsForHour = (hour: number): HourlyTimelineSegment[] => {
+    const hourBlocks = timeBlocks.filter((block) => {
+      const blockHour = block.startTime.getHours()
+      const blockEndHour = block.endTime.getHours()
+      // Include blocks that start in this hour or span across this hour
+      return blockHour === hour || (blockHour < hour && blockEndHour >= hour)
     })
 
-    return Array.from(aggregated.values()).sort((a, b) => b.totalDurationMs - a.totalDurationMs)
+    const segments: HourlyTimelineSegment[] = []
+
+    hourBlocks.forEach((block) => {
+      // Calculate the portion of the block that falls within this hour
+      const hourStart = new Date(block.startTime)
+      hourStart.setHours(hour, 0, 0, 0)
+
+      const hourEnd = new Date(block.startTime)
+      hourEnd.setHours(hour, 59, 59, 999)
+
+      const segmentStart = new Date(Math.max(block.startTime.getTime(), hourStart.getTime()))
+      const segmentEnd = new Date(Math.min(block.endTime.getTime(), hourEnd.getTime()))
+
+      if (segmentEnd.getTime() <= segmentStart.getTime()) return
+
+      const startMinute = segmentStart.getMinutes() + segmentStart.getSeconds() / 60
+      const endMinute = segmentEnd.getMinutes() + segmentEnd.getSeconds() / 60
+
+      // Handle case where segment spans to next hour
+      const actualEndMinute = segmentEnd.getHours() > hour ? 60 : endMinute
+
+      const durationMs = segmentEnd.getTime() - segmentStart.getTime()
+      const widthPercentage = ((actualEndMinute - startMinute) / 60) * 100
+      const leftPercentage = (startMinute / 60) * 100
+
+      segments.push({
+        startMinute,
+        endMinute: actualEndMinute,
+        durationMs,
+        name: block.name,
+        description: block.description,
+        url: block.url,
+        widthPercentage,
+        leftPercentage
+      })
+    })
+
+    return segments.sort((a, b) => a.startMinute - b.startMinute)
+  }
+
+  // Generate colors for different apps
+  const getAppColor = (appName: string): string => {
+    const colors = [
+      'bg-blue-200 dark:bg-blue-800',
+      'bg-green-200 dark:bg-green-800',
+      'bg-purple-200 dark:bg-purple-800',
+      'bg-orange-200 dark:bg-orange-800',
+      'bg-pink-200 dark:bg-pink-800',
+      'bg-cyan-200 dark:bg-cyan-800',
+      'bg-yellow-200 dark:bg-yellow-800',
+      'bg-red-200 dark:bg-red-800',
+      'bg-indigo-200 dark:bg-indigo-800',
+      'bg-teal-200 dark:bg-teal-800'
+    ]
+
+    let hash = 0
+    for (let i = 0; i < appName.length; i++) {
+      hash = appName.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return colors[Math.abs(hash) % colors.length]
   }
 
   // Calculate current time position
   const getCurrentTimePosition = () => {
     const hours = currentTime.getHours()
     const minutes = currentTime.getMinutes()
-    // Convert to percentage within the hour (0-100)
     const minutePercentage = (minutes / 60) * 100
     return { hours, minutePercentage }
   }
@@ -164,7 +215,6 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
 
   return (
     <Card className="w-full h-full flex flex-col">
-      {/* Fixed header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -183,7 +233,7 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
         <div className="p-4">
           <div className="space-y-0.5">
             {Array.from({ length: 24 }).map((_, hour) => {
-              const aggregatedBlocks = getAggregatedBlocksForHour(hour)
+              const timelineSegments = getTimelineSegmentsForHour(hour)
               const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
               const showCurrentTime = isToday && hour === currentHour
               const isCurrentHour = hour === currentHour
@@ -191,7 +241,7 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
               return (
                 <div
                   key={hour}
-                  className="group relative flex min-h-[64px] hover:bg-muted/50 border-b border-slate-200 dark:border-slate-700"
+                  className="group relative flex min-h-[80px] hover:bg-muted/50 border-b border-slate-200 dark:border-slate-700"
                   ref={isCurrentHour ? currentHourRef : null}
                 >
                   <div className="w-16 py-2 text-sm font-medium sticky left-0 bg-background flex items-start">
@@ -199,58 +249,126 @@ const CalendarWidget = ({ selectedDate, onDateChange }: CalendarWidgetProps) => 
                   </div>
 
                   <div className="flex-1 border-l pl-4 py-2 relative">
+                    <div className="relative h-12 bg-slate-50 dark:bg-slate-900 rounded-md mb-2 overflow-hidden">
+                      <div className="absolute inset-0 flex">
+                        {Array.from({ length: 4 }).map((_, quarter) => (
+                          <div
+                            key={quarter}
+                            className="flex-1 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
+                          />
+                        ))}
+                      </div>
+
+                      {timelineSegments.map((segment, idx) => (
+                        <div
+                          key={`${hour}-${segment.name}-${idx}`}
+                          className={`absolute top-1 bottom-1 ${getAppColor(segment.name)} 
+                                    rounded-sm border border-slate-300 dark:border-slate-600
+                                    hover:opacity-80 transition-opacity cursor-pointer
+                                    flex items-center justify-center overflow-hidden`}
+                          style={{
+                            left: `${segment.leftPercentage}%`,
+                            width: `${Math.max(segment.widthPercentage, 1)}%`
+                          }}
+                          title={`${segment.name} - ${formatDuration(segment.durationMs)} (${Math.floor(segment.startMinute)}:${String(Math.floor((segment.startMinute % 1) * 60)).padStart(2, '0')} - ${Math.floor(segment.endMinute)}:${String(Math.floor((segment.endMinute % 1) * 60)).padStart(2, '0')})`}
+                        >
+                          {segment.widthPercentage > 8 && (
+                            <div className="flex items-center space-x-1 px-1">
+                              {segment.url ? (
+                                <img
+                                  src={getFaviconURL(segment.url) || '/placeholder.svg'}
+                                  className="w-3 h-3 rounded flex-shrink-0"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).style.display = 'none'
+                                  }}
+                                />
+                              ) : (
+                                <AppIcon
+                                  appName={segment.name}
+                                  size={12}
+                                  className="flex-shrink-0"
+                                />
+                              )}
+                              {segment.widthPercentage > 15 && (
+                                <span className="text-xs font-medium truncate">{segment.name}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {showCurrentTime && (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"
+                          style={{ left: `${minutePercentage}%` }}
+                        >
+                          <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-red-500" />
+                        </div>
+                      )}
+                    </div>
+
+                    {timelineSegments.length > 0 && (
+                      <div className="space-y-1">
+                        {Object.entries(
+                          timelineSegments.reduce(
+                            (acc, segment) => {
+                              if (!acc[segment.name]) {
+                                acc[segment.name] = {
+                                  totalDuration: 0,
+                                  url: segment.url,
+                                  segments: []
+                                }
+                              }
+                              acc[segment.name].totalDuration += segment.durationMs
+                              acc[segment.name].segments.push(segment)
+                              return acc
+                            },
+                            {} as Record<
+                              string,
+                              {
+                                totalDuration: number
+                                url?: string
+                                segments: HourlyTimelineSegment[]
+                              }
+                            >
+                          )
+                        )
+                          .sort(([, a], [, b]) => b.totalDuration - a.totalDuration)
+                          .slice(0, 3)
+                          .map(([appName, data]) => (
+                            <div
+                              key={`${hour}-${appName}-summary`}
+                              className="flex items-center justify-between text-xs text-muted-foreground"
+                            >
+                              <div className="flex items-center space-x-2">
+                                {data.url ? (
+                                  <img
+                                    src={getFaviconURL(data.url) || '/placeholder.svg'}
+                                    className="w-3 h-3 rounded flex-shrink-0"
+                                    onError={(e) => {
+                                      ;(e.target as HTMLImageElement).style.display = 'none'
+                                    }}
+                                  />
+                                ) : (
+                                  <AppIcon appName={appName} size={12} className="flex-shrink-0" />
+                                )}
+                                <span className="truncate">{appName}</span>
+                              </div>
+                              <span>{formatDuration(data.totalDuration)}</span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+
                     {showCurrentTime && (
-                      <div
-                        className="absolute left-0 right-0 flex items-center justify-between z-10"
-                        style={{ top: `${minutePercentage}%` }}
-                      >
-                        <div className="w-2 h-2 rounded-full bg-red-500 -ml-[5px]" />
-                        <span className="px-2 py-0.5 text-xs text-red-500 font-medium">
+                      <div className="absolute top-2 right-2 z-10">
+                        <span className="px-2 py-0.5 text-xs text-red-500 font-medium bg-white dark:bg-slate-800 rounded border">
                           {currentTime.toLocaleTimeString([], {
                             hour: '2-digit',
                             minute: '2-digit'
                           })}
                         </span>
                       </div>
-                    )}
-
-                    {aggregatedBlocks.length > 0 ? (
-                      <div className="space-y-1 relative">
-                        {aggregatedBlocks.map((agg, idx) => (
-                          <div
-                            key={`${hour}-${agg.appName}-${idx}`}
-                            className="bg-slate-100 dark:bg-slate-800 rounded-md p-2 
-                                     hover:bg-slate-200 dark:hover:bg-slate-700 
-                                     transition-colors relative z-0"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2 min-w-0 flex-1">
-                                {agg.url ? (
-                                  <img
-                                    src={getFaviconURL(agg.url)}
-                                    className="w-4 h-4 rounded flex-shrink-0"
-                                    onError={(e) => {
-                                      ;(e.target as HTMLImageElement).style.display = 'none'
-                                    }}
-                                  />
-                                ) : (
-                                  <AppIcon
-                                    appName={agg.appName}
-                                    size={16}
-                                    className="flex-shrink-0"
-                                  />
-                                )}
-                                <span className="text-sm truncate">{agg.appName}</span>
-                              </div>
-                              <span className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                                {formatDuration(agg.totalDurationMs)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="h-full" />
                     )}
                   </div>
                 </div>
