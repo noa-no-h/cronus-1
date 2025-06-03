@@ -6,7 +6,7 @@ import { getFaviconURL } from '../utils/favicon' // Added for favicons
 import { trpc } from '../utils/trpc'
 import AppIcon from './AppIcon' // Added for app icons
 import { Button } from './ui/button' // Added Button import
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader } from './ui/card'
 import { Skeleton } from './ui/skeleton' // Import Skeleton component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
@@ -402,10 +402,8 @@ const ActivitiesByCategoryWidget = ({
   if (isLoadingEventsProp || isLoadingCategories) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Daily Activity Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-2 space-y-4">
+        <CardHeader></CardHeader>
+        <CardContent className="space-y-4 pb-0">
           {[...Array(3)].map((_, i) => (
             <div key={`skel-cat-${i}`} className="space-y-2">
               <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
@@ -438,10 +436,7 @@ const ActivitiesByCategoryWidget = ({
   ) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Daily Activity Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-2 space-y-4">
+        <CardContent className="space-y-4">
           {/* Show a message if there are no categories or if all categories have no time and no events */}
           {(!categories || categories.length === 0) &&
             (!todayEvents || todayEvents.length === 0) && (
@@ -472,10 +467,7 @@ const ActivitiesByCategoryWidget = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Daily Activity Summary</CardTitle>
-      </CardHeader>
-      <CardContent className="pt-2 space-y-4">
+      <CardContent className="space-y-4 pt-2">
         {processedData.map((category) => {
           if (category.totalDurationMs === 0 && (!todayEvents || todayEvents.length === 0)) {
             return null // If no events at all for the day, and category is empty, skip it.

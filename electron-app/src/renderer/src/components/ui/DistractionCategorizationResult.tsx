@@ -96,12 +96,17 @@ const DistractionCategorizationResult = ({
     }
 
     let latestStatus: 'productive' | 'unproductive' | 'maybe' = 'maybe'
+    let categoryDetailsForFloatingWindow: Category | undefined = undefined
+
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) latestStatus = 'productive'
       else if (fullCategoryDetails.isProductive === false) latestStatus = 'unproductive'
+      categoryDetailsForFloatingWindow = fullCategoryDetails
     } else if (categoryDetails === null) {
       latestStatus = 'maybe'
+      // No specific category to send for 'maybe' if it's due to category not found
+      // Or we could send a generic "Uncategorized" message if desired
     }
 
     let dailyProductiveMs = 0
@@ -145,7 +150,8 @@ const DistractionCategorizationResult = ({
     window.electron.ipcRenderer.send('update-floating-window-status', {
       latestStatus,
       dailyProductiveMs,
-      dailyUnproductiveMs
+      dailyUnproductiveMs,
+      categoryDetails: categoryDetailsForFloatingWindow
     })
   }, [latestEvent, categoryDetails, userCategories, todayEvents, token])
 
@@ -230,22 +236,6 @@ const DistractionCategorizationResult = ({
   const isLoadingPrimary =
     isLoadingLatestEvent ||
     (token && !latestEvent && !isLoadingCategory && !isLoadingUserCategories)
-
-  console.log('DCRender:', {
-    activeWindowOwner: activeWindow?.ownerName,
-    activeWindowTitle: activeWindow?.title,
-    latestEventOwner: latestEvent?.ownerName,
-    latestEventTitle: latestEvent?.title,
-    latestEventCatId: latestEvent?.categoryId,
-    isCatLoading: isLoadingCategory,
-    categoryDetailsName:
-      typeof categoryDetails === 'object' && categoryDetails
-        ? (categoryDetails as Category).name
-        : String(categoryDetails),
-    statusText: getStatusText(),
-    bgColor: cardBgColor,
-    textColor: getStatusTextColor
-  })
 
   if (isLoadingPrimary) {
     return (

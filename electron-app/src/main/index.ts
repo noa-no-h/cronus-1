@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
 import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
-import { ActiveWindowDetails } from 'shared'
+import { ActiveWindowDetails, Category } from 'shared'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows } from '../native-modules/native-windows/index'
 
@@ -253,6 +253,8 @@ app.whenReady().then(() => {
         latestStatus: 'productive' | 'unproductive' | 'maybe' | null
         dailyProductiveMs: number
         dailyUnproductiveMs: number
+        categoryName?: string
+        categoryDetails?: Category
       }
     ) => {
       if (floatingWindow) {
@@ -268,6 +270,22 @@ app.whenReady().then(() => {
       }
     }
   )
+
+  ipcMain.on('request-recategorize-view', (_event, categoryDetails?: Category) => {
+    if (mainWindow) {
+      mainWindow.show()
+      mainWindow.focus()
+
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+      mainWindow.webContents.send('display-recategorize-page', categoryDetails)
+    } else {
+      console.error(
+        'Main Process: ERROR: mainWindow is not available when "request-recategorize-view" was received to show category details.'
+      )
+    }
+  })
 
   createWindow()
   createFloatingWindow()

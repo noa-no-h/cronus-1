@@ -1,5 +1,7 @@
 import clsx from 'clsx'
-import React from 'react'
+import { Settings } from 'lucide-react'
+import React, { useState } from 'react'
+import { Category } from 'shared'
 
 interface StatusBoxProps {
   label: string
@@ -7,6 +9,8 @@ interface StatusBoxProps {
   isHighlighted: boolean // Determines if this box should use its highlight color and be prominent
   highlightColor?: 'green' | 'red' | 'orange'
   isEnlarged: boolean // Determines if this box takes more space
+  categoryDetails?: Category
+  onCategoryClick?: (category: Category | undefined) => void
 }
 
 const StatusBox: React.FC<StatusBoxProps> = ({
@@ -14,8 +18,12 @@ const StatusBox: React.FC<StatusBoxProps> = ({
   time,
   isHighlighted,
   highlightColor,
-  isEnlarged
+  isEnlarged,
+  categoryDetails,
+  onCategoryClick
 }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
   // Default styles for non-highlighted state
   let timeColorCls = 'text-foreground'
   let borderColorCls = 'border-border'
@@ -49,22 +57,35 @@ const StatusBox: React.FC<StatusBoxProps> = ({
 
   return (
     <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={clsx(
-        'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out',
+        'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
         isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-1 w-[32%] px-1 py-0.5'
       )}
     >
-      <span
-        className={clsx(
-          'font-sm font-medium pointer-events-none',
-          labelColorCls,
-          isEnlarged && 'pr-2'
-        )}
-        style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
-      >
-        {label}
-      </span>
+      <div className="flex flex-col items-center gap-1">
+        <div className="relative flex items-center">
+          {isHovered && (
+            <Settings
+              className="w-4 h-4 text-muted-foreground absolute cursor-pointer"
+              style={{ right: '100%', marginRight: '4px' }}
+            />
+          )}
+          <span
+            onClick={() => onCategoryClick && onCategoryClick(categoryDetails)}
+            className={clsx(
+              'category-name-area font-sm font-medium hover:underline cursor-pointer',
+              labelColorCls,
+              isEnlarged && 'pr-2'
+            )}
+            style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
+          >
+            {categoryDetails?.name || label}
+          </span>
+        </div>
+      </div>
       <span
         className={clsx(
           'font-mono pointer-events-none',

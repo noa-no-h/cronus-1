@@ -1,10 +1,12 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
+import { Category } from 'shared'
 
 // Define the structure of the data being sent
 interface FloatingStatusUpdate {
   latestStatus: 'productive' | 'unproductive' | 'maybe' | null
   dailyProductiveMs: number
   dailyUnproductiveMs: number
+  categoryDetails?: Category
 }
 
 export interface FloatingWindowApi {
@@ -13,6 +15,7 @@ export interface FloatingWindowApi {
   ) => () => void
   moveWindow: (deltaX: number, deltaY: number) => void
   hideFloatingWindow: () => void
+  requestRecategorizeView: (category: Category | undefined) => void
 }
 
 const floatingApi: FloatingWindowApi = {
@@ -29,6 +32,9 @@ const floatingApi: FloatingWindowApi = {
   },
   hideFloatingWindow: () => {
     ipcRenderer.send('hide-floating-window')
+  },
+  requestRecategorizeView: (category: Category | undefined) => {
+    ipcRenderer.send('request-recategorize-view', category)
   }
 }
 

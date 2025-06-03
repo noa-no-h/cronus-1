@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ActiveWindowEvent } from 'shared'
+import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
@@ -15,6 +15,25 @@ export function DashboardView() {
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    const handleRecategorizeRequest = (categoryDetails?: Category) => {
+      console.log('handleRecategorizeRequest in DashboardView.tsx', categoryDetails)
+      // Future: navigate or open modal here
+    }
+
+    // Use the preloaded API
+    if (window.api && window.api.onDisplayRecategorizePage) {
+      console.log('DashboardView: Attaching listener via window.api.onDisplayRecategorizePage')
+      const cleanup = window.api.onDisplayRecategorizePage(handleRecategorizeRequest)
+      return cleanup // Return the cleanup function provided by the preload API
+    } else {
+      console.warn(
+        'DashboardView: window.api.onDisplayRecategorizePage not available. Cannot listen for recategorize requests.'
+      )
+      return () => {} // Add a no-op cleanup function for this path
+    }
+  }, [])
 
   useEffect(() => {
     const calculateTimestamps = () => {

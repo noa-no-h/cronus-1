@@ -2,6 +2,7 @@ import { Button } from '@renderer/components/ui/button'
 import clsx from 'clsx'
 import { X } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Category } from 'shared'
 import StatusBox from './components/ui/StatusBox'
 
 type LatestStatusType = 'productive' | 'unproductive' | 'maybe' | null
@@ -10,6 +11,8 @@ interface FloatingStatusUpdate {
   latestStatus: LatestStatusType
   dailyProductiveMs: number
   dailyUnproductiveMs: number
+  categoryName?: string
+  categoryDetails?: Category
 }
 
 // Helper to format milliseconds to HH:MM:SS
@@ -26,6 +29,9 @@ const FloatingDisplay: React.FC = () => {
   const [displayedProductiveTimeMs, setDisplayedProductiveTimeMs] = useState<number>(0)
   const [dailyUnproductiveMs, setDailyUnproductiveMs] = useState<number>(0)
   const [isVisible, setIsVisible] = useState<boolean>(false)
+  const [currentCategoryDetails, setCurrentCategoryDetails] = useState<Category | undefined>(
+    undefined
+  )
 
   const draggableRef = useRef<HTMLDivElement>(null)
   const dragStartInfoRef = useRef<{ initialMouseX: number; initialMouseY: number } | null>(null)
@@ -36,6 +42,7 @@ const FloatingDisplay: React.FC = () => {
         setLatestStatus(data.latestStatus)
         setDisplayedProductiveTimeMs(data.dailyProductiveMs)
         setDailyUnproductiveMs(data.dailyUnproductiveMs)
+        setCurrentCategoryDetails(data.categoryDetails)
         setIsVisible(true)
       })
       return cleanup
@@ -75,7 +82,10 @@ const FloatingDisplay: React.FC = () => {
 
   const handleMouseDownOnDraggable = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) return
-    if ((event.target as HTMLElement).closest('.close-button-area')) {
+    if (
+      (event.target as HTMLElement).closest('.close-button-area') ||
+      (event.target as HTMLElement).closest('.category-name-area')
+    ) {
       return
     }
     if (draggableRef.current) {
@@ -92,6 +102,14 @@ const FloatingDisplay: React.FC = () => {
     }
   }
 
+  const handleCategoryNameClick = (category: Category | undefined) => {
+    if (window.floatingApi && window.floatingApi.requestRecategorizeView) {
+      window.floatingApi.requestRecategorizeView(category)
+    } else {
+      console.warn('[FloatingDisplay] floatingApi.requestRecategorizeView is not available.')
+    }
+  }
+
   if (!isVisible && latestStatus === null) {
     return null
   }
@@ -103,23 +121,28 @@ const FloatingDisplay: React.FC = () => {
   let unproductiveIsHighlighted = false
   let unproductiveIsEnlarged = false
   let unproductiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'red'
-  let unproductiveLabel = 'Distracted' // Default label for the second box
+  let unproductiveLabel = 'Distracted'
 
   const productiveTimeFormatted = formatMsToTime(displayedProductiveTimeMs)
   const unproductiveTimeFormatted = formatMsToTime(dailyUnproductiveMs)
 
+  let productiveBoxCategoryDetails: Category | undefined = undefined
+  let unproductiveBoxCategoryDetails: Category | undefined = undefined
+
   if (latestStatus === 'productive') {
     productiveIsHighlighted = true
     productiveIsEnlarged = true
+    productiveBoxCategoryDetails = currentCategoryDetails
   } else if (latestStatus === 'unproductive') {
     unproductiveIsHighlighted = true
     unproductiveIsEnlarged = true
+    unproductiveBoxCategoryDetails = currentCategoryDetails
   } else if (latestStatus === 'maybe') {
-    // For 'maybe' status, highlight the second box with orange and a neutral label
     unproductiveLabel = 'Uncertain'
     unproductiveIsHighlighted = true
     unproductiveIsEnlarged = true
     unproductiveHighlightColor = 'orange'
+    unproductiveBoxCategoryDetails = currentCategoryDetails
   }
 
   return (
@@ -127,7 +150,6 @@ const FloatingDisplay: React.FC = () => {
       ref={draggableRef}
       className={clsx(
         'w-full h-full flex items-center py-1 px-1.5 rounded-xl shadow-lg select-none',
-        // somehow some tailwind classes like bg-card/80 are not working here
         'backdrop-blur-xl border-2 border-secondary/50'
       )}
       onMouseDown={handleMouseDownOnDraggable}
@@ -151,6 +173,8 @@ const FloatingDisplay: React.FC = () => {
           isHighlighted={productiveIsHighlighted}
           highlightColor={productiveHighlightColor}
           isEnlarged={productiveIsEnlarged}
+          categoryDetails={productiveBoxCategoryDetails}
+          onCategoryClick={handleCategoryNameClick}
         />
         <StatusBox
           label={unproductiveLabel}
@@ -158,6 +182,8 @@ const FloatingDisplay: React.FC = () => {
           isHighlighted={unproductiveIsHighlighted}
           highlightColor={unproductiveHighlightColor}
           isEnlarged={unproductiveIsEnlarged}
+          categoryDetails={unproductiveBoxCategoryDetails}
+          onCategoryClick={handleCategoryNameClick}
         />
       </div>
     </div>

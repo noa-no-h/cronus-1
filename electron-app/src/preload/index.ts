@@ -1,6 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import { ActiveWindowDetails } from 'shared'
+import { ActiveWindowDetails, Category } from 'shared'
 
 // Custom APIs for renderer
 const api = {
@@ -13,12 +13,18 @@ const api = {
       ipcRenderer.removeListener('active-window-changed', listener)
     }
   },
-  // New function to get environment variables
   getEnvVariables: () => ipcRenderer.invoke('get-env-vars'),
-  // Updated function to read files (no checksum)
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
-  // Add function to delete files
-  deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath)
+  deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),
+  onDisplayRecategorizePage: (callback: (categoryDetails?: Category) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, categoryDetails?: Category) =>
+      callback(categoryDetails)
+    ipcRenderer.on('display-recategorize-page', listener)
+    // Return a cleanup function
+    return () => {
+      ipcRenderer.removeListener('display-recategorize-page', listener)
+    }
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

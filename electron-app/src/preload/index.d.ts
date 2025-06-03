@@ -37,6 +37,7 @@ declare global {
       // Define other methods of 'api' if you have them
       readFile: (filePath: string) => Promise<ArrayBuffer>
       deleteFile: (filePath: string) => Promise<void>
+      onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
     }
   }
 }
