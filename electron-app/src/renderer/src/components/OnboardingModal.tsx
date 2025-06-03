@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import GoalInputForm from './ui/GoalInputForm'
 import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -21,7 +21,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
-          <div className="text-7xl mb-6">Logo here</div>
+          <div className="text-7xl mb-6">Zeit</div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.
           </p>

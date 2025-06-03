@@ -1,4 +1,13 @@
-import { Check, Edit3, PlusCircle, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
+import {
+  Check,
+  Edit3,
+  FolderPlus,
+  Loader2,
+  PlusCircle,
+  ToggleLeft,
+  ToggleRight,
+  Trash2
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ComparableCategory, defaultComparableCategories } from 'shared/categories'
 import { Category } from '../../../../../../shared/types' // Adjusted path
@@ -59,6 +68,60 @@ function checkCategoriesAgainstDefaults(
   return true // All defaults found and match current categories
 }
 
+const notionColors = [
+  '#3B82F6', // Blue
+  '#A855F7', // Purple
+  '#EC4899', // Pink
+  '#F97316', // Orange
+  '#CA8A04', // Gold
+  '#10B981', // Green
+  '#06B6D4', // Cyan
+  '#6B7280', // Gray
+  '#8B5CF6', // Violet
+  '#D946EF', // Fuchsia
+  '#F59E0B', // Amber
+  '#22C55E' // Lime
+]
+
+interface CategoryColorPickerProps {
+  selectedColor: string
+  onColorChange: (color: string) => void
+}
+
+function CategoryColorPicker({ selectedColor, onColorChange }: CategoryColorPickerProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className="w-10 h-10 p-0 border-border hover:border-ring flex-shrink-0"
+          style={{ backgroundColor: selectedColor, transition: 'background-color 0.2s' }}
+          aria-label="Pick a color"
+          title={selectedColor}
+        ></Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 bg-popover border-border">
+        <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
+          {notionColors.map((bgColor) => (
+            <button
+              type="button"
+              key={bgColor}
+              className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-border hover:ring-2 hover:ring-ring transition-all`}
+              style={{ backgroundColor: bgColor }}
+              onClick={() => {
+                onColorChange(bgColor)
+              }}
+              title={bgColor}
+            >
+              {selectedColor === bgColor && <Check size={18} className="text-white" />}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 // Basic Form for Create/Edit
 interface CategoryFormProps {
   initialData?: Category
@@ -70,7 +133,7 @@ interface CategoryFormProps {
 function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps) {
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
-  const [color, setColor] = useState(initialData?.color || '#3B82F6') // Default to a pleasant blue
+  const [color, setColor] = useState(initialData?.color || '#3B82F6')
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
@@ -82,28 +145,9 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
       setError('Name is required.')
       return
     }
-    if (!/^#[0-9A-F]{6}$/i.test(color)) {
-      setError('Color must be a valid hex code (e.g., #RRGGBB).')
-      return
-    }
     setError('')
     onSave({ name, description, color, isProductive })
   }
-
-  const notionColors = [
-    '#3B82F6', // Blue (selected in example)
-    '#A855F7', // Purple
-    '#EC4899', // Pink
-    '#F97316', // Orange
-    '#CA8A04', // Gold
-    '#10B981', // Green (Emerald 500)
-    '#06B6D4', // Cyan
-    '#6B7280', // Gray 500
-    '#8B5CF6', // Violet 500
-    '#D946EF', // Fuchsia 500
-    '#F59E0B', // Amber 500
-    '#22C55E' // Lime 500
-  ]
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-card rounded-lg shadow-md space-y-6">
@@ -112,6 +156,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
           Name <span className="text-red-500">*</span>
         </Label>
         <Input
+          placeholder="Enter category name"
           id="categoryName"
           type="text"
           value={name}
@@ -129,104 +174,38 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
         </Label>
         <Textarea
           rows={2}
+          placeholder="Enter category description"
           id="categoryDescription"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary resize-none"
         />
       </div>
-      <div className="flex items-start space-x-4">
-        <div className="flex-1 space-y-4">
-          <div>
-            <Label className="block text-sm font-medium text-foreground mb-1">Type</Label>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="isProductive"
-                checked={isProductive}
-                onCheckedChange={setIsProductive}
-                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
-              />
-              <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
-                {isProductive ? 'Productive' : 'Unproductive'}
-              </Label>
-            </div>
+
+      {/* Container for Type and Color, arranged side-by-side on medium screens and up */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex items-center space-x-2 mt-1">
+          <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
+          <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
+            {isProductive ? 'Productive' : 'Unproductive'}
+          </Label>
+        </div>
+
+        <div>
+          <div className="flex items-start space-x-2 mt-1">
+            <CategoryColorPicker selectedColor={color} onColorChange={setColor} />
+            <span className="text-red-500">*</span>
           </div>
         </div>
 
-        <div className="w-auto">
-          {' '}
-          <Label className="block text-sm font-medium text-foreground mb-2">
-            Color <span className="text-red-500">*</span>
-          </Label>
-          <div className="flex items-center space-x-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-10 h-10 p-0 border-border hover:border-ring flex-shrink-0"
-                  style={{ backgroundColor: color, transition: 'background-color 0.2s' }}
-                  aria-label="Pick a color"
-                  title={color}
-                ></Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-popover border-border">
-                <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
-                  {notionColors.map((bgColor) => (
-                    <button
-                      type="button"
-                      key={bgColor}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-border hover:ring-2 hover:ring-ring transition-all`}
-                      style={{ backgroundColor: bgColor }}
-                      onClick={() => {
-                        setColor(bgColor)
-                      }}
-                      title={bgColor}
-                    >
-                      {color === bgColor && <Check size={18} className="text-white" />}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Input
-              type="text"
-              value={color}
-              onChange={(e) => setColor(e.target.value.toUpperCase())}
-              placeholder="#RRGGBB"
-              maxLength={7}
-              className="w-28 px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary"
-            />
-          </div>
-        </div>
-      </div>
-      {error && <p className="text-sm text-destructive-foreground">{error}</p>}
-      <div className="flex justify-end space-x-3 pt-2">
+        {error && <p className="text-sm text-destructive-foreground">{error}</p>}
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSaving} className="flex items-center">
           {isSaving ? (
             <>
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground" />
               Saving...
             </>
           ) : (
@@ -435,21 +414,7 @@ export function CategoryManagement() {
 
           {!isFormOpen && (!categories || categories.length === 0) && (
             <div className="text-center py-8 px-4 bg-muted/50 rounded-lg border border-dashed border-border">
-              <svg
-                className="mx-auto h-12 w-12 text-muted-foreground"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  vectorEffect="non-scaling-stroke"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                />
-              </svg>
+              <FolderPlus className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <h3 className="mt-2 text-sm font-medium text-foreground">No categories yet</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 Get started by creating a new category.
@@ -501,11 +466,7 @@ export function CategoryManagement() {
                           title={
                             category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'
                           }
-                          className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${
-                            category.isProductive
-                              ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500'
-                              : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'
-                          }`}
+                          className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${category.isProductive ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500' : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'}`}
                           disabled={!token}
                         >
                           {category.isProductive ? (
@@ -538,26 +499,7 @@ export function CategoryManagement() {
                         >
                           {deleteMutation.isLoading &&
                           deleteMutation.variables?.id === category._id ? (
-                            <svg
-                              className="animate-spin h-4 w-4 text-muted-foreground"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
+                            <Loader2 className="animate-spin h-4 w-4 text-muted-foreground" />
                           ) : (
                             <Trash2 size={18} />
                           )}

@@ -316,7 +316,7 @@ const ActivitiesByCategoryWidget = ({
       return (
         <div
           key={activityKey}
-          className="flex items-center justify-between py-0.5 group w-full"
+          className="flex items-center justify-between py-0.5 group w-full hover:bg-muted rounded-md px-2"
           onMouseEnter={() => setHoveredActivityKey(activityKey)}
           onMouseLeave={() => setHoveredActivityKey(null)}
         >
@@ -349,7 +349,7 @@ const ActivitiesByCategoryWidget = ({
                   <TooltipTrigger asChild>
                     <span>{activity.name}</span>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="overflow-x-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
                     {activity.name}
                     <br />
                     <ul>
@@ -359,9 +359,11 @@ const ActivitiesByCategoryWidget = ({
                       <li>
                         <strong>Identifier:</strong> {activity.identifier}
                       </li>
-                      <li>
-                        <strong>URL:</strong> {activity.originalUrl}
-                      </li>
+                      {activity.originalUrl && (
+                        <li className="whitespace-normal break-all">
+                          <strong>URL:</strong> {activity.originalUrl}
+                        </li>
+                      )}
                       <li>
                         <strong>Type:</strong> {activity.itemType}
                       </li>
@@ -379,7 +381,7 @@ const ActivitiesByCategoryWidget = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-5 px-2 py-1 text-xs mr-2"
+                className="h-5 px-2 py-1 text-xs"
                 onClick={() => handleMoveActivity(activity, targetMoveCategory!._id)}
                 disabled={updateCategoryMutation.isLoading}
               >

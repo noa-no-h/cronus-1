@@ -1,10 +1,10 @@
 import { Button } from '@renderer/components/ui/button'
+import GoalInputForm from '@renderer/components/ui/GoalInputForm'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
 import { CategoryManagement } from '../components/settings/CategoryManagement' // We'll create this next
 import { ThemeSwitcher } from '../components/settings/ThemeSwitcher'
-import GoalInputForm from '@renderer/components/ui/GoalInputForm'
 import { useAuth } from '../contexts/AuthContext'
 
 export function SettingsPage() {
@@ -28,21 +28,7 @@ export function SettingsPage() {
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      {/* Scrollable content area */}
       <div className="p-4 md:p-6 pt-4">
-        {' '}
-        {/* Adjusted padding-top */}
-        {/* User Account Section (can be moved from existing Settings modal or recreated) */}
-        {/* <div className="mb-8 p-6 bg-gray-800 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-100 mb-4">Account</h2>
-          <p className="text-gray-400">Logged in as: {user?.email || 'Unknown'}</p>
-          <button
-            onClick={logout}
-            className="mt-4 px-4 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
-          >
-            Logout
-          </button>
-        </div> */}
         <div className="space-y-8">
           <CategoryManagement />
           <GoalInputForm />

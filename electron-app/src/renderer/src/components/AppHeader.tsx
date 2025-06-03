@@ -1,5 +1,6 @@
 import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { Button } from './ui/button'
 
 interface AppHeaderProps {
   onOpenMiniTimerClick: () => void
@@ -19,27 +20,22 @@ export function AppHeader({
   return (
     <div className="sticky top-0 z-30 bg-background border-b border-border h-16">
       <div className="flex justify-between items-center h-16 px-4">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-          Productivity Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold text-primary">Zeit</h1>
         <div className="flex items-center gap-2">
           {!isMiniTimerVisible && (
-            <button
+            <Button
+              variant="ghost"
               onClick={onOpenMiniTimerClick}
-              className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground flex items-center gap-1"
+              className="flex items-center gap-2"
               title="Open Mini Timer"
             >
               <ExternalLink size={20} />
               <span className="text-sm">Open Mini Timer</span>
-            </button>
+            </Button>
           )}
-          <button
-            onClick={handleSettingsClick}
-            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-accent-foreground"
-            title="Settings"
-          >
+          <Button variant="ghost" size="icon" onClick={handleSettingsClick} title="Settings">
             <SettingsIcon size={24} />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

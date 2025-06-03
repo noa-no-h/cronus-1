@@ -8,6 +8,8 @@ import {
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
+import { Button } from './button'
+import { Textarea } from './textarea'
 
 interface GoalInputFormProps {
   onboardingMode?: boolean
@@ -145,7 +147,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
             Life Goal (5 Year Vision)
           </label>
           {isEditing ? (
-            <textarea
+            <Textarea
               id="lifeGoal"
               value={goals.lifeGoal}
               onChange={(e) => handleInputChange('lifeGoal', e.target.value)}
@@ -168,7 +170,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
             Goal for This Week
           </label>
           {isEditing ? (
-            <textarea
+            <Textarea
               id="weeklyGoal"
               value={goals.weeklyGoal}
               onChange={(e) => handleInputChange('weeklyGoal', e.target.value)}
@@ -191,7 +193,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
             Goal for Today
           </label>
           {isEditing ? (
-            <textarea
+            <Textarea
               id="dailyGoal"
               value={goals.dailyGoal}
               onChange={(e) => handleInputChange('dailyGoal', e.target.value)}
@@ -210,20 +212,12 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
 
         {isEditing && (
           <div className="flex justify-end gap-3 mt-6">
-            <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-foreground bg-muted border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
               {onboardingMode ? 'Skip for Now' : 'Cancel'}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={isSaving}>
               {isSaving ? 'Saving...' : onboardingMode ? 'Save & Continue' : 'Save Goals'}
-            </button>
+            </Button>
           </div>
         )}
       </CardContent>

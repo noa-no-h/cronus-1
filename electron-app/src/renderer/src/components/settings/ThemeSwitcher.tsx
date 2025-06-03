@@ -1,3 +1,4 @@
+import { Button } from '@renderer/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -90,39 +91,27 @@ export function ThemeSwitcher() {
       </CardHeader>
       <CardContent>
         <div className="flex space-x-2">
-          <button
+          <Button
             onClick={() => handleSetTheme('light')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
-              theme === 'light'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted hover:bg-accent text-muted-foreground'
-            }`}
+            variant={theme === 'light' ? 'default' : 'outline'}
             disabled={updateSettingsMutation.isLoading}
           >
             Light
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleSetTheme('dark')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
-              theme === 'dark'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted hover:bg-accent text-muted-foreground'
-            }`}
+            variant={theme === 'dark' ? 'default' : 'outline'}
             disabled={updateSettingsMutation.isLoading}
           >
             Dark
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleSetTheme('system')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
-              theme === 'system'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted hover:bg-accent text-muted-foreground'
-            }`}
+            variant={theme === 'system' ? 'default' : 'outline'}
             disabled={updateSettingsMutation.isLoading}
           >
             System
-          </button>
+          </Button>
         </div>
       </CardContent>
     </Card>
