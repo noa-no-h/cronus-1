@@ -202,14 +202,14 @@ const DistractionCategorizationResult = ({
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) {
-        return 'bg-blue-100 dark:bg-blue-900/60'
+        return 'bg-blue-100 dark:bg-blue-900'
       } else {
         // isProductive is false or neutral (uncategorized by isProductive field)
-        return 'bg-red-100 dark:bg-red-900/60'
+        return 'bg-red-100 dark:bg-red-900'
       }
     }
     // Default if categoryDetails is null, not found, or still loading, treat as not productive for background
-    return 'bg-red-100 dark:bg-red-900/60'
+    return 'bg-red-100 dark:bg-red-900'
   }, [categoryDetails])
 
   const getStatusTextColor = useMemo((): string => {
