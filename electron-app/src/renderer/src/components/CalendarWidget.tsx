@@ -33,6 +33,8 @@ interface CalendarWidgetProps {
   selectedDate: Date
   onDateChange: (newDate: Date) => void
   viewMode: 'day' | 'week'
+
+  // TODO: Add view mode (day, week)
   onViewModeChange: (newMode: 'day' | 'week') => void
   processedEvents: ProcessedEventBlock[] | null
   isLoadingEvents: boolean
