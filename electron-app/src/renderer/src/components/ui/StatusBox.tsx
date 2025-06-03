@@ -67,18 +67,18 @@ const StatusBox: React.FC<StatusBoxProps> = ({
     >
       <div className="flex flex-col items-center gap-1">
         <div className="relative flex items-center">
-          {isHovered && (
+          {isHovered && isEnlarged && (
             <Settings
               className="w-4 h-4 text-muted-foreground absolute cursor-pointer"
               style={{ right: '100%', marginRight: '4px' }}
             />
           )}
           <span
-            onClick={() => onCategoryClick && onCategoryClick(categoryDetails)}
+            onClick={() => isEnlarged && onCategoryClick && onCategoryClick(categoryDetails)}
             className={clsx(
-              'category-name-area font-sm font-medium hover:underline cursor-pointer',
+              'font-sm font-medium',
               labelColorCls,
-              isEnlarged && 'pr-2'
+              isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer'
             )}
             style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
           >

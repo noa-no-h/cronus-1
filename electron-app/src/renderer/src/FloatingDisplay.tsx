@@ -149,7 +149,7 @@ const FloatingDisplay: React.FC = () => {
     <div
       ref={draggableRef}
       className={clsx(
-        'w-full h-full flex items-center py-1 px-1.5 rounded-xl shadow-lg select-none',
+        'w-full h-full flex items-center p-1 rounded-xl shadow-lg select-none',
         'backdrop-blur-xl border-2 border-secondary/50'
       )}
       onMouseDown={handleMouseDownOnDraggable}
@@ -160,7 +160,7 @@ const FloatingDisplay: React.FC = () => {
         variant="ghost"
         size="icon"
         onClick={handleClose}
-        className="close-button-area p-1 rounded-lg m-auto"
+        className="close-button-area p-1 w-7 h-7 mr-1 rounded-lg"
         title="Close"
       >
         <X className="w-4 h-4 text-muted-foreground" />
