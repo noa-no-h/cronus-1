@@ -27,6 +27,8 @@ class NativeWindows {
     addon.startActiveWindowObserver((jsonString: string) => {
       try {
         if (jsonString) {
+          // Log the raw JSON string received from the native module
+          console.log('[NativeWindowsWrapper] Received from native module:', jsonString)
           const detailsJson = JSON.parse(jsonString)
           // Ensure that the id field from the native module is mapped to windowId
           const details: ActiveWindowDetails = {

@@ -23,6 +23,8 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
+    console.log('input in create activeWindowEventsRouter', JSON.stringify(input, null, 2));
+
     const decodedToken = verifyToken(input.token);
     const userId = decodedToken.userId;
 

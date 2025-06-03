@@ -1,6 +1,10 @@
 #import "activeWindowObserver.h"
 #include <iostream>
+#include <stdio.h> // For fprintf, stderr
 #import <CoreGraphics/CoreGraphics.h>
+
+// Custom Log Macro
+#define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
 
 Napi::ThreadSafeFunction activeWindowChangedCallback;
 ActiveWindowObserver *windowObserver;
@@ -15,13 +19,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         NSTimeInterval delayInMSec = 30;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInMSec * NSEC_PER_MSEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-            NSLog(@"mainWindowChanged");
+            MyLog(@"mainWindowChanged");
             NSDictionary *details = [(__bridge ActiveWindowObserver*)(refCon) getActiveWindow];
             if (details) {
                 NSError *error;
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:details options:0 error:&error];
                 if (!jsonData) {
-                    NSLog(@"Error creating JSON data in windowChangeCallback: %@", error);
+                    MyLog(@"Error creating JSON data in windowChangeCallback: %@", error);
                 } else {
                     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     std::string* result = new std::string([jsonString UTF8String]);
@@ -79,13 +83,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                                                       userInfo:nil
                                                        repeats:YES];
     [[NSRunLoop currentRunLoop] addTimer:periodicCheckTimer forMode:NSRunLoopCommonModes];
-    NSLog(@"📅 Periodic backup timer started (5 min intervals)");
+    MyLog(@"📅 Periodic backup timer started (5 min intervals)");
 }
 
 - (void)stopPeriodicBackupTimer {
     [periodicCheckTimer invalidate];
     periodicCheckTimer = nil;
-    NSLog(@"📅 Periodic backup timer stopped");
+    MyLog(@"📅 Periodic backup timer stopped");
 }
 
 // Backup check (only if user hasn't switched apps recently)
@@ -93,15 +97,15 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSTimeInterval timeSinceLastSwitch = now - lastAppSwitchTime;
     
-    NSLog(@"⏰ PERIODIC TIMER FIRED - Last switch: %.1f seconds ago", timeSinceLastSwitch);
+    MyLog(@"⏰ PERIODIC TIMER FIRED - Last switch: %.1f seconds ago", timeSinceLastSwitch);
     
     // Always capture periodic backup
-    NSLog(@"📅 PERIODIC BACKUP: Capturing current state");
+    MyLog(@"📅 PERIODIC BACKUP: Capturing current state");
     
     NSDictionary *windowInfo = [self getActiveWindow];
     if (windowInfo) {
         NSString *currentApp = windowInfo[@"ownerName"];
-        NSLog(@"📅 BACKUP CAPTURE: %@", currentApp);
+        MyLog(@"📅 BACKUP CAPTURE: %@", currentApp);
         [self sendWindowInfoToJS:windowInfo withReason:@"periodic_backup"];
         lastTrackedApp = currentApp;
     }
@@ -123,24 +127,57 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     // 🎯 NEW: Track app switch timing
     lastAppSwitchTime = [[NSDate date] timeIntervalSince1970];
 
-    NSDictionary *details = [self getActiveWindow];
-    if (details) {
-        NSLog(@"🚀 INSTANT APP SWITCH: %@", details[@"ownerName"]);
-        lastTrackedApp = details[@"ownerName"];
-        [self sendWindowInfoToJS:details withReason:@"app_switch"];
-    }
+    // Capture the PID for this specific operation before the async block.
+    NSNumber *currentOperationProcessId = self->processId; 
+    NSRunningApplication *appBeforeDelay = [NSRunningApplication runningApplicationWithProcessIdentifier:currentOperationProcessId.intValue];
+    NSString *expectedAppNameBeforeDelay = appBeforeDelay ? appBeforeDelay.localizedName : @"Unknown (PID lookup failed)";
 
-    AXUIElementRef appElem = AXUIElementCreateApplication(processId.intValue);
-    AXError createResult = AXObserverCreate(processId.intValue, windowChangeCallback, &observer);
+    MyLog(@"[AppSwitch] Notification for app activation: %@ (PID %@)", expectedAppNameBeforeDelay, currentOperationProcessId);
 
-    if (createResult != kAXErrorSuccess) {
-        NSLog(@"Copy or create result failed");
-        return;
-    }
+    // After an app activation notification, there can be a slight delay before the system
+    // fully updates its window list. Introduce a brief pause here to ensure that when
+    // we query for the active window, we get the newly activated app, not the previous one.
+    // Introduce a small delay to allow system window state to update
+    NSTimeInterval delayInMSec = 100;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInMSec * NSEC_PER_MSEC));
+    
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        MyLog(@"[AppSwitch] After %.0fms delay, processing for PID %@", delayInMSec, currentOperationProcessId);
+        NSDictionary *details = [self getActiveWindow]; // Attempt to get the new active window
+        
+        if (details) {
+            NSString *ownerNameFromDetails = details[@"ownerName"];
+            MyLog(@"[AppSwitch]   Active window found: %@. Expected app: %@.", ownerNameFromDetails, expectedAppNameBeforeDelay);
+            
+            // Update tracking variables and send data
+            self->lastTrackedApp = ownerNameFromDetails;
+            [self sendWindowInfoToJS:details withReason:@"app_switch"];
+        } else {
+             MyLog(@"[AppSwitch]   No active window details found after delay for PID: %@", currentOperationProcessId);
+        }
 
-    AXObserverAddNotification(observer, appElem, kAXMainWindowChangedNotification, (__bridge void *)(self));
-    CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], AXObserverGetRunLoopSource(observer), kCFRunLoopDefaultMode);
-    NSLog(@"Observers added");
+        // Setup observer for the new application
+        AXUIElementRef appElem = AXUIElementCreateApplication(currentOperationProcessId.intValue);
+        if (!appElem) {
+            MyLog(@"[AppSwitch]   Failed to create AXUIElement for PID %@", currentOperationProcessId);
+            return;
+        }
+        
+        // self->observer should be Nil here due to [self removeWindowObserver] at the start of receiveAppChangeNotification
+        AXError createResult = AXObserverCreate(currentOperationProcessId.intValue, windowChangeCallback, &(self->observer));
+
+        if (createResult != kAXErrorSuccess) {
+            MyLog(@"[AppSwitch]   AXObserverCreate failed for PID %@: Error %d", currentOperationProcessId, createResult);
+            CFRelease(appElem); // Release appElem if observer creation fails
+            return;
+        }
+
+        AXObserverAddNotification(self->observer, appElem, kAXMainWindowChangedNotification, (__bridge void *)(self));
+        CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], AXObserverGetRunLoopSource(self->observer), kCFRunLoopDefaultMode);
+        
+        CFRelease(appElem); // Release the element as its information has been registered
+        MyLog(@"[AppSwitch]   Observers added for PID %@ (%@)", currentOperationProcessId, expectedAppNameBeforeDelay);
+    });
 }
 
 // Centralized method to send data to JavaScript
@@ -152,7 +189,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:enrichedInfo options:0 error:&error];
     if (!jsonData) {
-        NSLog(@"Error creating JSON data: %@", error);
+        MyLog(@"Error creating JSON data: %@", error);
         return;
     }
     
@@ -160,7 +197,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     std::string* result = new std::string([jsonString UTF8String]);
     activeWindowChangedCallback.BlockingCall(result, napiCallback);
     
-    NSLog(@"📤 SENT TO JS: %@ (%@)", enrichedInfo[@"ownerName"], reason);
+    MyLog(@"📤 SENT TO JS: %@ (%@)", enrichedInfo[@"ownerName"], reason);
 }
 
 - (NSDictionary*)getActiveWindow {
@@ -195,10 +232,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
         } mutableCopy];
 
-        NSLog(@"🔍 ACTIVE WINDOW CHANGED:");
-        NSLog(@"   Owner: %@", windowOwnerName);
-        NSLog(@"   Title: %@", windowTitle);
-        NSLog(@"   Type: %@", windowInfo[@"type"]);
+        MyLog(@"🔍 ACTIVE WINDOW CHANGED:");
+        MyLog(@"   Owner: %@", windowOwnerName);
+        MyLog(@"   Title: %@", windowTitle);
+        MyLog(@"   Type: %@", windowInfo[@"type"]);
         
         // Check for browser windows
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
@@ -216,14 +253,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 windowInfo[@"browser"] = @"safari";
             }
         } else {
-            NSLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
+            MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
             NSString *extractedText = [self getAppTextContent:windowOwnerName windowId:windowId];
         if (extractedText && extractedText.length > 0) {
             windowInfo[@"content"] = extractedText;
-            NSLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
-            NSLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+            MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
+            MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
         } else {
-            NSLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+            MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
         }
         }
 
@@ -253,18 +290,18 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSDictionary*)getChromeTabInfo {
-    NSLog(@"Starting Chrome tab info gathering...");
+    MyLog(@"Starting Chrome tab info gathering...");
     
     // First check if Chrome is running
     NSRunningApplication *chromeApp = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.google.Chrome"] firstObject];
     if (!chromeApp) {
-        NSLog(@"Chrome is not running");
+        MyLog(@"Chrome is not running");
         return nil;
     }
     
     // Check if Chrome is frontmost
     if (![chromeApp isActive]) {
-        NSLog(@"Chrome is not the active application");
+        MyLog(@"Chrome is not the active application");
         return nil;
     }
     
@@ -285,19 +322,19 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSAppleEventDescriptor *basicResult = [basicAppleScript executeAndReturnError:&error];
     
     if (error) {
-        NSLog(@"Basic AppleScript error: %@", error);
+        MyLog(@"Basic AppleScript error: %@", error);
         return nil;
     }
     
     NSString *basicInfo = [basicResult stringValue];
     if (!basicInfo || [basicInfo hasPrefix:@"ERROR|"]) {
-        NSLog(@"Basic script error: %@", basicInfo);
+        MyLog(@"Basic script error: %@", basicInfo);
         return nil;
     }
     
     NSArray *basicComponents = [basicInfo componentsSeparatedByString:@"|"];
     if (basicComponents.count < 2) {
-        NSLog(@"Invalid basic info components");
+        MyLog(@"Invalid basic info components");
         return nil;
     }
     
@@ -330,14 +367,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         NSString *jsInfo = [jsResult stringValue];
         if (jsInfo && ![jsInfo hasPrefix:@"ERROR|"]) {
             if ([jsInfo isEqualToString:@"JS_DISABLED"]) {
-                NSLog(@"JavaScript is disabled in Chrome. Please enable it in View > Developer > Allow JavaScript from Apple Events");
+                MyLog(@"JavaScript is disabled in Chrome. Please enable it in View > Developer > Allow JavaScript from Apple Events");
             } else {
                 tabInfo[@"content"] = jsInfo;
-                NSLog(@"🎯 CHROME CONTENT CAPTURED:");
-                NSLog(@"   App: %@", tabInfo[@"url"]);
-                NSLog(@"   Title: %@", tabInfo[@"title"]);
-                NSLog(@"   Content Length: %lu characters", (unsigned long)[jsInfo length]);
-                NSLog(@"   Content Preview (first 200 chars): %@", [jsInfo length] > 200 ? [jsInfo substringToIndex:200] : jsInfo);
+                MyLog(@"🎯 CHROME CONTENT CAPTURED:");
+                MyLog(@"   App: %@", tabInfo[@"url"]);
+                MyLog(@"   Title: %@", tabInfo[@"title"]);
+                MyLog(@"   Content Length: %lu characters", (unsigned long)[jsInfo length]);
+                MyLog(@"   Content Preview (first 200 chars): %@", [jsInfo length] > 200 ? [jsInfo substringToIndex:200] : jsInfo);
             }
         }
     }
@@ -393,15 +430,15 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                     NSString *content = [contentResult stringValue];
                     if (content && ![content hasPrefix:@"ERROR|"]) {
                         if ([content isEqualToString:@"JS_DISABLED"]) {
-                            NSLog(@"JavaScript is disabled in Safari. Please enable it in Safari > Settings > Advanced > Allow JavaScript from Apple Events");
+                            MyLog(@"JavaScript is disabled in Safari. Please enable it in Safari > Settings > Advanced > Allow JavaScript from Apple Events");
                         } else {
                             tabInfo[@"content"] = content;
-                            NSLog(@"Successfully got Safari content, length: %lu", (unsigned long)[content length]);
-                            NSLog(@"🎯 SAFARI CONTENT CAPTURED:");
-                            NSLog(@"   URL: %@", tabInfo[@"url"]);
-                            NSLog(@"   Title: %@", tabInfo[@"title"]);
-                            NSLog(@"   Content Length: %lu characters", (unsigned long)[content length]);
-                            NSLog(@"   Content Preview (first 200 chars): %@", [content length] > 200 ? [content substringToIndex:200] : content);
+                            MyLog(@"Successfully got Safari content, length: %lu", (unsigned long)[content length]);
+                            MyLog(@"🎯 SAFARI CONTENT CAPTURED:");
+                            MyLog(@"   URL: %@", tabInfo[@"url"]);
+                            MyLog(@"   Title: %@", tabInfo[@"title"]);
+                            MyLog(@"   Content Length: %lu characters", (unsigned long)[content length]);
+                            MyLog(@"   Content Preview (first 200 chars): %@", [content length] > 200 ? [content substringToIndex:200] : content);
                         }
                     }
                 }
@@ -413,7 +450,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     }
     
     if (error) {
-        NSLog(@"Safari AppleScript error: %@", error);
+        MyLog(@"Safari AppleScript error: %@", error);
     }
     
     return nil;
@@ -432,7 +469,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)window[(__bridge NSString*)kCGWindowBounds], &bounds);
             windowBounds = bounds;
 
-            NSLog(@"Window bounds (scaled): %@", NSStringFromRect(NSRectFromCGRect(bounds)));
+            MyLog(@"Window bounds (scaled): %@", NSStringFromRect(NSRectFromCGRect(bounds)));
 
             break;
         }
@@ -447,7 +484,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     );
     
     if (!windowImage) {
-        NSLog(@"Failed to create window image");
+        MyLog(@"Failed to create window image");
         return nil;
     }
     
@@ -490,13 +527,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                                                    userInfo:nil
                                                     repeats:YES];
     [[NSRunLoop currentRunLoop] addTimer:screenshotTimer forMode:NSRunLoopCommonModes];
-    NSLog(@"Screenshot timer started");
+    MyLog(@"Screenshot timer started");
 }
 
 - (void)stopScreenshotTimer {
     [screenshotTimer invalidate];
     screenshotTimer = nil;
-    NSLog(@"Screenshot timer stopped");
+    MyLog(@"Screenshot timer stopped");
 }
 
 - (void)takeScreenshot {
@@ -507,7 +544,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSData *screenshotData = [self captureWindowScreenshot:windowId];
     
     if (!screenshotData) {
-        NSLog(@"Failed to capture screenshot");
+        MyLog(@"Failed to capture screenshot");
         return;
     }
     
@@ -518,7 +555,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     BOOL success = [screenshotData writeToFile:filePath atomically:YES];
 
     if (!success) {
-        NSLog(@"Failed to save screenshot to temp file: %@", filePath);
+        MyLog(@"Failed to save screenshot to temp file: %@", filePath);
         return;
     }
 
@@ -531,14 +568,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:updatedInfo options:0 error:&error];
     if (!jsonData) {
-        NSLog(@"Error creating JSON data: %@", error);
+        MyLog(@"Error creating JSON data: %@", error);
         return;
     }
     
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     std::string* result = new std::string([jsonString UTF8String]);
     activeWindowChangedCallback.BlockingCall(result, napiCallback);
-    NSLog(@"Screenshot captured, saved to %@, and event sent", filePath);
+    MyLog(@"Screenshot captured, saved to %@, and event sent", filePath);
 }
 
 - (void) removeWindowObserver
@@ -558,7 +595,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId {
-    NSLog(@"🔍 Attempting to extract text from: %@", ownerName);
+    MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
     
     // Different strategies for different app types
     if ([ownerName containsString:@"Code"] || [ownerName containsString:@"Cursor"] || [ownerName containsString:@"Xcode"]) {
@@ -598,7 +635,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                     CFRelease(windowList);
                     CFRelease(systemElement);
                     
-                    NSLog(@"✅ Generic accessibility text extracted: %lu chars", (unsigned long)[text length]);
+                    MyLog(@"✅ Generic accessibility text extracted: %lu chars", (unsigned long)[text length]);
                     return text;
                 }
                 
@@ -616,7 +653,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                         CFRelease(windowList);
                         CFRelease(systemElement);
                         
-                        NSLog(@"✅ Focused element text extracted: %lu chars", (unsigned long)[text length]);
+                        MyLog(@"✅ Focused element text extracted: %lu chars", (unsigned long)[text length]);
                         return text;
                     }
                     CFRelease(focusedElement);
@@ -626,7 +663,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
         CFRelease(systemElement);
     } @catch (NSException *exception) {
-        NSLog(@"❌ Error extracting accessibility text: %@", exception.reason);
+        MyLog(@"❌ Error extracting accessibility text: %@", exception.reason);
     }
     
     return nil;
@@ -634,16 +671,16 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 // Add the missing method implementations:
 - (NSString*)getCodeEditorText:(CGWindowID)windowId {
-    NSLog(@"📝 Trying specialized code editor extraction...");
+    MyLog(@"📝 Trying specialized code editor extraction...");
     
     // Check accessibility permissions first
     BOOL accessibilityEnabled = AXIsProcessTrusted();
-    NSLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
+    MyLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
     
     if (!accessibilityEnabled) {
-        NSLog(@"❌ Need to enable accessibility permissions:");
-        NSLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
-        NSLog(@"   Add this Electron app to the list");
+        MyLog(@"❌ Need to enable accessibility permissions:");
+        MyLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
+        MyLog(@"   Add this Electron app to the list");
         return [self getCodeEditorFallback:windowId];
     }
     
@@ -656,19 +693,19 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSString*)getTerminalText:(CGWindowID)windowId {
-    NSLog(@"⌨️ Trying to extract terminal text...");
+    MyLog(@"⌨️ Trying to extract terminal text...");
     // For now, use generic accessibility - can be enhanced later
     return [self getGenericAccessibilityText:windowId];
 }
 
 - (NSString*)getMessagingAppText:(CGWindowID)windowId {
-    NSLog(@"💬 Trying to extract messaging app text...");
+    MyLog(@"💬 Trying to extract messaging app text...");
     // For now, use generic accessibility - can be enhanced later
     return [self getGenericAccessibilityText:windowId];
 }
 
 - (NSString*)getTextEditorContent:(CGWindowID)windowId {
-    NSLog(@"📄 Trying to extract text editor content...");
+    MyLog(@"📄 Trying to extract text editor content...");
     
     // Get the PID for this window  
     pid_t windowPid = 0;
@@ -685,21 +722,21 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             if (pid && ([owner containsString:@"TextEdit"] || [owner isEqualToString:@"Notes"])) {
                 windowPid = [pid intValue];
                 appName = owner;
-                NSLog(@"✅ Found text editor: %@ with PID: %d", owner, windowPid);
+                MyLog(@"✅ Found text editor: %@ with PID: %d", owner, windowPid);
                 break;
             }
         }
     }
     
     if (windowPid == 0) {
-        NSLog(@"❌ Could not find text editor PID");
+        MyLog(@"❌ Could not find text editor PID");
         return [self getGenericAccessibilityText:windowId];
     }
     
     @try {
         AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
         if (!appElement) {
-            NSLog(@"❌ Could not create accessibility element for %@", appName);
+            MyLog(@"❌ Could not create accessibility element for %@", appName);
             return [self getGenericAccessibilityText:windowId];
         }
         
@@ -707,7 +744,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         AXUIElementRef focusedElement = NULL;
         AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
         
-        NSLog(@"🎯 %@ focus result: %d", appName, focusResult);
+        MyLog(@"🎯 %@ focus result: %d", appName, focusResult);
         
         NSString *result = nil;
         
@@ -717,9 +754,9 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             
             if (textResult == kAXErrorSuccess && textContent) {
                 NSString *text = (__bridge NSString*)textContent;
-                NSLog(@"✅ %@ SUCCESS! Extracted %lu characters", appName, (unsigned long)text.length);
-                NSLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)text.length);
-                NSLog(@"📋 CONTENT PREVIEW: '%@'", [text length] > 200 ? [text substringToIndex:200] : text);
+                MyLog(@"✅ %@ SUCCESS! Extracted %lu characters", appName, (unsigned long)text.length);
+                MyLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)text.length);
+                MyLog(@"📋 CONTENT PREVIEW: '%@'", [text length] > 200 ? [text substringToIndex:200] : text);
                 
                 // Create a copy to return (important for memory management)
                 result = [NSString stringWithString:text];
@@ -737,17 +774,17 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             return result;
         }
         
-        NSLog(@"❌ No accessible text found in %@", appName);
+        MyLog(@"❌ No accessible text found in %@", appName);
         
     } @catch (NSException *exception) {
-        NSLog(@"💥 Exception in %@ accessibility: %@", appName, exception.reason);
+        MyLog(@"💥 Exception in %@ accessibility: %@", appName, exception.reason);
     }
     
     return [self getGenericAccessibilityText:windowId];
 }
 
 - (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
-    NSLog(@"🔍 Starting detailed Cursor accessibility extraction...");
+    MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
     
     @try {
         // Get the PID for this window
@@ -756,49 +793,49 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         
         if (windowList) {
             NSArray *windows = (__bridge_transfer NSArray*)windowList;
-            NSLog(@"🔍 Found %lu windows in list", (unsigned long)windows.count);
+            MyLog(@"🔍 Found %lu windows in list", (unsigned long)windows.count);
             
             for (NSDictionary *window in windows) {
                 NSNumber *pid = window[(__bridge NSString*)kCGWindowOwnerPID];
                 NSString *owner = window[(__bridge NSString*)kCGWindowOwnerName];
-                NSLog(@"   Window: %@ (PID: %@)", owner, pid);
+                MyLog(@"   Window: %@ (PID: %@)", owner, pid);
                 
                 if (pid && [owner isEqualToString:@"Cursor"]) {
                     windowPid = [pid intValue];
-                    NSLog(@"✅ Found Cursor window with PID: %d", windowPid);
+                    MyLog(@"✅ Found Cursor window with PID: %d", windowPid);
                     break;
                 }
             }
         }
         
         if (windowPid == 0) {
-            NSLog(@"❌ Could not find Cursor PID");
+            MyLog(@"❌ Could not find Cursor PID");
             return nil;
         }
         
         // Create accessibility element
         AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
         if (!appElement) {
-            NSLog(@"❌ Could not create accessibility element for Cursor");
+            MyLog(@"❌ Could not create accessibility element for Cursor");
             return nil;
         }
         
-        NSLog(@"✅ Created accessibility element for Cursor");
+        MyLog(@"✅ Created accessibility element for Cursor");
         
         // Try to get focused element
         AXUIElementRef focusedElement = NULL;
         AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
         
-        NSLog(@"🎯 Focus result: %d", focusResult);
+        MyLog(@"🎯 Focus result: %d", focusResult);
         
         if (focusResult == kAXErrorSuccess && focusedElement) {
-            NSLog(@"✅ Found focused element");
+            MyLog(@"✅ Found focused element");
             
             // Get focused element role
             CFStringRef role = NULL;
             AXError roleResult = AXUIElementCopyAttributeValue(focusedElement, kAXRoleAttribute, (CFTypeRef*)&role);
             if (roleResult == kAXErrorSuccess && role) {
-                NSLog(@"🎭 Focused element role: %@", (__bridge NSString*)role);
+                MyLog(@"🎭 Focused element role: %@", (__bridge NSString*)role);
                 CFRelease(role);
             }
             
@@ -815,14 +852,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 CFStringRef textContent = NULL;
                 AXError textResult = AXUIElementCopyAttributeValue(focusedElement, (__bridge CFStringRef)attribute, (CFTypeRef*)&textContent);
                 
-                NSLog(@"📝 Trying attribute %@: result %d", attribute, textResult);
+                MyLog(@"📝 Trying attribute %@: result %d", attribute, textResult);
                 
                 if (textResult == kAXErrorSuccess && textContent) {
                     NSString *text = (__bridge NSString*)textContent;
-                    NSLog(@"✅ Got text from %@: %lu chars", attribute, (unsigned long)text.length);
+                    MyLog(@"✅ Got text from %@: %lu chars", attribute, (unsigned long)text.length);
                     
                     if (text && text.length > 0) {
-                        NSLog(@"📖 Content preview: %@", [text length] > 100 ? [text substringToIndex:100] : text);
+                        MyLog(@"📖 Content preview: %@", [text length] > 100 ? [text substringToIndex:100] : text);
                         CFRelease(textContent);
                         CFRelease(focusedElement);
                         CFRelease(appElement);
@@ -834,14 +871,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             
             CFRelease(focusedElement);
         } else {
-            NSLog(@"❌ Could not get focused element");
+            MyLog(@"❌ Could not get focused element");
         }
         
         CFRelease(appElement);
-        NSLog(@"❌ No accessible text found in Cursor");
+        MyLog(@"❌ No accessible text found in Cursor");
         
     } @catch (NSException *exception) {
-        NSLog(@"💥 Exception in Cursor accessibility: %@", exception.reason);
+        MyLog(@"💥 Exception in Cursor accessibility: %@", exception.reason);
     }
     
     return nil;
@@ -849,7 +886,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 - (NSString*)getCodeEditorFallback:(CGWindowID)windowId {
     NSString *windowTitle = [self getWindowTitle:windowId];
-    NSLog(@"📝 Cursor fallback with title: '%@'", windowTitle);
+    MyLog(@"📝 Cursor fallback with title: '%@'", windowTitle);
     
     if (windowTitle && windowTitle.length > 0) {
         // Parse useful information from the window title
@@ -892,22 +929,22 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         
         if (contextParts.count > 0) {
             NSString *context = [contextParts componentsJoinedByString:@". "];
-            NSLog(@"📝 Generated rich context: %@", context);
-            NSLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)context.length);
-            NSLog(@"📋 EXACT CONTENT: '%@'", context);
+            MyLog(@"📝 Generated rich context: %@", context);
+            MyLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)context.length);
+            MyLog(@"📋 EXACT CONTENT: '%@'", context);
             return context;
         } else {
             // Fallback: use the full window title
             NSString *fallback = [NSString stringWithFormat:@"Working in Cursor: %@", windowTitle];
-            NSLog(@"📊 FALLBACK CHARACTER COUNT: %lu characters", (unsigned long)fallback.length);
-            NSLog(@"📋 FALLBACK CONTENT: '%@'", fallback);
+            MyLog(@"📊 FALLBACK CHARACTER COUNT: %lu characters", (unsigned long)fallback.length);
+            MyLog(@"📋 FALLBACK CONTENT: '%@'", fallback);
             return fallback;
         }
     }
     
     NSString *defaultMessage = @"Working in Cursor code editor";
-    NSLog(@"📊 DEFAULT CHARACTER COUNT: %lu characters", (unsigned long)defaultMessage.length);
-    NSLog(@"📋 DEFAULT CONTENT: '%@'", defaultMessage);
+    MyLog(@"📊 DEFAULT CHARACTER COUNT: %lu characters", (unsigned long)defaultMessage.length);
+    MyLog(@"📋 DEFAULT CONTENT: '%@'", defaultMessage);
     return defaultMessage;
 }
 
@@ -936,7 +973,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 windowPid && 
                 [windowPid intValue] == currentAppPid) {
                 
-                NSLog(@"🔎 TRACKING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
+                MyLog(@"🔎 TRACKING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
                 // return YES; // No longer excluding
             }
         }
@@ -961,7 +998,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                                                    attributes:nil 
                                                         error:&error];
         if (!success || error) {  // 🔧 Check both success and error
-            NSLog(@"🚨 Failed to create icons directory: %@", error ? [error localizedDescription] : @"Unknown error");
+            MyLog(@"🚨 Failed to create icons directory: %@", error ? [error localizedDescription] : @"Unknown error");
             return nil;
         }
     }
@@ -974,7 +1011,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     
     // Check if icon already exists
     if ([fileManager fileExistsAtPath:iconPath]) {
-        NSLog(@"✅ Using cached icon for %@: %@", appName, iconPath);
+        MyLog(@"✅ Using cached icon for %@: %@", appName, iconPath);
         return iconPath;
     }
     
@@ -1008,28 +1045,28 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                         NSError *writeError = nil;  // 🔧 Use different variable name
                         BOOL writeSuccess = [pngData writeToFile:iconPath options:NSDataWritingAtomic error:&writeError];
                         if (!writeSuccess || writeError) {  // 🔧 Check both success and error
-                            NSLog(@"🚨 Failed to save icon for %@: %@", appName, writeError ? [writeError localizedDescription] : @"Unknown write error");
+                            MyLog(@"🚨 Failed to save icon for %@: %@", appName, writeError ? [writeError localizedDescription] : @"Unknown write error");
                             return nil;
                         }
                         
-                        NSLog(@"🎨 Generated icon file for %@ (%lu bytes): %@", appName, (unsigned long)pngData.length, iconPath);
+                        MyLog(@"🎨 Generated icon file for %@ (%lu bytes): %@", appName, (unsigned long)pngData.length, iconPath);
                         return iconPath;
                     } else {
-                        NSLog(@"🚨 Failed to convert icon to PNG data for %@", appName);
+                        MyLog(@"🚨 Failed to convert icon to PNG data for %@", appName);
                     }
                 } else {
-                    NSLog(@"🚨 Failed to create CGImage for %@", appName);
+                    MyLog(@"🚨 Failed to create CGImage for %@", appName);
                 }
                 
                 // Clean up
                 [resizedIcon release];
             } else {
-                NSLog(@"🚨 No icon found for app %@", appName);
+                MyLog(@"🚨 No icon found for app %@", appName);
             }
         }
     }
     
-    NSLog(@"🎨 No icon found for %@", appName);
+    MyLog(@"🎨 No icon found for %@", appName);
     return nil;
 }
 

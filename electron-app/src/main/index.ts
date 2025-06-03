@@ -256,10 +256,10 @@ app.whenReady().then(() => {
       }
     ) => {
       if (floatingWindow) {
-        console.log(`Main process: Attempting to send data to floating window:`, data)
+        // console.log(`Main process: Attempting to send data to floating window:`, data)
         floatingWindow.webContents.send('floating-window-status-updated', data) // Send the whole data object
         if (floatingWindow.isVisible()) {
-          console.log('Main process: Data sent to VISIBLE floating window.')
+          // console.log('Main process: Data sent to VISIBLE floating window.')
         } else {
           console.log('Main process: Data sent to HIDDEN floating window (will not auto-show).')
         }
