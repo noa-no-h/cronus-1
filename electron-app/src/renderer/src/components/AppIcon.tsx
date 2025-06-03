@@ -11,6 +11,7 @@ import notionIcon from '../assets/icons/notion.png'
 import slackIcon from '../assets/icons/slack.png'
 import githubIcon from '../assets/icons/github.png'
 import terminalIcon from '../assets/icons/terminal.png'
+import settingsIcon from '../assets/icons/settings.png'
 
 interface AppIconProps {
   appName: string
@@ -32,7 +33,8 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     Notion: notionIcon,
     Slack: slackIcon,
     GitHub: githubIcon,
-    Terminal: terminalIcon
+    Terminal: terminalIcon,
+    Settings: settingsIcon
   }
 
   // Try to find exact match or partial match
@@ -74,7 +76,8 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
       Slack: 'from-purple-500 to-pink-500',
       Discord: 'from-indigo-500 to-purple-600',
       Notion: 'from-gray-100 to-gray-300',
-      Figma: 'from-orange-400 to-red-500'
+      Figma: 'from-orange-400 to-red-500',
+      Settings: 'from-gray-400 to-gray-600'
     }
     return colors[name] || 'from-gray-400 to-gray-600'
   }
