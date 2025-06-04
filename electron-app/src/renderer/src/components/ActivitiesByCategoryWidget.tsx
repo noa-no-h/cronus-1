@@ -440,10 +440,16 @@ const ActivitiesByCategoryWidget = ({
 
             return (
               <div key={category.id}>
-                <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
-                  <h3 className="text-md font-semibold" style={{ color: category.color }}>
-                    {category.name.toUpperCase()}
-                  </h3>
+                <div className="flex ml-2 justify-between items-center mb-1 pb-1 border-b border-border">
+                  <div className="flex items-center">
+                    <span
+                      className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
+                      style={{ backgroundColor: category.color }}
+                    ></span>
+                    <h3 className="text-md font-semibold text-foreground">
+                      {category.name.toUpperCase()}
+                    </h3>
+                  </div>
                   <span className="text-md font-semibold text-foreground">
                     {formatDuration(category.totalDurationMs)}
                   </span>
@@ -481,10 +487,14 @@ const ActivitiesByCategoryWidget = ({
 
           return (
             <div key={category.id}>
-              <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
-                <h3 className="text-md font-semibold" style={{ color: category.color }}>
-                  {category.name.toUpperCase()}
-                </h3>
+              <div className="flex ml-2 justify-between items-center mb-1 pb-1 border-b border-border">
+                <div className="flex items-center">
+                  <span
+                    className="w-4 h-4 rounded-full mr-2 flex-shrink-0"
+                    style={{ backgroundColor: category.color }}
+                  ></span>
+                  <h3 className="text-md font-semibold text-muted-foreground">{category.name}</h3>
+                </div>
                 <span className="text-md font-semibold text-foreground">
                   {formatDuration(category.totalDurationMs)}
                 </span>

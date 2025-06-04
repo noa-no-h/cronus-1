@@ -5,7 +5,6 @@ import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget'
 import TopActivityWidget from './TopActivityWidget'
-import { Button } from './ui/button'
 
 // Max duration for a single event interval.
 const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
@@ -189,17 +188,6 @@ export function DashboardView() {
   return (
     <div className="flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4">
       <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
-        {selectedHour !== null && (
-          <div className="flex justify-between items-center p-2 bg-muted rounded-md">
-            <span className="text-sm font-medium">
-              Displaying activities for {selectedHour.toString().padStart(2, '0')}:00 -{' '}
-              {(selectedHour + 1).toString().padStart(2, '0')}:00
-            </span>
-            <Button variant="outline" size="sm" onClick={() => handleHourSelect(null)}>
-              Show Full Day
-            </Button>
-          </div>
-        )}
         <ActivitiesByCategoryWidget
           processedEvents={activityWidgetProcessedEvents}
           isLoadingEvents={isLoadingEvents}

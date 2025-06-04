@@ -222,7 +222,7 @@ const CalendarWidget = ({
               return (
                 <div
                   key={hour}
-                  className={`group relative p-4 flex min-h-[80px] border-b border-slate-200 ${
+                  className={`group relative p-4 flex min-h-[80px] cursor-pointer border-b border-slate-200 ${
                     isSelectedHour
                       ? 'bg-blue-200/20 dark:bg-blue-900/30'
                       : 'hover:bg-muted/50 dark:border-slate-700'
