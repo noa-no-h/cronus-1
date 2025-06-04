@@ -44,7 +44,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSTimer *periodicCheckTimer;          
     NSString *lastTrackedApp;             
     NSTimeInterval lastAppSwitchTime;    
-    BOOL isCurrentlyTracking;           
+    BOOL isCurrentlyTracking;
 }
 
 - (id)init {
@@ -1052,12 +1052,19 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (BOOL)shouldExcludeApp:(NSString*)ownerName withTitle:(NSString*)title {
     if (!ownerName) return NO;
     
+    // First check: Exclude system UI elements
+    if ([ownerName isEqualToString:@"Dock"] ||
+        [ownerName isEqualToString:@"Finder"] ||
+        [ownerName isEqualToString:@"SystemUIServer"]) {
+        MyLog(@"🚫 Excluding system UI element: %@", ownerName);
+        return YES;
+    }
+    
+    // Second check: Handle Electron windows
     if ([ownerName isEqualToString:@"Electron"]) {
         // Get the current app's PID
         int currentAppPid = [NSProcessInfo processInfo].processIdentifier;
         
-        // 🎯 FIX: Get the PID of the Electron window we're examining
-        // instead of using processId (which is the active app's PID)
         NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(
             kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 
             kCGNullWindowID
