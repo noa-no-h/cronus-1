@@ -7,6 +7,8 @@ import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 
+const APP_NAME = 'Locked in'
+
 export function MainAppContent() {
   const { isAuthenticated, token, user } = useAuth()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
@@ -64,7 +66,7 @@ export function MainAppContent() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="custom-title-bar"></div>
+      <div className="custom-title-bar">{APP_NAME}</div>
       <div className="p-4">
         <DistractionCategorizationResult
           activeWindow={activeWindow}

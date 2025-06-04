@@ -25,6 +25,13 @@
      allowing dragging around and to the right of the traffic lights.
   */
   padding-left: 78px; /* Adjust this value based on testing and traffic light size */
+  display: flex; /* Added to allow for centering */
+  align-items: center; /* Vertically center content */
+  justify-content: center; /* Horizontally center content */
+  font-size: 14px; /* Reduced font size */
+  font-weight: 600; /* Increased font weight */
+  color: hsl(var(--secondary-foreground));
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* Optional: If you add text inside your .custom-title-bar, like <span class="app-window-title">Title</span> */
