@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { ActiveWindowDetails } from 'shared'
-import { AppHeader } from './components/AppHeader'
 import { DashboardView } from './components/DashboardView'
 import { OnboardingModal } from './components/OnboardingModal'
 import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
@@ -66,12 +65,12 @@ export function MainAppContent() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="custom-title-bar"></div>
-      <AppHeader
-        onOpenMiniTimerClick={handleOpenMiniTimer}
-        isMiniTimerVisible={isMiniTimerVisible}
-      />
       <div className="p-4">
-        <DistractionCategorizationResult activeWindow={activeWindow} />
+        <DistractionCategorizationResult
+          activeWindow={activeWindow}
+          onOpenMiniTimerClick={handleOpenMiniTimer}
+          isMiniTimerVisible={isMiniTimerVisible}
+        />
       </div>
 
       <DashboardView />

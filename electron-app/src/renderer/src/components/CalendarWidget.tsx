@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
 import { getFaviconURL } from '../utils/favicon'
@@ -194,15 +195,15 @@ const CalendarWidget = ({
 
   return (
     <Card className="w-full h-full flex flex-col">
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
+      <div className="p-2 border-b">
+        <div className="flex items-center justify-center">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="icon" onClick={handlePrev}>
-              <span className="text-lg">←</span>
+            <Button variant="outline" size="xs" onClick={handlePrev}>
+              <ChevronLeft size={20} />
             </Button>
-            <span className="text-sm font-medium">{formattedDate}</span>
-            <Button variant="outline" size="icon" onClick={handleNext}>
-              <span className="text-lg">→</span>
+            <span className="text-sm text-muted-foreground font-medium">{formattedDate}</span>
+            <Button variant="outline" size="xs" onClick={handleNext}>
+              <ChevronRight size={20} />
             </Button>
           </div>
         </div>

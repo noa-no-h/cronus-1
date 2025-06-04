@@ -1,14 +1,19 @@
 import clsx from 'clsx'
+import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
-import { Card, CardContent } from './card'
+import { Button } from './button'
+import { Card } from './card'
 
 const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
+  onOpenMiniTimerClick: () => void
+  isMiniTimerVisible: boolean
 }
 
 // Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
@@ -27,14 +32,22 @@ const arePropsEqual = (
     p.url === n.url &&
     p.content === n.content && // Assuming content changes are also significant for display
     p.type === n.type &&
-    p.browser === n.browser
+    p.browser === n.browser &&
+    prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible
   )
 }
 
 const DistractionCategorizationResult = ({
-  activeWindow
+  activeWindow,
+  onOpenMiniTimerClick,
+  isMiniTimerVisible
 }: DistractionCategorizationResultProps): JSX.Element | null => {
   const { token } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSettingsClick = () => {
+    navigate('/settings')
+  }
 
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
     trpc.activeWindowEvents.getLatestEvent.useQuery(
@@ -294,10 +307,10 @@ const DistractionCategorizationResult = ({
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) {
-        return 'bg-blue-100 dark:bg-blue-900'
+        return 'bg-blue-50 dark:bg-blue-80'
       } else {
         // isProductive is false or neutral (uncategorized by isProductive field)
-        return 'bg-red-100 dark:bg-red-900'
+        return 'bg-red-50 dark:bg-red-900'
       }
     }
     // Default if categoryDetails is null, not found, or still loading, treat as not productive for background
@@ -340,8 +353,13 @@ const DistractionCategorizationResult = ({
   }
 
   return (
-    <Card className={clsx('rounded-lg border-border', cardBgColor)}>
-      <CardContent className="p-2 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3">
+    <div className="flex items-center gap-2 w-full">
+      <div
+        className={clsx(
+          'rounded-lg border-none shadow-none p-2 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
+          cardBgColor
+        )}
+      >
         <div className="flex-grow min-w-0">
           <div className="text-sm font-medium text-foreground truncate">
             {displayWindowInfo.ownerName}
@@ -350,15 +368,31 @@ const DistractionCategorizationResult = ({
             )}
           </div>
         </div>
-
-        <div className="flex-shrink-0 text-right">
-          <div className={`text-sm font-semibold ${getStatusTextColor}`}>{getStatusText()}</div>
+        <div>
+          <div className={`text-sm font-semibold ${getStatusTextColor} whitespace-nowrap`}>
+            {getStatusText()}
+          </div>
           {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
             <div className="text-xs text-muted-foreground mt-0.5">Updating...</div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50 rounded-lg">
+        {!isMiniTimerVisible && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenMiniTimerClick}
+            title="Open Mini Timer"
+          >
+            <ExternalLink size={20} />
+          </Button>
+        )}
+        <Button variant="ghost" size="icon" onClick={handleSettingsClick} title="Settings">
+          <SettingsIcon size={20} />
+        </Button>
+      </div>
+    </div>
   )
 }
 
