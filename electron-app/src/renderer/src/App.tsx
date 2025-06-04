@@ -3,6 +3,7 @@ import { ActiveWindowDetails } from 'shared'
 import { DashboardView } from './components/DashboardView'
 import { OnboardingModal } from './components/OnboardingModal'
 import DistractionCategorizationResult from './components/ui/DistractionCategorizationResult'
+import { Toaster } from './components/ui/toaster'
 import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
@@ -78,6 +79,7 @@ export function MainAppContent() {
       <DashboardView />
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      <Toaster />
     </div>
   )
 }

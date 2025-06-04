@@ -2,6 +2,7 @@ import { extractWebsiteInfo, formatDuration } from '@renderer/lib/activityByCate
 import { useEffect, useState } from 'react'
 import { ActiveWindowEvent, Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
+import { toast } from '../hooks/use-toast'
 import { getFaviconURL } from '../utils/favicon'
 import { trpc } from '../utils/trpc'
 import AppIcon from './AppIcon'
@@ -175,8 +176,15 @@ const ActivitiesByCategoryWidget = ({
 
   const updateCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
-      onSuccess: () => {
+      onSuccess: (data, variables) => {
         refetchEvents()
+        const targetCategory = categories?.find((cat) => cat._id === variables.newCategoryId)
+        const targetCategoryName = targetCategory ? targetCategory.name : 'Unknown Category'
+
+        toast({
+          title: 'Activity Moved',
+          description: `${variables.activityIdentifier} moved to ${targetCategoryName}.`
+        })
       },
       onError: (error) => {
         console.error('Error updating category:', error)
