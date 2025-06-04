@@ -459,7 +459,7 @@ const ActivitiesByCategoryWidget = ({
 
   return (
     <Card>
-      <CardContent className="space-y-4 pt-2">
+      <CardContent className="space-y-4 px-2 pt-2">
         {processedData.map((category) => {
           if (
             category.totalDurationMs === 0 &&
