@@ -356,7 +356,7 @@ const DistractionCategorizationResult = ({
     <div className="flex items-center gap-2 w-full">
       <div
         className={clsx(
-          'rounded-lg border-none shadow-none p-2 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
+          'rounded-lg border-none shadow-none p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
           cardBgColor
         )}
       >
