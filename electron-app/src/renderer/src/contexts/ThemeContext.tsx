@@ -20,21 +20,36 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const root = window.document.documentElement
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+    const handleChange = () => {
+      if (theme === 'system') {
+        if (mediaQuery.matches) {
+          root.classList.add('dark')
+        } else {
+          root.classList.remove('dark')
+        }
+      }
+    }
 
     if (theme === 'system') {
-      if (systemPrefersDark) {
+      if (mediaQuery.matches) {
         root.classList.add('dark')
       } else {
         root.classList.remove('dark')
       }
+      mediaQuery.addEventListener('change', handleChange)
     } else if (theme === 'dark') {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
     }
 
-    // TODO: store and fetch this from user settings
+    localStorage.setItem('theme', theme) // Store theme preference
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange)
+    }
   }, [theme])
 
   return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
