@@ -1,5 +1,5 @@
 import { extractWebsiteInfo, formatDuration } from '@renderer/lib/activityByCategoryWidgetHelpers'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ActiveWindowEvent, Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from '../hooks/use-toast'
@@ -9,6 +9,12 @@ import AppIcon from './AppIcon'
 import type { ProcessedEventBlock } from './DashboardView'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from './ui/dropdown-menu'
 import { Skeleton } from './ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
@@ -167,8 +173,9 @@ const ActivitiesByCategoryWidget = ({
 }: ActivitiesByCategoryWidgetProps) => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
-  const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set()) // Added for favicon error handling
-  const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null) // For hover state
+  const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
+  const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null)
+  const [openDropdownActivityKey, setOpenDropdownActivityKey] = useState<string | null>(null)
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
@@ -176,7 +183,7 @@ const ActivitiesByCategoryWidget = ({
 
   const updateCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
-      onSuccess: (data, variables) => {
+      onSuccess: (_data, variables) => {
         refetchEvents()
         const targetCategory = categories?.find((cat) => cat._id === variables.newCategoryId)
         const targetCategoryName = targetCategory ? targetCategory.name : 'Unknown Category'
@@ -282,31 +289,11 @@ const ActivitiesByCategoryWidget = ({
 
     return activities.map((activity) => {
       const activityKey = `${activity.identifier}-${activity.name}`
-      let targetMoveCategory: SharedCategory | undefined = undefined
-      if (allUserCategories && allUserCategories.length > 0) {
-        if (allUserCategories.length === 1 && allUserCategories[0]._id === currentCategory.id) {
-          // Only one category exists and it's the current one, so no target to move to.
-          targetMoveCategory = undefined
-        } else if (allUserCategories.length === 2) {
-          targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
-        } else {
-          // Fallback for > 2 categories: find first different one (can be improved, e.g. show a dropdown)
-          // For now, let's ensure we don't pick the current category if possible.
-          targetMoveCategory = allUserCategories.find((cat) => cat._id !== currentCategory.id)
-          // If all categories are the same (should not happen with distinct IDs), then undefined.
-          if (
-            targetMoveCategory &&
-            targetMoveCategory._id === currentCategory.id &&
-            allUserCategories.length > 1
-          ) {
-            // This case is unlikely if categories have unique IDs and there's more than one.
-            // If it somehow happens, try to find any other category.
-            const otherCategories = allUserCategories.filter((c) => c._id !== currentCategory.id)
-            if (otherCategories.length > 0) targetMoveCategory = otherCategories[0]
-            else targetMoveCategory = undefined // Cannot move if truly only one distinct category exists
-          }
-        }
-      }
+      const otherCategories =
+        allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
+      const showMoveUI =
+        (hoveredActivityKey === activityKey || openDropdownActivityKey === activityKey) &&
+        otherCategories.length > 0
 
       return (
         <div
@@ -372,20 +359,54 @@ const ActivitiesByCategoryWidget = ({
             </span>
           </div>
           <div className="flex items-center flex-shrink-0 ml-2">
-            {hoveredActivityKey === activityKey && targetMoveCategory && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-5 px-2 py-1 text-xs"
-                onClick={() => handleMoveActivity(activity, targetMoveCategory!._id)}
-                disabled={updateCategoryMutation.isLoading}
-              >
-                {updateCategoryMutation.isLoading
-                  ? 'Moving...'
-                  : `Move: ${targetMoveCategory.name.substring(0, 10)}${targetMoveCategory.name.length > 10 ? '...' : ''}`}
-              </Button>
+            {showMoveUI && (
+              <>
+                {otherCategories.length === 1 ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-5 px-2 py-1 text-xs"
+                    onClick={() => handleMoveActivity(activity, otherCategories[0]._id)}
+                    disabled={updateCategoryMutation.isLoading}
+                  >
+                    {updateCategoryMutation.isLoading
+                      ? 'Moving...'
+                      : `Move: ${otherCategories[0].name.substring(0, 10)}${otherCategories[0].name.length > 10 ? '...' : ''}`}
+                  </Button>
+                ) : (
+                  <DropdownMenu
+                    open={openDropdownActivityKey === activityKey}
+                    onOpenChange={(isOpen) => {
+                      setOpenDropdownActivityKey(isOpen ? activityKey : null)
+                      // If closing, also clear hover to prevent immediate re-show if mouse is still over row
+                      if (!isOpen) {
+                        setHoveredActivityKey(null)
+                      }
+                    }}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs">
+                        Move to...
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+                      {otherCategories.map((targetCat) => (
+                        <DropdownMenuItem
+                          key={targetCat._id}
+                          onClick={() => {
+                            handleMoveActivity(activity, targetCat._id)
+                          }}
+                          disabled={updateCategoryMutation.isLoading}
+                        >
+                          {targetCat.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </>
             )}
-            {!(hoveredActivityKey === activityKey && targetMoveCategory) && (
+            {!showMoveUI && (
               <span className="text-sm text-muted-foreground">
                 {formatDuration(activity.durationMs)}
               </span>
@@ -516,4 +537,4 @@ const ActivitiesByCategoryWidget = ({
   )
 }
 
-export default ActivitiesByCategoryWidget
+export default React.memo(ActivitiesByCategoryWidget)

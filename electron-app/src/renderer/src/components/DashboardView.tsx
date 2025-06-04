@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
@@ -181,9 +181,9 @@ export function DashboardView() {
     setSelectedHour(null)
   }
 
-  const handleHourSelect = (hour: number | null) => {
+  const handleHourSelect = useCallback((hour: number | null) => {
     setSelectedHour(hour)
-  }
+  }, [])
 
   return (
     <div className="flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4">
