@@ -1,30 +1,27 @@
 import { extractWebsiteInfo, formatDuration } from '@renderer/lib/activityByCategoryWidgetHelpers'
 import { useEffect, useState } from 'react'
-import { ActiveWindowEvent, Category as SharedCategory } from 'shared' // Make sure Category is correctly typed and imported
+import { ActiveWindowEvent, Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
-import { getFaviconURL } from '../utils/favicon' // Added for favicons
+import { getFaviconURL } from '../utils/favicon'
 import { trpc } from '../utils/trpc'
-import AppIcon from './AppIcon' // Added for app icons
-import type { ProcessedEventBlock } from './DashboardView' // Import ProcessedEventBlock
-import { Button } from './ui/button' // Added Button import
+import AppIcon from './AppIcon'
+import type { ProcessedEventBlock } from './DashboardView'
+import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
-import { Skeleton } from './ui/skeleton' // Import Skeleton component
+import { Skeleton } from './ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
-// Max duration for a single event interval.
-// const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // Moved to DashboardView
-
 interface ActivityItem {
-  name: string // Display name (app name or website title)
+  name: string
   durationMs: number
   itemType: 'app' | 'website'
-  identifier: string // app ownerName or website domain
-  originalUrl?: string // URL for website favicons
+  identifier: string
+  originalUrl?: string
 }
 
 interface ProcessedCategory {
   id: string
-  name: string // Actual category name like "Coding", "Social Media"
+  name: string
   color: string
   isProductive: boolean
   totalDurationMs: number
@@ -39,7 +36,6 @@ interface ActivitiesByCategoryWidgetProps {
   refetchEvents: () => void
 }
 
-// Helper function to extract website info
 const extractActivityDetailsFromEvent = (
   event: ActiveWindowEvent
 ): {

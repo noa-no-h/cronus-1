@@ -1,10 +1,10 @@
-import { Button } from '@renderer/components/ui/button'
-import GoalInputForm from '@renderer/components/ui/GoalInputForm'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
 import { CategoryManagement } from '../components/settings/CategoryManagement' // We'll create this next
 import { ThemeSwitcher } from '../components/settings/ThemeSwitcher'
+import { Button } from '../components/ui/button'
+import GoalInputForm from '../components/ui/GoalInputForm'
 import { useAuth } from '../contexts/AuthContext'
 
 export function SettingsPage() {

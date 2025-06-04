@@ -1,8 +1,8 @@
-import { Button } from '@renderer/components/ui/button'
 import clsx from 'clsx'
 import { X } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Category } from 'shared'
+import { Button } from './components/ui/button'
 import StatusBox from './components/ui/StatusBox'
 
 type LatestStatusType = 'productive' | 'unproductive' | 'maybe' | null
