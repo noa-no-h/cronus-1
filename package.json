@@ -39,7 +39,5 @@
     "lucide-react": "^0.483.0",
     "papaparse": "^5.5.2"
   },
-  "resolutions": {
-    "@types/react-router-dom": "1.0.0"
-  }
+  "resolutions": {}
 }
