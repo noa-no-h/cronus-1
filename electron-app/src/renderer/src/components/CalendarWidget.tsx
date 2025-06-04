@@ -33,11 +33,11 @@ interface CalendarWidgetProps {
   selectedDate: Date
   onDateChange: (newDate: Date) => void
   viewMode: 'day' | 'week'
-
-  // TODO: Add view mode (day, week)
   onViewModeChange: (newMode: 'day' | 'week') => void
   processedEvents: ProcessedEventBlock[] | null
   isLoadingEvents: boolean
+  selectedHour: number | null
+  onHourSelect: (hour: number | null) => void
 }
 
 // TODO: Add view mode (day, week)
@@ -45,7 +45,11 @@ const CalendarWidget = ({
   selectedDate,
   onDateChange,
   processedEvents,
-  isLoadingEvents
+  isLoadingEvents,
+  viewMode,
+  onViewModeChange,
+  selectedHour,
+  onHourSelect
 }: CalendarWidgetProps) => {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -205,21 +209,27 @@ const CalendarWidget = ({
       </div>
 
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
-        <div className="p-4">
+        <div>
           <div className="space-y-0.5">
             {Array.from({ length: 24 }).map((_, hour) => {
               const timelineSegments = getTimelineSegmentsForHour(hour)
               const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
               const showCurrentTime = isToday && hour === currentHour
               const isCurrentHour = hour === currentHour
+              const isSelectedHour = selectedHour === hour
 
               return (
                 <div
                   key={hour}
-                  className="group relative flex min-h-[80px] hover:bg-muted/50 border-b border-slate-200 dark:border-slate-700"
+                  className={`group relative p-4 flex min-h-[80px] border-b border-slate-200 ${
+                    isSelectedHour
+                      ? 'bg-blue-200/20 dark:bg-blue-900/30'
+                      : 'hover:bg-muted/50 dark:border-slate-700'
+                  }`}
                   ref={isCurrentHour ? currentHourRef : null}
+                  onClick={() => onHourSelect(isSelectedHour ? null : hour)}
                 >
-                  <div className="w-12 py-2 text-xs text-muted-foreground font-medium sticky left-0 bg-background flex items-start">
+                  <div className="w-12 py-2 text-xs text-muted-foreground font-medium sticky left-0 flex items-start">
                     <span>{hour.toString().padStart(2, '0')}:00</span>
                   </div>
 
