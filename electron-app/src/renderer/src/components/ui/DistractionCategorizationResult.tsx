@@ -109,8 +109,8 @@ const DistractionCategorizationResult = ({
       // Or we could send a generic "Uncategorized" message if desired
     }
 
-    let dailyProductiveMs = 0
-    let dailyUnproductiveMs = 0
+    const dailyProductiveMs = 0
+    const dailyUnproductiveMs = 0
 
     const categoriesMap = new Map((userCategories as Category[]).map((cat) => [cat._id, cat]))
 
@@ -123,6 +123,17 @@ const DistractionCategorizationResult = ({
 
     for (let i = 0; i < sortedEvents.length; i++) {
       const currentEvent = sortedEvents[i]
+
+      // Skip system sleep/wake events in productivity calculations
+      if (
+        currentEvent.ownerName === 'System Sleep' ||
+        currentEvent.ownerName === 'System Wake' ||
+        currentEvent.ownerName === 'System Lock' ||
+        currentEvent.ownerName === 'System Unlock'
+      ) {
+        continue
+      }
+
       const eventCategory = currentEvent.categoryId
         ? categoriesMap.get(currentEvent.categoryId)
         : null
@@ -133,17 +144,22 @@ const DistractionCategorizationResult = ({
       const currentTimestamp = currentEvent.timestamp as number
 
       if (i < sortedEvents.length - 1) {
-        const nextEventTimestamp = sortedEvents[i + 1].timestamp as number
+        const nextEvent = sortedEvents[i + 1]
+        // If next event is a system event, don't count time until resume
+        if (nextEvent.ownerName === 'System Sleep' || nextEvent.ownerName === 'System Lock') {
+          // Find the corresponding wake/unlock event
+          const resumeIndex = sortedEvents.findIndex(
+            (e, idx) =>
+              idx > i && (e.ownerName === 'System Wake' || e.ownerName === 'System Unlock')
+          )
+          if (resumeIndex !== -1) {
+            // Skip to the resume event
+            i = resumeIndex
+            continue
+          }
+        }
+        const nextEventTimestamp = nextEvent.timestamp as number
         durationMs = nextEventTimestamp - currentTimestamp
-      } else {
-        durationMs = Date.now() - currentTimestamp
-      }
-      durationMs = Math.min(durationMs, 5 * 60 * 1000)
-
-      if (eventCategory.isProductive) {
-        dailyProductiveMs += durationMs
-      } else {
-        dailyUnproductiveMs += durationMs
       }
     }
 
@@ -198,9 +214,34 @@ const DistractionCategorizationResult = ({
   const displayWindowInfo = useMemo(() => {
     const dw = latestEvent || activeWindow
     if (!dw) return { ownerName: 'No active application', title: '' }
-    return {
-      ownerName: dw.ownerName || 'Unknown App',
-      title: dw.title && dw.title !== dw.ownerName ? dw.title : ''
+
+    // Check for system events
+    switch (dw.ownerName) {
+      case 'System Sleep':
+        return {
+          ownerName: '💤 System Inactive',
+          title: 'Computer was sleeping'
+        }
+      case 'System Wake':
+        return {
+          ownerName: '⏰ System Active',
+          title: 'Computer woke from sleep'
+        }
+      case 'System Lock':
+        return {
+          ownerName: '🔒 Screen Locked',
+          title: 'Screen was locked'
+        }
+      case 'System Unlock':
+        return {
+          ownerName: '🔓 Screen Unlocked',
+          title: 'Screen was unlocked'
+        }
+      default:
+        return {
+          ownerName: dw.ownerName || 'Unknown App',
+          title: dw.title && dw.title !== dw.ownerName ? dw.title : ''
+        }
     }
   }, [latestEvent, activeWindow])
 

@@ -5,17 +5,20 @@ export interface IActiveWindowEvent extends ActiveWindowEvent, Document {}
 
 const activeWindowEventSchema = new Schema({
   userId: { type: String, required: true, index: true },
-  windowId: { type: Number, required: true }, // Renamed from id
-  ownerName: { type: String, required: true }, // Application name like "Google Chrome", "Visual Studio Code"
-  type: { type: String, required: true, enum: ['window', 'browser'] },
-  browser: { type: String, enum: ['chrome', 'safari', null] }, // Only if type is 'browser'
+  windowId: { type: Number, required: false }, // Made optional for system events
+  ownerName: { type: String, required: true },
+  type: { type: String, required: true, enum: ['window', 'browser', 'system'] }, // Added 'system' type
+  browser: { type: String, enum: ['chrome', 'safari', null] },
   title: { type: String, required: false },
   url: { type: String },
-  content: { type: String }, // Optional: content of the window, e.g. for active browser tab
+  content: { type: String },
   categoryId: { type: String, required: false, index: true },
-  timestamp: { type: Number, required: true, default: Date.now, index: true }, // Unix timestamp
-  screenshotS3Url: { type: String }, // URL of the screenshot stored in S3
-  captureReason: { type: String, enum: ['app_switch', 'periodic_backup', null] },
+  timestamp: { type: Number, required: true, default: Date.now, index: true },
+  screenshotS3Url: { type: String },
+  captureReason: {
+    type: String,
+    enum: ['app_switch', 'periodic_backup', 'system_sleep', 'system_wake', null],
+  },
 });
 
 // Compound index for efficient querying by userId and timestamp

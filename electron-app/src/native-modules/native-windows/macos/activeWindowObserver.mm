@@ -47,29 +47,111 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     BOOL isCurrentlyTracking;           
 }
 
-- (void) dealloc
-{
-    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
-    [super dealloc];
-}
-
 - (id)init {
     self = [super init];
     if (!self) return nil;
     
-    // App switch notifications (keep this - it's perfect!)
-    [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self 
-                                                         selector:@selector(receiveAppChangeNotification:) 
-                                                             name:NSWorkspaceDidActivateApplicationNotification 
-                                                           object:nil];
+    // Get both workspace and distributed notification centers
+    NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
+    NSNotificationCenter *distributedCenter = [NSDistributedNotificationCenter defaultCenter];
     
-    // Start periodic backup timer 
-    [self startPeriodicBackupTimer];
+    // Workspace notifications (sleep/wake)
+    [workspaceCenter addObserver:self 
+                       selector:@selector(receiveAppChangeNotification:) 
+                           name:NSWorkspaceDidActivateApplicationNotification 
+                         object:nil];
+    
+    [workspaceCenter addObserver:self
+                       selector:@selector(receiveSleepNotification:)
+                           name:NSWorkspaceWillSleepNotification
+                         object:nil];
+                                                           
+    [workspaceCenter addObserver:self
+                       selector:@selector(receiveWakeNotification:)
+                           name:NSWorkspaceDidWakeNotification
+                         object:nil];
 
-    // comment out for only text based content handling 
-    // [self startScreenshotTimer]; 
+    // Screen lock/unlock notifications (using distributed notifications)
+    [distributedCenter addObserver:self
+                        selector:@selector(receiveScreenLockNotification:)
+                            name:@"com.apple.screenIsLocked"
+                          object:nil];
+    
+    [distributedCenter addObserver:self
+                        selector:@selector(receiveScreenUnlockNotification:)
+                            name:@"com.apple.screenIsUnlocked"
+                          object:nil];
+
+    MyLog(@"🔧 DEBUG: Initialized observers for sleep/wake and lock/unlock events");
     
     return self;
+}
+
+- (void)receiveScreenLockNotification:(NSNotification *)notification {
+    MyLog(@"🔒 DEBUG: Screen lock notification received");
+    
+    // Create a special lock event
+    NSMutableDictionary *lockEvent = [@{
+        @"id": @0,
+        @"ownerName": @"System Lock",
+        @"title": @"Screen was locked",
+        @"type": @"system",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+    } mutableCopy];
+    
+    MyLog(@"🔒 DEBUG: Sending lock event to JS: %@", lockEvent);
+    [self sendWindowInfoToJS:lockEvent withReason:@"system_lock"];
+}
+
+- (void)receiveScreenUnlockNotification:(NSNotification *)notification {
+    MyLog(@"🔓 DEBUG: Screen unlock notification received");
+    
+    // Create an unlock event
+    NSMutableDictionary *unlockEvent = [@{
+        @"id": @0,
+        @"ownerName": @"System Unlock",
+        @"title": @"Screen was unlocked",
+        @"type": @"system",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+    } mutableCopy];
+    
+    MyLog(@"🔓 DEBUG: Sending unlock event to JS: %@", unlockEvent);
+    [self sendWindowInfoToJS:unlockEvent withReason:@"system_unlock"];
+}
+
+- (void)dealloc {
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+    [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
+}
+
+// Add new methods to handle sleep/wake
+- (void)receiveSleepNotification:(NSNotification *)notification {
+    MyLog(@"💤 System going to sleep");
+    
+    // Create a special sleep event
+    NSMutableDictionary *sleepEvent = [@{
+        @"ownerName": @"System Sleep",
+        @"title": @"Computer was sleeping",
+        @"type": @"window",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+    } mutableCopy];
+    
+    [self sendWindowInfoToJS:sleepEvent withReason:@"system_sleep"];
+}
+
+- (void)receiveWakeNotification:(NSNotification *)notification {
+    MyLog(@"⏰ System waking up");
+    
+    // Create a wake event to mark the end of sleep period
+    NSMutableDictionary *wakeEvent = [@{
+        @"ownerName": @"System Wake",
+        @"title": @"Computer woke from sleep",
+        @"type": @"window",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+    } mutableCopy];
+    
+    [self sendWindowInfoToJS:wakeEvent withReason:@"system_wake"];
 }
 
 // periodic backup timer
