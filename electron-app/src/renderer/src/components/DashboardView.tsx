@@ -24,10 +24,14 @@ export function DashboardView() {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
-  const [processedEventBlocks, setProcessedEventBlocks] = useState<ProcessedEventBlock[] | null>(
-    null
-  )
+  const [activityWidgetProcessedEvents, setActivityWidgetProcessedEvents] = useState<
+    ProcessedEventBlock[] | null
+  >(null)
+  const [calendarProcessedEvents, setCalendarProcessedEvents] = useState<
+    ProcessedEventBlock[] | null
+  >(null)
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
+  const [selectedHour, setSelectedHour] = useState<number | null>(null)
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
@@ -94,13 +98,14 @@ export function DashboardView() {
   useEffect(() => {
     if (isLoadingFetchedEvents) {
       setIsLoadingEvents(true)
-      setProcessedEventBlocks(null)
+      setCalendarProcessedEvents(null)
+      setActivityWidgetProcessedEvents(null)
     } else if (eventsData) {
       const sortedEvents = [...eventsData]
         .filter((event) => typeof event.timestamp === 'number')
         .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
 
-      const blocks: ProcessedEventBlock[] = []
+      let blocks: ProcessedEventBlock[] = []
       for (let i = 0; i < sortedEvents.length; i++) {
         const event = sortedEvents[i]
         const startTime = new Date(event.timestamp as number)
@@ -134,45 +139,79 @@ export function DashboardView() {
           originalEvent: event
         })
       }
-      setProcessedEventBlocks(blocks)
-      setIsLoadingEvents(false)
+
+      // This now sets the full list of events for the calendar
+      setCalendarProcessedEvents(blocks)
+      // Activity widget events will be derived from this and selectedHour in another useEffect
+      // setIsLoadingEvents(false) // We'll set this after deriving activityWidgetProcessedEvents
     } else {
-      setProcessedEventBlocks(null)
+      // Reset both event states if no data
+      setCalendarProcessedEvents(null)
+      setActivityWidgetProcessedEvents(null)
       setIsLoadingEvents(false)
     }
   }, [eventsData, isLoadingFetchedEvents])
 
+  // New useEffect to derive activityWidgetProcessedEvents based on calendarProcessedEvents and selectedHour
+  useEffect(() => {
+    if (!calendarProcessedEvents) {
+      setActivityWidgetProcessedEvents(null)
+      setIsLoadingEvents(isLoadingFetchedEvents) // Reflect underlying loading state
+      return
+    }
+
+    if (selectedHour !== null) {
+      const hourlyFilteredBlocks = calendarProcessedEvents.filter(
+        (block) => block.startTime.getHours() === selectedHour
+      )
+      setActivityWidgetProcessedEvents(hourlyFilteredBlocks)
+    } else {
+      setActivityWidgetProcessedEvents(calendarProcessedEvents)
+    }
+    setIsLoadingEvents(false) // Data for widgets is now ready
+  }, [calendarProcessedEvents, selectedHour, isLoadingFetchedEvents])
+
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate)
+    setSelectedHour(null)
   }
 
   const handleViewModeChange = (newMode: 'day' | 'week') => {
     setViewMode(newMode)
+    setSelectedHour(null)
+  }
+
+  const handleHourSelect = (hour: number | null) => {
+    setSelectedHour(hour)
   }
 
   return (
     <div className="flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4">
       <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <ActivitiesByCategoryWidget
-          processedEvents={processedEventBlocks}
+          processedEvents={activityWidgetProcessedEvents}
           isLoadingEvents={isLoadingEvents}
           startDateMs={startDateMs}
           endDateMs={endDateMs}
           refetchEvents={refetchEvents}
+          selectedHour={selectedHour}
+          onHourSelect={handleHourSelect}
         />
         <TopActivityWidget
-          processedEvents={processedEventBlocks}
+          processedEvents={activityWidgetProcessedEvents}
           isLoadingEvents={isLoadingEvents}
         />
       </div>
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget
           selectedDate={selectedDate}
-          processedEvents={processedEventBlocks}
+          processedEvents={calendarProcessedEvents}
           isLoadingEvents={isLoadingEvents}
           viewMode={viewMode}
           onDateChange={handleDateChange}
           onViewModeChange={handleViewModeChange}
+          selectedHour={selectedHour}
+          onHourSelect={handleHourSelect}
         />
       </div>
     </div>

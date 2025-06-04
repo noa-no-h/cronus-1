@@ -34,6 +34,8 @@ interface ActivitiesByCategoryWidgetProps {
   startDateMs: number | null
   endDateMs: number | null
   refetchEvents: () => void
+  selectedHour: number | null
+  onHourSelect: (hour: number | null) => void
 }
 
 const extractActivityDetailsFromEvent = (
@@ -158,7 +160,9 @@ const ActivitiesByCategoryWidget = ({
   isLoadingEvents: isLoadingEventsProp,
   startDateMs,
   endDateMs,
-  refetchEvents
+  refetchEvents,
+  selectedHour,
+  onHourSelect
 }: ActivitiesByCategoryWidgetProps) => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
@@ -456,6 +460,17 @@ const ActivitiesByCategoryWidget = ({
   return (
     <Card>
       <CardContent className="space-y-4 px-2 pt-2">
+        {selectedHour !== null && (
+          <div className="flex justify-between items-center px-3 py-2 bg-muted rounded-md">
+            <span className="text-xs text-muted-foreground font-normal">
+              Displaying activities for {selectedHour.toString().padStart(2, '0')}:00-
+              {(selectedHour + 1).toString().padStart(2, '0')}:00
+            </span>
+            <Button variant="outline" size="xs" onClick={() => onHourSelect(null)}>
+              Show Full Day
+            </Button>
+          </div>
+        )}
         {processedData.map((category) => {
           if (
             category.totalDurationMs === 0 &&
