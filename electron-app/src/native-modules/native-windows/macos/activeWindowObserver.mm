@@ -50,6 +50,25 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (id)init {
     self = [super init];
     if (!self) return nil;
+
+    // Check initial screen lock state
+    CFDictionaryRef sessionDict = CGSessionCopyCurrentDictionary();
+    if (sessionDict) {
+        BOOL isLocked = CFDictionaryGetValue(sessionDict, kCGSessionOnConsoleKey) == kCFBooleanFalse;
+        if (isLocked) {
+            // Create a lock event with current timestamp
+            NSMutableDictionary *lockEvent = [@{
+                @"id": @0,
+                @"ownerName": @"System Lock",
+                @"title": @"Screen was locked",
+                @"type": @"system",
+                @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+            } mutableCopy];
+            
+            [self sendWindowInfoToJS:lockEvent withReason:@"system_lock_initial"];
+        }
+        CFRelease(sessionDict);
+    }
     
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];

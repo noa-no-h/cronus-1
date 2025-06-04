@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 import { Card, CardContent } from './card'
 
+const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
+
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
 }
@@ -154,11 +156,14 @@ const DistractionCategorizationResult = ({
         // Calculate duration until this nextEvent
         durationMs = nextEventTimestamp - currentTimestamp
 
-        // If the next event is a system sleep or lock
+        // NEW: First check for large gaps between events
+        if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
+          durationMs = MAX_GAP_BETWEEN_EVENTS_MS
+        }
+
+        // Then handle system events as before
         if (nextEvent.ownerName === 'System Sleep' || nextEvent.ownerName === 'System Lock') {
-          // Duration for currentEvent is already calculated as `nextEventTimestamp - currentTimestamp`.
-          // Cap and accumulate this duration.
-          durationMs = Math.max(0, Math.min(durationMs, 5 * 60 * 1000)) // Cap and ensure non-negative
+          // Duration for currentEvent is already calculated and capped above
           if (durationMs > 0) {
             if (eventCategory.isProductive) {
               dailyProductiveMs += durationMs
@@ -170,29 +175,24 @@ const DistractionCategorizationResult = ({
           // Find the corresponding wake/unlock event to advance the loop.
           const resumeEventName =
             nextEvent.ownerName === 'System Sleep' ? 'System Wake' : 'System Unlock'
-          // Search *after* the sleep/lock event itself (idx > i + 1).
           const resumeIndex = sortedEvents.findIndex(
             (e, idx) => idx > i + 1 && e.ownerName === resumeEventName
           )
 
           if (resumeIndex !== -1) {
-            // Advance 'i' so that the next iteration effectively starts after the sleep/lock period.
-            // The loop's i++ will make currentEvent sortedEvents[resumeIndex].
-            // That resumeEvent (Wake/Lock) will be skipped by the initial 'if' block.
             i = resumeIndex - 1
           } else {
-            // System went to sleep/lock and didn't wake/unlock for the rest of sortedEvents.
-            // The duration for currentEvent (until sleep/lock) has been accumulated.
-            // No more productive/unproductive time to track.
-            break // Exit the loop.
+            break
           }
-          continue // Continue to next iteration (either with advanced 'i' or after break).
+          continue
         }
-        // If nextEvent was not sleep/lock, durationMs is already `nextEventTimestamp - currentTimestamp`.
-        // Fall through to common accumulation logic below.
       } else {
         // This is the last event in sortedEvents. Calculate duration until current time.
         durationMs = Date.now() - currentTimestamp
+        // Also cap this duration
+        if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
+          durationMs = MAX_GAP_BETWEEN_EVENTS_MS
+        }
       }
 
       // Common accumulation logic for:
