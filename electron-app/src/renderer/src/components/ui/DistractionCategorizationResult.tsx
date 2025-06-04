@@ -109,8 +109,8 @@ const DistractionCategorizationResult = ({
       // Or we could send a generic "Uncategorized" message if desired
     }
 
-    const dailyProductiveMs = 0
-    const dailyUnproductiveMs = 0
+    let dailyProductiveMs = 0
+    let dailyUnproductiveMs = 0
 
     const categoriesMap = new Map((userCategories as Category[]).map((cat) => [cat._id, cat]))
 
@@ -123,8 +123,10 @@ const DistractionCategorizationResult = ({
 
     for (let i = 0; i < sortedEvents.length; i++) {
       const currentEvent = sortedEvents[i]
+      const currentTimestamp = currentEvent.timestamp as number
 
-      // Skip system sleep/wake events in productivity calculations
+      // Skip system sleep/wake/lock/unlock events for direct productivity calculation
+      // Their timestamps are used to delimit the duration of other events.
       if (
         currentEvent.ownerName === 'System Sleep' ||
         currentEvent.ownerName === 'System Wake' ||
@@ -138,28 +140,71 @@ const DistractionCategorizationResult = ({
         ? categoriesMap.get(currentEvent.categoryId)
         : null
 
-      if (!eventCategory) continue
+      if (!eventCategory) {
+        // If no category, this event's time is not tracked
+        continue
+      }
 
       let durationMs = 0
-      const currentTimestamp = currentEvent.timestamp as number
 
       if (i < sortedEvents.length - 1) {
         const nextEvent = sortedEvents[i + 1]
-        // If next event is a system event, don't count time until resume
-        if (nextEvent.ownerName === 'System Sleep' || nextEvent.ownerName === 'System Lock') {
-          // Find the corresponding wake/unlock event
-          const resumeIndex = sortedEvents.findIndex(
-            (e, idx) =>
-              idx > i && (e.ownerName === 'System Wake' || e.ownerName === 'System Unlock')
-          )
-          if (resumeIndex !== -1) {
-            // Skip to the resume event
-            i = resumeIndex
-            continue
-          }
-        }
         const nextEventTimestamp = nextEvent.timestamp as number
+
+        // Calculate duration until this nextEvent
         durationMs = nextEventTimestamp - currentTimestamp
+
+        // If the next event is a system sleep or lock
+        if (nextEvent.ownerName === 'System Sleep' || nextEvent.ownerName === 'System Lock') {
+          // Duration for currentEvent is already calculated as `nextEventTimestamp - currentTimestamp`.
+          // Cap and accumulate this duration.
+          durationMs = Math.max(0, Math.min(durationMs, 5 * 60 * 1000)) // Cap and ensure non-negative
+          if (durationMs > 0) {
+            if (eventCategory.isProductive) {
+              dailyProductiveMs += durationMs
+            } else {
+              dailyUnproductiveMs += durationMs
+            }
+          }
+
+          // Find the corresponding wake/unlock event to advance the loop.
+          const resumeEventName =
+            nextEvent.ownerName === 'System Sleep' ? 'System Wake' : 'System Unlock'
+          // Search *after* the sleep/lock event itself (idx > i + 1).
+          const resumeIndex = sortedEvents.findIndex(
+            (e, idx) => idx > i + 1 && e.ownerName === resumeEventName
+          )
+
+          if (resumeIndex !== -1) {
+            // Advance 'i' so that the next iteration effectively starts after the sleep/lock period.
+            // The loop's i++ will make currentEvent sortedEvents[resumeIndex].
+            // That resumeEvent (Wake/Lock) will be skipped by the initial 'if' block.
+            i = resumeIndex - 1
+          } else {
+            // System went to sleep/lock and didn't wake/unlock for the rest of sortedEvents.
+            // The duration for currentEvent (until sleep/lock) has been accumulated.
+            // No more productive/unproductive time to track.
+            break // Exit the loop.
+          }
+          continue // Continue to next iteration (either with advanced 'i' or after break).
+        }
+        // If nextEvent was not sleep/lock, durationMs is already `nextEventTimestamp - currentTimestamp`.
+        // Fall through to common accumulation logic below.
+      } else {
+        // This is the last event in sortedEvents. Calculate duration until current time.
+        durationMs = Date.now() - currentTimestamp
+      }
+
+      // Common accumulation logic for:
+      // 1. Event followed by a non-sleep/lock event.
+      // 2. The last event of the day.
+      durationMs = Math.max(0, Math.min(durationMs, 5 * 60 * 1000)) // Cap and ensure non-negative
+      if (durationMs > 0) {
+        if (eventCategory.isProductive) {
+          dailyProductiveMs += durationMs
+        } else {
+          dailyUnproductiveMs += durationMs
+        }
       }
     }
 
