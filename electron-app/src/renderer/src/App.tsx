@@ -16,6 +16,14 @@ export function MainAppContent() {
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation()
 
+  // auto open mini timer when starting the app
+  useEffect(() => {
+    if (isAuthenticated && user?.hasCompletedOnboarding && window.electron?.ipcRenderer) {
+      console.log('Auto-opening mini-timer after authentication and onboarding completion')
+      window.electron.ipcRenderer.send('show-floating-window')
+    }
+  }, [isAuthenticated, user?.hasCompletedOnboarding])
+
   useEffect(() => {
     if (user && !user.hasCompletedOnboarding) {
       setShowOnboarding(true)
