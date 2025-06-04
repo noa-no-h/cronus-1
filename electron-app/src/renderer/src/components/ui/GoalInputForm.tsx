@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@renderer/components/ui/card'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Button } from './button'
 import { Textarea } from './textarea'
 

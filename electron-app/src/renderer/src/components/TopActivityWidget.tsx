@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@renderer/components/ui/card'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 // import { ActiveWindowEvent } from 'shared' // No longer directly needed for props
 import { getFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
