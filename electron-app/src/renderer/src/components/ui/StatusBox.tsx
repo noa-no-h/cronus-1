@@ -28,12 +28,10 @@ const StatusBox: React.FC<StatusBoxProps> = ({
   let timeColorCls = 'text-foreground'
   let borderColorCls = 'border-border'
   let labelColorCls = 'text-muted-foreground'
-  let bgColorCls = 'bg-card'
 
   if (isHighlighted) {
     // Highlighted state overrides
     labelColorCls = 'text-primary' // Label is always primary when highlighted
-    bgColorCls = 'bg-accent'
 
     if (highlightColor) {
       borderColorCls = `border-${highlightColor}-500`

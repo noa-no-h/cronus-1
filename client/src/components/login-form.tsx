@@ -2,8 +2,8 @@ import { defaultPage, LINK_TO_WAITLIST } from '@/App';
 import { useLocation } from 'react-router-dom';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { trpc } from '@/utils/trpc';
 import { cn } from '@/lib/utils';
+import { trpc } from '@/utils/trpc';
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google';
 import { useCallback, useEffect } from 'react';
 
@@ -46,29 +46,32 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
   const googleLoginMutation = trpc.auth.googleLogin.useMutation();
 
-  const handleGoogleSuccess = useCallback(async (credentialResponse: CredentialResponse) => {
-    if (!credentialResponse.credential) return;
+  const handleGoogleSuccess = useCallback(
+    async (credentialResponse: CredentialResponse) => {
+      if (!credentialResponse.credential) return;
 
-    try {
-      const response = await googleLoginMutation.mutateAsync({
-        credential: credentialResponse.credential,
-      });
+      try {
+        const response = await googleLoginMutation.mutateAsync({
+          credential: credentialResponse.credential,
+        });
 
-      // Store tokens with both the new and old keys
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
+        // Store tokens with both the new and old keys
+        localStorage.setItem('accessToken', response.accessToken);
+        localStorage.setItem('refreshToken', response.refreshToken);
 
-      console.log('Successfully stored tokens');
+        console.log('Successfully stored tokens');
 
-      if (LINK_TO_WAITLIST) {
-        window.location.href = '/waitlist-form';
-      } else {
-        window.location.href = defaultPage;
+        if (LINK_TO_WAITLIST) {
+          window.location.href = '/waitlist-form';
+        } else {
+          window.location.href = defaultPage;
+        }
+      } catch (error) {
+        console.error('Login failed:', error);
       }
-    } catch (error) {
-      console.error('Login failed:', error);
-    }
-  }, []);
+    },
+    [googleLoginMutation]
+  );
 
   return (
     <div className={cn('flex flex-col gap-6 items-center w-full', className)} {...props}>
