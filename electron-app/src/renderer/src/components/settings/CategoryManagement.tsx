@@ -133,7 +133,9 @@ interface CategoryFormProps {
 function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps) {
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
-  const [color, setColor] = useState(initialData?.color || '#3B82F6')
+  const [color, setColor] = useState(
+    initialData?.color || notionColors[Math.floor(Math.random() * notionColors.length)]
+  )
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
-import React, { JSX, useEffect, useMemo } from 'react'
+import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
@@ -44,6 +44,16 @@ const DistractionCategorizationResult = ({
 }: DistractionCategorizationResultProps): JSX.Element | null => {
   const { token } = useAuth()
   const navigate = useNavigate()
+  const [isNarrowView, setIsNarrowView] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsNarrowView(window.innerWidth < 800)
+    }
+    window.addEventListener('resize', handleResize)
+    handleResize() // Initial check
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const handleSettingsClick = () => {
     navigate('/settings')
@@ -379,17 +389,14 @@ const DistractionCategorizationResult = ({
       </div>
       <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50 rounded-lg">
         {!isMiniTimerVisible && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onOpenMiniTimerClick}
-            title="Open Mini Timer"
-          >
+          <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
             <ExternalLink size={20} />
+            {!isNarrowView && 'Open Mini Timer'}
           </Button>
         )}
-        <Button variant="ghost" size="icon" onClick={handleSettingsClick} title="Settings">
+        <Button variant="ghost" onClick={handleSettingsClick} title="Settings">
           <SettingsIcon size={20} />
+          {!isNarrowView && 'Settings'}
         </Button>
       </div>
     </div>

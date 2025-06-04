@@ -18,12 +18,13 @@ export function SettingsPage() {
       {/* Sticky header for Back button and Title */}
       <div className="sticky top-[30px] mt-8 h-16 z-40 bg-background border-b border-border pt-2 pb-2 px-4 md:px-6 flex items-center">
         <Button
-          onClick={() => navigate(-1)} // Go back to the previous page
+          onClick={() => navigate(-1)}
           aria-label="Go back"
           variant="ghost"
-          className="mr-2" // Added margin for spacing
+          size="icon"
+          className="mr-2"
         >
-          <ArrowLeft size={24} />
+          <ArrowLeft />
         </Button>
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
