@@ -21,7 +21,7 @@ export interface User {
 export interface ActiveWindowDetails {
   windowId: number;
   ownerName: string;
-  type: 'window' | 'browser';
+  type: 'window' | 'browser' | 'system';
   browser?: 'chrome' | 'safari' | null;
   title: string;
   url?: string | null;
