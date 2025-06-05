@@ -60,7 +60,7 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
         height={size}
         className={`rounded-sm ${className}`}
         onError={() => setIconError(true)}
-        onLoad={() => console.log(`✅ Loaded icon for ${appName}`)}
+        // onLoad={() => console.log(`✅ Loaded icon for ${appName}`)}
       />
     )
   }

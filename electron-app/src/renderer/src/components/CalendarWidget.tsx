@@ -1,7 +1,5 @@
-'use client'
-
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
 import { getFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
@@ -53,6 +51,92 @@ const hexToRgba = (hex: string, alpha: number): string => {
   const g = parseInt(hex.slice(3, 5), 16)
   const b = parseInt(hex.slice(5, 7), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+// A new component to handle dynamic content visibility in timeline segments
+const TimelineSegmentContent = ({ segment }: { segment: HourlyTimelineSegment }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [canShowIcon, setCanShowIcon] = useState(false)
+  const [canShowText, setCanShowText] = useState(false)
+  const [textWidth, setTextWidth] = useState(0)
+
+  // A callback ref to measure the text's width once it's rendered.
+  const textMeasurementRef = useCallback((node: HTMLSpanElement | null) => {
+    if (node !== null) {
+      setTextWidth(node.scrollWidth)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    // We need the container and the text's width to proceed.
+    if (!container || textWidth === 0) return
+
+    const checkSize = () => {
+      if (!container) return
+
+      const containerWidth = container.clientWidth
+      const iconWidth = 12 // from className 'w-3'
+      const horizontalPadding = 8 // from className 'px-1' (4px left + 4px right)
+      const spaceBetweenElements = 4 // from className 'space-x-1'
+
+      const requiredWidthForIcon = iconWidth + horizontalPadding
+      const requiredWidthForFullContent =
+        iconWidth + spaceBetweenElements + textWidth + horizontalPadding
+
+      setCanShowIcon(containerWidth >= requiredWidthForIcon)
+      setCanShowText(containerWidth >= requiredWidthForFullContent)
+    }
+
+    // Observe the container for size changes.
+    const resizeObserver = new ResizeObserver(checkSize)
+    resizeObserver.observe(container)
+    checkSize() // Perform an initial size check.
+
+    // Clean up the observer on unmount.
+    return () => resizeObserver.disconnect()
+  }, [textWidth]) // Rerun this effect when the text width is known.
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full h-full flex items-center justify-center overflow-hidden"
+    >
+      {/*
+        This span is used for measurement only.
+        It's rendered invisibly and positioned absolutely so it doesn't affect layout.
+      */}
+      <span
+        ref={textMeasurementRef}
+        className="text-xs font-medium absolute opacity-0 -z-10 pointer-events-none"
+      >
+        {segment.name}
+      </span>
+
+      {/* Conditionally render the content based on available space. */}
+      {canShowIcon && (
+        <div className="flex items-center space-x-1 px-1">
+          {segment.url ? (
+            <img
+              src={getFaviconURL(segment.url) || '/placeholder.svg'}
+              className="w-3 h-3 rounded flex-shrink-0"
+              onError={(e) => {
+                ;(e.target as HTMLImageElement).style.display = 'none'
+              }}
+            />
+          ) : (
+            <AppIcon appName={segment.name} size={12} className="flex-shrink-0" />
+          )}
+
+          {canShowText && (
+            <span className="text-xs text-muted-foreground font-medium truncate">
+              {segment.name}
+            </span>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // TODO: Add view mode (day, week)
@@ -277,30 +361,7 @@ const CalendarWidget = ({
                             }}
                             title={`${segment.name} - ${formatDuration(segment.durationMs)} (${Math.floor(segment.startMinute)}:${String(Math.floor((segment.startMinute % 1) * 60)).padStart(2, '0')} - ${Math.floor(segment.endMinute)}:${String(Math.floor((segment.endMinute % 1) * 60)).padStart(2, '0')})`}
                           >
-                            {segment.widthPercentage > 8 && (
-                              <div className="flex items-center space-x-1 px-1">
-                                {segment.url ? (
-                                  <img
-                                    src={getFaviconURL(segment.url) || '/placeholder.svg'}
-                                    className="w-3 h-3 rounded flex-shrink-0"
-                                    onError={(e) => {
-                                      ;(e.target as HTMLImageElement).style.display = 'none'
-                                    }}
-                                  />
-                                ) : (
-                                  <AppIcon
-                                    appName={segment.name}
-                                    size={12}
-                                    className="flex-shrink-0"
-                                  />
-                                )}
-                                {segment.widthPercentage > 15 && (
-                                  <span className="text-xs font-medium truncate">
-                                    {segment.name}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            <TimelineSegmentContent segment={segment} />
                           </div>
                         ))}
                       </div>

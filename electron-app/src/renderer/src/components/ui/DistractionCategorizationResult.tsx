@@ -237,8 +237,6 @@ const DistractionCategorizationResult = ({
       }
     }
 
-    console.log('latestEvent', latestEvent)
-
     window.electron.ipcRenderer.send('update-floating-window-status', {
       latestStatus,
       dailyProductiveMs,
