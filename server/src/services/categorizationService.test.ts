@@ -272,5 +272,38 @@ describe('categorizeActivity', () => {
         expectedCategoryName: dreamWifeCategory.name,
       });
     }, 30000);
+
+    test('should categorize programming tutorial on YouTube as "Work"', async () => {
+      const activeWindow = {
+        ownerName: 'Google Chrome',
+        title: '.mm files objective c for typescript developers - YouTube',
+        url: 'https://www.youtube.com/results?search_query=.mm+files+objective+c+for+typescript+developers',
+        content: null,
+        type: 'browser' as const,
+        browser: 'chrome' as const,
+      };
+
+      const workCategory = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Work',
+        description:
+          'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
+      };
+      const distractionCategory = {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Distraction',
+        description:
+          'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
+      };
+
+      await runLlmCategorizationTest({
+        activeWindow,
+        mockUser,
+        mockCategories: [workCategory, distractionCategory],
+        expectedCategoryName: 'Work',
+      });
+    }, 30000);
   });
 });
