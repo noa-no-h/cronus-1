@@ -11,7 +11,8 @@
     "node:start": "node ./dist_tsc/index.js",
     "db:delete": "bun run src/scripts/delete.ts",
     "db:seed": "bun run src/scripts/seeder.ts",
-    "db:reset": "bun run db:delete && bun run db:seed"
+    "db:reset": "bun run db:delete && bun run db:seed",
+    "test": "rm -rf ./dist && bun test"
   },
   "keywords": [],
   "author": "",

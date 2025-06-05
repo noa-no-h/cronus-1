@@ -40,7 +40,7 @@ function _buildOpenAICategoryChoicePromptInput(
     .join('\n  ');
 
   const MAX_URL_LENGTH = 150;
-  const MAX_CONTENT_LENGTH = 200;
+  const MAX_CONTENT_LENGTH = 300;
   const truncatedUrl =
     url && url.length > MAX_URL_LENGTH ? `${url.slice(0, MAX_URL_LENGTH)}...` : url;
   const truncatedContent =
