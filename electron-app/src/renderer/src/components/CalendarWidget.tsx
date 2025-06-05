@@ -61,8 +61,8 @@ const CalendarWidget = ({
   onDateChange,
   processedEvents,
   isLoadingEvents,
-  viewMode,
-  onViewModeChange,
+  viewMode: _viewMode,
+  onViewModeChange: _onViewModeChange,
   selectedHour,
   onHourSelect
 }: CalendarWidgetProps) => {
