@@ -118,6 +118,11 @@ export function DashboardView() {
         const startTime = new Date(event.timestamp as number)
         let endTime: Date
 
+        // Skip system events
+        if (event.type === 'system') {
+          continue
+        }
+
         let durationMs: number
         if (i < sortedEvents.length - 1) {
           endTime = new Date(sortedEvents[i + 1].timestamp as number)

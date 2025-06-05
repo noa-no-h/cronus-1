@@ -245,68 +245,72 @@ const CalendarWidget = ({
 
                   <div className="flex-1 border-l pl-4 py-2 relative">
                     <div
-                      className={`relative h-12 rounded-md mb-2 overflow-hidden ${
+                      className={`relative h-12 rounded-md mb-2 pt-1.5 ${
                         isSelectedHour
                           ? 'bg-blue-200/20 dark:bg-blue-800/30'
                           : 'bg-slate-50 dark:bg-slate-900'
                       }`}
                     >
-                      <div className="absolute inset-0 flex">
-                        {Array.from({ length: 4 }).map((_, quarter) => (
+                      <div className="absolute inset-0 overflow-hidden rounded-md">
+                        <div className="absolute inset-0 flex">
+                          {Array.from({ length: 4 }).map((_, quarter) => (
+                            <div
+                              key={quarter}
+                              className="flex-1 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
+                            />
+                          ))}
+                        </div>
+
+                        {timelineSegments.map((segment, idx) => (
                           <div
-                            key={quarter}
-                            className="flex-1 border-r border-slate-200 dark:border-slate-700 last:border-r-0"
-                          />
+                            key={`${hour}-${segment.name}-${idx}`}
+                            className={`absolute top-1 bottom-1 rounded-sm
+                                      hover:opacity-80 transition-opacity cursor-pointer
+                                      flex items-center justify-center overflow-hidden`}
+                            style={{
+                              backgroundColor: segment.categoryColor
+                                ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
+                                : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2),
+                              left: `${segment.leftPercentage}%`,
+                              width: `${Math.max(segment.widthPercentage, 1)}%`,
+                              opacity: individualSegmentOpacity
+                            }}
+                            title={`${segment.name} - ${formatDuration(segment.durationMs)} (${Math.floor(segment.startMinute)}:${String(Math.floor((segment.startMinute % 1) * 60)).padStart(2, '0')} - ${Math.floor(segment.endMinute)}:${String(Math.floor((segment.endMinute % 1) * 60)).padStart(2, '0')})`}
+                          >
+                            {segment.widthPercentage > 8 && (
+                              <div className="flex items-center space-x-1 px-1">
+                                {segment.url ? (
+                                  <img
+                                    src={getFaviconURL(segment.url) || '/placeholder.svg'}
+                                    className="w-3 h-3 rounded flex-shrink-0"
+                                    onError={(e) => {
+                                      ;(e.target as HTMLImageElement).style.display = 'none'
+                                    }}
+                                  />
+                                ) : (
+                                  <AppIcon
+                                    appName={segment.name}
+                                    size={12}
+                                    className="flex-shrink-0"
+                                  />
+                                )}
+                                {segment.widthPercentage > 15 && (
+                                  <span className="text-xs font-medium truncate">
+                                    {segment.name}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
 
-                      {timelineSegments.map((segment, idx) => (
-                        <div
-                          key={`${hour}-${segment.name}-${idx}`}
-                          className={`absolute top-1 bottom-1 rounded-sm
-                                    hover:opacity-80 transition-opacity cursor-pointer
-                                    flex items-center justify-center overflow-hidden`}
-                          style={{
-                            backgroundColor: segment.categoryColor
-                              ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
-                              : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2),
-                            left: `${segment.leftPercentage}%`,
-                            width: `${Math.max(segment.widthPercentage, 1)}%`,
-                            opacity: individualSegmentOpacity
-                          }}
-                          title={`${segment.name} - ${formatDuration(segment.durationMs)} (${Math.floor(segment.startMinute)}:${String(Math.floor((segment.startMinute % 1) * 60)).padStart(2, '0')} - ${Math.floor(segment.endMinute)}:${String(Math.floor((segment.endMinute % 1) * 60)).padStart(2, '0')})`}
-                        >
-                          {segment.widthPercentage > 8 && (
-                            <div className="flex items-center space-x-1 px-1">
-                              {segment.url ? (
-                                <img
-                                  src={getFaviconURL(segment.url) || '/placeholder.svg'}
-                                  className="w-3 h-3 rounded flex-shrink-0"
-                                  onError={(e) => {
-                                    ;(e.target as HTMLImageElement).style.display = 'none'
-                                  }}
-                                />
-                              ) : (
-                                <AppIcon
-                                  appName={segment.name}
-                                  size={12}
-                                  className="flex-shrink-0"
-                                />
-                              )}
-                              {segment.widthPercentage > 15 && (
-                                <span className="text-xs font-medium truncate">{segment.name}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
                       {showCurrentTime && (
                         <div
-                          className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20"
+                          className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10"
                           style={{ left: `${minutePercentage}%` }}
                         >
-                          <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-red-500" />
+                          <div className="absolute -top-1 -left-[3px] w-2 h-2 rounded-full bg-red-500 z-20" />
                         </div>
                       )}
                     </div>
