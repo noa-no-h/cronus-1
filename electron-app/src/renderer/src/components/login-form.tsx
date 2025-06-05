@@ -1,4 +1,5 @@
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
+import { APP_NAME, APP_USP } from '@renderer/App'
 import { cn } from '@renderer/lib/utils'
 import { useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -38,10 +39,11 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
   // Removed the direct GOOGLE_CLIENT_ID check here, App.tsx handles global config check
 
   return (
-    <div className={cn('flex flex-col gap-6 items-center w-full p-8', className)} {...props}>
-      <div className="w-full max-w-md mx-auto shadow-lg rounded-lg p-8 bg-white">
+    <div className={cn('flex flex-col gap-6 items-center w-full p-8 m-auto', className)} {...props}>
+      <div className="w-full max-w-md mx-auto rounded-lg p-8 bg-white">
         <div className="text-center">
-          <h1 className="text-2xl text-gray-800 font-semibold">Welcome</h1>
+          <h1 className="text-2xl text-gray-800 font-semibold">Welcome to {APP_NAME}</h1>
+          <p className="text-sm text-gray-600 mb-6">{APP_USP}</p>
           <p className="text-sm text-gray-600 mb-6">Sign in with your Google account</p>
         </div>
         <div className="flex justify-center">

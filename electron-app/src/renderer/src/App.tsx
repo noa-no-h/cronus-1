@@ -8,7 +8,8 @@ import { useAuth } from './contexts/AuthContext'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 
-const APP_NAME = 'Locked in'
+export const APP_NAME = 'Locked in'
+export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
 
 export function MainAppContent() {
   const { isAuthenticated, token, user } = useAuth()

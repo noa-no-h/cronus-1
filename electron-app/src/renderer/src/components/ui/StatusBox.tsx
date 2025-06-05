@@ -63,27 +63,20 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-1 w-[32%] px-1 py-0.5'
       )}
     >
-      <div className="flex flex-col items-center gap-1">
-        <div className="relative flex items-center">
-          {isHovered && isEnlarged && (
-            <Settings
-              className="w-4 h-4 text-muted-foreground absolute cursor-pointer"
-              style={{ right: '100%', marginRight: '4px' }}
-            />
-          )}
-          <span
-            onClick={() => isEnlarged && onCategoryClick && onCategoryClick(categoryDetails)}
-            className={clsx(
-              'font-sm font-medium',
-              labelColorCls,
-              isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer'
-            )}
-            style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
-          >
-            {categoryDetails?.name || label}
-          </span>
-        </div>
-      </div>
+      <span
+        onClick={() => isEnlarged && onCategoryClick && onCategoryClick(categoryDetails)}
+        className={clsx(
+          'font-sm font-medium flex flex-row items-center gap-1',
+          labelColorCls,
+          isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer'
+        )}
+        style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
+      >
+        {isHovered && isEnlarged && (
+          <Settings className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
+        )}
+        {categoryDetails?.name || label}
+      </span>
       <span
         className={clsx(
           'font-mono pointer-events-none',

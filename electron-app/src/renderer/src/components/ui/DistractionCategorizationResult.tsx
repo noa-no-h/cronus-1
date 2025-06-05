@@ -4,7 +4,9 @@ import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
+import { getFaviconURL } from '../../utils/favicon'
 import { trpc } from '../../utils/trpc'
+import AppIcon from '../AppIcon'
 import { Button } from './button'
 import { Card } from './card'
 
@@ -231,6 +233,8 @@ const DistractionCategorizationResult = ({
       }
     }
 
+    console.log('latestEvent', latestEvent)
+
     window.electron.ipcRenderer.send('update-floating-window-status', {
       latestStatus,
       dailyProductiveMs,
@@ -281,34 +285,46 @@ const DistractionCategorizationResult = ({
 
   const displayWindowInfo = useMemo(() => {
     const dw = latestEvent || activeWindow
-    if (!dw) return { ownerName: 'No active application', title: '' }
+    if (!dw) return { ownerName: 'No active application', title: '', url: undefined, isApp: true }
 
     // Check for system events
     switch (dw.ownerName) {
       case 'System Sleep':
         return {
           ownerName: '💤 System Inactive',
-          title: 'Computer was sleeping'
+          title: 'Computer was sleeping',
+          url: undefined,
+          isApp: true
         }
       case 'System Wake':
         return {
           ownerName: '⏰ System Active',
-          title: 'Computer woke from sleep'
+          title: 'Computer woke from sleep',
+          url: undefined,
+          isApp: true
         }
       case 'System Lock':
         return {
           ownerName: '🔒 Screen Locked',
-          title: 'Screen was locked'
+          title: 'Screen was locked',
+          url: undefined,
+          isApp: true
         }
       case 'System Unlock':
         return {
           ownerName: '🔓 Screen Unlocked',
-          title: 'Screen was unlocked'
+          title: 'Screen was unlocked',
+          url: undefined,
+          isApp: true
         }
       default:
+        // Determine if it's an app or website based on URL presence
+        const isApp = !dw.url
         return {
           ownerName: dw.ownerName || 'Unknown App',
-          title: dw.title && dw.title !== dw.ownerName ? dw.title : ''
+          title: dw.title && dw.title !== dw.ownerName ? dw.title : '',
+          url: dw.url,
+          isApp
         }
     }
   }, [latestEvent, activeWindow])
@@ -370,12 +386,43 @@ const DistractionCategorizationResult = ({
           cardBgColor
         )}
       >
-        <div className="flex-grow min-w-0">
-          <div className="text-sm font-medium text-foreground truncate">
-            {displayWindowInfo.ownerName}
-            {displayWindowInfo.title && (
-              <span className="text-muted-foreground">{` - ${displayWindowInfo.title}`}</span>
-            )}
+        <div className="flex-grow min-w-0 flex items-center">
+          {/* Icon Display Logic */}
+          {displayWindowInfo.url && !displayWindowInfo.isApp ? (
+            <img
+              src={getFaviconURL(displayWindowInfo.url)}
+              alt="" // Alt text can be improved if needed
+              className="w-4 h-4 mr-2 flex-shrink-0 rounded"
+              onError={(e) => {
+                // Fallback or hide if favicon fails to load
+                ;(e.target as HTMLImageElement).style.display = 'none'
+                // Optionally, show a generic icon here
+              }}
+            />
+          ) : displayWindowInfo.ownerName &&
+            displayWindowInfo.isApp &&
+            ![
+              '💤 System Inactive',
+              '⏰ System Active',
+              '🔒 Screen Locked',
+              '🔓 Screen Unlocked'
+            ].includes(displayWindowInfo.ownerName) ? (
+            <AppIcon
+              appName={displayWindowInfo.ownerName}
+              size={16}
+              className="mr-2 flex-shrink-0"
+            />
+          ) : (
+            // Optional: Placeholder for system events or when no icon is applicable
+            <div className="w-4 h-4 mr-2 flex-shrink-0"></div>
+          )}
+          <div className="flex-grow min-w-0">
+            <div className="text-sm font-medium text-foreground truncate">
+              {displayWindowInfo.ownerName}
+              {displayWindowInfo.title && (
+                <span className="text-muted-foreground">{` - ${displayWindowInfo.title}`}</span>
+              )}
+            </div>
           </div>
         </div>
         <div>
