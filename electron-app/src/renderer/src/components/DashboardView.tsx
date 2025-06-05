@@ -82,37 +82,50 @@ export function DashboardView() {
       setCalendarProcessedEvents(null)
       setActivityWidgetProcessedEvents(null)
     } else if (eventsData && categories) {
-      const sortedEvents = [...eventsData]
+      const chronologicallySortedEvents = [...eventsData]
         .filter((event) => typeof event.timestamp === 'number')
         .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+
       const categoriesMap = new Map<string, Category>(categories.map((cat) => [cat._id, cat]))
       let blocks: ProcessedEventBlock[] = []
-      for (let i = 0; i < sortedEvents.length; i++) {
-        const event = sortedEvents[i]
-        const startTime = new Date(event.timestamp as number)
-        let endTime: Date
-        if (event.type === 'system') {
-          continue
-        }
-        let durationMs: number
-        if (i < sortedEvents.length - 1) {
-          endTime = new Date(sortedEvents[i + 1].timestamp as number)
-          durationMs = endTime.getTime() - startTime.getTime()
+
+      // Iterate through the events to create display blocks with accurate start and end times
+      for (let i = 0; i < chronologicallySortedEvents.length; i++) {
+        const event = chronologicallySortedEvents[i]
+        const eventStartTime = new Date(event.timestamp as number)
+        let eventEndTime: Date
+        let eventDurationMs: number
+
+        // Calculate duration based on the time until the next event.
+        if (i < chronologicallySortedEvents.length - 1) {
+          const nextEventTime = new Date(
+            chronologicallySortedEvents[i + 1].timestamp as number
+          ).getTime()
+          eventDurationMs = nextEventTime - eventStartTime.getTime()
+
+          // Cap the duration of a single event to avoid extremely long blocks.
+          if (eventDurationMs > MAX_SINGLE_EVENT_DURATION_MS) {
+            eventDurationMs = MAX_SINGLE_EVENT_DURATION_MS
+          }
+          // The end time is the start time plus the (potentially capped) duration.
+          eventEndTime = new Date(eventStartTime.getTime() + eventDurationMs)
         } else {
+          // For the last event, its duration is from its start time until now, capped.
           const now = new Date()
-          const potentialEndTime = new Date(startTime.getTime() + MAX_SINGLE_EVENT_DURATION_MS)
-          endTime = now < potentialEndTime ? now : potentialEndTime
-          durationMs = endTime.getTime() - startTime.getTime()
+          const potentialEndTime = new Date(eventStartTime.getTime() + MAX_SINGLE_EVENT_DURATION_MS)
+          eventEndTime = now < potentialEndTime ? now : potentialEndTime
+          eventDurationMs = eventEndTime.getTime() - eventStartTime.getTime()
         }
-        durationMs = Math.max(0, Math.min(durationMs, MAX_SINGLE_EVENT_DURATION_MS))
-        if (durationMs < 1000) {
+
+        // Ignore very short events (less than 1s) to reduce noise.
+        if (eventDurationMs < 1000) {
           continue
         }
         const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
         blocks.push({
-          startTime,
-          endTime,
-          durationMs,
+          startTime: eventStartTime,
+          endTime: eventEndTime,
+          durationMs: eventDurationMs,
           name: event.ownerName,
           title: event.title,
           url: event.url || undefined,
