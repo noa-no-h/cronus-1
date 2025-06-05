@@ -40,10 +40,13 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Re-categorize Activity</DialogTitle>
-          <DialogDescription>
-            Change the category for <strong>{activityTarget.nameToDisplay}</strong>
-            <br />
-            Currently categorized as <strong>{activityTarget.currentCategoryName}</strong>
+          <DialogDescription className="flex flex-col gap-2">
+            <div>
+              Change the category for <strong>{activityTarget.nameToDisplay}</strong>
+            </div>
+            <div>
+              Currently categorized as <strong>{activityTarget.currentCategoryName}</strong>
+            </div>
           </DialogDescription>
         </DialogHeader>
 

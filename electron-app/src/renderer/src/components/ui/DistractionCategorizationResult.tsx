@@ -392,7 +392,9 @@ const DistractionCategorizationResult = ({
 
     const target: ActivityToRecategorize = {
       identifier: identifier,
-      nameToDisplay: displayWindowInfo.ownerName,
+      nameToDisplay:
+        displayWindowInfo.ownerName +
+        (displayWindowInfo.title ? ` - ${displayWindowInfo.title}` : ''),
       itemType: displayWindowInfo.isApp ? 'app' : 'website',
       currentCategoryId: currentCatId,
       currentCategoryName: currentCatName
