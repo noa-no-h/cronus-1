@@ -3,6 +3,7 @@ import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
+import type { ActivityToRecategorize } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
 import { getFaviconURL } from '../../utils/favicon'
 import { trpc } from '../../utils/trpc'
@@ -16,6 +17,7 @@ interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
   onOpenMiniTimerClick: () => void
   isMiniTimerVisible: boolean
+  onOpenRecategorizeDialog: (target: ActivityToRecategorize) => void
 }
 
 // Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
@@ -35,14 +37,16 @@ const arePropsEqual = (
     p.content === n.content && // Assuming content changes are also significant for display
     p.type === n.type &&
     p.browser === n.browser &&
-    prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible
+    prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
+    prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog
   )
 }
 
 const DistractionCategorizationResult = ({
   activeWindow,
   onOpenMiniTimerClick,
-  isMiniTimerVisible
+  isMiniTimerVisible,
+  onOpenRecategorizeDialog
 }: DistractionCategorizationResultProps): JSX.Element | null => {
   const { token } = useAuth()
   const navigate = useNavigate()
@@ -362,6 +366,42 @@ const DistractionCategorizationResult = ({
     isLoadingLatestEvent ||
     (token && !latestEvent && !isLoadingCategory && !isLoadingUserCategories)
 
+  const getIdentifierFromUrl = (url: string): string => {
+    try {
+      const parsedUrl = new URL(url)
+      return parsedUrl.hostname
+    } catch (e) {
+      console.warn('Error parsing URL for identifier:', url, e)
+      return url
+    }
+  }
+
+  const handleOpenRecategorize = () => {
+    if (!latestEvent || !displayWindowInfo) {
+      console.warn('Cannot re-categorize: missing latestEvent or displayWindowInfo')
+      return
+    }
+
+    const currentCat = categoryDetails as Category | null
+    const currentCatId = latestEvent.categoryId || 'uncategorized'
+    const currentCatName = currentCat?.name || 'Uncategorized'
+
+    const identifier = displayWindowInfo.isApp
+      ? displayWindowInfo.ownerName
+      : displayWindowInfo.url
+        ? getIdentifierFromUrl(displayWindowInfo.url)
+        : displayWindowInfo.ownerName
+
+    const target: ActivityToRecategorize = {
+      identifier: identifier,
+      nameToDisplay: displayWindowInfo.ownerName,
+      itemType: displayWindowInfo.isApp ? 'app' : 'website',
+      currentCategoryId: currentCatId,
+      currentCategoryName: currentCatName
+    }
+    onOpenRecategorizeDialog(target)
+  }
+
   if (isLoadingPrimary) {
     return (
       <Card className={clsx('p-2 rounded-lg border-border', cardBgColor)}>
@@ -428,8 +468,15 @@ const DistractionCategorizationResult = ({
           </div>
         </div>
         <div>
-          <div className={`text-sm font-semibold ${getStatusTextColor} whitespace-nowrap`}>
+          <div
+            className={`text-sm font-semibold ${getStatusTextColor} whitespace-nowrap flex items-center gap-1 cursor-pointer hover:opacity-80`}
+            onClick={handleOpenRecategorize}
+            title="Re-categorize this activity"
+          >
             {getStatusText()}
+            {latestEvent && categoryId && !isLoadingCategory && (
+              <SettingsIcon size={14} className="ml-1 flex-shrink-0" />
+            )}
           </div>
           {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
             <div className="text-xs text-muted-foreground mt-0.5">Updating...</div>

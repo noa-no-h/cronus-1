@@ -16,9 +16,9 @@ export interface ProcessedEventBlock {
   name: string // event.ownerName
   title?: string // event.title
   url?: string
-  categoryId?: string | null // event.categoryId - updated to allow null
-  categoryColor?: string // Added category color
-  originalEvent: ActiveWindowEvent // Keep the original for flexibility
+  categoryId?: string | null
+  categoryColor?: string
+  originalEvent: ActiveWindowEvent
 }
 
 export function DashboardView() {
@@ -42,34 +42,12 @@ export function DashboardView() {
   const categories = categoriesData as Category[] | undefined
 
   useEffect(() => {
-    const handleRecategorizeRequest = (categoryDetails?: Category) => {
-      console.log('handleRecategorizeRequest in DashboardView.tsx', categoryDetails)
-      // Future: navigate or open modal here
-    }
-
-    // Use the preloaded API
-    if (window.api && window.api.onDisplayRecategorizePage) {
-      console.log('DashboardView: Attaching listener via window.api.onDisplayRecategorizePage')
-      const cleanup = window.api.onDisplayRecategorizePage(handleRecategorizeRequest)
-      return cleanup // Return the cleanup function provided by the preload API
-    } else {
-      console.warn(
-        'DashboardView: window.api.onDisplayRecategorizePage not available. Cannot listen for recategorize requests.'
-      )
-      return () => {} // Add a no-op cleanup function for this path
-    }
-  }, [])
-
-  useEffect(() => {
     const calculateTimestamps = () => {
       const localSelectedDate = new Date(selectedDate)
-
       let startOfPeriod: Date
       let endOfPeriod: Date
-
       if (viewMode === 'day') {
         startOfPeriod = new Date(localSelectedDate.setHours(0, 0, 0, 0))
-        endOfPeriod = new Date(localSelectedDate.setHours(23, 59, 59, 999))
         endOfPeriod = new Date(startOfPeriod)
         endOfPeriod.setDate(startOfPeriod.getDate() + 1)
       } else {
@@ -77,14 +55,12 @@ export function DashboardView() {
         startOfPeriod = new Date(localSelectedDate)
         startOfPeriod.setDate(localSelectedDate.getDate() - dayOfWeek)
         startOfPeriod.setHours(0, 0, 0, 0)
-
         endOfPeriod = new Date(startOfPeriod)
         endOfPeriod.setDate(startOfPeriod.getDate() + 7)
       }
       setStartDateMs(startOfPeriod.getTime())
       setEndDateMs(endOfPeriod.getTime())
     }
-
     calculateTimestamps()
   }, [selectedDate, viewMode])
 
@@ -109,20 +85,15 @@ export function DashboardView() {
       const sortedEvents = [...eventsData]
         .filter((event) => typeof event.timestamp === 'number')
         .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
-
       const categoriesMap = new Map<string, Category>(categories.map((cat) => [cat._id, cat]))
-
       let blocks: ProcessedEventBlock[] = []
       for (let i = 0; i < sortedEvents.length; i++) {
         const event = sortedEvents[i]
         const startTime = new Date(event.timestamp as number)
         let endTime: Date
-
-        // Skip system events
         if (event.type === 'system') {
           continue
         }
-
         let durationMs: number
         if (i < sortedEvents.length - 1) {
           endTime = new Date(sortedEvents[i + 1].timestamp as number)
@@ -133,13 +104,10 @@ export function DashboardView() {
           endTime = now < potentialEndTime ? now : potentialEndTime
           durationMs = endTime.getTime() - startTime.getTime()
         }
-
         durationMs = Math.max(0, Math.min(durationMs, MAX_SINGLE_EVENT_DURATION_MS))
-
         if (durationMs < 1000) {
           continue
         }
-
         const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
         blocks.push({
           startTime,
@@ -153,27 +121,20 @@ export function DashboardView() {
           originalEvent: event
         })
       }
-
-      // This now sets the full list of events for the calendar
       setCalendarProcessedEvents(blocks)
-      // Activity widget events will be derived from this and selectedHour in another useEffect
-      // setIsLoadingEvents(false) // We'll set this after deriving activityWidgetProcessedEvents
     } else {
-      // Reset both event states if no data
       setCalendarProcessedEvents(null)
       setActivityWidgetProcessedEvents(null)
       setIsLoadingEvents(false)
     }
   }, [eventsData, isLoadingFetchedEvents, categories, isLoadingCategories])
 
-  // New useEffect to derive activityWidgetProcessedEvents based on calendarProcessedEvents and selectedHour
   useEffect(() => {
     if (!calendarProcessedEvents) {
       setActivityWidgetProcessedEvents(null)
-      setIsLoadingEvents(isLoadingFetchedEvents) // Reflect underlying loading state
+      setIsLoadingEvents(isLoadingFetchedEvents)
       return
     }
-
     if (selectedHour !== null) {
       const hourlyFilteredBlocks = calendarProcessedEvents.filter(
         (block) => block.startTime.getHours() === selectedHour
@@ -182,7 +143,7 @@ export function DashboardView() {
     } else {
       setActivityWidgetProcessedEvents(calendarProcessedEvents)
     }
-    setIsLoadingEvents(false) // Data for widgets is now ready
+    setIsLoadingEvents(false)
   }, [calendarProcessedEvents, selectedHour, isLoadingFetchedEvents])
 
   const handleDateChange = (newDate: Date) => {
