@@ -496,7 +496,7 @@ const ActivitiesByCategoryWidget = ({
     <Card>
       <CardContent className="space-y-4 px-2 pt-2">
         {selectedHour !== null && (
-          <div className="flex justify-between items-center px-3 py-2 bg-muted rounded-md">
+          <div className="flex justify-between items-center px-3 py-2 bg-muted rounded-sm">
             <span className="text-xs text-muted-foreground font-normal">
               Displaying activities for {selectedHour.toString().padStart(2, '0')}:00-
               {(selectedHour + 1).toString().padStart(2, '0')}:00

@@ -333,7 +333,7 @@ const DistractionCategorizationResult = ({
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) {
-        return 'bg-blue-50 dark:bg-blue-80'
+        return 'bg-blue-50 dark:bg-blue-900'
       } else {
         // isProductive is false or neutral (uncategorized by isProductive field)
         return 'bg-red-50 dark:bg-red-900'
@@ -420,7 +420,9 @@ const DistractionCategorizationResult = ({
             <div className="text-sm font-medium text-foreground truncate">
               {displayWindowInfo.ownerName}
               {displayWindowInfo.title && (
-                <span className="text-muted-foreground">{` - ${displayWindowInfo.title}`}</span>
+                <span className="text-muted-foreground dark:text-white/70">
+                  {` - ${displayWindowInfo.title}`}
+                </span>
               )}
             </div>
           </div>
@@ -434,7 +436,7 @@ const DistractionCategorizationResult = ({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50 rounded-lg">
+      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
         {!isMiniTimerVisible && (
           <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
             <ExternalLink size={20} />

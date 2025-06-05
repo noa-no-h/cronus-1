@@ -17,6 +17,7 @@ export interface ProcessedEventBlock {
   title?: string // event.title
   url?: string
   categoryId?: string | null // event.categoryId - updated to allow null
+  categoryColor?: string // Added category color
   originalEvent: ActiveWindowEvent // Keep the original for flexibility
 }
 
@@ -35,6 +36,10 @@ export function DashboardView() {
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
+
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
+  const categories = categoriesData as Category[] | undefined
 
   useEffect(() => {
     const handleRecategorizeRequest = (categoryDetails?: Category) => {
@@ -96,14 +101,16 @@ export function DashboardView() {
   )
 
   useEffect(() => {
-    if (isLoadingFetchedEvents) {
+    if (isLoadingFetchedEvents || isLoadingCategories) {
       setIsLoadingEvents(true)
       setCalendarProcessedEvents(null)
       setActivityWidgetProcessedEvents(null)
-    } else if (eventsData) {
+    } else if (eventsData && categories) {
       const sortedEvents = [...eventsData]
         .filter((event) => typeof event.timestamp === 'number')
         .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+
+      const categoriesMap = new Map<string, Category>(categories.map((cat) => [cat._id, cat]))
 
       let blocks: ProcessedEventBlock[] = []
       for (let i = 0; i < sortedEvents.length; i++) {
@@ -128,6 +135,7 @@ export function DashboardView() {
           continue
         }
 
+        const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
         blocks.push({
           startTime,
           endTime,
@@ -136,6 +144,7 @@ export function DashboardView() {
           title: event.title,
           url: event.url || undefined,
           categoryId: event.categoryId,
+          categoryColor: category?.color,
           originalEvent: event
         })
       }
@@ -150,7 +159,7 @@ export function DashboardView() {
       setActivityWidgetProcessedEvents(null)
       setIsLoadingEvents(false)
     }
-  }, [eventsData, isLoadingFetchedEvents])
+  }, [eventsData, isLoadingFetchedEvents, categories, isLoadingCategories])
 
   // New useEffect to derive activityWidgetProcessedEvents based on calendarProcessedEvents and selectedHour
   useEffect(() => {

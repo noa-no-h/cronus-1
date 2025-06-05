@@ -17,6 +17,7 @@ interface TimeBlock {
   name: string
   description?: string
   url?: string
+  categoryColor?: string
 }
 
 interface HourlyTimelineSegment {
@@ -26,6 +27,7 @@ interface HourlyTimelineSegment {
   name: string
   description?: string
   url?: string
+  categoryColor?: string
   widthPercentage: number
   leftPercentage: number
 }
@@ -39,6 +41,18 @@ interface CalendarWidgetProps {
   isLoadingEvents: boolean
   selectedHour: number | null
   onHourSelect: (hour: number | null) => void
+}
+
+// Helper function to convert hex to rgba
+const hexToRgba = (hex: string, alpha: number): string => {
+  if (!hex || !/^#[0-9A-F]{6}$/i.test(hex)) {
+    // Basic hex validation
+    return `rgba(128, 128, 128, ${alpha})` // Default gray if hex is invalid
+  }
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 // TODO: Add view mode (day, week)
@@ -56,6 +70,22 @@ const CalendarWidget = ({
   const [currentTime, setCurrentTime] = useState(new Date())
   const currentHourRef = useRef<HTMLDivElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    // Check dark mode status on mount and when it changes
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+    checkDarkMode()
+
+    // Optional: Observe changes to the dark class if your app dynamically toggles it
+    // without a page reload. Otherwise, this effect only runs on mount.
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
+    return () => observer.disconnect()
+  }, [])
 
   // Update current time every minute
   useEffect(() => {
@@ -90,7 +120,8 @@ const CalendarWidget = ({
       durationMs: eventBlock.durationMs,
       name: eventBlock.name,
       description: eventBlock.title,
-      url: eventBlock.url
+      url: eventBlock.url,
+      categoryColor: eventBlock.categoryColor
     }))
 
     setTimeBlocks(blocks)
@@ -136,34 +167,13 @@ const CalendarWidget = ({
         name: block.name,
         description: block.description,
         url: block.url,
+        categoryColor: block.categoryColor,
         widthPercentage,
         leftPercentage
       })
     })
 
     return segments.sort((a, b) => a.startMinute - b.startMinute)
-  }
-
-  // Generate colors for different apps
-  const getAppColor = (appName: string): string => {
-    const colors = [
-      'bg-blue-200 dark:bg-blue-800',
-      'bg-green-200 dark:bg-green-800',
-      'bg-purple-200 dark:bg-purple-800',
-      'bg-orange-200 dark:bg-orange-800',
-      'bg-pink-200 dark:bg-pink-800',
-      'bg-cyan-200 dark:bg-cyan-800',
-      'bg-yellow-200 dark:bg-yellow-800',
-      'bg-red-200 dark:bg-red-800',
-      'bg-indigo-200 dark:bg-indigo-800',
-      'bg-teal-200 dark:bg-teal-800'
-    ]
-
-    let hash = 0
-    for (let i = 0; i < appName.length; i++) {
-      hash = appName.charCodeAt(i) + ((hash << 5) - hash)
-    }
-    return colors[Math.abs(hash) % colors.length]
   }
 
   // Calculate current time position
@@ -195,7 +205,7 @@ const CalendarWidget = ({
 
   return (
     <Card className="w-full h-full flex flex-col">
-      <div className="p-2 border-b">
+      <div className="p-2 border-b shadow-sm">
         <div className="flex items-center justify-center">
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="xs" onClick={handlePrev}>
@@ -218,14 +228,13 @@ const CalendarWidget = ({
               const showCurrentTime = isToday && hour === currentHour
               const isCurrentHour = hour === currentHour
               const isSelectedHour = selectedHour === hour
+              const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
 
               return (
                 <div
                   key={hour}
-                  className={`group relative p-4 flex min-h-[80px] cursor-pointer border-b border-slate-200 ${
-                    isSelectedHour
-                      ? 'bg-blue-200/20 dark:bg-blue-900/30'
-                      : 'hover:bg-muted/50 dark:border-slate-700'
+                  className={`group relative px-2 flex min-h-[80px] cursor-pointer border-b border-slate-300 dark:border-slate-600 ${
+                    isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : 'hover:bg-muted/50'
                   }`}
                   ref={isCurrentHour ? currentHourRef : null}
                   onClick={() => onHourSelect(isSelectedHour ? null : hour)}
@@ -235,7 +244,13 @@ const CalendarWidget = ({
                   </div>
 
                   <div className="flex-1 border-l pl-4 py-2 relative">
-                    <div className="relative h-12 bg-slate-50 dark:bg-slate-900 rounded-md mb-2 overflow-hidden">
+                    <div
+                      className={`relative h-12 rounded-md mb-2 overflow-hidden ${
+                        isSelectedHour
+                          ? 'bg-blue-200/20 dark:bg-blue-800/30'
+                          : 'bg-slate-50 dark:bg-slate-900'
+                      }`}
+                    >
                       <div className="absolute inset-0 flex">
                         {Array.from({ length: 4 }).map((_, quarter) => (
                           <div
@@ -248,13 +263,16 @@ const CalendarWidget = ({
                       {timelineSegments.map((segment, idx) => (
                         <div
                           key={`${hour}-${segment.name}-${idx}`}
-                          className={`absolute top-1 bottom-1 ${getAppColor(segment.name)} 
-                                    rounded-sm border border-slate-300 dark:border-slate-600
+                          className={`absolute top-1 bottom-1 rounded-sm
                                     hover:opacity-80 transition-opacity cursor-pointer
                                     flex items-center justify-center overflow-hidden`}
                           style={{
+                            backgroundColor: segment.categoryColor
+                              ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
+                              : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2),
                             left: `${segment.leftPercentage}%`,
-                            width: `${Math.max(segment.widthPercentage, 1)}%`
+                            width: `${Math.max(segment.widthPercentage, 1)}%`,
+                            opacity: individualSegmentOpacity
                           }}
                           title={`${segment.name} - ${formatDuration(segment.durationMs)} (${Math.floor(segment.startMinute)}:${String(Math.floor((segment.startMinute % 1) * 60)).padStart(2, '0')} - ${Math.floor(segment.endMinute)}:${String(Math.floor((segment.endMinute % 1) * 60)).padStart(2, '0')})`}
                         >
