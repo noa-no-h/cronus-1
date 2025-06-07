@@ -1,6 +1,7 @@
 #import "activeWindowObserver.h"
 #import "sleepAndLockObserver.h"
 #import "browserTabUtils.h"
+#import "chromeTabTracking.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #import <CoreGraphics/CoreGraphics.h>
@@ -47,12 +48,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSString *lastTrackedApp;             
     NSTimeInterval lastAppSwitchTime;    
     BOOL isCurrentlyTracking;
-    // --- New ivars for Chrome tab tracking ---
-    NSTimer *chromeTabCheckTimer;
-    NSString *lastKnownChromeURL;
-    NSString *lastKnownChromeTitle;
-    BOOL isChromeActive; 
-    // --- End new ivars ---
+    ChromeTabTracking *chromeTabTracking;
     SleepAndLockObserver *sleepAndLockObserver;
 }
 
@@ -61,6 +57,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     if (!self) return nil;
 
     sleepAndLockObserver = [[SleepAndLockObserver alloc] initWithWindowObserver:self];
+    chromeTabTracking = [[ChromeTabTracking alloc] init];
+    chromeTabTracking.delegate = self;
     
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
@@ -73,22 +71,12 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     
     MyLog(@"🔧 DEBUG: Initialized observers for sleep/wake and lock/unlock events");
     
-    // --- Initialize Chrome tab tracking ivars ---
-    self->chromeTabCheckTimer = nil;
-    self->lastKnownChromeURL = nil;
-    self->lastKnownChromeTitle = nil;
-    self->isChromeActive = NO;
-    // --- End new ivar initialization ---
-    
     return self;
 }
 
 - (void)dealloc {
-    [self stopChromeTabTimer]; // Ensure timer is stopped and released
-    [lastKnownChromeURL release];
-    lastKnownChromeURL = nil;
-    [lastKnownChromeTitle release];
-    lastKnownChromeTitle = nil;
+    [chromeTabTracking release];
+    chromeTabTracking = nil;
     [sleepAndLockObserver release];
     sleepAndLockObserver = nil;
 
@@ -264,19 +252,18 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         
         // --- Start Chrome Tab Timer Management within getActiveWindow ---
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
-            if (!self->isChromeActive) { // Chrome just became the active app's window owner
+            if (!chromeTabTracking.isChromeActive) { // Chrome just became the active app's window owner
                 MyLog(@"[Chrome Tab] Chrome became active window. Initializing tab tracking.");
-                self->isChromeActive = YES;
-                // Timer will be started. Initial lastKnownURL/Title will be set after chromeInfo is fetched below.
-                [self startChromeTabTimer];
+                chromeTabTracking.isChromeActive = YES;
+                [chromeTabTracking startChromeTabTimer];
             }
         } else { // Active window is not Chrome
-            if (self->isChromeActive) { // Chrome was active, but no longer is
+            if (chromeTabTracking.isChromeActive) { // Chrome was active, but no longer is
                 MyLog(@"[Chrome Tab] Chrome no longer active window.");
-                self->isChromeActive = NO;
-                [self stopChromeTabTimer];
-                [lastKnownChromeURL release]; self->lastKnownChromeURL = nil;
-                [lastKnownChromeTitle release]; self->lastKnownChromeTitle = nil;
+                chromeTabTracking.isChromeActive = NO;
+                [chromeTabTracking stopChromeTabTimer];
+                chromeTabTracking.lastKnownChromeURL = nil;
+                chromeTabTracking.lastKnownChromeTitle = nil;
             }
         }
         // --- End Chrome Tab Timer Management ---
@@ -286,25 +273,19 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
             if (chromeInfo) {
                 [windowInfo addEntriesFromDictionary:chromeInfo];
-                windowInfo[@"type"] = @"browser";
-                windowInfo[@"browser"] = @"chrome";
 
                 // If Chrome is active and this is the first time we're getting its info
                 // (e.g., after Chrome activation), set the baseline for tab change detection.
-                if (self->isChromeActive && self->lastKnownChromeURL == nil && chromeInfo[@"url"]) {
+                if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
                     MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
-                    [self->lastKnownChromeURL release];
-                    self->lastKnownChromeURL = [chromeInfo[@"url"] copy];
-                    [self->lastKnownChromeTitle release];
-                    self->lastKnownChromeTitle = [chromeInfo[@"title"] copy];
+                    chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
+                    chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
                 }
             }
         } else if ([windowOwnerName isEqualToString:@"Safari"]) {
             NSDictionary *safariInfo = [BrowserTabUtils getSafariTabInfo];
             if (safariInfo) {
                 [windowInfo addEntriesFromDictionary:safariInfo];
-                windowInfo[@"type"] = @"browser";
-                windowInfo[@"browser"] = @"safari";
             }
         } else {
             MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
@@ -469,7 +450,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (void)cleanUp {
     [self stopScreenshotTimer];        
     [self stopPeriodicBackupTimer];    
-    [self stopChromeTabTimer];
+    [chromeTabTracking stopChromeTabTimer];
     [sleepAndLockObserver stopObserving];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
@@ -958,129 +939,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     return nil;
 }
 
-// --- New methods for Chrome Tab Tracking ---
-
-- (NSDictionary*)getCurrentChromeTabBriefInfo {
-    NSString *scriptSource = @"tell application \"Google Chrome\"\n\
-  try\n\
-    if not (exists front window) then return \"ERROR|No window\"\n\
-    set activeTab to active tab of front window\n\
-    set tabUrl to URL of activeTab\n\
-    set tabTitle to title of activeTab\n\
-    return tabUrl & \"|\" & tabTitle\n\
-  on error errMsg\n\
-    return \"ERROR|\" & errMsg\n\
-  end try\n\
-end tell";
-    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:scriptSource];
-    NSDictionary *errorInfo = nil;
-    NSAppleEventDescriptor *descriptor = [appleScript executeAndReturnError:&errorInfo];
-    [appleScript release];
-
-    if (errorInfo) {
-        MyLog(@"[Chrome Tab Brief] AppleScript execution error: %@", errorInfo);
-        return nil;
-    }
-
-    NSString *resultString = [descriptor stringValue];
-    if (!resultString || [resultString hasPrefix:@"ERROR|"]) {
-        if (resultString && ![resultString isEqualToString:@"ERROR|No window"]) { // Don't log for "No window" as it's common
-             MyLog(@"[Chrome Tab Brief] AppleScript reported error: %@", resultString);
-        }
-        return nil;
-    }
-    
-    NSArray *components = [resultString componentsSeparatedByString:@"|"];
-    if (components.count >= 1) { // URL is component 0, title might be empty if not present.
-        NSString *url = components[0];
-        NSString *title = (components.count > 1) ? components[1] : @""; // Handle missing title gracefully
-        return @{@"url": url, @"title": title};
-    }
-    
-    MyLog(@"[Chrome Tab Brief] Invalid components from AppleScript: %@", resultString);
-    return nil;
+- (void)chromeTabDidSwitch:(NSDictionary *)newTabInfo {
+    MyLog(@"   Delegate received tab switch. Sending full details for new tab state (Owner: %@, Title: %@, URL: %@)", 
+          newTabInfo[@"ownerName"], 
+          newTabInfo[@"title"],
+          newTabInfo[@"url"]);
+    [self sendWindowInfoToJS:newTabInfo withReason:@"chrome_tab_switch"];
 }
-
-- (void)startChromeTabTimer {
-    if (self->chromeTabCheckTimer) { // Already running or improperly cleaned up
-        [self->chromeTabCheckTimer invalidate];
-        [self->chromeTabCheckTimer release];
-        self->chromeTabCheckTimer = nil;
-    }
-    // Check every 1.5 seconds
-    self->chromeTabCheckTimer = [[NSTimer scheduledTimerWithTimeInterval:1.5
-                                                                target:self
-                                                              selector:@selector(performChromeTabCheck)
-                                                              userInfo:nil
-                                                               repeats:YES] retain];
-    [[NSRunLoop currentRunLoop] addTimer:self->chromeTabCheckTimer forMode:NSRunLoopCommonModes];
-    MyLog(@"[Chrome Tab] ▶️ Chrome tab check timer started.");
-}
-
-- (void)stopChromeTabTimer {
-    if (self->chromeTabCheckTimer) {
-        [self->chromeTabCheckTimer invalidate];
-        [self->chromeTabCheckTimer release];
-        self->chromeTabCheckTimer = nil;
-        MyLog(@"[Chrome Tab] ⏹️ Chrome tab check timer stopped.");
-    }
-}
-
-- (void)performChromeTabCheck {
-    if (!self->isChromeActive) {
-        // This check is a safeguard; the timer should ideally be stopped when Chrome is not active.
-        // MyLog(@"[Chrome Tab] performChromeTabCheck called while Chrome not active. Stopping timer.");
-        // [self stopChromeTabTimer]; // This might lead to issues if called from timer thread directly, safer to let getActiveWindow manage state.
-        return;
-    }
-
-    NSDictionary *briefTabInfo = [self getCurrentChromeTabBriefInfo];
-    if (briefTabInfo) {
-        NSString *currentURL = briefTabInfo[@"url"];     // Can be nil
-        NSString *currentTitle = briefTabInfo[@"title"]; // Can be nil
-
-        // Check for changes, handles nil comparisons correctly
-        BOOL urlChanged = (self->lastKnownChromeURL || currentURL) && ![self->lastKnownChromeURL isEqualToString:currentURL];
-        BOOL titleChanged = (self->lastKnownChromeTitle || currentTitle) && ![self->lastKnownChromeTitle isEqualToString:currentTitle];
-
-        if (urlChanged || titleChanged) {
-            MyLog(@"[Chrome Tab] 🔄 Chrome Tab Switch Detected:");
-            if (urlChanged) MyLog(@"   URL: '%@' -> '%@'", self->lastKnownChromeURL, currentURL);
-            if (titleChanged) MyLog(@"   Title: '%@' -> '%@'", self->lastKnownChromeTitle, currentTitle);
-
-            // Update known state
-            NSString *newURL = [currentURL copy];
-            [self->lastKnownChromeURL release];
-            self->lastKnownChromeURL = newURL;
-
-            NSString *newTitle = [currentTitle copy];
-            [self->lastKnownChromeTitle release];
-            self->lastKnownChromeTitle = newTitle;
-            
-            // Get full window details for the new tab state
-            NSDictionary *activeWindowDetails = [self getActiveWindow]; // This will fetch full content etc.
-            if (activeWindowDetails) {
-                if ([activeWindowDetails[@"ownerName"] isEqualToString:@"Google Chrome"]) {
-                    MyLog(@"   Sending full details for new tab state (Owner: %@, Title: %@, URL: %@)", 
-                          activeWindowDetails[@"ownerName"], 
-                          activeWindowDetails[@"title"],
-                          activeWindowDetails[@"url"]); // url is present from getChromeTabInfo
-                    [self sendWindowInfoToJS:activeWindowDetails withReason:@"chrome_tab_switch"];
-                } else {
-                    MyLog(@"   WARNING: Tab switch detected, but getActiveWindow returned non-Chrome app: %@", activeWindowDetails[@"ownerName"]);
-                    // This case implies Chrome might have lost focus between brief check and full getActiveWindow.
-                    // The main getActiveWindow logic should handle stopping the timer if Chrome is no longer active.
-                }
-            } else {
-                 MyLog(@"   Could not get active window details after tab switch.");
-            }
-        }
-    } else {
-        // MyLog(@"[Chrome Tab] Could not get brief Chrome tab info during check. Chrome might have no windows or script failed.");
-    }
-}
-
-// --- End new methods ---
 
 @end
 

@@ -58,7 +58,9 @@
     NSMutableDictionary *tabInfo = [@{
         @"url": basicComponents[0],
         @"title": basicComponents[1],
-        @"type": @"chrome",
+        @"type": @"browser",
+        @"browser": @"chrome",
+        @"ownerName": @"Google Chrome",
         @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
     } mutableCopy];
     
@@ -124,6 +126,8 @@
             if (components.count >= 2) {
                 tabInfo[@"url"] = components[0];
                 tabInfo[@"title"] = components[1];
+                tabInfo[@"type"] = @"browser";
+                tabInfo[@"ownerName"] = @"Safari";
                 
                 // Now try to get the content
                 NSString *contentScript = @"tell application \"Safari\"\n"
