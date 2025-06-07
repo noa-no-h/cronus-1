@@ -16,6 +16,7 @@ export interface FloatingWindowApi {
   moveWindow: (deltaX: number, deltaY: number) => void
   hideFloatingWindow: () => void
   requestRecategorizeView: (category: Category | undefined) => void
+  openMainAppWindow: () => void
 }
 
 const floatingApi: FloatingWindowApi = {
@@ -35,6 +36,9 @@ const floatingApi: FloatingWindowApi = {
   },
   requestRecategorizeView: (category: Category | undefined) => {
     ipcRenderer.send('request-recategorize-view', category)
+  },
+  openMainAppWindow: () => {
+    ipcRenderer.send('open-main-app-window')
   }
 }
 

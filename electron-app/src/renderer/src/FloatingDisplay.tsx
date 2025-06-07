@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { X } from 'lucide-react'
+import { AppWindowMac, X } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Category } from 'shared'
 import { Button } from './components/ui/button'
@@ -110,6 +110,14 @@ const FloatingDisplay: React.FC = () => {
     }
   }
 
+  const handleOpenMainAppWindow = () => {
+    if (window.floatingApi && window.floatingApi.openMainAppWindow) {
+      window.floatingApi.openMainAppWindow()
+    } else {
+      console.warn('[FloatingDisplay] floatingApi.openMainAppWindow is not available.')
+    }
+  }
+
   if (!isVisible && latestStatus === null) {
     return null
   }
@@ -156,15 +164,27 @@ const FloatingDisplay: React.FC = () => {
       title="Drag to move"
       style={{ cursor: 'grab' }}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleClose}
-        className="close-button-area p-1 w-7 h-7 mr-1 rounded-lg"
-        title="Close"
-      >
-        <X className="w-4 h-4 text-muted-foreground" />
-      </Button>
+      <div className="flex flex-col items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClose}
+          className="close-button-area p-1 w-6 h-6 mr-1 rounded-lg"
+          title="Close"
+        >
+          <X className="w-4 h-4 text-muted-foreground" />
+        </Button>
+        {/* button to open the main app window */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleOpenMainAppWindow}
+          className="open-main-app-window-button p-1 w-6 h-6 mr-1 rounded-lg"
+          title="Open Main App Window"
+        >
+          <AppWindowMac className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      </div>
 
       <div className="flex-grow flex items-stretch gap-1.5 h-full">
         <StatusBox

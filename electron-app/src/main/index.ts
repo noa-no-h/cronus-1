@@ -287,6 +287,13 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.on('open-main-app-window', () => {
+    if (mainWindow) {
+      mainWindow.show()
+      mainWindow.focus()
+    }
+  })
+
   createWindow()
   createFloatingWindow()
 
