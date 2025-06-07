@@ -43,8 +43,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 @implementation ActiveWindowObserver {
     NSNumber *processId;
     AXObserverRef observer;
-    NSTimer *screenshotTimer;
-    NSData *lastScreenshotData;
     NSTimer *periodicCheckTimer;          
     NSString *lastTrackedApp;             
     NSTimeInterval lastAppSwitchTime;    
@@ -305,128 +303,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     return nil;
 }
 
-// Screenshot related
-
-- (NSData*)captureWindowScreenshot:(CGWindowID)windowId {
-    // Get window bounds
-    CGRect windowBounds;
-    CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionIncludingWindow, windowId);
-    if (windowList) {
-        NSArray *windows = (__bridge_transfer NSArray*)windowList;
-        for (NSDictionary *window in windows) {
-            CGRect bounds;
-            CGRectMakeWithDictionaryRepresentation((__bridge CFDictionaryRef)window[(__bridge NSString*)kCGWindowBounds], &bounds);
-            windowBounds = bounds;
-
-            MyLog(@"Window bounds (scaled): %@", NSStringFromRect(NSRectFromCGRect(bounds)));
-
-            break;
-        }
-    }
-
-    // Create an image of the window
-    CGImageRef windowImage = CGWindowListCreateImage(
-        windowBounds,
-        kCGWindowListOptionIncludingWindow,
-        windowId,
-        kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
-    );
-    
-    if (!windowImage) {
-        MyLog(@"Failed to create window image");
-        return nil;
-    }
-    
-      // Convert to JPEG with increased compression
-    NSMutableData *imageData = [NSMutableData data];
-    CGImageDestinationRef destination = CGImageDestinationCreateWithData(
-        (__bridge CFMutableDataRef)imageData,
-        kUTTypeJPEG,
-        1,
-        NULL
-    );
-    
-    if (!destination) {
-        CGImageRelease(windowImage);
-        return nil;
-    }
-    
-    // Set compression quality 
-    NSDictionary *properties = @{
-        (__bridge NSString *)kCGImageDestinationLossyCompressionQuality: @0.5
-    };
-    
-    CGImageDestinationAddImage(destination, windowImage, (__bridge CFDictionaryRef)properties);
-    CGImageDestinationFinalize(destination);
-    
-    // Clean up
-    CFRelease(destination);
-    CGImageRelease(windowImage);
-    
-    return imageData;
-}
-
-- (void)startScreenshotTimer {
-    [self stopScreenshotTimer];
-    
-    // Take screenshot every 30 seconds
-    screenshotTimer = [NSTimer scheduledTimerWithTimeInterval:10.0
-                                                     target:self
-                                                   selector:@selector(takeScreenshot)
-                                                   userInfo:nil
-                                                    repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:screenshotTimer forMode:NSRunLoopCommonModes];
-    MyLog(@"Screenshot timer started");
-}
-
-- (void)stopScreenshotTimer {
-    [screenshotTimer invalidate];
-    screenshotTimer = nil;
-    MyLog(@"Screenshot timer stopped");
-}
-
-- (void)takeScreenshot {
-    NSDictionary *windowInfo = [self getActiveWindow];
-    if (!windowInfo) return;
-    
-    CGWindowID windowId = [[windowInfo objectForKey:@"id"] unsignedIntValue];
-    NSData *screenshotData = [self captureWindowScreenshot:windowId];
-    
-    if (!screenshotData) {
-        MyLog(@"Failed to capture screenshot");
-        return;
-    }
-    
-    // Save screenshot to a temporary file
-    NSString *tempDir = NSTemporaryDirectory();
-    NSString *fileName = [NSString stringWithFormat:@"%@.jpg", [[NSUUID UUID] UUIDString]];
-    NSString *filePath = [tempDir stringByAppendingPathComponent:fileName];
-    BOOL success = [screenshotData writeToFile:filePath atomically:YES];
-
-    if (!success) {
-        MyLog(@"Failed to save screenshot to temp file: %@", filePath);
-        return;
-    }
-
-    // Add screenshot path to window info
-    NSMutableDictionary *updatedInfo = [windowInfo mutableCopy];
-    updatedInfo[@"localScreenshotPath"] = filePath; // Send path instead of base64
-    updatedInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
-    
-    // Send to JavaScript
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:updatedInfo options:0 error:&error];
-    if (!jsonData) {
-        MyLog(@"Error creating JSON data: %@", error);
-        return;
-    }
-    
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    std::string* result = new std::string([jsonString UTF8String]);
-    activeWindowChangedCallback.BlockingCall(result, napiCallback);
-    MyLog(@"Screenshot captured, saved to %@, and event sent", filePath);
-}
-
 - (void) removeWindowObserver
 {
     if (observer != Nil) {
@@ -437,7 +313,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (void)cleanUp {
-    [self stopScreenshotTimer];        
     [self stopPeriodicBackupTimer];    
     [chromeTabTracking stopChromeTabTimer];
     [sleepAndLockObserver stopObserving];
