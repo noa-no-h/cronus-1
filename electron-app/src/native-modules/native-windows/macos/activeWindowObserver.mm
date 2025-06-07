@@ -4,6 +4,7 @@
 #import "chromeTabTracking.h"
 #import "contentExtractor.h"
 #import "iconUtils.h"
+#import "appFilter.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #import <CoreGraphics/CoreGraphics.h>
@@ -232,7 +233,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         CGWindowID windowId = [windowNumber unsignedIntValue];
 
         // filter out specific apps 
-        if ([self shouldExcludeApp:windowOwnerName withTitle:windowTitle]) {
+        if (shouldExcludeApp(windowOwnerName, windowTitle)) {
             return nil;
         }
         
@@ -324,50 +325,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     [self removeWindowObserver];
 }
 
-// App exclusion related
-
-- (BOOL)shouldExcludeApp:(NSString*)ownerName withTitle:(NSString*)title {
-    if (!ownerName) return NO;
-    
-    // First check: Exclude system UI elements
-    if ([ownerName isEqualToString:@"Dock"] ||
-        [ownerName isEqualToString:@"Finder"] ||
-        [ownerName isEqualToString:@"SystemUIServer"]) {
-        MyLog(@"🚫 Excluding system UI element: %@", ownerName);
-        return YES;
-    }
-    
-    // Second check: Handle Electron windows
-    if ([ownerName isEqualToString:@"Electron"]) {
-        // Get the current app's PID
-        int currentAppPid = [NSProcessInfo processInfo].processIdentifier;
-        
-        NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(
-            kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, 
-            kCGNullWindowID
-        );
-        
-        for (NSDictionary *window in windows) {
-            NSString *windowOwner = [window objectForKey:(id)kCGWindowOwnerName];
-            NSNumber *windowPid = [window objectForKey:(id)kCGWindowOwnerPID];
-            NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
-            
-            // Check if this is the frontmost Electron window
-            if ([windowOwner isEqualToString:@"Electron"] && 
-                [windowLayer intValue] == 0 && 
-                windowPid && 
-                [windowPid intValue] == currentAppPid) {
-                
-                MyLog(@"🔎 TRACKING CURRENT ELECTRON APP (PID: %d)", currentAppPid);
-                // return YES; // No longer excluding
-            }
-        }
-    }
-    
-    return NO;
-}
-
-// App icon related - REMOVED, see iconUtils.mm
+// App exclusion related - REMOVED, see appFilter.mm
 
 - (void)chromeTabDidSwitch:(NSDictionary *)newTabInfo {
     MyLog(@"   Delegate received tab switch. Sending full details for new tab state (Owner: %@, Title: %@, URL: %@)", 
