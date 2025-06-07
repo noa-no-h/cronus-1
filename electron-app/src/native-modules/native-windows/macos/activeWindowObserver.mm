@@ -1,4 +1,5 @@
 #import "activeWindowObserver.h"
+#import "sleepAndLockObserver.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #import <CoreGraphics/CoreGraphics.h>
@@ -51,34 +52,17 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSString *lastKnownChromeTitle;
     BOOL isChromeActive; 
     // --- End new ivars ---
+    SleepAndLockObserver *sleepAndLockObserver;
 }
 
 - (id)init {
     self = [super init];
     if (!self) return nil;
 
-    // Check initial screen lock state
-    CFDictionaryRef sessionDict = CGSessionCopyCurrentDictionary();
-    if (sessionDict) {
-        BOOL isLocked = CFDictionaryGetValue(sessionDict, kCGSessionOnConsoleKey) == kCFBooleanFalse;
-        if (isLocked) {
-            // Create a lock event with current timestamp
-            NSMutableDictionary *lockEvent = [@{
-                @"id": @0,
-                @"ownerName": @"System Lock",
-                @"title": @"Screen was locked",
-                @"type": @"system",
-                @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-            } mutableCopy];
-            
-            [self sendWindowInfoToJS:lockEvent withReason:@"system_lock_initial"];
-        }
-        CFRelease(sessionDict);
-    }
+    sleepAndLockObserver = [[SleepAndLockObserver alloc] initWithWindowObserver:self];
     
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
-    NSNotificationCenter *distributedCenter = [NSDistributedNotificationCenter defaultCenter];
     
     // Workspace notifications (sleep/wake)
     [workspaceCenter addObserver:self 
@@ -86,27 +70,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                            name:NSWorkspaceDidActivateApplicationNotification 
                          object:nil];
     
-    [workspaceCenter addObserver:self
-                       selector:@selector(receiveSleepNotification:)
-                           name:NSWorkspaceWillSleepNotification
-                         object:nil];
-                                                           
-    [workspaceCenter addObserver:self
-                       selector:@selector(receiveWakeNotification:)
-                           name:NSWorkspaceDidWakeNotification
-                         object:nil];
-
-    // Screen lock/unlock notifications (using distributed notifications)
-    [distributedCenter addObserver:self
-                        selector:@selector(receiveScreenLockNotification:)
-                            name:@"com.apple.screenIsLocked"
-                          object:nil];
-    
-    [distributedCenter addObserver:self
-                        selector:@selector(receiveScreenUnlockNotification:)
-                            name:@"com.apple.screenIsUnlocked"
-                          object:nil];
-
     MyLog(@"🔧 DEBUG: Initialized observers for sleep/wake and lock/unlock events");
     
     // --- Initialize Chrome tab tracking ivars ---
@@ -119,77 +82,18 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     return self;
 }
 
-- (void)receiveScreenLockNotification:(NSNotification *)notification {
-    MyLog(@"🔒 DEBUG: Screen lock notification received");
-    
-    // Create a special lock event
-    NSMutableDictionary *lockEvent = [@{
-        @"id": @0,
-        @"ownerName": @"System Lock",
-        @"title": @"Screen was locked",
-        @"type": @"system",
-        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-    } mutableCopy];
-    
-    MyLog(@"🔒 DEBUG: Sending lock event to JS: %@", lockEvent);
-    [self sendWindowInfoToJS:lockEvent withReason:@"system_lock"];
-}
-
-- (void)receiveScreenUnlockNotification:(NSNotification *)notification {
-    MyLog(@"🔓 DEBUG: Screen unlock notification received");
-    
-    // Create an unlock event
-    NSMutableDictionary *unlockEvent = [@{
-        @"id": @0,
-        @"ownerName": @"System Unlock",
-        @"title": @"Screen was unlocked",
-        @"type": @"system",
-        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-    } mutableCopy];
-    
-    MyLog(@"🔓 DEBUG: Sending unlock event to JS: %@", unlockEvent);
-    [self sendWindowInfoToJS:unlockEvent withReason:@"system_unlock"];
-}
-
 - (void)dealloc {
     [self stopChromeTabTimer]; // Ensure timer is stopped and released
     [lastKnownChromeURL release];
     lastKnownChromeURL = nil;
     [lastKnownChromeTitle release];
     lastKnownChromeTitle = nil;
+    [sleepAndLockObserver release];
+    sleepAndLockObserver = nil;
 
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
     [super dealloc];
-}
-
-// Add new methods to handle sleep/wake
-- (void)receiveSleepNotification:(NSNotification *)notification {
-    MyLog(@"💤 System going to sleep");
-    
-    // Create a special sleep event
-    NSMutableDictionary *sleepEvent = [@{
-        @"ownerName": @"System Sleep",
-        @"title": @"Computer was sleeping",
-        @"type": @"window",
-        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-    } mutableCopy];
-    
-    [self sendWindowInfoToJS:sleepEvent withReason:@"system_sleep"];
-}
-
-- (void)receiveWakeNotification:(NSNotification *)notification {
-    MyLog(@"⏰ System waking up");
-    
-    // Create a wake event to mark the end of sleep period
-    NSMutableDictionary *wakeEvent = [@{
-        @"ownerName": @"System Wake",
-        @"title": @"Computer woke from sleep",
-        @"type": @"window",
-        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-    } mutableCopy];
-    
-    [self sendWindowInfoToJS:wakeEvent withReason:@"system_wake"];
 }
 
 // periodic backup timer
@@ -740,6 +644,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     [self stopScreenshotTimer];        
     [self stopPeriodicBackupTimer];    
     [self stopChromeTabTimer];
+    [sleepAndLockObserver stopObserving];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
 }
