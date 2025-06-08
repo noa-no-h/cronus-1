@@ -192,9 +192,8 @@ export function MainAppContent() {
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation({
     onSuccess: () => {
-      // When a new event is created, invalidate the queries that feed the dashboard
-      // to force a refresh. This ensures the UI updates even when the window is inactive.
       trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
+      // invalidating this because we modify the active window event in the backend
       trpcUtils.activeWindowEvents.getLatestEvent.invalidate()
     },
     onError: (error) => {

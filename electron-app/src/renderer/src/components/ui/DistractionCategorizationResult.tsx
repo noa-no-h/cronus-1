@@ -68,11 +68,12 @@ const DistractionCategorizationResult = ({
   }
 
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
+    // note: make sure you invalidate the query when you create a new event, otherwise it will not be updated
     trpc.activeWindowEvents.getLatestEvent.useQuery(
       { token: token || '' },
       {
         enabled: !!token && typeof token === 'string' && token.length > 0,
-        refetchInterval: 1000 // Poll every 10 seconds
+        refetchInterval: 1000 // Poll every 1 second
       }
     )
 
