@@ -11,15 +11,9 @@
           "OS==\"mac\"",
           {
             "sources": [
-              "<!@(node -p \"require('fs').readdirSync('./macos').map(f=>'macos/'+f).join(' ')\")",
-              "macos/nativeWindows.mm",
-              "macos/activeWindowObserver.mm",
-              "macos/sleepAndLockObserver.mm"
+              "<!@(node -p \"require('fs').readdirSync('./macos').map(f=>'macos/'+f).join(' ')\")"
             ],
-            "libraries": ["-framework Cocoa"],
-            "xcode_settings": {
-              "OTHER_CFLAGS": ["-fno-exceptions"]
-            }
+            "libraries": ["-framework Cocoa"]
           }
         ]
       ]

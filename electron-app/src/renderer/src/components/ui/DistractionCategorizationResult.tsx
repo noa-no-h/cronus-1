@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
-import React, { JSX, useEffect, useMemo, useState } from 'react'
+import React, { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
@@ -51,6 +51,7 @@ const DistractionCategorizationResult = ({
   const { token } = useAuth()
   const navigate = useNavigate()
   const [isNarrowView, setIsNarrowView] = useState(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -91,6 +92,54 @@ const DistractionCategorizationResult = ({
       { token: token || '' },
       { enabled: !!token && typeof token === 'string' && token.length > 0 }
     )
+
+  const isDistracted = useMemo(() => {
+    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
+      const fullCategoryDetails = categoryDetails as Category
+      return fullCategoryDetails.isProductive === false
+    }
+    return false
+  }, [categoryDetails])
+
+  useEffect(() => {
+    const playSound = () => {
+      if (!audioContextRef.current) {
+        try {
+          audioContextRef.current = new window.AudioContext()
+        } catch (e) {
+          console.error('Web Audio API is not supported in this environment.', e)
+          return
+        }
+      }
+      const audioContext = audioContextRef.current
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime) // A4
+      oscillator.connect(gainNode)
+
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5)
+      gainNode.connect(audioContext.destination)
+
+      oscillator.start()
+      oscillator.stop(audioContext.currentTime + 0.5)
+    }
+
+    let intervalId: NodeJS.Timeout | null = null
+
+    if (isDistracted) {
+      playSound() // Play sound immediately
+      intervalId = setInterval(playSound, 3000)
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [isDistracted])
 
   const [currentDayStartDateMs, setCurrentDayStartDateMs] = React.useState<number | null>(null)
   const [currentDayEndDateMs, setCurrentDayEndDateMs] = React.useState<number | null>(null)
