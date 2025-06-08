@@ -8,7 +8,9 @@
   ],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"]
+    "types": ["electron-vite/node"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "references": [{ "path": "../shared" }]
 }
