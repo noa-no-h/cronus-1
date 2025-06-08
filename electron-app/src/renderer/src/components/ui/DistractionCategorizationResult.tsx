@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import React, { JSX, useEffect, useMemo, useRef } from 'react'
 import { ActiveWindowDetails } from 'shared'
+import dingSound from '../../assets/ding.mp3'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 
@@ -121,6 +122,24 @@ const DistractionCategorizationResult = ({
       }
     }
   }, [distractionResult, activeWindow])
+
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null
+
+    if (distractionResult?.isDistraction === 'yes') {
+      const playSound = (): void => {
+        new Audio(dingSound).play().catch((e) => console.error('Audio play failed:', e))
+      }
+
+      intervalId = setInterval(playSound, 3000)
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [distractionResult?.isDistraction])
 
   if (!activeWindow) {
     return null
