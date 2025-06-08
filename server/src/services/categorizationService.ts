@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../shared/types';
+import { logToFile } from '../lib/logger';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { CategoryModel } from '../models/category';
 import { User as UserModel } from '../models/user';
@@ -177,6 +178,7 @@ export async function categorizeActivity(
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<CategorizationResult> {
+  await logToFile('categorizeActivity called', { userId, activeWindow });
   // 1. History Check
   const historicalCategoryId = await checkActivityHistory(userId, activeWindow);
   if (historicalCategoryId) {

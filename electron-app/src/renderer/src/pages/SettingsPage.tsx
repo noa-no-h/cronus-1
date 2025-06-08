@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { PageContainer } from '../components/layout/PageContainer'
 import { CategoryManagement } from '../components/settings/CategoryManagement' // We'll create this next
+import DistractionSoundSettings from '../components/settings/DistractionSoundSettings'
 import { ThemeSwitcher } from '../components/settings/ThemeSwitcher'
 import { Button } from '../components/ui/button'
 import GoalInputForm from '../components/ui/GoalInputForm'
@@ -32,6 +33,7 @@ export function SettingsPage() {
       <div className="p-4 md:p-6 pt-4">
         <div className="space-y-8">
           <CategoryManagement />
+          <DistractionSoundSettings />
           <GoalInputForm />
           <ThemeSwitcher />
         </div>

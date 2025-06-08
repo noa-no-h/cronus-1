@@ -51,12 +51,18 @@ const FloatingDisplay: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined = undefined
+    let intervalId: NodeJS.Timeout | undefined
+
     if (latestStatus === 'productive') {
       intervalId = setInterval(() => {
         setDisplayedProductiveTimeMs((prevMs) => prevMs + 1000)
       }, 1000)
+    } else if (latestStatus === 'unproductive' || latestStatus === 'maybe') {
+      intervalId = setInterval(() => {
+        setDailyUnproductiveMs((prevMs) => prevMs + 1000)
+      }, 1000)
     }
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId)

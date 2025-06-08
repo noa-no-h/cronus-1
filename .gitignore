@@ -58,3 +58,4 @@ shared/dist_tsc/
 
 # TypeScript build info files (can be in various locations)
 **/*.tsbuildinfo
+server/server.log

@@ -48,6 +48,19 @@ const userSchema = new mongoose.Schema({
       min: 40,
       max: 120,
     },
+    theme: {
+      type: String,
+      default: 'system',
+      enum: ['light', 'dark', 'system'],
+    },
+    playDistractionSound: {
+      type: Boolean,
+      default: true,
+    },
+    distractionSoundInterval: {
+      type: Number,
+      default: 30, // in seconds
+    },
   },
   userGoals: {
     weeklyGoal: {

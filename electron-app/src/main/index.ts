@@ -5,7 +5,7 @@ import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
 import { ActiveWindowDetails, Category } from 'shared'
 import icon from '../../resources/icon.png?asset'
-import { nativeWindows } from '../native-modules/native-windows/index'
+import { nativeWindows } from '../native-modules/native-windows'
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })
@@ -15,6 +15,57 @@ let floatingWindow: BrowserWindow | null
 
 const FLOATING_WINDOW_WIDTH = 400
 const FLOATING_WINDOW_HEIGHT = 60
+
+// --- File Logger Setup ---
+const mainLogFilePath = join(app.getAppPath(), 'whatdidyougetdonethisweek-main.log')
+const rendererLogFilePath = join(app.getAppPath(), 'whatdidyougetdonethisweek-renderer.log')
+
+async function initializeLoggers(): Promise<void> {
+  try {
+    await fs.writeFile(mainLogFilePath, `--- Main Log started at ${new Date().toISOString()} ---\n`)
+    await fs.writeFile(
+      rendererLogFilePath,
+      `--- Renderer Log started at ${new Date().toISOString()} ---\n`
+    )
+  } catch (err) {
+    console.error('Failed to initialize log files:', err)
+  }
+}
+
+async function logMainToFile(message: string, data?: object): Promise<void> {
+  const timestamp = new Date().toISOString()
+  let logEntry = `${timestamp} - ${message}`
+  if (data) {
+    try {
+      logEntry += `\n${JSON.stringify(data, null, 2)}`
+    } catch (e) {
+      logEntry += `\n[Could not stringify data]`
+    }
+  }
+  try {
+    await fs.appendFile(mainLogFilePath, logEntry + '\n')
+  } catch (err) {
+    console.error('Failed to write to main log file:', err)
+  }
+}
+
+async function logRendererToFile(message: string, data?: object): Promise<void> {
+  const timestamp = new Date().toISOString()
+  let logEntry = `${timestamp} - ${message}`
+  if (data) {
+    try {
+      logEntry += `\n${JSON.stringify(data, null, 2)}`
+    } catch (e) {
+      logEntry += `\n[Could not stringify data]`
+    }
+  }
+  try {
+    await fs.appendFile(rendererLogFilePath, logEntry + '\n')
+  } catch (err) {
+    console.error('Failed to write to renderer log file:', err)
+  }
+}
+// --- End File Logger Setup ---
 
 function createFloatingWindow(): void {
   const primaryDisplay = screen.getPrimaryDisplay()
@@ -56,11 +107,11 @@ function createFloatingWindow(): void {
 
   // Listeners for visibility changes to inform the main window
   floatingWindow.on('show', () => {
-    console.log('Floating window event: show (from createFloatingWindow setup)')
+    // console.log('Floating window event: show (from createFloatingWindow setup)')
     mainWindow?.webContents.send('floating-window-visibility-changed', true)
   })
   floatingWindow.on('hide', () => {
-    console.log('Floating window event: hide (from createFloatingWindow setup)')
+    // console.log('Floating window event: hide (from createFloatingWindow setup)')
     mainWindow?.webContents.send('floating-window-visibility-changed', false)
   })
 
@@ -207,7 +258,8 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await initializeLoggers()
   electronApp.setAppUserModelId('com.electron')
 
   // Default open or close DevTools by F12 in development
@@ -219,10 +271,26 @@ app.whenReady().then(() => {
 
   ipcMain.on('ping', () => console.log('pong'))
 
+  ipcMain.on('log-to-file', (_event, _message: string, _data?: object) => {
+    // logRendererToFile(message, data)
+  })
+
   ipcMain.handle('get-env-vars', () => {
     return {
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
       // Add other vars you want to expose from your .env file
+    }
+  })
+
+  ipcMain.handle('get-audio-data-url', async () => {
+    try {
+      const audioFilePath = join(app.getAppPath(), 'public', 'sounds', 'distraction.mp3')
+      const buffer = await fs.readFile(audioFilePath)
+      const base64 = buffer.toString('base64')
+      return `data:audio/mp3;base64,${base64}`
+    } catch (error) {
+      console.error('Error reading audio file for data URL:', error)
+      return null
     }
   })
 

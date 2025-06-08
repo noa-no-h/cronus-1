@@ -5,13 +5,15 @@ import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDistractionSound } from '../../hooks/useDistractionSound'
 import { getFaviconURL } from '../../utils/favicon'
+import { calculateProductivityMetrics } from '../../utils/timeMetrics'
 import { trpc } from '../../utils/trpc'
 import AppIcon from '../AppIcon'
 import { Button } from './button'
 import { Card } from './card'
 
-const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
+// const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
 
 interface DistractionCategorizationResultProps {
   activeWindow: ActiveWindowDetails | null
@@ -68,8 +70,21 @@ const DistractionCategorizationResult = ({
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
     trpc.activeWindowEvents.getLatestEvent.useQuery(
       { token: token || '' },
-      { enabled: !!token && typeof token === 'string' && token.length > 0, refetchInterval: 2500 }
+      {
+        enabled: !!token && typeof token === 'string' && token.length > 0,
+        refetchInterval: 1000 // Poll every 10 seconds
+      }
     )
+
+  useEffect(() => {
+    if (latestEvent) {
+      // @ts-ignore
+      window.api?.logToFile(
+        '[DistractionCategorizationResult] Received latest event from server:',
+        latestEvent
+      )
+    }
+  }, [latestEvent])
 
   const categoryId = latestEvent?.categoryId
 
@@ -121,6 +136,8 @@ const DistractionCategorizationResult = ({
       }
     )
 
+  useDistractionSound(categoryDetails as Category | null | undefined)
+
   useEffect(() => {
     if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
       return
@@ -132,7 +149,9 @@ const DistractionCategorizationResult = ({
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === true) latestStatus = 'productive'
-      else if (fullCategoryDetails.isProductive === false) latestStatus = 'unproductive'
+      else if (fullCategoryDetails.isProductive === false) {
+        latestStatus = 'unproductive'
+      }
       categoryDetailsForFloatingWindow = fullCategoryDetails
     } else if (categoryDetails === null) {
       latestStatus = 'maybe'
@@ -140,102 +159,10 @@ const DistractionCategorizationResult = ({
       // Or we could send a generic "Uncategorized" message if desired
     }
 
-    let dailyProductiveMs = 0
-    let dailyUnproductiveMs = 0
-
-    const categoriesMap = new Map((userCategories as Category[]).map((cat) => [cat._id, cat]))
-
-    const validEvents = todayEvents.filter(
-      (event) => typeof event.timestamp === 'number'
-    ) as ActiveWindowEvent[]
-    const sortedEvents = [...validEvents].sort(
-      (a, b) => (a.timestamp as number) - (b.timestamp as number)
+    const { dailyProductiveMs, dailyUnproductiveMs } = calculateProductivityMetrics(
+      todayEvents as ActiveWindowEvent[],
+      userCategories as Category[]
     )
-
-    for (let i = 0; i < sortedEvents.length; i++) {
-      const currentEvent = sortedEvents[i]
-      const currentTimestamp = currentEvent.timestamp as number
-
-      // Skip system sleep/wake/lock/unlock events for direct productivity calculation
-      // Their timestamps are used to delimit the duration of other events.
-      if (
-        currentEvent.ownerName === 'System Sleep' ||
-        currentEvent.ownerName === 'System Wake' ||
-        currentEvent.ownerName === 'System Lock' ||
-        currentEvent.ownerName === 'System Unlock'
-      ) {
-        continue
-      }
-
-      const eventCategory = currentEvent.categoryId
-        ? categoriesMap.get(currentEvent.categoryId)
-        : null
-
-      if (!eventCategory) {
-        // If no category, this event's time is not tracked
-        continue
-      }
-
-      let durationMs = 0
-
-      if (i < sortedEvents.length - 1) {
-        const nextEvent = sortedEvents[i + 1]
-        const nextEventTimestamp = nextEvent.timestamp as number
-
-        // Calculate duration until this nextEvent
-        durationMs = nextEventTimestamp - currentTimestamp
-
-        // NEW: First check for large gaps between events
-        if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
-          durationMs = MAX_GAP_BETWEEN_EVENTS_MS
-        }
-
-        // Then handle system events as before
-        if (nextEvent.ownerName === 'System Sleep' || nextEvent.ownerName === 'System Lock') {
-          // Duration for currentEvent is already calculated and capped above
-          if (durationMs > 0) {
-            if (eventCategory.isProductive) {
-              dailyProductiveMs += durationMs
-            } else {
-              dailyUnproductiveMs += durationMs
-            }
-          }
-
-          // Find the corresponding wake/unlock event to advance the loop.
-          const resumeEventName =
-            nextEvent.ownerName === 'System Sleep' ? 'System Wake' : 'System Unlock'
-          const resumeIndex = sortedEvents.findIndex(
-            (e, idx) => idx > i + 1 && e.ownerName === resumeEventName
-          )
-
-          if (resumeIndex !== -1) {
-            i = resumeIndex - 1
-          } else {
-            break
-          }
-          continue
-        }
-      } else {
-        // This is the last event in sortedEvents. Calculate duration until current time.
-        durationMs = Date.now() - currentTimestamp
-        // Also cap this duration
-        if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
-          durationMs = MAX_GAP_BETWEEN_EVENTS_MS
-        }
-      }
-
-      // Common accumulation logic for:
-      // 1. Event followed by a non-sleep/lock event.
-      // 2. The last event of the day.
-      durationMs = Math.max(0, Math.min(durationMs, 5 * 60 * 1000)) // Cap and ensure non-negative
-      if (durationMs > 0) {
-        if (eventCategory.isProductive) {
-          dailyProductiveMs += durationMs
-        } else {
-          dailyUnproductiveMs += durationMs
-        }
-      }
-    }
 
     window.electron.ipcRenderer.send('update-floating-window-status', {
       latestStatus,

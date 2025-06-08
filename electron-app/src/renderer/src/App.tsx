@@ -190,7 +190,17 @@ export function MainAppContent() {
     }
   }, [token, openRecategorizeDialog])
 
-  const eventCreationMutation = trpc.activeWindowEvents.create.useMutation()
+  const eventCreationMutation = trpc.activeWindowEvents.create.useMutation({
+    onSuccess: () => {
+      // When a new event is created, invalidate the queries that feed the dashboard
+      // to force a refresh. This ensures the UI updates even when the window is inactive.
+      trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
+      trpcUtils.activeWindowEvents.getLatestEvent.invalidate()
+    },
+    onError: (error) => {
+      console.error('Error creating active window event:', error)
+    }
+  })
 
   // auto open mini timer when starting the app
   useEffect(() => {

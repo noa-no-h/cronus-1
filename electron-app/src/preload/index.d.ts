@@ -38,6 +38,7 @@ declare global {
       readFile: (filePath: string) => Promise<ArrayBuffer>
       deleteFile: (filePath: string) => Promise<void>
       onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
+      getAudioDataUrl: () => Promise<string | null>
     }
   }
 }

@@ -7,6 +7,7 @@
 #import "appFilter.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
+#include <stdarg.h>
 #import <CoreGraphics/CoreGraphics.h>
 
 // Custom Log Macro
@@ -111,10 +112,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     NSTimeInterval timeSinceLastSwitch = now - lastAppSwitchTime;
     
-    MyLog(@"⏰ PERIODIC TIMER FIRED - Last switch: %.1f seconds ago", timeSinceLastSwitch);
+    // MyLog(@"⏰ PERIODIC TIMER FIRED - Last switch: %.1f seconds ago", timeSinceLastSwitch);
     
     // Always capture periodic backup
-    MyLog(@"📅 PERIODIC BACKUP: Capturing current state");
+    // MyLog(@"📅 PERIODIC BACKUP: Capturing current state");
     
     NSDictionary *windowInfo = [self getActiveWindow];
     if (windowInfo) {
@@ -146,7 +147,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSRunningApplication *appBeforeDelay = [NSRunningApplication runningApplicationWithProcessIdentifier:currentOperationProcessId.intValue];
     NSString *expectedAppNameBeforeDelay = appBeforeDelay ? appBeforeDelay.localizedName : @"Unknown (PID lookup failed)";
 
-    MyLog(@"[AppSwitch] Notification for app activation: %@ (PID %@)", expectedAppNameBeforeDelay, currentOperationProcessId);
+    // MyLog(@"[AppSwitch] Notification for app activation: %@ (PID %@)", expectedAppNameBeforeDelay, currentOperationProcessId);
 
     // After an app activation notification, there can be a slight delay before the system
     // fully updates its window list. Introduce a brief pause here to ensure that when
@@ -156,24 +157,24 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInMSec * NSEC_PER_MSEC));
     
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-        MyLog(@"[AppSwitch] After %.0fms delay, processing for PID %@", delayInMSec, currentOperationProcessId);
+        // MyLog(@"[AppSwitch] After %.0fms delay, processing for PID %@", delayInMSec, currentOperationProcessId);
         NSDictionary *details = [self getActiveWindow]; // Attempt to get the new active window
         
         if (details) {
             NSString *ownerNameFromDetails = details[@"ownerName"];
-            MyLog(@"[AppSwitch]   Active window found: %@. Expected app: %@.", ownerNameFromDetails, expectedAppNameBeforeDelay);
+            // MyLog(@"[AppSwitch]   Active window found: %@. Expected app: %@.", ownerNameFromDetails, expectedAppNameBeforeDelay);
             
             // Update tracking variables and send data
             self->lastTrackedApp = ownerNameFromDetails;
             [self sendWindowInfoToJS:details withReason:@"app_switch"];
         } else {
-             MyLog(@"[AppSwitch]   No active window details found after delay for PID: %@", currentOperationProcessId);
+            //  MyLog(@"[AppSwitch]   No active window details found after delay for PID: %@", currentOperationProcessId);
         }
 
         // Setup observer for the new application
         AXUIElementRef appElem = AXUIElementCreateApplication(currentOperationProcessId.intValue);
         if (!appElem) {
-            MyLog(@"[AppSwitch]   Failed to create AXUIElement for PID %@", currentOperationProcessId);
+            // MyLog(@"[AppSwitch]   Failed to create AXUIElement for PID %@", currentOperationProcessId);
             return;
         }
         
@@ -181,7 +182,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         AXError createResult = AXObserverCreate(currentOperationProcessId.intValue, windowChangeCallback, &(self->observer));
 
         if (createResult != kAXErrorSuccess) {
-            MyLog(@"[AppSwitch]   AXObserverCreate failed for PID %@: Error %d", currentOperationProcessId, createResult);
+            // MyLog(@"[AppSwitch]   AXObserverCreate failed for PID %@: Error %d", currentOperationProcessId, createResult);
             CFRelease(appElem); // Release appElem if observer creation fails
             return;
         }
@@ -190,7 +191,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         CFRunLoopAddSource([[NSRunLoop currentRunLoop] getCFRunLoop], AXObserverGetRunLoopSource(self->observer), kCFRunLoopDefaultMode);
         
         CFRelease(appElem); // Release the element as its information has been registered
-        MyLog(@"[AppSwitch]   Observers added for PID %@ (%@)", currentOperationProcessId, expectedAppNameBeforeDelay);
+        // MyLog(@"[AppSwitch]   Observers added for PID %@ (%@)", currentOperationProcessId, expectedAppNameBeforeDelay);
     });
 }
 

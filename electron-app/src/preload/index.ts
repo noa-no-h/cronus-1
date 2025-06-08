@@ -13,6 +13,8 @@ const api = {
       ipcRenderer.removeListener('active-window-changed', listener)
     }
   },
+  getAudioDataUrl: () => ipcRenderer.invoke('get-audio-data-url'),
+  logToFile: (message: string, data?: object) => ipcRenderer.send('log-to-file', message, data),
   getEnvVariables: () => ipcRenderer.invoke('get-env-vars'),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
   deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),

@@ -10,6 +10,8 @@ export const userRouter = router({
         token: z.string(),
         calendarZoomLevel: z.number().min(40).max(120).optional(),
         theme: z.enum(['light', 'dark', 'system']).optional(),
+        playDistractionSound: z.boolean().optional(),
+        distractionSoundInterval: z.number().min(5).max(300).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -22,6 +24,12 @@ export const userRouter = router({
       }
       if (input.theme !== undefined) {
         updateData['electronAppSettings.theme'] = input.theme;
+      }
+      if (input.playDistractionSound !== undefined) {
+        updateData['electronAppSettings.playDistractionSound'] = input.playDistractionSound;
+      }
+      if (input.distractionSoundInterval !== undefined) {
+        updateData['electronAppSettings.distractionSoundInterval'] = input.distractionSoundInterval;
       }
 
       const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
@@ -48,7 +56,14 @@ export const userRouter = router({
         throw new Error('User not found');
       }
 
-      return user.electronAppSettings || { calendarZoomLevel: 60, theme: 'system' };
+      return (
+        user.electronAppSettings || {
+          calendarZoomLevel: 60,
+          theme: 'system',
+          playDistractionSound: true,
+          distractionSoundInterval: 30,
+        }
+      );
     }),
 
   updateUserGoals: publicProcedure

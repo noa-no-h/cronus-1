@@ -23,7 +23,7 @@
 }
 
 + (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId {
-    MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
+    // MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
     
     // Different strategies for different app types
     if ([ownerName containsString:@"Code"] || [ownerName containsString:@"Cursor"] || [ownerName containsString:@"Xcode"]) {
@@ -63,7 +63,7 @@
                     CFRelease(windowList);
                     CFRelease(systemElement);
                     
-                    MyLog(@"✅ Generic accessibility text extracted: %lu chars", (unsigned long)[text length]);
+                    // MyLog(@"✅ Generic accessibility text extracted: %lu chars", (unsigned long)[text length]);
                     return text;
                 }
                 
@@ -91,7 +91,7 @@
         }
         CFRelease(systemElement);
     } @catch (NSException *exception) {
-        MyLog(@"❌ Error extracting accessibility text: %@", exception.reason);
+        // MyLog(@"❌ Error extracting accessibility text: %@", exception.reason);
     }
     
     return nil;
@@ -102,12 +102,12 @@
     // The original implementation, which parsed the window title, caused a crash.
     // A robust fix involves passing the already-fetched title into this function
     // instead of re-fetching it with the now-removed getWindowTitle.
-    MyLog(@"📝 Using simplified fallback for code editor.");
+    // MyLog(@"📝 Using simplified fallback for code editor.");
     return @"Working in a code editor.";
 }
 
 + (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
-    MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
+    // MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
     
     @try {
         // Get the PID for this window
@@ -116,49 +116,49 @@
         
         if (windowList) {
             NSArray *windows = (__bridge_transfer NSArray*)windowList;
-            MyLog(@"🔍 Found %lu windows in list", (unsigned long)windows.count);
+            // MyLog(@"🔍 Found %lu windows in list", (unsigned long)windows.count);
             
             for (NSDictionary *window in windows) {
                 NSNumber *pid = window[(__bridge NSString*)kCGWindowOwnerPID];
                 NSString *owner = window[(__bridge NSString*)kCGWindowOwnerName];
-                MyLog(@"   Window: %@ (PID: %@)", owner, pid);
+                // MyLog(@"   Window: %@ (PID: %@)", owner, pid);
                 
                 if (pid && [owner isEqualToString:@"Cursor"]) {
                     windowPid = [pid intValue];
-                    MyLog(@"✅ Found Cursor window with PID: %d", windowPid);
+                    // MyLog(@"✅ Found Cursor window with PID: %d", windowPid);
                     break;
                 }
             }
         }
         
         if (windowPid == 0) {
-            MyLog(@"❌ Could not find Cursor PID");
+            // MyLog(@"❌ Could not find Cursor PID");
             return nil;
         }
         
         // Create accessibility element
         AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
         if (!appElement) {
-            MyLog(@"❌ Could not create accessibility element for Cursor");
+            // MyLog(@"❌ Could not create accessibility element for Cursor");
             return nil;
         }
         
-        MyLog(@"✅ Created accessibility element for Cursor");
+        // MyLog(@"✅ Created accessibility element for Cursor");
         
         // Try to get focused element
         AXUIElementRef focusedElement = NULL;
         AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
         
-        MyLog(@"🎯 Focus result: %d", focusResult);
+        // MyLog(@"🎯 Focus result: %d", focusResult);
         
         if (focusResult == kAXErrorSuccess && focusedElement) {
-            MyLog(@"✅ Found focused element");
+            // MyLog(@"✅ Found focused element");
             
             // Get focused element role
             CFStringRef role = NULL;
             AXError roleResult = AXUIElementCopyAttributeValue(focusedElement, kAXRoleAttribute, (CFTypeRef*)&role);
             if (roleResult == kAXErrorSuccess && role) {
-                MyLog(@"🎭 Focused element role: %@", (__bridge NSString*)role);
+                // MyLog(@"🎭 Focused element role: %@", (__bridge NSString*)role);
                 CFRelease(role);
             }
             
@@ -175,14 +175,14 @@
                 CFStringRef textContent = NULL;
                 AXError textResult = AXUIElementCopyAttributeValue(focusedElement, (__bridge CFStringRef)attribute, (CFTypeRef*)&textContent);
                 
-                MyLog(@"📝 Trying attribute %@: result %d", attribute, textResult);
+                // MyLog(@"📝 Trying attribute %@: result %d", attribute, textResult);
                 
                 if (textResult == kAXErrorSuccess && textContent) {
                     NSString *text = (__bridge NSString*)textContent;
-                    MyLog(@"✅ Got text from %@: %lu chars", attribute, (unsigned long)text.length);
+                    // MyLog(@"✅ Got text from %@: %lu chars", attribute, (unsigned long)text.length);
                     
                     if (text && text.length > 0) {
-                        MyLog(@"📖 Content preview: %@", [text length] > 100 ? [text substringToIndex:100] : text);
+                        // MyLog(@"📖 Content preview: %@", [text length] > 100 ? [text substringToIndex:100] : text);
                         CFRelease(textContent);
                         CFRelease(focusedElement);
                         CFRelease(appElement);
@@ -194,21 +194,21 @@
             
             CFRelease(focusedElement);
         } else {
-            MyLog(@"❌ Could not get focused element");
+            // MyLog(@"❌ Could not get focused element");
         }
         
         CFRelease(appElement);
-        MyLog(@"❌ No accessible text found in Cursor");
+        // MyLog(@"❌ No accessible text found in Cursor");
         
     } @catch (NSException *exception) {
-        MyLog(@"💥 Exception in Cursor accessibility: %@", exception.reason);
+        // MyLog(@"💥 Exception in Cursor accessibility: %@", exception.reason);
     }
     
     return nil;
 }
 
 + (NSString*)getTextEditorContent:(CGWindowID)windowId {
-    MyLog(@"📄 Trying to extract text editor content...");
+    // MyLog(@"📄 Trying to extract text editor content...");
     
     // Get the PID for this window  
     pid_t windowPid = 0;
@@ -225,21 +225,21 @@
             if (pid && ([owner containsString:@"TextEdit"] || [owner isEqualToString:@"Notes"])) {
                 windowPid = [pid intValue];
                 appName = owner;
-                MyLog(@"✅ Found text editor: %@ with PID: %d", owner, windowPid);
+                // MyLog(@"✅ Found text editor: %@ with PID: %d", owner, windowPid);
                 break;
             }
         }
     }
     
     if (windowPid == 0) {
-        MyLog(@"❌ Could not find text editor PID");
+        // MyLog(@"❌ Could not find text editor PID");
         return [self getGenericAccessibilityText:windowId];
     }
     
     @try {
         AXUIElementRef appElement = AXUIElementCreateApplication(windowPid);
         if (!appElement) {
-            MyLog(@"❌ Could not create accessibility element for %@", appName);
+            // MyLog(@"❌ Could not create accessibility element for %@", appName);
             return [self getGenericAccessibilityText:windowId];
         }
         
@@ -247,7 +247,7 @@
         AXUIElementRef focusedElement = NULL;
         AXError focusResult = AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute, (CFTypeRef*)&focusedElement);
         
-        MyLog(@"🎯 %@ focus result: %d", appName, focusResult);
+        // MyLog(@"🎯 %@ focus result: %d", appName, focusResult);
         
         NSString *result = nil;
         
@@ -257,9 +257,9 @@
             
             if (textResult == kAXErrorSuccess && textContent) {
                 NSString *text = (__bridge NSString*)textContent;
-                MyLog(@"✅ %@ SUCCESS! Extracted %lu characters", appName, (unsigned long)text.length);
-                MyLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)text.length);
-                MyLog(@"📋 CONTENT PREVIEW: '%@'", [text length] > 200 ? [text substringToIndex:200] : text);
+                // MyLog(@"✅ %@ SUCCESS! Extracted %lu characters", appName, (unsigned long)text.length);
+                // MyLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)text.length);
+                // MyLog(@"📋 CONTENT PREVIEW: '%@'", [text length] > 200 ? [text substringToIndex:200] : text);
                 
                 // Create a copy to return (important for memory management)
                 result = [NSString stringWithString:text];
@@ -277,26 +277,26 @@
             return result;
         }
         
-        MyLog(@"❌ No accessible text found in %@", appName);
+        // MyLog(@"❌ No accessible text found in %@", appName);
         
     } @catch (NSException *exception) {
-        MyLog(@"💥 Exception in %@ accessibility: %@", appName, exception.reason);
+        // MyLog(@"💥 Exception in %@ accessibility: %@", appName, exception.reason);
     }
     
     return [self getGenericAccessibilityText:windowId];
 }
 
 + (NSString*)getCodeEditorText:(CGWindowID)windowId {
-    MyLog(@"📝 Trying specialized code editor extraction...");
+    // MyLog(@"📝 Trying specialized code editor extraction...");
     
     // Check accessibility permissions first
     BOOL accessibilityEnabled = AXIsProcessTrusted();
-    MyLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
+    // MyLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
     
     if (!accessibilityEnabled) {
-        MyLog(@"❌ Need to enable accessibility permissions:");
-        MyLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
-        MyLog(@"   Add this Electron app to the list");
+        // MyLog(@"❌ Need to enable accessibility permissions:");
+        // MyLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
+        // MyLog(@"   Add this Electron app to the list");
         return [self getCodeEditorFallback:windowId];
     }
     
@@ -311,13 +311,13 @@
 }
 
 + (NSString*)getTerminalText:(CGWindowID)windowId {
-    MyLog(@"⌨️ Trying to extract terminal text...");
+    // MyLog(@"⌨️ Trying to extract terminal text...");
     // For now, use generic accessibility - can be enhanced later
     return [self getGenericAccessibilityText:windowId];
 }
 
 + (NSString*)getMessagingAppText:(CGWindowID)windowId {
-    MyLog(@"💬 Trying to extract messaging app text...");
+    // MyLog(@"💬 Trying to extract messaging app text...");
     // For now, use generic accessibility - can be enhanced later
     return [self getGenericAccessibilityText:windowId];
 }

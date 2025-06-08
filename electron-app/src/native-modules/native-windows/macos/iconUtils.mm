@@ -19,7 +19,7 @@ NSString* getAppIconPath(NSString* appName) {
                                                    attributes:nil 
                                                         error:&error];
         if (!success || error) {  // 🔧 Check both success and error
-            MyLog(@"🚨 Failed to create icons directory: %@", error ? [error localizedDescription] : @"Unknown error");
+            // MyLog(@"🚨 Failed to create icons directory: %@", error ? [error localizedDescription] : @"Unknown error");
             return nil;
         }
     }
@@ -32,7 +32,7 @@ NSString* getAppIconPath(NSString* appName) {
     
     // Check if icon already exists
     if ([fileManager fileExistsAtPath:iconPath]) {
-        MyLog(@"✅ Using cached icon for %@: %@", appName, iconPath);
+        // MyLog(@"✅ Using cached icon for %@: %@", appName, iconPath);
         return iconPath;
     }
     
@@ -66,26 +66,26 @@ NSString* getAppIconPath(NSString* appName) {
                         NSError *writeError = nil;  // 🔧 Use different variable name
                         BOOL writeSuccess = [pngData writeToFile:iconPath options:NSDataWritingAtomic error:&writeError];
                         if (!writeSuccess || writeError) {  // 🔧 Check both success and error
-                            MyLog(@"🚨 Failed to save icon for %@: %@", appName, writeError ? [writeError localizedDescription] : @"Unknown write error");
+                            // MyLog(@"🚨 Failed to save icon for %@: %@", appName, writeError ? [writeError localizedDescription] : @"Unknown write error");
                             return nil;
                         }
                         
-                        MyLog(@"🎨 Generated icon file for %@ (%lu bytes): %@", appName, (unsigned long)pngData.length, iconPath);
+                        // MyLog(@"🎨 Generated icon file for %@ (%lu bytes): %@", appName, (unsigned long)pngData.length, iconPath);
                         return iconPath;
                     } else {
-                        MyLog(@"🚨 Failed to convert icon to PNG data for %@", appName);
+                        // MyLog(@"🚨 Failed to convert icon to PNG data for %@", appName);
                     }
                 } else {
-                    MyLog(@"🚨 Failed to create CGImage for %@", appName);
+                    // MyLog(@"🚨 Failed to create CGImage for %@", appName);
                 }
                 
                 // Clean up
             } else {
-                MyLog(@"🚨 No icon found for app %@", appName);
+                // MyLog(@"🚨 No icon found for app %@", appName);
             }
         }
     }
     
-    MyLog(@"🎨 No icon found for %@", appName);
+    // MyLog(@"🎨 No icon found for %@", appName);
     return nil;
 } 
