@@ -98,69 +98,13 @@
 }
 
 + (NSString*)getCodeEditorFallback:(CGWindowID)windowId {
-    NSString *windowTitle = [self getWindowTitle:windowId];
-    MyLog(@"📝 Cursor fallback with title: '%@'", windowTitle);
-    
-    if (windowTitle && windowTitle.length > 0) {
-        // Parse useful information from the window title
-        NSMutableArray *contextParts = [NSMutableArray array];
-        
-        // Extract filename (look for parts with file extensions)
-        NSArray *titleParts = [windowTitle componentsSeparatedByString:@" "];
-        for (NSString *part in titleParts) {
-            if ([part containsString:@"."] && part.length > 2) {
-                // Found a filename
-                [contextParts addObject:[NSString stringWithFormat:@"Editing file: %@", part]];
-                
-                // Detect file type for additional context
-                NSString *lowerPart = [part lowercaseString];
-                if ([lowerPart hasSuffix:@".ts"] || [lowerPart hasSuffix:@".js"]) {
-                    [contextParts addObject:@"Working on TypeScript/JavaScript code"];
-                } else if ([lowerPart hasSuffix:@".mm"] || [lowerPart hasSuffix:@".m"]) {
-                    [contextParts addObject:@"Working on Objective-C/Objective-C++ code"];
-                } else if ([lowerPart hasSuffix:@".py"]) {
-                    [contextParts addObject:@"Working on Python code"];
-                } else if ([lowerPart hasSuffix:@".java"]) {
-                    [contextParts addObject:@"Working on Java code"];
-                } else if ([lowerPart hasSuffix:@".cpp"] || [lowerPart hasSuffix:@".cc"]) {
-                    [contextParts addObject:@"Working on C++ code"];
-                } else if ([lowerPart hasSuffix:@".tsx"] || [lowerPart hasSuffix:@".jsx"]) {
-                    [contextParts addObject:@"Working on React/JSX code"];
-                }
-                break;
-            }
-        }
-        
-        // Extract project name (usually after the "—" character)
-        if ([windowTitle containsString:@"—"]) {
-            NSArray *projectParts = [windowTitle componentsSeparatedByString:@"—"];
-            if (projectParts.count >= 2) {
-                NSString *projectName = [projectParts.lastObject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-                [contextParts addObject:[NSString stringWithFormat:@"In project: %@", projectName]];
-            }
-        }
-        
-        if (contextParts.count > 0) {
-            NSString *context = [contextParts componentsJoinedByString:@". "];
-            MyLog(@"📝 Generated rich context: %@", context);
-            MyLog(@"📊 EXACT CHARACTER COUNT: %lu characters", (unsigned long)context.length);
-            MyLog(@"📋 EXACT CONTENT: '%@'", context);
-            return context;
-        } else {
-            // Fallback: use the full window title
-            NSString *fallback = [NSString stringWithFormat:@"Working in Cursor: %@", windowTitle];
-            MyLog(@"📊 FALLBACK CHARACTER COUNT: %lu characters", (unsigned long)fallback.length);
-            MyLog(@"📋 FALLBACK CONTENT: '%@'", fallback);
-            return fallback;
-        }
-    }
-    
-    NSString *defaultMessage = @"Working in Cursor code editor";
-    MyLog(@"📊 DEFAULT CHARACTER COUNT: %lu characters", (unsigned long)defaultMessage.length);
-    MyLog(@"📋 DEFAULT CONTENT: '%@'", defaultMessage);
-    return defaultMessage;
+    // This is a simplified fallback for code editors.
+    // The original implementation, which parsed the window title, caused a crash.
+    // A robust fix involves passing the already-fetched title into this function
+    // instead of re-fetching it with the now-removed getWindowTitle.
+    MyLog(@"📝 Using simplified fallback for code editor.");
+    return @"Working in a code editor.";
 }
-
 
 + (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
     MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
@@ -356,10 +300,12 @@
         return [self getCodeEditorFallback:windowId];
     }
     
-    NSString *accessibilityText = [self getCodeEditorAccessibilityText:windowId];
-    if (accessibilityText && accessibilityText.length > 0) {
-        return accessibilityText;
-    }
+    // NOTE: Detailed accessibility text extraction for code editors is currently disabled
+    // as it was a source of instability. The fallback is used instead.
+    // NSString *accessibilityText = [self getCodeEditorAccessibilityText:windowId];
+    // if (accessibilityText && accessibilityText.length > 0) {
+    //     return accessibilityText;
+    // }
     
     return [self getCodeEditorFallback:windowId];
 }
