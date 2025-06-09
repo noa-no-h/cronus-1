@@ -44,12 +44,9 @@ export const ActivityList = ({
   openDropdownActivityKey,
   setOpenDropdownActivityKey
 }: ActivityListProps) => {
-  const thirtySecondsMs = 30 * 1000
-  const fiveMinutesMs = 5 * 60 * 1000
-  const visibleActivities = activities.filter((act) => act.durationMs >= fiveMinutesMs)
-  const hiddenActivities = activities.filter(
-    (act) => act.durationMs >= thirtySecondsMs && act.durationMs < fiveMinutesMs
-  )
+  const oneMinuteMs = 60 * 1000
+  const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
+  const hiddenActivities = activities.filter((act) => act.durationMs < oneMinuteMs)
 
   const renderItems = (items: ActivityItem[]) => {
     return items.map((activity) => {
