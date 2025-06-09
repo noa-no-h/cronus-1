@@ -219,7 +219,11 @@ export function MainAppContent() {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.invoke('set-open-at-login', true)
+    }
   }
+
   const handleOpenMiniTimer = () => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.send('show-floating-window')

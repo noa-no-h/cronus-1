@@ -261,13 +261,22 @@ app.whenReady().then(async () => {
   await initializeLoggers()
   electronApp.setAppUserModelId('com.electron')
 
-  // Enable auto-start on macOS
-  if (process.platform === 'darwin') {
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      openAsHidden: true // starts the app hidden without opening the window
-    })
-  }
+  // // Enable auto-start on macOS
+  // if (process.platform === 'darwin') {
+  //   app.setLoginItemSettings({
+  //     openAtLogin: true,
+  //     openAsHidden: true // starts the app hidden without opening the window
+  //   })
+  // }
+
+  ipcMain.handle('set-open-at-login', (_event, enable: boolean) => {
+    if (process.platform === 'darwin') {
+      app.setLoginItemSettings({
+        openAtLogin: enable,
+        openAsHidden: true
+      })
+    }
+  })
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
