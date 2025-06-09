@@ -1,4 +1,5 @@
 import { extractWebsiteInfo, formatDuration } from '@renderer/lib/activityByCategoryWidgetHelpers'
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { ActiveWindowEvent, Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
@@ -431,7 +432,7 @@ const ActivitiesByCategoryWidget = ({
           <div className="px-2 pt-1">
             <Button
               variant="link"
-              className="p-0 h-auto text-xs text-muted-foreground"
+              className="p-0 h-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
               onClick={() =>
                 setShowMore((prev) => ({ ...prev, [currentCategory.id]: !isShowMore }))
               }
@@ -440,7 +441,19 @@ const ActivitiesByCategoryWidget = ({
             </Button>
           </div>
         )}
-        {isShowMore && renderItems(hiddenActivities)}
+        <AnimatePresence>
+          {isShowMore && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              {renderItems(hiddenActivities)}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </>
     )
   }
