@@ -297,7 +297,9 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('get-env-vars', () => {
     return {
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+      POSTHOG_KEY: process.env.REACT_APP_PUBLIC_POSTHOG_KEY,
+      POSTHOG_HOST: process.env.REACT_APP_PUBLIC_POSTHOG_HOST
       // Add other vars you want to expose from your .env file
     }
   })
