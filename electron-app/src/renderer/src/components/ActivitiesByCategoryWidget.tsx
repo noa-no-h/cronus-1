@@ -286,8 +286,12 @@ const ActivitiesByCategoryWidget = ({
     allUserCategories: SharedCategory[] | undefined
   ) => {
     const oneMinuteMs = 60 * 1000
-    const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
-    const hiddenActivities = activities.filter((act) => act.durationMs < oneMinuteMs)
+    const thirtySecondsMs = 30 * 1000
+    const fiveMinutesMs = 5 * 60 * 1000
+    const visibleActivities = activities.filter((act) => act.durationMs >= fiveMinutesMs)
+    const hiddenActivities = activities.filter(
+      (act) => act.durationMs >= thirtySecondsMs && act.durationMs < fiveMinutesMs
+    )
     const isShowMore = showMore[currentCategory.id]
 
     const renderItems = (items: ActivityItem[]) => {
