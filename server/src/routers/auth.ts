@@ -103,6 +103,7 @@ export const authRouter = router({
         companyName: z.string().optional(),
         workEmail: z.string().email(),
         useCase: z.string().optional(),
+        competitorExperience: z.string().optional(),
         token: z.string(),
       })
     )
@@ -132,6 +133,7 @@ export const authRouter = router({
           companyName: input.companyName || '',
           workEmail: input.workEmail,
           useCase: input.useCase || '',
+          competitorExperience: input.competitorExperience || '',
           submittedAt: new Date(),
         };
 

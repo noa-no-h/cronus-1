@@ -15,6 +15,7 @@ const WaitlistFormPage: React.FC = () => {
     companyName: '',
     workEmail: '',
     useCase: '',
+    competitorExperience: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -42,6 +43,22 @@ const WaitlistFormPage: React.FC = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Pre-fill form with user data from Google login
+  useEffect(() => {
+    if (userData) {
+      const nameParts = userData.name?.split(' ') || [];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      setFormData((prev) => ({
+        ...prev,
+        firstName,
+        lastName,
+        workEmail: userData.email || '',
+      }));
+    }
+  }, [userData]);
 
   // If user is already waitlisted, show the submitted message
   if (userData?.isWaitlisted) {
@@ -108,30 +125,27 @@ const WaitlistFormPage: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  placeholder="John"
-                  required
-                  value={formData.firstName}
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                name="firstName"
+                placeholder="John"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Doe"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                placeholder="Doe"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="space-y-2">
@@ -157,7 +171,7 @@ const WaitlistFormPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="workEmail">Work Email</Label>
+              <Label htmlFor="workEmail">Email</Label>
               <Input
                 id="workEmail"
                 name="workEmail"
@@ -170,22 +184,20 @@ const WaitlistFormPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="useCase">How do you plan to use whatdidyougetdonetoday?</Label>
+              <Label htmlFor="useCase">
+                Have you used any other time tracking/distraction blocking tools?
+              </Label>
               <Textarea
-                id="useCase"
-                name="useCase"
-                placeholder="Tell us about your use case"
+                id="competitorExperience"
+                name="competitorExperience"
+                placeholder="Tell us about you experience using Toggl, RescueTime, Rize, Opal, or any other time tracking/distraction blocking tools"
                 rows={3}
-                value={formData.useCase}
+                value={formData.competitorExperience}
                 onChange={handleChange}
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-[#4169E1] hover:bg-[#3a5ecc]"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Submitting...' : 'Join Waitlist'}
             </Button>
           </form>

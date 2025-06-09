@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
     companyName: { type: String },
     workEmail: { type: String },
     useCase: { type: String },
+    competitorExperience: { type: String },
     submittedAt: { type: Date },
   },
   isWaitlisted: { type: Boolean, default: false },

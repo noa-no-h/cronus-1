@@ -1,3 +1,5 @@
+import { APP_NAME } from '@/lib/constants';
+import { trpc } from '@/utils/trpc';
 import { Menu } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -7,23 +9,31 @@ export function Navbar() {
   const location = useLocation();
   const isAuthenticated = !!localStorage.getItem('accessToken');
 
+  const { data: userData } = trpc.auth.getUser.useQuery(
+    { token: localStorage.getItem('accessToken') || '' },
+    {
+      enabled: isAuthenticated,
+    }
+  );
+
   const NavLinks = () => (
     <>
-      <Link
+      {/* <Link
         to="/blog"
         className={`hover:text-primary transition-colors ${location.pathname === '/blog' || location.pathname.startsWith('/blog/') ? 'text-primary font-medium' : ''}`}
       >
         Blog
-      </Link>
+      </Link> */}
 
       {isAuthenticated ? (
-        <Link
-          to="/home"
-          className={`hover:text-primary transition-colors ${location.pathname === '/home' ? 'text-primary font-medium' : ''}`}
-        >
-          Dashboard
-        </Link>
+        userData?.isWaitlisted && null
       ) : (
+        // <Link
+        //   to="/home"
+        //   className={`hover:text-primary transition-colors ${location.pathname === '/home' ? 'text-primary font-medium' : ''}`}
+        // >
+        //   Dashboard
+        // </Link>
         <Link
           to="/login"
           className={`hover:text-primary transition-colors ${location.pathname === '/login' ? 'text-primary font-medium' : ''}`}
@@ -39,7 +49,7 @@ export function Navbar() {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center justify-between w-full">
           <Link to="/" className="text-xl font-bold mr-8">
-            What Did You Get Done Today?
+            {APP_NAME}
           </Link>
 
           {/* Desktop Navigation */}

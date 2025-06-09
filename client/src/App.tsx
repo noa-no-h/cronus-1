@@ -16,7 +16,7 @@ import WaitlistFormPage from './components/WaitlistFormPage';
 import { createTrpcClient, trpc } from './utils/trpc';
 
 export const defaultPage = '/home';
-export const LINK_TO_WAITLIST = process.env.REACT_APP_LINK_TO_WAITLIST === 'true'; // Toggle this to control the flow after login
+export const LINK_TO_WAITLIST = true; // Toggle this to control the flow after login
 
 // Existing ProtectedRoute component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
