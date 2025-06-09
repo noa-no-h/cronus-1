@@ -6,6 +6,12 @@ import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDistractionSound } from '../../hooks/useDistractionSound'
+import {
+  getCardBgColor,
+  getDisplayWindowInfo,
+  getStatusText,
+  getStatusTextColor
+} from '../../utils/distractionStatusBarUIHelpers'
 import { getFaviconURL } from '../../utils/favicon'
 import { calculateProductivityMetrics } from '../../utils/timeMetrics'
 import { trpc } from '../../utils/trpc'
@@ -173,22 +179,25 @@ const DistractionCategorizationResult = ({
     })
   }, [latestEvent, categoryDetails, userCategories, todayEvents, token])
 
-  const getStatusText = (): string => {
-    if (!latestEvent && !activeWindow) return 'Waiting for activity...'
-    if (!latestEvent && activeWindow) return 'Processing...'
-    if (!categoryId) return 'Uncategorized'
-    if (isLoadingCategory || isLoadingUserCategories) return 'Loading category...'
-
-    if (!categoryDetails || typeof categoryDetails !== 'object' || !('_id' in categoryDetails)) {
-      return categoryDetails === null ? 'Category not found' : 'Category unavailable'
-    }
-
-    const fullCategoryDetails = categoryDetails as Category
-    if (fullCategoryDetails.isProductive === true) return `${fullCategoryDetails.name}: Productive`
-    if (fullCategoryDetails.isProductive === false)
-      return `${fullCategoryDetails.name}: Distracting`
-    return `${fullCategoryDetails.name}: Neutral`
-  }
+  const statusText = useMemo(
+    () =>
+      getStatusText(
+        latestEvent,
+        activeWindow,
+        categoryId,
+        isLoadingCategory,
+        isLoadingUserCategories,
+        categoryDetails
+      ),
+    [
+      latestEvent,
+      activeWindow,
+      categoryId,
+      isLoadingCategory,
+      isLoadingUserCategories,
+      categoryDetails
+    ]
+  )
 
   useEffect(() => {
     if (
@@ -200,7 +209,6 @@ const DistractionCategorizationResult = ({
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === false) {
         const appName = activeWindow.ownerName || 'Current Application'
-        const statusText = getStatusText()
         const notificationTitle = `Focus Alert: ${appName}`
         const notificationBody = `${statusText}`
 
@@ -211,82 +219,16 @@ const DistractionCategorizationResult = ({
         }
       }
     }
-  }, [categoryDetails, activeWindow])
+  }, [categoryDetails, activeWindow, statusText])
 
-  const displayWindowInfo = useMemo(() => {
-    const dw = latestEvent || activeWindow
-    if (!dw) return { ownerName: 'No active application', title: '', url: undefined, isApp: true }
+  const displayWindowInfo = useMemo(
+    () => getDisplayWindowInfo(latestEvent, activeWindow),
+    [latestEvent, activeWindow]
+  )
 
-    // Check for system events
-    switch (dw.ownerName) {
-      case 'System Sleep':
-        return {
-          ownerName: '💤 System Inactive',
-          title: 'Computer was sleeping',
-          url: undefined,
-          isApp: true
-        }
-      case 'System Wake':
-        return {
-          ownerName: '⏰ System Active',
-          title: 'Computer woke from sleep',
-          url: undefined,
-          isApp: true
-        }
-      case 'System Lock':
-        return {
-          ownerName: '🔒 Screen Locked',
-          title: 'Screen was locked',
-          url: undefined,
-          isApp: true
-        }
-      case 'System Unlock':
-        return {
-          ownerName: '🔓 Screen Unlocked',
-          title: 'Screen was unlocked',
-          url: undefined,
-          isApp: true
-        }
-      default:
-        // Determine if it's an app or website based on URL presence
-        const isApp = !dw.url
-        return {
-          ownerName: dw.ownerName || 'Unknown App',
-          title: dw.title && dw.title !== dw.ownerName ? dw.title : '',
-          url: dw.url,
-          isApp
-        }
-    }
-  }, [latestEvent, activeWindow])
+  const cardBgColor = useMemo(() => getCardBgColor(categoryDetails), [categoryDetails])
 
-  const cardBgColor = useMemo(() => {
-    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
-      const fullCategoryDetails = categoryDetails as Category
-      if (fullCategoryDetails.isProductive === true) {
-        return 'bg-blue-50 dark:bg-blue-900'
-      } else {
-        // isProductive is false or neutral (uncategorized by isProductive field)
-        return 'bg-red-50 dark:bg-red-900'
-      }
-    }
-    // Default if categoryDetails is null, not found, or still loading, treat as not productive for background
-    return 'bg-red-100 dark:bg-red-900'
-  }, [categoryDetails])
-
-  const getStatusTextColor = useMemo((): string => {
-    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
-      const fullCategoryDetails = categoryDetails as Category
-      if (fullCategoryDetails.isProductive === true) {
-        return 'text-blue-700 dark:text-blue-200'
-      } else if (fullCategoryDetails.isProductive === false) {
-        return 'text-red-700 dark:text-red-200'
-      }
-      // Neutral category, also using red background
-      return 'text-red-700 dark:text-red-200' // Or a more neutral like text-yellow-700 dark:text-yellow-200
-    }
-    // Default for uncategorized or loading states where background is red
-    return 'text-gray-700 dark:text-gray-300' // More contrast on red BG than muted-foreground
-  }, [categoryDetails])
+  const statusTextColor = useMemo(() => getStatusTextColor(categoryDetails), [categoryDetails])
 
   const isLoadingPrimary =
     isLoadingLatestEvent ||
@@ -397,11 +339,11 @@ const DistractionCategorizationResult = ({
         </div>
         <div>
           <div
-            className={`text-sm font-semibold ${getStatusTextColor} whitespace-nowrap flex items-center gap-1 cursor-pointer hover:opacity-80`}
+            className={`text-sm font-semibold ${statusTextColor} whitespace-nowrap flex items-center gap-1 cursor-pointer hover:opacity-80`}
             onClick={handleOpenRecategorize}
             title="Re-categorize this activity"
           >
-            {getStatusText()}
+            {statusText}
             {latestEvent && categoryId && !isLoadingCategory && (
               <SettingsIcon size={14} className="ml-1 flex-shrink-0" />
             )}
