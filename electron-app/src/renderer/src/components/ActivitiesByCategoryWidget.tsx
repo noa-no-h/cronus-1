@@ -285,12 +285,11 @@ const ActivitiesByCategoryWidget = ({
     currentCategory: ProcessedCategory,
     allUserCategories: SharedCategory[] | undefined
   ) => {
-    const oneMinuteMs = 60 * 1000
-    const thirtySecondsMs = 30 * 1000
+    const twoMinutesMs = 2 * 60 * 1000
     const fiveMinutesMs = 5 * 60 * 1000
     const visibleActivities = activities.filter((act) => act.durationMs >= fiveMinutesMs)
     const hiddenActivities = activities.filter(
-      (act) => act.durationMs >= thirtySecondsMs && act.durationMs < fiveMinutesMs
+      (act) => act.durationMs >= twoMinutesMs && act.durationMs < fiveMinutesMs
     )
     const isShowMore = showMore[currentCategory.id]
 
