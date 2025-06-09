@@ -295,12 +295,23 @@ const DistractionCategorizationResult = ({
         {!isMiniTimerVisible && (
           <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
             <ExternalLink size={20} />
-            {!isNarrowView && 'Open Mini Timer'}
+            {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
-        <Button variant="ghost" onClick={onSettingsClick} title="Settings">
+        <Button
+          variant="ghost"
+          size={isNarrowView ? 'icon' : 'default'}
+          className={!isNarrowView ? 'w-32' : ''}
+          onClick={onSettingsClick}
+          title="Settings"
+        >
           {isSettingsOpen ? <ArrowLeft size={20} /> : <SettingsIcon size={20} />}
-          {!isNarrowView && isSettingsOpen ? 'Dashboard' : 'Settings'}
+          {!isNarrowView &&
+            (isSettingsOpen ? (
+              <span className="ml-2">Dashboard</span>
+            ) : (
+              <span className="ml-2">Settings</span>
+            ))}
         </Button>
       </div>
     </div>
