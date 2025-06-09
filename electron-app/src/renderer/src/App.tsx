@@ -8,6 +8,7 @@ import { Toaster } from './components/ui/toaster'
 import { useAuth } from './contexts/AuthContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
+import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
 
 export const APP_NAME = 'Locked in'
@@ -29,6 +30,7 @@ export function MainAppContent() {
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const trpcUtils = trpc.useContext()
 
@@ -257,10 +259,13 @@ export function MainAppContent() {
           onOpenMiniTimerClick={handleOpenMiniTimer}
           isMiniTimerVisible={isMiniTimerVisible}
           onOpenRecategorizeDialog={openRecategorizeDialog}
+          onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          isSettingsOpen={isSettingsOpen}
         />
       </div>
 
-      <DashboardView />
+      <DashboardView className={isSettingsOpen ? 'hidden' : ''} />
+      {isSettingsOpen && <SettingsPage />}
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
       <Toaster />

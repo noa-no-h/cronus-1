@@ -7,7 +7,6 @@ import { PageContainer } from './components/layout/PageContainer'
 import { LoginForm } from './components/login-form'
 import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
-import { SettingsPage } from './pages/SettingsPage'
 
 function AppWrapper(): React.JSX.Element {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
@@ -76,7 +75,6 @@ function AppWrapper(): React.JSX.Element {
         ) : (
           <Routes>
             <Route path="/" element={<MainAppContent />} />
-            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         )}
       </PageContainer>

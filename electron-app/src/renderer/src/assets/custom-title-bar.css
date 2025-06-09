@@ -80,3 +80,7 @@
 /*  padding-top: calc(32px + 48px); /* Sum of sticky/fixed header heights */
 /* }
 */
+
+.hidden {
+  display: none;
+}

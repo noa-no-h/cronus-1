@@ -1,7 +1,6 @@
 import clsx from 'clsx'
-import { ExternalLink, Settings as SettingsIcon } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
@@ -19,22 +18,22 @@ import { calculateProductivityMetrics } from '../../utils/timeMetrics'
 import { trpc } from '../../utils/trpc'
 import AppIcon from '../AppIcon'
 import { Button } from './button'
-import { Card } from './card'
+import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 
-// const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
-
-interface DistractionCategorizationResultProps {
+interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
   onOpenMiniTimerClick: () => void
   isMiniTimerVisible: boolean
   onOpenRecategorizeDialog: (target: ActivityToRecategorize) => void
+  onSettingsClick: () => void
+  isSettingsOpen: boolean
 }
 
 // Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
 // For now, let's keep it, but its role might change.
 const arePropsEqual = (
-  prevProps: DistractionCategorizationResultProps,
-  nextProps: DistractionCategorizationResultProps
+  prevProps: DistractionStatusBarProps,
+  nextProps: DistractionStatusBarProps
 ): boolean => {
   if (!prevProps.activeWindow && !nextProps.activeWindow) return true
   if (!prevProps.activeWindow || !nextProps.activeWindow) return false
@@ -48,7 +47,8 @@ const arePropsEqual = (
     p.type === n.type &&
     p.browser === n.browser &&
     prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
-    prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog
+    prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog &&
+    prevProps.isSettingsOpen === nextProps.isSettingsOpen
   )
 }
 
@@ -56,10 +56,11 @@ const DistractionCategorizationResult = ({
   activeWindow,
   onOpenMiniTimerClick,
   isMiniTimerVisible,
-  onOpenRecategorizeDialog
-}: DistractionCategorizationResultProps): JSX.Element | null => {
+  onOpenRecategorizeDialog,
+  onSettingsClick,
+  isSettingsOpen
+}: DistractionStatusBarProps): JSX.Element | null => {
   const { token } = useAuth()
-  const navigate = useNavigate()
   const [isNarrowView, setIsNarrowView] = useState(false)
 
   useEffect(() => {
@@ -70,10 +71,6 @@ const DistractionCategorizationResult = ({
     handleResize() // Initial check
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  const handleSettingsClick = () => {
-    navigate('/settings')
-  }
 
   const { data: latestEvent, isLoading: isLoadingLatestEvent } =
     // note: make sure you invalidate the query when you create a new event, otherwise it will not be updated
@@ -226,19 +223,7 @@ const DistractionCategorizationResult = ({
   )
 
   if (isLoadingPrimary) {
-    return (
-      <Card className={clsx('p-2 rounded-lg border-border', cardBgColor)}>
-        <div className="flex items-center justify-between gap-x-2 sm:gap-x-3">
-          <div className="animate-pulse flex-grow min-w-0">
-            <div className="h-4 bg-muted rounded w-3/4 mb-1"></div>
-            <div className="h-3 bg-muted rounded w-1/2"></div>
-          </div>
-          <div className="animate-pulse">
-            <div className="h-5 bg-muted rounded w-20"></div>
-          </div>
-        </div>
-      </Card>
-    )
+    return <DistractionStatusLoadingSkeleton cardBgColor={cardBgColor} />
   }
 
   return (
@@ -313,9 +298,9 @@ const DistractionCategorizationResult = ({
             {!isNarrowView && 'Open Mini Timer'}
           </Button>
         )}
-        <Button variant="ghost" onClick={handleSettingsClick} title="Settings">
-          <SettingsIcon size={20} />
-          {!isNarrowView && 'Settings'}
+        <Button variant="ghost" onClick={onSettingsClick} title="Settings">
+          {isSettingsOpen ? <ArrowLeft size={20} /> : <SettingsIcon size={20} />}
+          {!isNarrowView && isSettingsOpen ? 'Dashboard' : 'Settings'}
         </Button>
       </div>
     </div>

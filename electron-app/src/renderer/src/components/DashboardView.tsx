@@ -21,7 +21,7 @@ export interface ProcessedEventBlock {
   originalEvent: ActiveWindowEvent
 }
 
-export function DashboardView() {
+export function DashboardView({ className }: { className?: string }) {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
@@ -174,7 +174,9 @@ export function DashboardView() {
   }, [])
 
   return (
-    <div className="flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4">
+    <div
+      className={`flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4 ${className}`}
+    >
       <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <ActivitiesByCategoryWidget
           processedEvents={activityWidgetProcessedEvents}
