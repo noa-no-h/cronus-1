@@ -388,8 +388,29 @@ app.whenReady().then(async () => {
       const notification = new Notification({
         title,
         body,
-        icon: process.platform === 'win32' ? icon : undefined // Optional: icon for notification
+        icon: process.platform === 'win32' ? icon : undefined, // Optional: icon for notification
+        actions: [{ type: 'button', text: 'Edit' }]
       })
+
+      notification.on('click', () => {
+        logMainToFile('Notification clicked. Focusing main window.')
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore()
+          mainWindow.focus()
+        }
+      })
+
+      notification.on('action', (_event, index) => {
+        logMainToFile(`Notification action clicked, index: ${index}`)
+        if (index === 0) {
+          // Corresponds to the 'Edit' button
+          if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore()
+            mainWindow.focus()
+          }
+        }
+      })
+
       notification.show()
     } else {
       logMainToFile('Notifications not supported on this system.')

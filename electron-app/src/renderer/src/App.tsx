@@ -205,8 +205,8 @@ export function MainAppContent() {
 
   // auto open mini timer when starting the app
   useEffect(() => {
+    // TODO: this will always open even if the user has just closed it manually via the X button in the FloatingDisplay(?). Which might be a bit annoying to them.
     if (isAuthenticated && user?.hasCompletedOnboarding && window.electron?.ipcRenderer) {
-      console.log('Auto-opening mini-timer after authentication and onboarding completion')
       window.electron.ipcRenderer.send('show-floating-window')
     }
   }, [isAuthenticated, user?.hasCompletedOnboarding])
@@ -247,7 +247,6 @@ export function MainAppContent() {
         try {
           const isVisible = await window.api.getFloatingWindowVisibility()
           setIsMiniTimerVisible(isVisible)
-          console.log('App.tsx: Initial mini timer visibility fetched:', isVisible)
         } catch (error) {
           console.error('Failed to get mini timer visibility', error)
         }
@@ -259,7 +258,6 @@ export function MainAppContent() {
     // Listener for subsequent changes
     const handleVisibilityChange = (_event: unknown, isVisible: boolean) => {
       setIsMiniTimerVisible(isVisible)
-      console.log('App.tsx: Mini timer visibility changed to:', isVisible)
     }
 
     const ipcRenderer = window.electron?.ipcRenderer

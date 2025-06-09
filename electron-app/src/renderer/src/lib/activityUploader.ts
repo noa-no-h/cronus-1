@@ -55,12 +55,6 @@ export const uploadActiveWindowEvent = async (
     windowDetails.ownerName
   )
 
-  console.log('Processing event:', {
-    isSystemEvent,
-    ownerName: windowDetails.ownerName,
-    type: isSystemEvent ? 'system' : windowDetails.type
-  })
-
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {
     token,
