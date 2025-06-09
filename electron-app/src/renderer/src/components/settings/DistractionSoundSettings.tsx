@@ -10,6 +10,7 @@ const DistractionSoundSettings = () => {
   const { token } = useAuth()
   const [playDistractionSound, setPlayDistractionSound] = useState(true)
   const [distractionSoundInterval, setDistractionSoundInterval] = useState(30) // in seconds
+  const [showDistractionNotifications, setShowDistractionNotifications] = useState(true)
 
   const { data: electronSettings, isLoading } = trpc.user.getElectronAppSettings.useQuery(
     { token: token || '' },
@@ -24,6 +25,9 @@ const DistractionSoundSettings = () => {
       if (electronSettings) {
         setPlayDistractionSound(electronSettings.playDistractionSound)
         setDistractionSoundInterval(electronSettings.distractionSoundInterval)
+        setShowDistractionNotifications(
+          (electronSettings as any).showDistractionNotifications ?? true
+        )
       }
     }
   })
@@ -33,6 +37,9 @@ const DistractionSoundSettings = () => {
     if (electronSettings) {
       setPlayDistractionSound(electronSettings.playDistractionSound)
       setDistractionSoundInterval(electronSettings.distractionSoundInterval)
+      setShowDistractionNotifications(
+        (electronSettings as any).showDistractionNotifications ?? true
+      )
     }
   }, [electronSettings])
 
@@ -42,7 +49,8 @@ const DistractionSoundSettings = () => {
     updateSettingsMutation.mutate({
       token,
       playDistractionSound: isChecked,
-      distractionSoundInterval
+      distractionSoundInterval,
+      showDistractionNotifications
     })
   }
 
@@ -53,7 +61,19 @@ const DistractionSoundSettings = () => {
     updateSettingsMutation.mutate({
       token,
       playDistractionSound,
-      distractionSoundInterval: interval
+      distractionSoundInterval: interval,
+      showDistractionNotifications
+    })
+  }
+
+  const handleShowNotificationsChange = (isChecked: boolean) => {
+    if (!token) return
+    setShowDistractionNotifications(isChecked)
+    updateSettingsMutation.mutate({
+      token,
+      playDistractionSound,
+      distractionSoundInterval,
+      showDistractionNotifications: isChecked
     })
   }
 
@@ -73,12 +93,20 @@ const DistractionSoundSettings = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-card-foreground">Distraction Sound Settings</CardTitle>
+        <CardTitle className="text-card-foreground">Distraction Alert Settings</CardTitle>
         <CardDescription>
-          Configure the sound that plays when you are on a distracting website.
+          Configure sounds and notifications for when you get distracted.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="show-notifications-switch">Show Distraction Notifications</Label>
+          <Switch
+            id="show-notifications-switch"
+            checked={showDistractionNotifications}
+            onCheckedChange={handleShowNotificationsChange}
+          />
+        </div>
         <div className="flex items-center justify-between">
           <Label htmlFor="play-sound-switch">Play Distraction Sound</Label>
           <Switch

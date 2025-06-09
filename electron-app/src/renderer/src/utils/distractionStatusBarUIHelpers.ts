@@ -7,6 +7,16 @@ export interface DisplayWindowInfo {
   isApp: boolean
 }
 
+export const getIdentifierFromUrl = (url: string): string => {
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.hostname
+  } catch (e) {
+    console.warn('Error parsing URL for identifier:', url, e)
+    return url
+  }
+}
+
 export const getDisplayWindowInfo = (
   latestEvent: ActiveWindowEvent | null | undefined,
   activeWindow: ActiveWindowDetails | null

@@ -12,6 +12,7 @@ export const userRouter = router({
         theme: z.enum(['light', 'dark', 'system']).optional(),
         playDistractionSound: z.boolean().optional(),
         distractionSoundInterval: z.number().min(5).max(300).optional(),
+        showDistractionNotifications: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -30,6 +31,10 @@ export const userRouter = router({
       }
       if (input.distractionSoundInterval !== undefined) {
         updateData['electronAppSettings.distractionSoundInterval'] = input.distractionSoundInterval;
+      }
+      if (input.showDistractionNotifications !== undefined) {
+        updateData['electronAppSettings.showDistractionNotifications'] =
+          input.showDistractionNotifications;
       }
 
       const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
@@ -62,6 +67,7 @@ export const userRouter = router({
           theme: 'system',
           playDistractionSound: true,
           distractionSoundInterval: 30,
+          showDistractionNotifications: true,
         }
       );
     }),

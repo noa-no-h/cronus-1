@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDistractionNotification } from '../../hooks/useDistractionNotification'
 import { useDistractionSound } from '../../hooks/useDistractionSound'
+import { useRecategorizationHandler } from '../../hooks/useRecategorizationHandler'
 import {
   getCardBgColor,
   getDisplayWindowInfo,
@@ -199,78 +201,29 @@ const DistractionCategorizationResult = ({
     ]
   )
 
-  useEffect(() => {
-    if (
-      categoryDetails &&
-      typeof categoryDetails === 'object' &&
-      '_id' in categoryDetails &&
-      activeWindow
-    ) {
-      const fullCategoryDetails = categoryDetails as Category
-      if (fullCategoryDetails.isProductive === false) {
-        const appName = activeWindow.ownerName || 'Current Application'
-        const notificationTitle = `Focus Alert: ${appName}`
-        const notificationBody = `${statusText}`
-
-        if (window.Notification) {
-          new window.Notification(notificationTitle, { body: notificationBody }).onclick = () => {
-            console.log('Notification clicked')
-          }
-        }
-      }
-    }
-  }, [categoryDetails, activeWindow, statusText])
+  useDistractionNotification(
+    categoryDetails as Category | null | undefined,
+    activeWindow,
+    statusText
+  )
 
   const displayWindowInfo = useMemo(
     () => getDisplayWindowInfo(latestEvent, activeWindow),
     [latestEvent, activeWindow]
   )
-
   const cardBgColor = useMemo(() => getCardBgColor(categoryDetails), [categoryDetails])
-
   const statusTextColor = useMemo(() => getStatusTextColor(categoryDetails), [categoryDetails])
 
   const isLoadingPrimary =
     isLoadingLatestEvent ||
     (token && !latestEvent && !isLoadingCategory && !isLoadingUserCategories)
 
-  const getIdentifierFromUrl = (url: string): string => {
-    try {
-      const parsedUrl = new URL(url)
-      return parsedUrl.hostname
-    } catch (e) {
-      console.warn('Error parsing URL for identifier:', url, e)
-      return url
-    }
-  }
-
-  const handleOpenRecategorize = () => {
-    if (!latestEvent || !displayWindowInfo) {
-      console.warn('Cannot re-categorize: missing latestEvent or displayWindowInfo')
-      return
-    }
-
-    const currentCat = categoryDetails as Category | null
-    const currentCatId = latestEvent.categoryId || 'uncategorized'
-    const currentCatName = currentCat?.name || 'Uncategorized'
-
-    const identifier = displayWindowInfo.isApp
-      ? displayWindowInfo.ownerName
-      : displayWindowInfo.url
-        ? getIdentifierFromUrl(displayWindowInfo.url)
-        : displayWindowInfo.ownerName
-
-    const target: ActivityToRecategorize = {
-      identifier: identifier,
-      nameToDisplay:
-        displayWindowInfo.ownerName +
-        (displayWindowInfo.title ? ` - ${displayWindowInfo.title}` : ''),
-      itemType: displayWindowInfo.isApp ? 'app' : 'website',
-      currentCategoryId: currentCatId,
-      currentCategoryName: currentCatName
-    }
-    onOpenRecategorizeDialog(target)
-  }
+  const handleOpenRecategorize = useRecategorizationHandler(
+    latestEvent,
+    displayWindowInfo,
+    categoryDetails,
+    onOpenRecategorizeDialog
+  )
 
   if (isLoadingPrimary) {
     return (
