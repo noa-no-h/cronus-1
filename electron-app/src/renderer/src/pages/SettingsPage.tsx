@@ -13,8 +13,8 @@ export function SettingsPage() {
       <div className="p-4 pt-0">
         <div className="space-y-4">
           <CategoryManagement />
-          <DistractionSoundSettings />
           <GoalInputForm />
+          <DistractionSoundSettings />
           <ThemeSwitcher />
           <div className="space-y-4">
             <div className="bg-muted/30 rounded-lg p-6 border border-border">

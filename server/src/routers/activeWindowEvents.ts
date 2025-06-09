@@ -159,8 +159,6 @@ export const activeWindowEventsRouter = router({
 
       const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId } = input;
 
-      console.log('input in updateEventsCategoryInDateRange', input);
-
       const queryConditions: any = {
         userId: userId,
         timestamp: {

@@ -11,6 +11,7 @@ const DistractionSoundSettings = () => {
   const [playDistractionSound, setPlayDistractionSound] = useState(true)
   const [distractionSoundInterval, setDistractionSoundInterval] = useState(30) // in seconds
   const [showDistractionNotifications, setShowDistractionNotifications] = useState(true)
+  const [distractionNotificationInterval, setDistractionNotificationInterval] = useState(60) // in seconds
 
   const { data: electronSettings, isLoading } = trpc.user.getElectronAppSettings.useQuery(
     { token: token || '' },
@@ -26,6 +27,7 @@ const DistractionSoundSettings = () => {
         setPlayDistractionSound(electronSettings.playDistractionSound)
         setDistractionSoundInterval(electronSettings.distractionSoundInterval)
         setShowDistractionNotifications(electronSettings.showDistractionNotifications)
+        setDistractionNotificationInterval(electronSettings.distractionNotificationInterval || 60)
       }
     }
   })
@@ -36,6 +38,7 @@ const DistractionSoundSettings = () => {
       setPlayDistractionSound(electronSettings.playDistractionSound)
       setDistractionSoundInterval(electronSettings.distractionSoundInterval)
       setShowDistractionNotifications(electronSettings.showDistractionNotifications)
+      setDistractionNotificationInterval(electronSettings.distractionNotificationInterval || 60)
     }
   }, [electronSettings])
 
@@ -46,7 +49,8 @@ const DistractionSoundSettings = () => {
       token,
       playDistractionSound: isChecked,
       distractionSoundInterval,
-      showDistractionNotifications
+      showDistractionNotifications,
+      distractionNotificationInterval
     })
   }
 
@@ -58,7 +62,8 @@ const DistractionSoundSettings = () => {
       token,
       playDistractionSound,
       distractionSoundInterval: interval,
-      showDistractionNotifications
+      showDistractionNotifications,
+      distractionNotificationInterval
     })
   }
 
@@ -69,7 +74,21 @@ const DistractionSoundSettings = () => {
       token,
       playDistractionSound,
       distractionSoundInterval,
-      showDistractionNotifications: isChecked
+      showDistractionNotifications: isChecked,
+      distractionNotificationInterval
+    })
+  }
+
+  const handleNotificationIntervalChange = (value: string) => {
+    if (!token) return
+    const interval = Number(value)
+    setDistractionNotificationInterval(interval)
+    updateSettingsMutation.mutate({
+      token,
+      playDistractionSound,
+      distractionSoundInterval,
+      showDistractionNotifications,
+      distractionNotificationInterval: interval
     })
   }
 
@@ -96,7 +115,7 @@ const DistractionSoundSettings = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label htmlFor="show-notifications-switch">Show Distraction Notifications</Label>
+          <Label htmlFor="show-notifications-switch">Show System Notifications</Label>
           <Switch
             id="show-notifications-switch"
             checked={showDistractionNotifications}
@@ -104,7 +123,27 @@ const DistractionSoundSettings = () => {
           />
         </div>
         <div className="flex items-center justify-between">
-          <Label htmlFor="play-sound-switch">Play Distraction Sound</Label>
+          <Label htmlFor="notification-interval-select">System Interval</Label>
+          <Select
+            value={distractionNotificationInterval.toString()}
+            onValueChange={handleNotificationIntervalChange}
+            disabled={!showDistractionNotifications}
+          >
+            <SelectTrigger id="notification-interval-select" className="w-[180px]">
+              <SelectValue placeholder="Select interval" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">Every 30 seconds</SelectItem>
+              <SelectItem value="60">Every 1 minute</SelectItem>
+              <SelectItem value="120">Every 2 minutes</SelectItem>
+              <SelectItem value="300">Every 5 minutes</SelectItem>
+              <SelectItem value="600">Every 10 minutes</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label htmlFor="play-sound-switch">Play Sound Alert</Label>
           <Switch
             id="play-sound-switch"
             checked={playDistractionSound}
@@ -113,7 +152,7 @@ const DistractionSoundSettings = () => {
         </div>
 
         <div className="flex items-center justify-between">
-          <Label htmlFor="sound-interval-select">Sound Interval</Label>
+          <Label htmlFor="sound-interval-select">Sound Alert Interval</Label>
           <Select
             value={distractionSoundInterval.toString()}
             onValueChange={handleIntervalChange}

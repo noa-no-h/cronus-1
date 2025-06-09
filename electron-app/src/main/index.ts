@@ -1,6 +1,6 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
-import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Notification, screen, shell } from 'electron'
 import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
 import { ActiveWindowDetails, Category } from 'shared'
@@ -379,6 +379,20 @@ app.whenReady().then(async () => {
     if (mainWindow) {
       mainWindow.show()
       mainWindow.focus()
+    }
+  })
+
+  ipcMain.on('show-notification', (_event, { title, body }) => {
+    logMainToFile('Received show-notification request', { title, body })
+    if (Notification.isSupported()) {
+      const notification = new Notification({
+        title,
+        body,
+        icon: process.platform === 'win32' ? icon : undefined // Optional: icon for notification
+      })
+      notification.show()
+    } else {
+      logMainToFile('Notifications not supported on this system.')
     }
   })
 

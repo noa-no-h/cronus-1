@@ -15,6 +15,9 @@ const api = {
   },
   getAudioDataUrl: () => ipcRenderer.invoke('get-audio-data-url'),
   logToFile: (message: string, data?: object) => ipcRenderer.send('log-to-file', message, data),
+  showNotification: (options: { title: string; body: string }) => {
+    ipcRenderer.send('show-notification', options)
+  },
   getEnvVariables: () => ipcRenderer.invoke('get-env-vars'),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
   deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),
