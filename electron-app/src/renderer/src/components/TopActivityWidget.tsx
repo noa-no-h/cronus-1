@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Card } from '../components/ui/card'
 // import { ActiveWindowEvent } from 'shared' // No longer directly needed for props
 import { getFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
@@ -295,18 +295,13 @@ const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
   }
 
   return (
-    <Card className="bg-card border-border">
-      <CardHeader>
-        <CardTitle className="text-card-foreground">Today&apos;s Focus Zones</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {renderContent()}
-        {totalTrackedTimeMs > 0 && topApps.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-3 pt-2 border-t border-border">
-            Total actively tracked time today: {formatDuration(totalTrackedTimeMs)}
-          </p>
-        )}
-      </CardContent>
+    <Card className="bg-card border-border p-4">
+      {renderContent()}
+      {totalTrackedTimeMs > 0 && topApps.length > 0 && (
+        <p className="text-xs text-muted-foreground border-t pt-4 border-border">
+          Total actively tracked time today: {formatDuration(totalTrackedTimeMs)}
+        </p>
+      )}
     </Card>
   )
 }
