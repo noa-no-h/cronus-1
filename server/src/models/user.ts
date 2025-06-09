@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema({
       type: Number,
       default: 30, // in seconds
     },
+    showDistractionNotifications: {
+      type: Boolean,
+      default: true,
+    },
   },
   userGoals: {
     weeklyGoal: {

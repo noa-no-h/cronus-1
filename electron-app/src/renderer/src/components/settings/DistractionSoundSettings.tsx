@@ -25,9 +25,7 @@ const DistractionSoundSettings = () => {
       if (electronSettings) {
         setPlayDistractionSound(electronSettings.playDistractionSound)
         setDistractionSoundInterval(electronSettings.distractionSoundInterval)
-        setShowDistractionNotifications(
-          (electronSettings as any).showDistractionNotifications ?? true
-        )
+        setShowDistractionNotifications(electronSettings.showDistractionNotifications)
       }
     }
   })
@@ -37,9 +35,7 @@ const DistractionSoundSettings = () => {
     if (electronSettings) {
       setPlayDistractionSound(electronSettings.playDistractionSound)
       setDistractionSoundInterval(electronSettings.distractionSoundInterval)
-      setShowDistractionNotifications(
-        (electronSettings as any).showDistractionNotifications ?? true
-      )
+      setShowDistractionNotifications(electronSettings.showDistractionNotifications)
     }
   }, [electronSettings])
 

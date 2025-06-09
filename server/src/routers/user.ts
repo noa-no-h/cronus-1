@@ -55,21 +55,24 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const user = await User.findById(userId).select('electronAppSettings');
+      const user = await User.findById(userId).select('electronAppSettings').lean();
 
       if (!user) {
         throw new Error('User not found');
       }
 
-      return (
-        user.electronAppSettings || {
-          calendarZoomLevel: 60,
-          theme: 'system',
-          playDistractionSound: true,
-          distractionSoundInterval: 30,
-          showDistractionNotifications: true,
-        }
-      );
+      const defaultSettings = {
+        calendarZoomLevel: 60,
+        theme: 'system',
+        playDistractionSound: true,
+        distractionSoundInterval: 30,
+        showDistractionNotifications: true,
+      };
+
+      return {
+        ...defaultSettings,
+        ...(user.electronAppSettings || {}),
+      };
     }),
 
   updateUserGoals: publicProcedure
