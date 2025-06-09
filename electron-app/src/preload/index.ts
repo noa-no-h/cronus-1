@@ -26,7 +26,8 @@ const api = {
     return () => {
       ipcRenderer.removeListener('display-recategorize-page', listener)
     }
-  }
+  },
+  getFloatingWindowVisibility: () => ipcRenderer.invoke('get-floating-window-visibility')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -237,16 +237,31 @@ export function MainAppContent() {
   }, [isAuthenticated, token, eventCreationMutation.mutateAsync])
 
   useEffect(() => {
-    const handleVisibilityChange = (_event, isVisible: boolean) => {
+    // Fetch initial state
+    const fetchInitialVisibility = async () => {
+      if (window.api?.getFloatingWindowVisibility) {
+        try {
+          const isVisible = await window.api.getFloatingWindowVisibility()
+          setIsMiniTimerVisible(isVisible)
+          console.log('App.tsx: Initial mini timer visibility fetched:', isVisible)
+        } catch (error) {
+          console.error('Failed to get mini timer visibility', error)
+        }
+      }
+    }
+
+    fetchInitialVisibility()
+
+    // Listener for subsequent changes
+    const handleVisibilityChange = (_event: unknown, isVisible: boolean) => {
       setIsMiniTimerVisible(isVisible)
       console.log('App.tsx: Mini timer visibility changed to:', isVisible)
     }
-    window.electron?.ipcRenderer?.on('floating-window-visibility-changed', handleVisibilityChange)
+
+    const ipcRenderer = window.electron?.ipcRenderer
+    ipcRenderer?.on('floating-window-visibility-changed', handleVisibilityChange)
     return () => {
-      window.electron?.ipcRenderer?.removeListener(
-        'floating-window-visibility-changed',
-        handleVisibilityChange
-      )
+      ipcRenderer?.removeListener('floating-window-visibility-changed', handleVisibilityChange)
     }
   }, [])
 

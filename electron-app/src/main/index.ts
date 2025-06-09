@@ -166,7 +166,6 @@ function createFloatingWindow(): void {
     if (floatingWindow && floatingWindow.isVisible()) {
       floatingWindow.hide()
       console.log('Floating window hidden by user.')
-      mainWindow?.webContents.send('floating-window-visibility-changed', false)
     }
   })
 
@@ -278,6 +277,10 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.on('ping', () => console.log('pong'))
+
+  ipcMain.handle('get-floating-window-visibility', () => {
+    return floatingWindow?.isVisible() ?? false
+  })
 
   ipcMain.on('log-to-file', (_event, _message: string, _data?: object) => {
     // logRendererToFile(message, data)

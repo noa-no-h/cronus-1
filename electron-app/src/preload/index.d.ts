@@ -37,6 +37,7 @@ declare global {
       // Define other methods of 'api' if you have them
       readFile: (filePath: string) => Promise<ArrayBuffer>
       deleteFile: (filePath: string) => Promise<void>
+      getFloatingWindowVisibility: () => Promise<boolean>
       onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
       getAudioDataUrl: () => Promise<string | null>
     }
