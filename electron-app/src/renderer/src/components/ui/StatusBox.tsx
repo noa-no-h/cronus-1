@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Settings } from 'lucide-react'
+import { EditIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import { Category } from 'shared'
 
@@ -10,7 +10,7 @@ interface StatusBoxProps {
   highlightColor?: 'green' | 'red' | 'orange'
   isEnlarged: boolean // Determines if this box takes more space
   categoryDetails?: Category
-  onCategoryClick?: (category: Category | undefined) => void
+  onCategoryClick?: () => void
 }
 
 const StatusBox: React.FC<StatusBoxProps> = ({
@@ -64,16 +64,17 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       )}
     >
       <span
-        onClick={() => isEnlarged && onCategoryClick && onCategoryClick(categoryDetails)}
+        onClick={() => isEnlarged && onCategoryClick && onCategoryClick()}
         className={clsx(
           'font-sm font-medium flex flex-row items-center gap-1',
           labelColorCls,
-          isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer'
+          isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer',
+          isHovered && isEnlarged && 'bg-white/10 rounded-md p-1'
         )}
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
       >
         {isHovered && isEnlarged && (
-          <Settings className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
+          <EditIcon className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
         )}
         {categoryDetails?.name || label}
       </span>

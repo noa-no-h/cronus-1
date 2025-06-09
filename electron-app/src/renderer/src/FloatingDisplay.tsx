@@ -13,6 +13,10 @@ interface FloatingStatusUpdate {
   dailyUnproductiveMs: number
   categoryName?: string
   categoryDetails?: Category
+  activityIdentifier?: string
+  itemType?: 'app' | 'website'
+  activityName?: string
+  activityUrl?: string
 }
 
 // Helper to format milliseconds to HH:MM:SS
@@ -32,6 +36,12 @@ const FloatingDisplay: React.FC = () => {
   const [currentCategoryDetails, setCurrentCategoryDetails] = useState<Category | undefined>(
     undefined
   )
+  const [activityInfo, setActivityInfo] = useState<{
+    identifier?: string
+    itemType?: 'app' | 'website'
+    name?: string
+    url?: string
+  }>({})
 
   const draggableRef = useRef<HTMLDivElement>(null)
   const dragStartInfoRef = useRef<{ initialMouseX: number; initialMouseY: number } | null>(null)
@@ -43,6 +53,12 @@ const FloatingDisplay: React.FC = () => {
         setDisplayedProductiveTimeMs(data.dailyProductiveMs)
         setDailyUnproductiveMs(data.dailyUnproductiveMs)
         setCurrentCategoryDetails(data.categoryDetails)
+        setActivityInfo({
+          identifier: data.activityIdentifier,
+          itemType: data.itemType,
+          name: data.activityName,
+          url: data.activityUrl
+        })
         setIsVisible(true)
       })
       return cleanup
@@ -108,9 +124,20 @@ const FloatingDisplay: React.FC = () => {
     }
   }
 
-  const handleCategoryNameClick = (category: Category | undefined) => {
+  const handleCategoryNameClick = () => {
     if (window.floatingApi && window.floatingApi.requestRecategorizeView) {
-      window.floatingApi.requestRecategorizeView(category)
+      if (!currentCategoryDetails) {
+        console.warn('[FloatingDisplay] No category details to send for recategorization.')
+        return
+      }
+      const payload = {
+        ...currentCategoryDetails,
+        activityIdentifier: activityInfo.identifier,
+        itemType: activityInfo.itemType,
+        activityName: activityInfo.name,
+        activityUrl: activityInfo.url
+      }
+      window.floatingApi.requestRecategorizeView(payload)
     } else {
       console.warn('[FloatingDisplay] floatingApi.requestRecategorizeView is not available.')
     }

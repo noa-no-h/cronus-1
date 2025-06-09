@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ArrowLeft, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
+import { ArrowLeft, EditIcon, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../../App'
@@ -144,6 +144,11 @@ const DistractionCategorizationResult = ({
 
   useDistractionSound(categoryDetails as Category | null | undefined)
 
+  const displayWindowInfo = useMemo(
+    () => getDisplayWindowInfo(latestEvent, activeWindow),
+    [latestEvent, activeWindow]
+  )
+
   useEffect(() => {
     if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
       return
@@ -170,13 +175,23 @@ const DistractionCategorizationResult = ({
       userCategories as Category[]
     )
 
+    const itemType = displayWindowInfo.url ? 'website' : 'app'
+    const activityIdentifier = displayWindowInfo.isApp
+      ? displayWindowInfo.ownerName
+      : displayWindowInfo.url
+    const activityName = displayWindowInfo.ownerName
+
     window.electron.ipcRenderer.send('update-floating-window-status', {
       latestStatus,
       dailyProductiveMs,
       dailyUnproductiveMs,
-      categoryDetails: categoryDetailsForFloatingWindow
+      categoryDetails: categoryDetailsForFloatingWindow,
+      itemType,
+      activityIdentifier,
+      activityName,
+      activityUrl: displayWindowInfo.url
     })
-  }, [latestEvent, categoryDetails, userCategories, todayEvents, token])
+  }, [latestEvent, categoryDetails, userCategories, todayEvents, token, displayWindowInfo])
 
   const statusText = useMemo(
     () =>
@@ -204,10 +219,6 @@ const DistractionCategorizationResult = ({
     statusText
   )
 
-  const displayWindowInfo = useMemo(
-    () => getDisplayWindowInfo(latestEvent, activeWindow),
-    [latestEvent, activeWindow]
-  )
   const cardBgColor = useMemo(() => getCardBgColor(categoryDetails), [categoryDetails])
   const statusTextColor = useMemo(() => getStatusTextColor(categoryDetails), [categoryDetails])
 
@@ -283,7 +294,7 @@ const DistractionCategorizationResult = ({
           >
             {statusText}
             {latestEvent && categoryId && !isLoadingCategory && (
-              <SettingsIcon size={14} className="ml-1 flex-shrink-0" />
+              <EditIcon size={14} className="ml-1 flex-shrink-0" />
             )}
           </div>
           {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
