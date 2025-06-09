@@ -49,7 +49,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSTimer *periodicCheckTimer;          
     NSString *lastTrackedApp;             
     NSTimeInterval lastAppSwitchTime;    
-    BOOL isCurrentlyTracking;
+    BOOL isCurrentlyTracking;           
     ChromeTabTracking *chromeTabTracking;
     SleepAndLockObserver *sleepAndLockObserver;
 }
@@ -57,7 +57,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (id)init {
     self = [super init];
     if (!self) return nil;
-
+    
     sleepAndLockObserver = [[SleepAndLockObserver alloc] initWithWindowObserver:self];
     chromeTabTracking = [[ChromeTabTracking alloc] init];
     chromeTabTracking.delegate = self;
@@ -67,9 +67,9 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     
     // Workspace notifications (sleep/wake)
     [workspaceCenter addObserver:self 
-                       selector:@selector(receiveAppChangeNotification:) 
-                           name:NSWorkspaceDidActivateApplicationNotification 
-                         object:nil];
+                                                         selector:@selector(receiveAppChangeNotification:) 
+                                                             name:NSWorkspaceDidActivateApplicationNotification 
+                                                           object:nil];
     
     MyLog(@"🔧 DEBUG: Initialized observers for sleep/wake and lock/unlock events");
     
@@ -272,7 +272,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             }
         }
         // --- End Chrome Tab Timer Management ---
-
+        
         // Check for browser windows
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
             NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
@@ -295,13 +295,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         } else {
             MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
             NSString *extractedText = [ContentExtractor getAppTextContent:windowOwnerName windowId:windowId];
-            if (extractedText && extractedText.length > 0) {
-                windowInfo[@"content"] = extractedText;
-                MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
-                MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
-            } else {
-                MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
-            }
+        if (extractedText && extractedText.length > 0) {
+            windowInfo[@"content"] = extractedText;
+            MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
+            MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+        } else {
+            MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+        }
         }
         
         return windowInfo;
