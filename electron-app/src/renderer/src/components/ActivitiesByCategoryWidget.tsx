@@ -429,17 +429,13 @@ const ActivitiesByCategoryWidget = ({
       <>
         {renderItems(visibleActivities)}
         {hiddenActivities.length > 0 && (
-          <div className="px-2 pt-1">
-            <Button
-              variant="link"
-              className="p-0 h-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() =>
-                setShowMore((prev) => ({ ...prev, [currentCategory.id]: !isShowMore }))
-              }
-            >
-              {isShowMore ? 'Show less' : `Show ${hiddenActivities.length} more`}
-            </Button>
-          </div>
+          <Button
+            variant="link"
+            className="p-1 mt-2 w-full h-auto text-xs text-left justify-start text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setShowMore((prev) => ({ ...prev, [currentCategory.id]: !isShowMore }))}
+          >
+            {isShowMore ? 'Show less' : `Show ${hiddenActivities.length} more`}
+          </Button>
         )}
         <AnimatePresence>
           {isShowMore && (
@@ -535,7 +531,7 @@ const ActivitiesByCategoryWidget = ({
 
   return (
     <Card>
-      <CardContent className="space-y-4 px-2 pt-2">
+      <CardContent className="space-y-4 px-2 pt-2 pb-3">
         {selectedHour !== null && (
           <div className="flex justify-between items-center px-3 py-2 bg-muted rounded-sm">
             <span className="text-xs text-muted-foreground font-normal">
