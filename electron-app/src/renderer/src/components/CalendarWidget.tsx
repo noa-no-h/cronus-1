@@ -181,6 +181,17 @@ const CalendarWidget = ({
   // Check if we're viewing today
   const isToday = selectedDate.toDateString() === new Date().toDateString()
 
+  const canGoNext = () => {
+    const tomorrow = new Date(selectedDate)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return tomorrow <= today
+  }
+
   // Process events into time blocks
   useEffect(() => {
     if (isLoadingEvents || !processedEvents) {
@@ -267,7 +278,16 @@ const CalendarWidget = ({
   const handleNext = () => {
     const newDate = new Date(selectedDate)
     newDate.setDate(newDate.getDate() + 1)
-    onDateChange(newDate)
+
+    // Check if the new date would be in the future
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    newDate.setHours(0, 0, 0, 0)
+
+    // Only allow navigation if the new date is not in the future
+    if (newDate <= today) {
+      onDateChange(newDate)
+    }
   }
 
   const formattedDate = selectedDate.toLocaleDateString(undefined, {
@@ -286,7 +306,7 @@ const CalendarWidget = ({
               <ChevronLeft size={20} />
             </Button>
             <span className="text-sm text-muted-foreground font-medium">{formattedDate}</span>
-            <Button variant="outline" size="xs" onClick={handleNext}>
+            <Button variant="outline" size="xs" onClick={handleNext} disabled={!canGoNext()}>
               <ChevronRight size={20} />
             </Button>
           </div>
