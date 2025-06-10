@@ -14,7 +14,7 @@ let mainWindow: BrowserWindow | null
 let floatingWindow: BrowserWindow | null
 
 const FLOATING_WINDOW_WIDTH = 400
-const FLOATING_WINDOW_HEIGHT = 60
+const FLOATING_WINDOW_HEIGHT = 53
 
 // --- File Logger Setup ---
 const mainLogFilePath = join(app.getAppPath(), 'whatdidyougetdonethisweek-main.log')

@@ -1,6 +1,5 @@
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
-import { getFaviconURL } from '../utils/favicon'
-import AppIcon from './AppIcon'
+import { ActivityIcon } from './ui/ActivityIcon'
 
 interface HourlyTimelineSegment {
   startMinute: number
@@ -55,17 +54,7 @@ const TimelineTooltipContent = ({
           className="flex items-center justify-between text-xs"
         >
           <div className="flex items-center space-x-2 truncate">
-            {data.url ? (
-              <img
-                src={getFaviconURL(data.url) || '/placeholder.svg'}
-                className="w-4 h-4 rounded flex-shrink-0"
-                onError={(e) => {
-                  ;(e.target as HTMLImageElement).style.display = 'none'
-                }}
-              />
-            ) : (
-              <AppIcon appName={appName} size={12} className="flex-shrink-0" />
-            )}
+            <ActivityIcon url={data.url} appName={appName} size={12} />
             <span className="truncate">{appName}</span>
           </div>
           <span className="flex-shrink-0 text-muted-foreground pl-2">

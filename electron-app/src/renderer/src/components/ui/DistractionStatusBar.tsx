@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, EditIcon, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
@@ -13,10 +14,9 @@ import {
   getStatusText,
   getStatusTextColor
 } from '../../utils/distractionStatusBarUIHelpers'
-import { getFaviconURL } from '../../utils/favicon'
 import { calculateProductivityMetrics } from '../../utils/timeMetrics'
 import { trpc } from '../../utils/trpc'
-import AppIcon from '../AppIcon'
+import { ActivityIcon } from './ActivityIcon'
 import { Button } from './button'
 import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 
@@ -246,45 +246,26 @@ const DistractionCategorizationResult = ({
         )}
       >
         <div className="flex-grow min-w-0 flex items-center">
-          {/* Icon Display Logic */}
-          {displayWindowInfo.url && !displayWindowInfo.isApp ? (
-            <img
-              src={getFaviconURL(displayWindowInfo.url)}
-              alt="" // Alt text can be improved if needed
-              className="w-4 h-4 mr-2 flex-shrink-0 rounded"
-              onError={(e) => {
-                // Fallback or hide if favicon fails to load
-                ;(e.target as HTMLImageElement).style.display = 'none'
-                // Optionally, show a generic icon here
-              }}
-            />
-          ) : displayWindowInfo.ownerName &&
-            displayWindowInfo.isApp &&
-            ![
-              '💤 System Inactive',
-              '⏰ System Active',
-              '🔒 Screen Locked',
-              '🔓 Screen Unlocked'
-            ].includes(displayWindowInfo.ownerName) ? (
-            <AppIcon
-              appName={displayWindowInfo.ownerName}
-              size={16}
-              className="mr-2 flex-shrink-0"
-            />
-          ) : (
-            // Optional: Placeholder for system events or when no icon is applicable
-            <div className="w-4 h-4 mr-2 flex-shrink-0"></div>
-          )}
-          <div className="flex-grow min-w-0">
-            <div className="text-sm font-medium text-foreground truncate">
-              {displayWindowInfo.ownerName}
-              {displayWindowInfo.title && (
-                <span className="text-muted-foreground dark:text-white/70">
-                  {` - ${displayWindowInfo.title}`}
-                </span>
-              )}
-            </div>
-          </div>
+          <AnimatePresence>
+            <motion.div
+              key={displayWindowInfo.ownerName}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex-grow min-w-0 flex items-center"
+            >
+              {/* Icon Display Logic */}
+              <ActivityIcon
+                url={displayWindowInfo.isApp ? undefined : displayWindowInfo.url}
+                appName={displayWindowInfo.ownerName}
+                size={16}
+                className="mr-2"
+              />
+              <span className="text-sm text-muted-foreground truncate">
+                {displayWindowInfo.title}
+              </span>
+            </motion.div>
+          </AnimatePresence>
         </div>
         <div>
           <div

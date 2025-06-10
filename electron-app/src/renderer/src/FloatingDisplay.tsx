@@ -191,7 +191,7 @@ const FloatingDisplay: React.FC = () => {
       ref={draggableRef}
       className={clsx(
         'w-full h-full flex items-center p-1 rounded-xl shadow-lg select-none',
-        'backdrop-blur-xl border-2 border-secondary/50'
+        'backdrop-blur-xl border-1 border-secondary/50'
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
@@ -203,7 +203,7 @@ const FloatingDisplay: React.FC = () => {
           size="icon"
           onClick={handleClose}
           className="close-button-area p-1 w-6 h-6 mr-1 rounded-lg"
-          title="Close"
+          title="Close Mini Timer"
         >
           <X className="w-4 h-4 text-muted-foreground" />
         </Button>
@@ -212,7 +212,7 @@ const FloatingDisplay: React.FC = () => {
           variant="ghost"
           size="icon"
           onClick={handleOpenMainAppWindow}
-          className="open-main-app-window-button p-1 w-6 h-6 mr-1 rounded-lg"
+          className="open-main-app-window-butto p-1 w-6 h-6 mr-1 rounded-lg"
           title="Open Main App Window"
         >
           <AppWindowMac className="w-4 h-4 text-muted-foreground" />

@@ -1,10 +1,9 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
-import { getFaviconURL } from '../utils/favicon'
-import AppIcon from './AppIcon'
 import type { ProcessedEventBlock } from './DashboardView'
 import TimelineTooltipContent, { type HourlyTimelineSegment } from './TimelineTooltipContent'
+import { ActivityIcon } from './ui/ActivityIcon'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
 import { ScrollArea } from './ui/scroll-area'
@@ -106,23 +105,7 @@ const TimelineSegmentContent = ({ segment }: { segment: HourlyTimelineSegment })
       {/* Conditionally render the content based on available space. */}
       {canShowIcon && (
         <div className="flex items-center space-x-1 px-1">
-          {segment.url ? (
-            <img
-              src={getFaviconURL(segment.url) || '/placeholder.svg'}
-              className="w-3 h-3 rounded flex-shrink-0"
-              onError={(e) => {
-                ;(e.target as HTMLImageElement).style.display = 'none'
-              }}
-            />
-          ) : (
-            <AppIcon appName={segment.name} size={12} className="flex-shrink-0" />
-          )}
-
-          {canShowText && (
-            <span className="text-xs text-muted-foreground font-medium truncate">
-              {segment.name}
-            </span>
-          )}
+          <ActivityIcon url={segment.url} appName={segment.name} size={12} />
         </div>
       )}
     </div>
