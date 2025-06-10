@@ -76,8 +76,10 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         {isHovered && isEnlarged && (
           <EditIcon className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
         )}
-        {categoryDetails?.name || label}
-        {process.env.NODE_ENV === 'development' && ' Dev'}
+        <span className="truncate w-full max-w-[80px]">
+          {categoryDetails?.name || label}
+          {process.env.NODE_ENV === 'development' && ' Dev'}
+        </span>
       </span>
       <span
         className={clsx(
