@@ -10,6 +10,7 @@ import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
+import { ChromeAppleEventsModal } from './components/ChromeAppleEventsModal'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
@@ -36,6 +37,7 @@ export function MainAppContent() {
 
   const [isRecategorizeDialogOpen, setIsRecategorizeDialogOpen] = useState(false)
   const [recategorizeTarget, setRecategorizeTarget] = useState<ActivityToRecategorize | null>(null)
+  const [showChromeAppleEventsModal, setShowChromeAppleEventsModal] = useState(false)
 
   const { data: allCategoriesData, isLoading: isLoadingAllCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
@@ -219,6 +221,7 @@ export function MainAppContent() {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
+    setShowChromeAppleEventsModal(true)
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.invoke('set-open-at-login', true)
     }
@@ -285,6 +288,10 @@ export function MainAppContent() {
       {isSettingsOpen && <SettingsPage />}
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      <ChromeAppleEventsModal
+        open={showChromeAppleEventsModal}
+        onClose={() => setShowChromeAppleEventsModal(false)}
+      />
       <Toaster />
       {allCategories && recategorizeTarget && (
         <RecategorizeDialog

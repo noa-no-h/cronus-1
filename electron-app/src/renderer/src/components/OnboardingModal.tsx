@@ -21,7 +21,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
-          <div className="text-7xl mb-6">Zeit</div>
+          <div className="text-7xl mb-6">Cronus</div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.
           </p>
