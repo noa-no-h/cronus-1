@@ -269,7 +269,7 @@ const DistractionCategorizationResult = ({
                 className="mr-2"
               />
               <span className="text-sm text-muted-foreground truncate">
-                {displayWindowInfo.title}
+                {displayWindowInfo.title || displayWindowInfo.ownerName}
               </span>
             </motion.div>
           </AnimatePresence>
