@@ -25,11 +25,10 @@ export function ChromeAppleEventsModal({ open, onClose }: { open: boolean; onClo
             Open Chrome and click the <b>View</b> menu at the top of your screen.
           </li>
           <li>
-            Select <b>Developer</b> &rarr; <b>Allow JavaScript from Apple Events</b>.
+            Select <b>Developer</b>
           </li>
           <li>
-            If you don’t see the Developer menu, you may need to enable it in Chrome’s settings
-            first.
+            Select <b>Allow JavaScript from Apple Events</b>
           </li>
         </ol>
         <div className="mt-4 text-sm text-muted-foreground bg-muted/30 rounded p-2">
