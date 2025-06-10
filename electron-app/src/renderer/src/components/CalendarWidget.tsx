@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useCurrentTime } from '../hooks/useCurrentTime'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 import type { ProcessedEventBlock } from './DashboardView'
 import DayTimeline, { type TimeBlock } from './DayTimeline'
 import { Button } from './ui/button'
@@ -77,15 +78,17 @@ const CalendarWidget = ({
       return
     }
 
-    const blocks: TimeBlock[] = processedEvents.map((eventBlock) => ({
-      startTime: eventBlock.startTime,
-      endTime: eventBlock.endTime,
-      durationMs: eventBlock.durationMs,
-      name: eventBlock.name,
-      description: eventBlock.title,
-      url: eventBlock.url,
-      categoryColor: eventBlock.categoryColor
-    }))
+    const blocks: TimeBlock[] = processedEvents
+      .filter((event) => !SYSTEM_EVENT_NAMES.includes(event.name))
+      .map((eventBlock) => ({
+        startTime: eventBlock.startTime,
+        endTime: eventBlock.endTime,
+        durationMs: eventBlock.durationMs,
+        name: eventBlock.name,
+        description: eventBlock.title,
+        url: eventBlock.url,
+        categoryColor: eventBlock.categoryColor
+      }))
 
     setTimeBlocks(blocks)
   }, [processedEvents, isLoadingEvents])

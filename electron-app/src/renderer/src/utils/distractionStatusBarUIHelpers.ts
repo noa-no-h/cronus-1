@@ -24,7 +24,7 @@ export const getDisplayWindowInfo = (
   const dw = latestEvent || activeWindow
   if (!dw) return { ownerName: 'No active application', title: '', url: undefined, isApp: true }
 
-  // Check for system events
+  // TODO: merge with or map from constants array?
   switch (dw.ownerName) {
     case 'System Sleep':
       return {

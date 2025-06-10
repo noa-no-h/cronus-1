@@ -2,6 +2,7 @@ import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
 import { ActiveWindowDetails } from 'shared'
 import { isVeryLikelyProductive } from 'shared/distractionRules'
 import type { AppRouter } from '../../../../../server/src'
+import { SYSTEM_EVENT_NAMES } from './constants'
 import { deleteLocalFile, readFileFromMain, uploadToS3 } from './s3Uploader'
 
 // Create a tRPC client for use outside of React components
@@ -51,9 +52,7 @@ export const uploadActiveWindowEvent = async (
     return
   }
 
-  const isSystemEvent = ['System Sleep', 'System Wake', 'System Lock', 'System Unlock'].includes(
-    windowDetails.ownerName
-  )
+  const isSystemEvent = SYSTEM_EVENT_NAMES.includes(windowDetails.ownerName)
 
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {

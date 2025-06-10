@@ -9,6 +9,7 @@ interface ActivityIconProps {
   className?: string
 }
 
+// TODO: marge with constants array?
 const systemEventNames = [
   '💤 System Inactive',
   '⏰ System Active',

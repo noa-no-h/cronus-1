@@ -4,6 +4,7 @@ import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from '../hooks/use-toast'
 import { ActivityItem, ProcessedCategory, processActivityEvents } from '../lib/activityProcessing'
+import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 import { trpc } from '../utils/trpc'
 import { ActivityList } from './ActivityList'
 import type { ProcessedEventBlock } from './DashboardView'
@@ -69,13 +70,17 @@ const ActivitiesByCategoryWidget = ({
       return
     }
 
+    const filteredEvents = todayProcessedEvents.filter(
+      (event) => !SYSTEM_EVENT_NAMES.includes(event.name)
+    )
+
     const categoriesMap = new Map<string, SharedCategory>(
       (categories || []).map((cat: SharedCategory) => [cat._id, cat])
     )
 
     let processedCategoriesResult: ProcessedCategory[] = []
 
-    if (todayProcessedEvents.length === 0) {
+    if (filteredEvents.length === 0) {
       processedCategoriesResult = (categories || [])
         .map((cat: SharedCategory) => ({
           id: cat._id,
@@ -92,7 +97,7 @@ const ActivitiesByCategoryWidget = ({
           return 0
         })
     } else {
-      processedCategoriesResult = processActivityEvents(todayProcessedEvents, categoriesMap)
+      processedCategoriesResult = processActivityEvents(filteredEvents, categoriesMap)
     }
 
     const allCategoryIdsWithActivity = new Set(processedCategoriesResult.map((r) => r.id))

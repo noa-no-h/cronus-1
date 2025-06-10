@@ -1,4 +1,5 @@
 import { ActiveWindowEvent, Category } from 'shared'
+import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 
 const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
 
@@ -23,12 +24,7 @@ export function calculateProductivityMetrics(
 
   for (let i = 0; i < sortedEvents.length; i++) {
     const currentEvent = sortedEvents[i]
-    if (
-      !currentEvent.timestamp ||
-      ['System Sleep', 'System Wake', 'System Lock', 'System Unlock'].includes(
-        currentEvent.ownerName
-      )
-    ) {
+    if (!currentEvent.timestamp || SYSTEM_EVENT_NAMES.includes(currentEvent.ownerName)) {
       continue
     }
 
@@ -47,29 +43,6 @@ export function calculateProductivityMetrics(
 
       if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
         durationMs = MAX_GAP_BETWEEN_EVENTS_MS
-      }
-
-      if (['System Sleep', 'System Lock'].includes(nextEvent.ownerName)) {
-        if (durationMs > 0) {
-          if (eventCategory.isProductive) {
-            dailyProductiveMs += durationMs
-          } else {
-            dailyUnproductiveMs += durationMs
-          }
-        }
-
-        const resumeEventName =
-          nextEvent.ownerName === 'System Sleep' ? 'System Wake' : 'System Unlock'
-        const resumeIndex = sortedEvents.findIndex(
-          (e, idx) => idx > i + 1 && e.ownerName === resumeEventName
-        )
-
-        if (resumeIndex !== -1) {
-          i = resumeIndex - 1
-        } else {
-          break
-        }
-        continue
       }
     } else {
       durationMs = Date.now() - (currentEvent.timestamp as number)

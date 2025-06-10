@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
+import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget'
 import TopActivityWidget from './TopActivityWidget'
 
 // Max duration for a single event interval.
-const MAX_SINGLE_EVENT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+const MAX_SINGLE_EVENT_DURATION_MS = 5 * 60 * 1000 // 5 minutes
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -93,6 +94,20 @@ export function DashboardView({ className }: { className?: string }) {
       // Iterate through the events to create display blocks with accurate start and end times
       for (let i = 0; i < chronologicallySortedEvents.length; i++) {
         const event = chronologicallySortedEvents[i]
+
+        // Skip system events AND uncategorized events from being processed into blocks.
+        if (SYSTEM_EVENT_NAMES.includes(event.ownerName) || !event.categoryId) {
+          if (!event.categoryId) {
+            console.log('uncategorized event', {
+              ownerName: event.ownerName,
+              title: event.title,
+              url: event.url,
+              timestamp: event.timestamp
+            })
+          }
+          continue
+        }
+
         const eventStartTime = new Date(event.timestamp as number)
         let eventEndTime: Date
         let eventDurationMs: number
@@ -120,7 +135,13 @@ export function DashboardView({ className }: { className?: string }) {
 
         // Ignore very short events (less than 1s) to reduce noise.
         if (eventDurationMs < 1000) {
-          continue
+          console.log('very short event', {
+            ownerName: event.ownerName,
+            title: event.title,
+            url: event.url,
+            timestamp: event.timestamp
+          })
+          // continue
         }
         const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
         blocks.push({
