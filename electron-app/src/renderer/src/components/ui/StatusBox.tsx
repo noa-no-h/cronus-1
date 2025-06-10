@@ -60,7 +60,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       className={clsx(
         'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
-        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-1 w-[32%] px-1 py-0.5'
+        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5'
       )}
     >
       <span
@@ -77,6 +77,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
           <EditIcon className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
         )}
         {categoryDetails?.name || label}
+        {process.env.NODE_ENV === 'development' && ' Dev'}
       </span>
       <span
         className={clsx(
