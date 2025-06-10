@@ -6,6 +6,7 @@ import { join, resolve as pathResolve } from 'path'
 import { ActiveWindowDetails, Category } from 'shared'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows } from '../native-modules/native-windows'
+const { nativeTheme } = require('electron')
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })
@@ -68,6 +69,9 @@ async function logRendererToFile(message: string, data?: object): Promise<void> 
 // --- End File Logger Setup ---
 
 function createFloatingWindow(): void {
+  if (is.dev) {
+    nativeTheme.themeSource = 'dark'
+  }
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width: screenWidth } = primaryDisplay.workAreaSize // Use workAreaSize to avoid OS menu bars
 

@@ -117,11 +117,18 @@ const DistractionCategorizationResult = ({
   const [currentDayEndDateMs, setCurrentDayEndDateMs] = React.useState<number | null>(null)
 
   React.useEffect(() => {
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
-    setCurrentDayStartDateMs(startOfToday.getTime())
-    setCurrentDayEndDateMs(endOfToday.getTime())
+    const updateDates = () => {
+      const now = new Date()
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
+      setCurrentDayStartDateMs(startOfToday.getTime())
+      setCurrentDayEndDateMs(endOfToday.getTime())
+    }
+
+    updateDates()
+    const intervalId = setInterval(updateDates, 10000) // Check every 10 seconds
+
+    return () => clearInterval(intervalId)
   }, [])
 
   const { data: todayEvents, isLoading: isLoadingTodayEvents } =

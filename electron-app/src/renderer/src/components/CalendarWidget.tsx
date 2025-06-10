@@ -32,6 +32,28 @@ const CalendarWidget = ({
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
+  const [wasSetToToday, setWasSetToToday] = useState(false)
+
+  useEffect(() => {
+    setWasSetToToday(selectedDate.toDateString() === new Date().toDateString())
+  }, [selectedDate])
+
+  useEffect(() => {
+    // only run this if we're viewing the current date
+    if (!wasSetToToday) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      // and the day is off
+      if (selectedDate.toDateString() !== new Date().toDateString()) {
+        // set to actual today
+        onDateChange(new Date())
+      }
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [wasSetToToday, selectedDate, onDateChange])
 
   // Check if we're viewing today
   const isToday = selectedDate.toDateString() === new Date().toDateString()
