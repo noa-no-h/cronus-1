@@ -17,6 +17,7 @@ export interface ProcessedEventBlock {
   title?: string // event.title
   url?: string
   categoryId?: string | null
+  categoryName?: string
   categoryColor?: string
   originalEvent: ActiveWindowEvent
 }
@@ -130,6 +131,7 @@ export function DashboardView({ className }: { className?: string }) {
           title: event.title,
           url: event.url || undefined,
           categoryId: event.categoryId,
+          categoryName: category?.name,
           categoryColor: category?.color,
           originalEvent: event
         })

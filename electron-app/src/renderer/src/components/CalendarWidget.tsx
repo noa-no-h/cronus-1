@@ -1,11 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCurrentTime } from '../hooks/useCurrentTime'
 import { useDarkMode } from '../hooks/useDarkMode'
 import type { ProcessedEventBlock } from './DashboardView'
 import DayTimeline, { type TimeBlock } from './DayTimeline'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import WeekView from './WeekView'
 
 interface CalendarWidgetProps {
   selectedDate: Date
@@ -23,8 +24,8 @@ const CalendarWidget = ({
   onDateChange,
   processedEvents,
   isLoadingEvents,
-  viewMode: _viewMode,
-  onViewModeChange: _onViewModeChange,
+  viewMode,
+  onViewModeChange,
   selectedHour,
   onHourSelect
 }: CalendarWidgetProps) => {
@@ -36,8 +37,9 @@ const CalendarWidget = ({
   const isToday = selectedDate.toDateString() === new Date().toDateString()
 
   const canGoNext = () => {
+    const delta = viewMode === 'week' ? 7 : 1
     const tomorrow = new Date(selectedDate)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setDate(tomorrow.getDate() + delta)
     tomorrow.setHours(0, 0, 0, 0)
 
     const today = new Date()
@@ -68,13 +70,15 @@ const CalendarWidget = ({
 
   const handlePrev = () => {
     const newDate = new Date(selectedDate)
-    newDate.setDate(newDate.getDate() - 1)
+    const delta = viewMode === 'week' ? 7 : 1
+    newDate.setDate(newDate.getDate() - delta)
     onDateChange(newDate)
   }
 
   const handleNext = () => {
     const newDate = new Date(selectedDate)
-    newDate.setDate(newDate.getDate() + 1)
+    const delta = viewMode === 'week' ? 7 : 1
+    newDate.setDate(newDate.getDate() + delta)
 
     // Check if the new date would be in the future
     const today = new Date()
@@ -87,17 +91,39 @@ const CalendarWidget = ({
     }
   }
 
-  const formattedDate = selectedDate.toLocaleDateString(undefined, {
-    weekday: 'short',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  })
+  const formattedDate = useMemo(() => {
+    if (viewMode === 'week') {
+      const startOfWeek = new Date(selectedDate)
+      const dayOfWeek = startOfWeek.getDay() // Sunday = 0
+      startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek)
+      startOfWeek.setHours(0, 0, 0, 0)
+
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(startOfWeek.getDate() + 6)
+
+      const startMonth = startOfWeek.toLocaleDateString(undefined, { month: 'short' })
+      const endMonth = endOfWeek.toLocaleDateString(undefined, { month: 'short' })
+      const startDay = startOfWeek.getDate()
+      const endDay = endOfWeek.getDate()
+      const year = endOfWeek.getFullYear()
+
+      if (startMonth === endMonth) {
+        return `${startMonth} ${startDay} - ${endDay}, ${year}`
+      }
+      return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`
+    }
+    return selectedDate.toLocaleDateString(undefined, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }, [selectedDate, viewMode])
 
   return (
     <Card className="w-full h-full flex flex-col">
       <div className="p-2 border-b shadow-sm">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="xs" onClick={handlePrev}>
               <ChevronLeft size={20} />
@@ -107,17 +133,44 @@ const CalendarWidget = ({
               <ChevronRight size={20} />
             </Button>
           </div>
+
+          <div className="flex items-center space-x-1 rounded-md p-1">
+            <Button
+              size="xs"
+              variant={viewMode === 'day' ? 'secondary' : 'ghost'}
+              onClick={() => onViewModeChange('day')}
+              className="px-2 h-6"
+            >
+              Day
+            </Button>
+            <Button
+              size="xs"
+              variant={viewMode === 'week' ? 'secondary' : 'ghost'}
+              onClick={() => onViewModeChange('week')}
+              className="px-2 h-6"
+            >
+              Week
+            </Button>
+          </div>
         </div>
       </div>
 
-      <DayTimeline
-        timeBlocks={timeBlocks}
-        currentTime={currentTime}
-        isToday={isToday}
-        isDarkMode={isDarkMode}
-        selectedHour={selectedHour}
-        onHourSelect={onHourSelect}
-      />
+      {viewMode === 'day' ? (
+        <DayTimeline
+          timeBlocks={timeBlocks}
+          currentTime={currentTime}
+          isToday={isToday}
+          isDarkMode={isDarkMode}
+          selectedHour={selectedHour}
+          onHourSelect={onHourSelect}
+        />
+      ) : (
+        <WeekView
+          processedEvents={processedEvents}
+          selectedDate={selectedDate}
+          isDarkMode={isDarkMode}
+        />
+      )}
     </Card>
   )
 }
