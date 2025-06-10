@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Category as SharedCategory } from 'shared'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
@@ -191,10 +192,15 @@ export const ActivityList = ({
       {hiddenActivities.length > 0 && (
         <Button
           variant="link"
-          className="p-1 mt-2 w-full h-auto text-xs text-left justify-start text-muted-foreground hover:text-foreground transition-colors"
+          className="p-1 mt-2 w-full h-auto text-xs text-left justify-start text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           onClick={onToggleShowMore}
         >
           {isShowMore ? 'Show less' : `Show ${hiddenActivities.length} more`}
+          <ChevronDownIcon
+            className={`ml-.5 h-4 w-4 transition-transform duration-200 ${
+              isShowMore ? 'rotate-180' : ''
+            }`}
+          />
         </Button>
       )}
       <AnimatePresence>
