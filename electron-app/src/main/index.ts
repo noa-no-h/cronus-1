@@ -3,10 +3,11 @@ import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, Notification, screen, shell } from 'electron'
 import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
-import { ActiveWindowDetails, Category } from 'shared'
+import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows } from '../native-modules/native-windows'
 const { nativeTheme } = require('electron')
+import { Activity } from '../shared/types.js'
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })

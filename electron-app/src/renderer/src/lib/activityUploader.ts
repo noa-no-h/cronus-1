@@ -1,9 +1,12 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
-import { ActiveWindowDetails } from 'shared'
+import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { isVeryLikelyProductive } from 'shared/distractionRules'
-import type { AppRouter } from '../../../../../server/src'
+import type { AppRouter } from '../../../../../server/src/index'
 import { SYSTEM_EVENT_NAMES } from './constants'
 import { deleteLocalFile, readFileFromMain, uploadToS3 } from './s3Uploader'
+import { createTRPCReact } from '@trpc/react-query'
+import { refreshAccessToken } from '../lib/auth'
+import { Activity } from 'shared/dist/types.js'
 
 // Create a tRPC client for use outside of React components
 const trpcClient = createTRPCProxyClient<AppRouter>({

@@ -1,6 +1,6 @@
-import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import { ActiveWindowDetails, Category } from 'shared'
+import { electronAPI } from '@electron-toolkit/preload'
+import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 
 // Custom APIs for renderer
 const api = {

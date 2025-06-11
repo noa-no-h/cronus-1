@@ -1,5 +1,5 @@
 import path from 'path'
-import { ActiveWindowDetails } from '../../../../shared/types'
+import { ActiveWindowDetails } from 'shared/dist/types.js'
 
 interface Addon {
   startActiveWindowObserver: (callback: (jsonString: string) => void) => void
@@ -23,7 +23,7 @@ class NativeWindows {
   /**
    * Subscribes to active window changes
    */
-  public startActiveWindowObserver(callback: (details: ActiveWindowDetails | null) => void) {
+  public startActiveWindowObserver(callback: (details: ActiveWindowDetails | null) => void): void {
     addon.startActiveWindowObserver((jsonString: string) => {
       try {
         if (jsonString) {
@@ -49,7 +49,7 @@ class NativeWindows {
     })
   }
 
-  public stopActiveWindowObserver() {
+  public stopActiveWindowObserver(): void {
     addon.stopActiveWindowObserver()
   }
 }
