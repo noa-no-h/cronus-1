@@ -134,15 +134,15 @@ export function DashboardView({ className }: { className?: string }) {
         }
 
         // Ignore very short events (less than 1s) to reduce noise.
-        if (eventDurationMs < 1000) {
-          console.log('very short event', {
-            ownerName: event.ownerName,
-            title: event.title,
-            url: event.url,
-            timestamp: event.timestamp
-          })
-          // continue
-        }
+        // if (eventDurationMs < 1000) {
+        //   console.log('very short event', {
+        //     ownerName: event.ownerName,
+        //     title: event.title,
+        //     url: event.url,
+        //     timestamp: event.timestamp
+        //   })
+        //   // continue
+        // }
         const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
         blocks.push({
           startTime: eventStartTime,
