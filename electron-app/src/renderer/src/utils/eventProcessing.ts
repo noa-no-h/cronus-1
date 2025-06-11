@@ -50,6 +50,7 @@ export function generateProcessedEventBlocks(
       categoryId: event.categoryId,
       categoryName: category?.name,
       categoryColor: category?.color,
+      isProductive: category?.isProductive,
       originalEvent: event
     })
   }

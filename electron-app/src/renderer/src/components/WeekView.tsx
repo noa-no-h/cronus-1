@@ -1,6 +1,8 @@
-import { useMemo } from 'react'
+import clsx from 'clsx'
+import { useMemo, useState } from 'react'
 import { getDarkerColor, processColor } from '../lib/colors'
 import type { ProcessedEventBlock } from './DashboardView'
+import { Button } from './ui/button'
 import { TooltipProvider } from './ui/tooltip'
 
 interface WeekViewProps {
@@ -14,12 +16,13 @@ interface CategoryTotal {
   name: string
   categoryColor?: string
   totalDurationMs: number
+  isProductive?: boolean
 }
 
 const MAX_DAY_DURATION_MS = 18 * 60 * 60 * 1000 // 18 hours
 
-const formatDuration = (ms: number): string => {
-  if (ms < 1000) return '0s'
+const formatDuration = (ms: number): string | null => {
+  if (ms < 1000) return null
   const totalSeconds = Math.floor(ms / 1000)
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -29,12 +32,14 @@ const formatDuration = (ms: number): string => {
     return `${hours}h ${minutes}m`
   }
   if (minutes > 0) {
-    return `${minutes}m ${seconds}s`
+    return `${minutes}m`
   }
-  return `${seconds}s`
+  return null
 }
 
 const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) => {
+  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('stacked')
+
   const weekData = useMemo(() => {
     if (!processedEvents) {
       return []
@@ -64,35 +69,50 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
           return eventTime >= dayStart && eventTime < dayEndMs
         }) || []
 
-      const categoryTotals = new Map<string, CategoryTotal>()
+      const productiveCategoriesMap = new Map<string, CategoryTotal>()
+      const unproductiveCategoriesMap = new Map<string, CategoryTotal>()
 
       dayEvents.forEach((event) => {
         const key = event.categoryId || 'uncategorized'
-        const categoryName = event.categoryName || 'Uncategorized'
-        const existing = categoryTotals.get(key)
+        const targetMap = event.isProductive ? productiveCategoriesMap : unproductiveCategoriesMap
 
+        const existing = targetMap.get(key)
         if (existing) {
           existing.totalDurationMs += event.durationMs
         } else {
-          categoryTotals.set(key, {
+          targetMap.set(key, {
             categoryId: event.categoryId || null,
-            name: categoryName,
+            name: event.categoryName || 'Uncategorized',
             categoryColor: event.categoryColor || '#808080',
-            totalDurationMs: event.durationMs
+            totalDurationMs: event.durationMs,
+            isProductive: event.isProductive
           })
         }
       })
 
-      const totalDayDuration = Array.from(categoryTotals.values()).reduce(
+      const productiveCategories = Array.from(productiveCategoriesMap.values()).sort(
+        (a, b) => b.totalDurationMs - a.totalDurationMs
+      )
+      const unproductiveCategories = Array.from(unproductiveCategoriesMap.values()).sort(
+        (a, b) => b.totalDurationMs - a.totalDurationMs
+      )
+
+      const totalProductiveDuration = productiveCategories.reduce(
         (sum, cat) => sum + cat.totalDurationMs,
         0
       )
+      const totalUnproductiveDuration = unproductiveCategories.reduce(
+        (sum, cat) => sum + cat.totalDurationMs,
+        0
+      )
+      const totalDayDuration = totalProductiveDuration + totalUnproductiveDuration
 
       return {
         date: day,
-        categoryTotals: Array.from(categoryTotals.values()).sort(
-          (a, b) => b.totalDurationMs - a.totalDurationMs
-        ),
+        productiveCategories,
+        unproductiveCategories,
+        totalProductiveDuration,
+        totalUnproductiveDuration,
         totalDayDuration
       }
     })
@@ -100,76 +120,213 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
 
   return (
     <TooltipProvider>
-      <div className="flex-1 h-full">
+      <div className="flex-1 h-full flex flex-col">
+        <div className="flex justify-center p-2">
+          <Button
+            onClick={() => setWeekViewMode('stacked')}
+            variant={weekViewMode === 'stacked' ? 'default' : 'outline'}
+            size="sm"
+            className="rounded-r-none"
+          >
+            Stacked
+          </Button>
+          <Button
+            onClick={() => setWeekViewMode('grouped')}
+            variant={weekViewMode === 'grouped' ? 'default' : 'outline'}
+            size="sm"
+            className="rounded-l-none"
+          >
+            Grouped
+          </Button>
+        </div>
         <div className="grid grid-cols-7 h-full">
-          {weekData.map(({ date, categoryTotals, totalDayDuration }, index) => {
-            const dayHeightPercentage = Math.min(
-              100,
-              (totalDayDuration / MAX_DAY_DURATION_MS) * 100
-            )
+          {weekData.map(
+            (
+              {
+                date,
+                productiveCategories,
+                unproductiveCategories,
+                totalProductiveDuration,
+                totalUnproductiveDuration,
+                totalDayDuration
+              },
+              index
+            ) => {
+              const dayHeightPercentage = Math.min(
+                100,
+                (totalDayDuration / MAX_DAY_DURATION_MS) * 100
+              )
+              const isCurrentDay = date.toDateString() === new Date().toDateString()
 
-            return (
-              <div
-                key={index}
-                className={`flex flex-col border-1 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer ${
-                  index === 6 ? 'border-r-0' : 'border-r'
-                }`}
-              >
-                <div className="text-center text-xs p-1 border-b dark:border-slate-700">
-                  <div className="font-semibold">
-                    {date.toLocaleDateString(undefined, { weekday: 'short' })}
-                  </div>
-                  <div className="text-muted-foreground">
-                    {date.toLocaleDateString(undefined, { day: 'numeric' })}
-                  </div>
-                </div>
-                <div className="flex-1 flex flex-col justify-end relative overflow-hidden">
-                  {totalDayDuration > 0 && (
-                    <div
-                      className="w-full flex flex-col transition-all duration-500 rounded-lg overflow-hidden"
-                      style={{ height: `${dayHeightPercentage}%` }}
-                    >
-                      {categoryTotals.map((cat, catIndex) => {
-                        const percentage = (cat.totalDurationMs / totalDayDuration) * 100
-                        return (
-                          <div
-                            key={catIndex}
-                            className="w-full transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
-                            style={{
-                              height: `${percentage}%`,
-                              backgroundColor: processColor(cat.categoryColor || '#808080', {
-                                isDarkMode,
-                                saturation: 1.2,
-                                lightness: 1.1,
-                                opacity: isDarkMode ? 0.7 : 0.5
-                              })
-                            }}
-                          >
-                            {percentage > 10 && (
-                              <span
-                                className="text-sm font-medium"
-                                style={{
-                                  color: getDarkerColor(
-                                    cat.categoryColor || '#808080',
-                                    isDarkMode ? 0.8 : 0.5
-                                  )
-                                }}
-                              >
-                                {formatDuration(cat.totalDurationMs)}
-                              </span>
-                            )}
-                          </div>
-                        )
-                      })}
+              // For grouped view
+              const productiveHeight = Math.min(
+                100,
+                (totalProductiveDuration / MAX_DAY_DURATION_MS) * 100
+              )
+              const unproductiveHeight = Math.min(
+                100,
+                (totalUnproductiveDuration / MAX_DAY_DURATION_MS) * 100
+              )
+
+              // For stacked view
+              const productivePercentage =
+                totalDayDuration > 0 ? (totalProductiveDuration / totalDayDuration) * 100 : 0
+              const unproductivePercentage =
+                totalDayDuration > 0 ? (totalUnproductiveDuration / totalDayDuration) * 100 : 0
+
+              return (
+                <div
+                  key={index}
+                  className={`flex flex-col border-1 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer ${
+                    index === 6 ? 'border-r-0' : 'border-r'
+                  }`}
+                >
+                  <div
+                    className={clsx(
+                      'text-center text-xs p-1 border-b dark:border-slate-700',
+                      isCurrentDay ? 'bg-blue-100 dark:bg-blue-900' : ''
+                    )}
+                  >
+                    <div className="font-semibold">
+                      {date.toLocaleDateString(undefined, { weekday: 'short' })}
                     </div>
-                  )}
+                    <div className="text-muted-foreground">
+                      {date.toLocaleDateString(undefined, { day: 'numeric' })}
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-end relative overflow-hidden">
+                    {totalDayDuration > 0 &&
+                      (weekViewMode === 'stacked' ? (
+                        <div
+                          className="w-full flex flex-col transition-all duration-500 rounded-lg overflow-hidden"
+                          style={{ height: `${dayHeightPercentage}%` }}
+                        >
+                          {/* Productive section */}
+                          {totalProductiveDuration > 0 && (
+                            <div
+                              className="w-full flex flex-col overflow-hidden"
+                              style={{ height: `${productivePercentage}%` }}
+                            >
+                              {productiveCategories.map((cat, catIndex) => {
+                                const percentage =
+                                  (cat.totalDurationMs / totalProductiveDuration) * 100
+                                return (
+                                  <div
+                                    key={catIndex}
+                                    className="w-full transition-all duration-300 flex items-center justify-center text-center overflow-hidden"
+                                    style={{
+                                      height: `${percentage}%`,
+                                      backgroundColor: processColor(
+                                        cat.categoryColor || '#808080',
+                                        {
+                                          isDarkMode,
+                                          saturation: 1.2,
+                                          lightness: 1.1,
+                                          opacity: isDarkMode ? 0.7 : 0.5
+                                        }
+                                      )
+                                    }}
+                                  >
+                                    {percentage > 10 && (
+                                      <span
+                                        className="text-sm font-medium"
+                                        style={{
+                                          color: getDarkerColor(
+                                            cat.categoryColor || '#808080',
+                                            isDarkMode ? 0.8 : 0.5
+                                          )
+                                        }}
+                                      >
+                                        {formatDuration(cat.totalDurationMs)}
+                                      </span>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                          {/* Unproductive section */}
+                          {totalUnproductiveDuration > 0 && (
+                            <div
+                              className="w-full flex flex-col overflow-hidden"
+                              style={{ height: `${unproductivePercentage}%` }}
+                            >
+                              {unproductiveCategories.map((cat, catIndex) => {
+                                const percentage =
+                                  (cat.totalDurationMs / totalUnproductiveDuration) * 100
+                                return (
+                                  <div
+                                    key={catIndex}
+                                    className="w-full transition-all duration-300 flex items-center justify-center text-center overflow-hidden"
+                                    style={{
+                                      height: `${percentage}%`,
+                                      backgroundColor: processColor(
+                                        cat.categoryColor || '#808080',
+                                        {
+                                          isDarkMode,
+                                          saturation: 1.2,
+                                          lightness: 1.1,
+                                          opacity: isDarkMode ? 0.7 : 0.5
+                                        }
+                                      )
+                                    }}
+                                  >
+                                    {percentage > 10 && (
+                                      <span
+                                        className="text-sm font-medium"
+                                        style={{
+                                          color: getDarkerColor(
+                                            cat.categoryColor || '#808080',
+                                            isDarkMode ? 0.8 : 0.5
+                                          )
+                                        }}
+                                      >
+                                        {formatDuration(cat.totalDurationMs)}
+                                      </span>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Grouped View
+                        <div className="w-full h-full flex flex-row justify-evenly items-end">
+                          {totalProductiveDuration > 0 && (
+                            <div
+                              className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
+                              style={{
+                                height: `${productiveHeight}%`,
+                                backgroundColor: processColor('#22c55e', {
+                                  isDarkMode,
+                                  opacity: isDarkMode ? 0.7 : 0.6
+                                })
+                              }}
+                            />
+                          )}
+                          {totalUnproductiveDuration > 0 && (
+                            <div
+                              className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
+                              style={{
+                                height: `${unproductiveHeight}%`,
+                                backgroundColor: processColor('#ef4444', {
+                                  isDarkMode,
+                                  opacity: isDarkMode ? 0.7 : 0.6
+                                })
+                              }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <div className="flex items-center justify-center text-muted-foreground text-xs font-normal p-1 border-t h-12 dark:border-slate-700">
+                    {formatDuration(totalDayDuration)}
+                  </div>
                 </div>
-                <div className="flex items-center justify-center text-xs p-1 border-t h-12 dark:border-slate-700 font-bold">
-                  {formatDuration(totalDayDuration)}
-                </div>
-              </div>
-            )
-          })}
+              )
+            }
+          )}
         </div>
       </div>
     </TooltipProvider>

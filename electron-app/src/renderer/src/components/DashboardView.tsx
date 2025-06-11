@@ -18,6 +18,7 @@ export interface ProcessedEventBlock {
   categoryId?: string | null
   categoryName?: string
   categoryColor?: string
+  isProductive?: boolean
   originalEvent: ActiveWindowEvent
 }
 
