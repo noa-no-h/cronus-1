@@ -60,7 +60,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       className={clsx(
         'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
-        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1.5' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5'
+        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5'
       )}
     >
       <span
@@ -85,7 +85,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         className={clsx(
           'font-mono pointer-events-none',
           timeColorCls,
-          isEnlarged ? 'text-2xl font-semibold' : 'text-sm text-primary'
+          isEnlarged ? 'text-2xl font-semibold' : 'text-xs text-primary'
         )}
       >
         {time}

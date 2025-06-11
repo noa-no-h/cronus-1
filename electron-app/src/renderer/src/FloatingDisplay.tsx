@@ -190,8 +190,8 @@ const FloatingDisplay: React.FC = () => {
     <div
       ref={draggableRef}
       className={clsx(
-        'w-full h-full flex items-center p-1 rounded-xl shadow-lg select-none',
-        'backdrop-blur-xl border-1 border-secondary/50'
+        'w-full h-full flex items-center p-0.5 px-1 rounded-xl select-none',
+        'border-2 border-secondary/50'
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
