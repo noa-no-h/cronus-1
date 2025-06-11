@@ -1,7 +1,5 @@
 import { ActiveWindowEvent, Category } from 'shared'
-import { SYSTEM_EVENT_NAMES } from '../lib/constants'
-
-const MAX_GAP_BETWEEN_EVENTS_MS = 5 * 60 * 1000
+import { generateProcessedEventBlocks } from './eventProcessing'
 
 interface ProductivityMetrics {
   dailyProductiveMs: number
@@ -20,43 +18,17 @@ export function calculateProductivityMetrics(
   }
 
   const categoriesMap = new Map(categories.map((cat) => [cat._id, cat]))
-  const sortedEvents = [...events].sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+  const processedBlocks = generateProcessedEventBlocks(events, categories)
 
-  for (let i = 0; i < sortedEvents.length; i++) {
-    const currentEvent = sortedEvents[i]
-    if (!currentEvent.timestamp || SYSTEM_EVENT_NAMES.includes(currentEvent.ownerName)) {
-      continue
-    }
-
-    const eventCategory = currentEvent.categoryId
-      ? categoriesMap.get(currentEvent.categoryId)
-      : null
-    if (!eventCategory) {
-      continue
-    }
-
-    let durationMs = 0
-    if (i < sortedEvents.length - 1) {
-      const nextEvent = sortedEvents[i + 1]
-      const nextEventTimestamp = (nextEvent.timestamp as number) || 0
-      durationMs = nextEventTimestamp - (currentEvent.timestamp as number)
-
-      if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
-        durationMs = MAX_GAP_BETWEEN_EVENTS_MS
-      }
-    } else {
-      durationMs = Date.now() - (currentEvent.timestamp as number)
-      if (durationMs > MAX_GAP_BETWEEN_EVENTS_MS) {
-        durationMs = MAX_GAP_BETWEEN_EVENTS_MS
-      }
-    }
-
-    durationMs = Math.max(0, durationMs)
-    if (durationMs > 0) {
-      if (eventCategory.isProductive) {
-        dailyProductiveMs += durationMs
-      } else {
-        dailyUnproductiveMs += durationMs
+  for (const block of processedBlocks) {
+    if (block.categoryId) {
+      const category = categoriesMap.get(block.categoryId)
+      if (category) {
+        if (category.isProductive) {
+          dailyProductiveMs += block.durationMs
+        } else {
+          dailyUnproductiveMs += block.durationMs
+        }
       }
     }
   }

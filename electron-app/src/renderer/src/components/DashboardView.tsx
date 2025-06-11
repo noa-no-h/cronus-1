@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { REFRESH_EVENTS_INTERVAL_MS } from '@renderer/lib/constants'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
-import { SYSTEM_EVENT_NAMES } from '../lib/constants'
+import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget'
 import TopActivityWidget from './TopActivityWidget'
-
-// Max duration for a single event interval.
-const MAX_SINGLE_EVENT_DURATION_MS = 5 * 60 * 1000 // 5 minutes
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -27,9 +25,6 @@ export function DashboardView({ className }: { className?: string }) {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
-  const [activityWidgetProcessedEvents, setActivityWidgetProcessedEvents] = useState<
-    ProcessedEventBlock[] | null
-  >(null)
   const [calendarProcessedEvents, setCalendarProcessedEvents] = useState<
     ProcessedEventBlock[] | null
   >(null)
@@ -74,7 +69,8 @@ export function DashboardView({ className }: { className?: string }) {
     { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
     {
       enabled: !!token && startDateMs !== null && endDateMs !== null,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: true,
+      refetchInterval: REFRESH_EVENTS_INTERVAL_MS
     }
   )
 
@@ -82,105 +78,25 @@ export function DashboardView({ className }: { className?: string }) {
     if (isLoadingFetchedEvents || isLoadingCategories) {
       setIsLoadingEvents(true)
       setCalendarProcessedEvents(null)
-      setActivityWidgetProcessedEvents(null)
     } else if (eventsData && categories) {
-      const chronologicallySortedEvents = [...eventsData]
-        .filter((event) => typeof event.timestamp === 'number')
-        .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
-
-      const categoriesMap = new Map<string, Category>(categories.map((cat) => [cat._id, cat]))
-      let blocks: ProcessedEventBlock[] = []
-
-      // Iterate through the events to create display blocks with accurate start and end times
-      for (let i = 0; i < chronologicallySortedEvents.length; i++) {
-        const event = chronologicallySortedEvents[i]
-
-        // Skip system events AND uncategorized events from being processed into blocks.
-        if (SYSTEM_EVENT_NAMES.includes(event.ownerName) || !event.categoryId) {
-          if (!event.categoryId) {
-            console.log('uncategorized event', {
-              ownerName: event.ownerName,
-              title: event.title,
-              url: event.url,
-              timestamp: event.timestamp
-            })
-          }
-          continue
-        }
-
-        const eventStartTime = new Date(event.timestamp as number)
-        let eventEndTime: Date
-        let eventDurationMs: number
-
-        // Calculate duration based on the time until the next event.
-        if (i < chronologicallySortedEvents.length - 1) {
-          const nextEventTime = new Date(
-            chronologicallySortedEvents[i + 1].timestamp as number
-          ).getTime()
-          eventDurationMs = nextEventTime - eventStartTime.getTime()
-
-          // Cap the duration of a single event to avoid extremely long blocks.
-          if (eventDurationMs > MAX_SINGLE_EVENT_DURATION_MS) {
-            eventDurationMs = MAX_SINGLE_EVENT_DURATION_MS
-          }
-          // The end time is the start time plus the (potentially capped) duration.
-          eventEndTime = new Date(eventStartTime.getTime() + eventDurationMs)
-        } else {
-          // For the last event, its duration is from its start time until now, capped.
-          const now = new Date()
-          const potentialEndTime = new Date(eventStartTime.getTime() + MAX_SINGLE_EVENT_DURATION_MS)
-          eventEndTime = now < potentialEndTime ? now : potentialEndTime
-          eventDurationMs = eventEndTime.getTime() - eventStartTime.getTime()
-        }
-
-        // Ignore very short events (less than 1s) to reduce noise.
-        // if (eventDurationMs < 1000) {
-        //   console.log('very short event', {
-        //     ownerName: event.ownerName,
-        //     title: event.title,
-        //     url: event.url,
-        //     timestamp: event.timestamp
-        //   })
-        //   // continue
-        // }
-        const category = event.categoryId ? categoriesMap.get(event.categoryId) : undefined
-        blocks.push({
-          startTime: eventStartTime,
-          endTime: eventEndTime,
-          durationMs: eventDurationMs,
-          name: event.ownerName,
-          title: event.title,
-          url: event.url || undefined,
-          categoryId: event.categoryId,
-          categoryName: category?.name,
-          categoryColor: category?.color,
-          originalEvent: event
-        })
-      }
+      const blocks = generateProcessedEventBlocks(eventsData, categories)
       setCalendarProcessedEvents(blocks)
+      setIsLoadingEvents(false)
     } else {
       setCalendarProcessedEvents(null)
-      setActivityWidgetProcessedEvents(null)
       setIsLoadingEvents(false)
     }
   }, [eventsData, isLoadingFetchedEvents, categories, isLoadingCategories])
 
-  useEffect(() => {
+  const activityWidgetProcessedEvents = useMemo(() => {
     if (!calendarProcessedEvents) {
-      setActivityWidgetProcessedEvents(null)
-      setIsLoadingEvents(isLoadingFetchedEvents)
-      return
+      return null
     }
     if (selectedHour !== null) {
-      const hourlyFilteredBlocks = calendarProcessedEvents.filter(
-        (block) => block.startTime.getHours() === selectedHour
-      )
-      setActivityWidgetProcessedEvents(hourlyFilteredBlocks)
-    } else {
-      setActivityWidgetProcessedEvents(calendarProcessedEvents)
+      return calendarProcessedEvents.filter((block) => block.startTime.getHours() === selectedHour)
     }
-    setIsLoadingEvents(false)
-  }, [calendarProcessedEvents, selectedHour, isLoadingFetchedEvents])
+    return calendarProcessedEvents
+  }, [calendarProcessedEvents, selectedHour])
 
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate)

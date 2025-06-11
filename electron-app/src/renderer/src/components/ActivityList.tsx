@@ -90,7 +90,7 @@ export const ActivityList = ({
               ></span>
             )}
             <span
-              className="text-sm text-foreground cursor-pointer block truncate"
+              className="text-sm text-muted-foreground cursor-pointer block truncate"
               title={activity.name}
             >
               <TooltipProvider>
@@ -192,7 +192,7 @@ export const ActivityList = ({
       {hiddenActivities.length > 0 && (
         <Button
           variant="link"
-          className="p-1 mt-2 w-full h-auto text-xs text-left justify-start text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          className="p-1 px-2 mt-2 w-full h-auto text-xs text-left justify-start text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors flex items-center gap-1"
           onClick={onToggleShowMore}
         >
           {isShowMore ? 'Show less' : `Show ${hiddenActivities.length} more`}
