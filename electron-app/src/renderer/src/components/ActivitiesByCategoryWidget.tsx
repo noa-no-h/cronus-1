@@ -20,6 +20,8 @@ interface ActivitiesByCategoryWidgetProps {
   refetchEvents: () => void
   selectedHour: number | null
   onHourSelect: (hour: number | null) => void
+  selectedDay: Date | null
+  onDaySelect: (day: Date | null) => void
 }
 
 const ActivitiesByCategoryWidget = ({
@@ -29,7 +31,9 @@ const ActivitiesByCategoryWidget = ({
   endDateMs,
   refetchEvents,
   selectedHour,
-  onHourSelect
+  onHourSelect,
+  selectedDay,
+  onDaySelect
 }: ActivitiesByCategoryWidgetProps) => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
@@ -245,6 +249,22 @@ const ActivitiesByCategoryWidget = ({
             </span>
             <Button variant="outline" size="xs" onClick={() => onHourSelect(null)}>
               Show Full Day
+            </Button>
+          </div>
+        )}
+        {selectedDay && (
+          <div className="flex justify-between items-center px-3 py-2 bg-muted rounded-sm">
+            <span className="text-xs text-muted-foreground font-normal">
+              Displaying activities for{' '}
+              {selectedDay.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+            <Button variant="outline" size="xs" onClick={() => onDaySelect(null)}>
+              Show Full Week
             </Button>
           </div>
         )}

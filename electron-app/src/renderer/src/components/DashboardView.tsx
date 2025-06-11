@@ -26,6 +26,7 @@ export function DashboardView({ className }: { className?: string }) {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [calendarProcessedEvents, setCalendarProcessedEvents] = useState<
     ProcessedEventBlock[] | null
   >(null)
@@ -96,21 +97,34 @@ export function DashboardView({ className }: { className?: string }) {
     if (selectedHour !== null) {
       return calendarProcessedEvents.filter((block) => block.startTime.getHours() === selectedHour)
     }
+    if (viewMode === 'week' && selectedDay) {
+      return calendarProcessedEvents.filter(
+        (block) => block.startTime.toDateString() === selectedDay.toDateString()
+      )
+    }
     return calendarProcessedEvents
-  }, [calendarProcessedEvents, selectedHour])
+  }, [calendarProcessedEvents, selectedHour, selectedDay, viewMode])
 
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate)
     setSelectedHour(null)
+    setSelectedDay(null)
   }
 
   const handleViewModeChange = (newMode: 'day' | 'week') => {
     setViewMode(newMode)
     setSelectedHour(null)
+    setSelectedDay(null)
   }
 
   const handleHourSelect = useCallback((hour: number | null) => {
     setSelectedHour(hour)
+    setSelectedDay(null)
+  }, [])
+
+  const handleDaySelect = useCallback((day: Date | null) => {
+    setSelectedDay(day)
+    setSelectedHour(null)
   }, [])
 
   return (
@@ -126,6 +140,8 @@ export function DashboardView({ className }: { className?: string }) {
           refetchEvents={refetchEvents}
           selectedHour={selectedHour}
           onHourSelect={handleHourSelect}
+          selectedDay={selectedDay}
+          onDaySelect={handleDaySelect}
         />
         <TopActivityWidget
           processedEvents={activityWidgetProcessedEvents}
@@ -142,6 +158,8 @@ export function DashboardView({ className }: { className?: string }) {
           onViewModeChange={handleViewModeChange}
           selectedHour={selectedHour}
           onHourSelect={handleHourSelect}
+          selectedDay={selectedDay}
+          onDaySelect={handleDaySelect}
         />
       </div>
     </div>

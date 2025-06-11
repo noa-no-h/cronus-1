@@ -10,6 +10,8 @@ interface WeekViewProps {
   selectedDate: Date
   isDarkMode: boolean
   weekViewMode: 'stacked' | 'grouped'
+  selectedDay: Date | null
+  onDaySelect: (day: Date | null) => void
 }
 
 interface CategoryTotal {
@@ -38,7 +40,14 @@ const formatDuration = (ms: number): string | null => {
   return null
 }
 
-const WeekView = ({ processedEvents, selectedDate, isDarkMode, weekViewMode }: WeekViewProps) => {
+const WeekView = ({
+  processedEvents,
+  selectedDate,
+  isDarkMode,
+  weekViewMode,
+  selectedDay,
+  onDaySelect
+}: WeekViewProps) => {
   const weekData = useMemo(() => {
     if (!processedEvents) {
       return []
@@ -138,6 +147,7 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode, weekViewMode }: W
                 (totalDayDuration / MAX_DAY_DURATION_MS) * 100
               )
               const isCurrentDay = date.toDateString() === new Date().toDateString()
+              const isSelectedDay = selectedDay?.toDateString() === date.toDateString()
 
               // For grouped view
               const productiveHeight = Math.min(
@@ -160,12 +170,13 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode, weekViewMode }: W
                   key={index}
                   className={`flex flex-col border-1 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer ${
                     index === 6 ? 'border-r-0' : 'border-r'
-                  }`}
+                  } ${isSelectedDay ? 'bg-blue-200/20 dark:bg-blue-800/30' : ''}`}
+                  onClick={() => onDaySelect(isSelectedDay ? null : date)}
                 >
                   <div
                     className={clsx(
                       'text-center text-xs p-1 border-b dark:border-slate-700',
-                      isCurrentDay ? 'bg-blue-100 dark:bg-blue-900' : ''
+                      isCurrentDay && !isSelectedDay ? 'bg-blue-100 dark:bg-blue-900' : ''
                     )}
                   >
                     <div className="font-semibold">

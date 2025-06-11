@@ -23,6 +23,8 @@ interface CalendarWidgetProps {
   isLoadingEvents: boolean
   selectedHour: number | null
   onHourSelect: (hour: number | null) => void
+  selectedDay: Date | null
+  onDaySelect: (day: Date | null) => void
 }
 
 const CalendarWidget = ({
@@ -33,7 +35,9 @@ const CalendarWidget = ({
   viewMode,
   onViewModeChange,
   selectedHour,
-  onHourSelect
+  onHourSelect,
+  selectedDay,
+  onDaySelect
 }: CalendarWidgetProps) => {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
   const currentTime = useCurrentTime()
@@ -236,6 +240,8 @@ const CalendarWidget = ({
           selectedDate={selectedDate}
           isDarkMode={isDarkMode}
           weekViewMode={weekViewMode}
+          selectedDay={selectedDay}
+          onDaySelect={onDaySelect}
         />
       )}
     </Card>
