@@ -1,12 +1,17 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar1, CalendarDaysIcon, ChevronLeft, ChevronRight, Layers } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useCurrentTime } from '../hooks/useCurrentTime'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { useWindowWidth } from '../hooks/useWindowWidth'
 import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 import type { ProcessedEventBlock } from './DashboardView'
 import DayTimeline, { type TimeBlock } from './DayTimeline'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
+import { Label } from './ui/label'
+import { Switch } from './ui/switch'
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import WeekView from './WeekView'
 
 interface CalendarWidgetProps {
@@ -34,6 +39,8 @@ const CalendarWidget = ({
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
   const [wasSetToToday, setWasSetToToday] = useState(false)
+  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped')
+  const width = useWindowWidth()
 
   useEffect(() => {
     setWasSetToToday(selectedDate.toDateString() === new Date().toDateString())
@@ -153,30 +160,64 @@ const CalendarWidget = ({
             <Button variant="outline" size="xs" onClick={handlePrev}>
               <ChevronLeft size={20} />
             </Button>
-            <span className="text-sm text-muted-foreground font-medium">{formattedDate}</span>
+            {width >= 1000 && (
+              <span className="text-sm text-muted-foreground font-medium">{formattedDate}</span>
+            )}
             <Button variant="outline" size="xs" onClick={handleNext} disabled={!canGoNext()}>
               <ChevronRight size={20} />
             </Button>
           </div>
+          {viewMode === 'week' && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="week-view-mode"
+                checked={weekViewMode === 'stacked'}
+                onCheckedChange={(checked) => setWeekViewMode(checked ? 'stacked' : 'grouped')}
+              />
+              {width >= 1000 ? (
+                <Label htmlFor="week-view-mode" className="text-muted-foreground font-normal">
+                  Stacked
+                </Label>
+              ) : (
+                <Label htmlFor="week-view-mode" className="text-muted-foreground">
+                  <Layers className="text-muted-foreground" size={16} />
+                </Label>
+              )}
+            </div>
+          )}
+          <TooltipProvider delayDuration={300}>
+            <ToggleGroup
+              type="single"
+              size="sm"
+              value={viewMode}
+              onValueChange={(value) => {
+                if (value) onViewModeChange(value as 'day' | 'week')
+              }}
+              className="p-1"
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem value="day">
+                    <Calendar1 size={16} />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Day</p>
+                </TooltipContent>
+              </Tooltip>
 
-          <div className="flex items-center space-x-1 rounded-md p-1">
-            <Button
-              size="xs"
-              variant={viewMode === 'day' ? 'secondary' : 'ghost'}
-              onClick={() => onViewModeChange('day')}
-              className="px-2 h-6"
-            >
-              Day
-            </Button>
-            <Button
-              size="xs"
-              variant={viewMode === 'week' ? 'secondary' : 'ghost'}
-              onClick={() => onViewModeChange('week')}
-              className="px-2 h-6"
-            >
-              Week
-            </Button>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ToggleGroupItem value="week">
+                    <CalendarDaysIcon size={16} />
+                  </ToggleGroupItem>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Week</p>
+                </TooltipContent>
+              </Tooltip>
+            </ToggleGroup>
+          </TooltipProvider>
         </div>
       </div>
 
@@ -194,6 +235,7 @@ const CalendarWidget = ({
           processedEvents={processedEvents}
           selectedDate={selectedDate}
           isDarkMode={isDarkMode}
+          weekViewMode={weekViewMode}
         />
       )}
     </Card>

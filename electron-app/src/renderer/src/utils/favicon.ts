@@ -58,7 +58,6 @@ export function getFaviconURL(url: string): string {
   }
 
   const root = getRootOfURL(url)
-  // other option https://www.google.com/s2/favicons?domain=${root}&sz=64
   return `https://icons.duckduckgo.com/ip3/${root}.ico`
 }
 
@@ -68,4 +67,9 @@ function getRootOfURL(url: string): string {
   } catch (e) {
     return ''
   }
+}
+
+export function getGoogleFaviconURL(url: string): string {
+  const root = getRootOfURL(url)
+  return `https://www.google.com/s2/favicons?domain=${root}&sz=64`
 }

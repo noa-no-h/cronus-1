@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils'
-import { getFaviconURL } from '../../utils/favicon'
+import { getFaviconURL, getGoogleFaviconURL } from '../../utils/favicon'
 import AppIcon from '../AppIcon'
 
 interface ActivityIconProps {
@@ -57,14 +57,19 @@ export function ActivityIcon({
     }
     return (
       <img
-        src={getFaviconURL(url) || '/placeholder.svg'}
+        src={getFaviconURL(url)}
         className={cn('rounded flex-shrink-0', className)}
         style={{ width: size, height: size }}
         onError={(e) => {
-          if (onFaviconError) {
+          const target = e.currentTarget
+          const fallbackSrc = getGoogleFaviconURL(url)
+
+          if (target.src !== fallbackSrc) {
+            target.src = fallbackSrc
+          } else if (onFaviconError) {
             onFaviconError()
           } else {
-            ;(e.target as HTMLImageElement).style.display = 'none'
+            target.style.display = 'none'
           }
         }}
         alt={appName || 'favicon'}

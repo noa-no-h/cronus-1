@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { Card } from '../components/ui/card'
 // import { ActiveWindowEvent } from 'shared' // No longer directly needed for props
-import { getFaviconURL } from '../utils/favicon'
+import { getFaviconURL, getGoogleFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
 import type { ProcessedEventBlock } from './DashboardView' // Import ProcessedEventBlock
 import { Skeleton } from './ui/skeleton'
@@ -263,7 +263,15 @@ const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({
                             alt="favicon"
                             width={20}
                             height={20}
-                            onError={() => handleFaviconError(website.domain)}
+                            onError={(e) => {
+                              const target = e.currentTarget
+                              const fallbackSrc = getGoogleFaviconURL(website.url)
+                              if (target.src !== fallbackSrc) {
+                                target.src = fallbackSrc
+                              } else {
+                                handleFaviconError(website.domain)
+                              }
+                            }}
                           />
                         ) : (
                           <div className="w-4 h-4 flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 rounded border border-border text-white font-bold text-xs">

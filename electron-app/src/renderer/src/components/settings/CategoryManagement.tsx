@@ -68,10 +68,10 @@ function checkCategoriesAgainstDefaults(
   return true // All defaults found and match current categories
 }
 
-const notionColors = [
-  '#3B82F6', // Blue
+export const notionStyleCategoryColors = [
+  '#3B82F6', // Blue - defualt productive
+  '#EC4899', // Pink - default unproductive
   '#A855F7', // Purple
-  '#EC4899', // Pink
   '#F97316', // Orange
   '#CA8A04', // Gold
   '#10B981', // Green
@@ -102,7 +102,7 @@ function CategoryColorPicker({ selectedColor, onColorChange }: CategoryColorPick
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 bg-popover border-border">
         <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
-          {notionColors.map((bgColor) => (
+          {notionStyleCategoryColors.map((bgColor) => (
             <button
               type="button"
               key={bgColor}
@@ -134,7 +134,8 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
   const [color, setColor] = useState(
-    initialData?.color || notionColors[Math.floor(Math.random() * notionColors.length)]
+    initialData?.color ||
+      notionStyleCategoryColors[Math.floor(Math.random() * notionStyleCategoryColors.length)]
   )
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive

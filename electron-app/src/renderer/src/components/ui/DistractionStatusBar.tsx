@@ -268,7 +268,7 @@ const DistractionCategorizationResult = ({
                 size={16}
                 className="mr-2"
               />
-              <span className="text-sm text-muted-foreground truncate">
+              <span className="text-sm text-foreground truncate">
                 {displayWindowInfo.title || displayWindowInfo.ownerName}
               </span>
             </motion.div>

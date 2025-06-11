@@ -1,14 +1,15 @@
 import clsx from 'clsx'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { getDarkerColor, processColor } from '../lib/colors'
 import type { ProcessedEventBlock } from './DashboardView'
-import { Button } from './ui/button'
+import { notionStyleCategoryColors } from './settings/CategoryManagement'
 import { TooltipProvider } from './ui/tooltip'
 
 interface WeekViewProps {
   processedEvents: ProcessedEventBlock[] | null
   selectedDate: Date
   isDarkMode: boolean
+  weekViewMode: 'stacked' | 'grouped'
 }
 
 interface CategoryTotal {
@@ -37,9 +38,7 @@ const formatDuration = (ms: number): string | null => {
   return null
 }
 
-const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) => {
-  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('stacked')
-
+const WeekView = ({ processedEvents, selectedDate, isDarkMode, weekViewMode }: WeekViewProps) => {
   const weekData = useMemo(() => {
     if (!processedEvents) {
       return []
@@ -121,24 +120,6 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
   return (
     <TooltipProvider>
       <div className="flex-1 h-full flex flex-col">
-        <div className="flex justify-center p-2">
-          <Button
-            onClick={() => setWeekViewMode('stacked')}
-            variant={weekViewMode === 'stacked' ? 'default' : 'outline'}
-            size="sm"
-            className="rounded-r-none"
-          >
-            Stacked
-          </Button>
-          <Button
-            onClick={() => setWeekViewMode('grouped')}
-            variant={weekViewMode === 'grouped' ? 'default' : 'outline'}
-            size="sm"
-            className="rounded-l-none"
-          >
-            Grouped
-          </Button>
-        </div>
         <div className="grid grid-cols-7 h-full">
           {weekData.map(
             (
@@ -213,7 +194,7 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
                                 return (
                                   <div
                                     key={catIndex}
-                                    className="w-full transition-all duration-300 flex items-center justify-center text-center overflow-hidden"
+                                    className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
                                     style={{
                                       height: `${percentage}%`,
                                       backgroundColor: processColor(
@@ -248,7 +229,7 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
                           {/* Unproductive section */}
                           {totalUnproductiveDuration > 0 && (
                             <div
-                              className="w-full flex flex-col overflow-hidden"
+                              className="w-full flex flex-col rounded-lg overflow-hidden"
                               style={{ height: `${unproductivePercentage}%` }}
                             >
                               {unproductiveCategories.map((cat, catIndex) => {
@@ -298,7 +279,7 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
                               className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
                               style={{
                                 height: `${productiveHeight}%`,
-                                backgroundColor: processColor('#22c55e', {
+                                backgroundColor: processColor(notionStyleCategoryColors[0], {
                                   isDarkMode,
                                   opacity: isDarkMode ? 0.7 : 0.6
                                 })
@@ -310,7 +291,7 @@ const WeekView = ({ processedEvents, selectedDate, isDarkMode }: WeekViewProps) 
                               className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
                               style={{
                                 height: `${unproductiveHeight}%`,
-                                backgroundColor: processColor('#ef4444', {
+                                backgroundColor: processColor(notionStyleCategoryColors[1], {
                                   isDarkMode,
                                   opacity: isDarkMode ? 0.7 : 0.6
                                 })
