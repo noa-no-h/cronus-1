@@ -188,6 +188,141 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ---
 
+## Building the Electron App
+
+### Prerequisites
+
+- **macOS**: For building macOS DMG files
+- **Node.js**: Version 18 or higher
+- **Bun**: Latest version
+- **Xcode Command Line Tools**: For native module compilation
+- **Apple Developer Account**: For code signing (optional but recommended)
+
+### Build Process
+
+The Electron app build process involves several steps to ensure proper module resolution and packaging:
+
+#### 1. Build Shared Package
+
+First, build the shared package which contains common types and utilities:
+
+```bash
+cd shared
+bun run build
+```
+
+This creates the `dist/` directory with compiled JavaScript files and TypeScript declarations.
+
+#### 2. Build Server (if needed)
+
+If the Electron app depends on server types, build the server package:
+
+```bash
+cd server
+bun run build
+```
+
+#### 3. Build Electron App
+
+Navigate to the electron-app directory and run the build:
+
+```bash
+cd electron-app
+bun run build:mac
+```
+
+This command:
+
+- Builds the main process, preload scripts, and renderer process
+- Packages the app using electron-builder
+- Creates DMG files for distribution
+
+### Build Output
+
+After a successful build, you'll find the following files in `electron-app/dist/`:
+
+- `What Did You Get Done Today-1.0.0-arm64.dmg` - ARM64 (Apple Silicon) version
+- `What Did You Get Done Today-1.0.0.dmg` - Universal version (Intel + ARM64)
+- `mac/` and `mac-arm64/` directories containing the app bundles
+
+### Development Build
+
+For development and testing:
+
+```bash
+cd electron-app
+bun run dev
+```
+
+This starts the Electron app in development mode with hot reloading.
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **Module Resolution Errors**
+
+   - Ensure the shared package is built before building the Electron app
+   - Check that all imports use the correct paths (see Import Guidelines below)
+
+2. **External File Inclusion Errors**
+
+   - The build configuration excludes files from outside the electron-app directory
+   - Shared files are included as extra resources, not as direct imports
+
+3. **TypeScript Compilation Errors**
+
+   - Run `bun run build` in the shared directory to regenerate type definitions
+   - Ensure all dependencies are installed with `bun install`
+
+4. **Code Signing Issues**
+   - For distribution, you'll need an Apple Developer account
+   - Update the `electron-builder.yml` configuration with your signing identity
+
+#### Import Guidelines
+
+The Electron app uses specific import patterns to work with the monorepo structure:
+
+```typescript
+// ✅ Correct imports
+import { Category } from 'shared/dist/types.js';
+import { defaultComparableCategories } from 'shared/categories';
+import { isVeryLikelyProductive } from 'shared/distractionRules';
+
+// ❌ Avoid these patterns
+import { Category } from '../shared/types'; // Relative paths to external directories
+import { Category } from 'shared/types'; // Missing .js extension for types
+```
+
+#### Build Configuration
+
+The build process is configured in several key files:
+
+- `electron-app/electron-builder.yml` - Packaging configuration
+- `electron-app/electron.vite.config.ts` - Vite build configuration
+- `shared/package.json` - Module exports configuration
+- `shared/tsconfig.json` - TypeScript compilation settings
+
+### Code Signing and Distribution
+
+For macOS distribution:
+
+1. **Code Signing**: Update the `electron-builder.yml` with your Apple Developer identity
+2. **Notarization**: Enable notarization for Gatekeeper compatibility
+3. **App Store**: Configure for Mac App Store distribution if needed
+
+Example configuration:
+
+```yaml
+mac:
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  notarize: true # Enable for distribution
+  identity: 'Your Developer ID'
+```
+
+---
+
 ## License
 
 MIT

@@ -1,6 +1,6 @@
 import { httpBatchLink } from '@trpc/client'
 import { createTRPCReact } from '@trpc/react-query'
-import type { AppRouter } from '../../../../../server/src' // Corrected path
+import type { AppRouter } from '../../../../../server/src/index'
 import { refreshAccessToken } from '../lib/auth'
 
 // In Electron, environment variables are typically accessed differently.

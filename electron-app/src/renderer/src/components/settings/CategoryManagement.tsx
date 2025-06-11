@@ -1,4 +1,4 @@
-import {
+import React, {
   Check,
   Edit3,
   FolderPlus,
@@ -9,8 +9,8 @@ import {
   Trash2
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { ComparableCategory, defaultComparableCategories } from 'shared/categories'
-import { Category } from '../../../../../../shared/types' // Adjusted path
+import { defaultComparableCategories, type ComparableCategory } from 'shared/categories'
+import { Category } from 'shared/dist/types.js'
 import { useAuth } from '../../contexts/AuthContext' // Added useAuth import
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
@@ -68,7 +68,7 @@ function checkCategoriesAgainstDefaults(
   return true // All defaults found and match current categories
 }
 
-const notionColors = [
+const notionColors: string[] = [
   '#3B82F6', // Blue
   '#A855F7', // Purple
   '#EC4899', // Pink
@@ -88,7 +88,10 @@ interface CategoryColorPickerProps {
   onColorChange: (color: string) => void
 }
 
-function CategoryColorPicker({ selectedColor, onColorChange }: CategoryColorPickerProps) {
+function CategoryColorPicker({
+  selectedColor,
+  onColorChange
+}: CategoryColorPickerProps): JSX.Element {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -130,7 +133,7 @@ interface CategoryFormProps {
   isSaving: boolean
 }
 
-function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps) {
+function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps): JSX.Element {
   const [name, setName] = useState(initialData?.name || '')
   const [description, setDescription] = useState(initialData?.description || '')
   const [color, setColor] = useState(
@@ -219,7 +222,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
   )
 }
 
-export function CategoryManagement() {
+export function CategoryManagement(): JSX.Element {
   const { token } = useAuth()
   const utils = trpc.useUtils()
   const {

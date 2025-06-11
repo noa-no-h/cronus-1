@@ -1,5 +1,5 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
-import type { AppRouter } from '../../../../../server/src' // Adjusted path
+import type { AppRouter } from '../../../../../server/src/index' // Adjusted path
 
 // In Electron, environment variables are typically accessed differently.
 // For now, hardcoding the server URL. Consider using ipcRenderer to get it from main process if needed.
