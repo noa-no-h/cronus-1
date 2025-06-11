@@ -65,6 +65,7 @@
     } mutableCopy];
     
     // Try to get content with JavaScript if possible
+    // TODO: could try to only get the currently visible content
     NSString *jsScript = @"tell application \"Google Chrome\"\n"
                         "  try\n"
                         "    set activeTab to active tab of front window\n"

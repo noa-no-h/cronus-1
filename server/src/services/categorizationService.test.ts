@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
+import { readFileSync } from 'fs';
 import mongoose from 'mongoose';
+import path from 'path';
 import { ActiveWindowDetails } from '../../../shared/types';
 
 // Note: These tests perform live OpenAI API calls.
@@ -141,7 +143,7 @@ describe('categorizeActivity', () => {
     };
 
     // --- Test Data ---
-    const mockUser = {
+    const mockUserWithDatingSideProject = {
       userGoals: {
         dailyGoal: 'Scout for dream wife on Instagram etc',
         weeklyGoal: 'Go on a date and finish big work project',
@@ -177,7 +179,40 @@ describe('categorizeActivity', () => {
 
     const dreamWifeSeekingCategories = [dreamWifeCategory, socialMediaCategory, deepWorkCategory];
 
-    // --- Tests ---
+    const mockProductManagerUser = {
+      userGoals: {
+        dailyGoal:
+          'build out initial smart distraction detection based on goal/tasks and current open window of user',
+        weeklyGoal: 'Build novel productivity software that detects distractions',
+        lifeGoal: 'build fast growing software startup that IPOs gets sold for more than $750m.',
+      },
+    };
+
+    const productManagementCategory = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId: mockUserId,
+      name: 'Product Management',
+      description: 'Contacting and interviewing potential users',
+    };
+    const productDevelopmentCategory = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId: mockUserId,
+      name: 'Product Development',
+      description: 'Coding, debugging, and working on the application.',
+    };
+    const distractionCategory = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId: mockUserId,
+      name: 'Distraction',
+      description: 'Browsing social media without a specific work-related purpose.',
+    };
+
+    const productManagerCategories = [
+      productManagementCategory,
+      productDevelopmentCategory,
+      distractionCategory,
+    ];
+
     test('should call OpenAI and return a category when no history is found', async () => {
       const activeWindow = {
         ownerName: 'Code',
@@ -203,6 +238,8 @@ describe('categorizeActivity', () => {
       });
     }, 30000);
 
+    // --- Find Dream Wife (odd side project) ---
+
     test('should categorize browsing a female Instagram profile as "Find Dream Wife"', async () => {
       const activeWindow = {
         ownerName: 'Google Chrome',
@@ -215,7 +252,7 @@ describe('categorizeActivity', () => {
 
       await runLlmCategorizationTest({
         activeWindow,
-        mockUser,
+        mockUser: mockUserWithDatingSideProject,
         mockCategories: dreamWifeSeekingCategories,
         expectedCategoryName: dreamWifeCategory.name,
       });
@@ -226,59 +263,71 @@ describe('categorizeActivity', () => {
         ownerName: 'Google Chrome',
         title: 'CarsWithoutLimits (@carswithoutlimits) • Instagram photos and videos',
         url: 'https://www.instagram.com/carswithoutlimits/',
-        content: null,
+        content:
+          'carswithoutlimits\nFollow\nMessage\n41,928 posts\n3.5M followers\n439 following\nCarsWithoutLimits\ncarswithoutlimits\nDigital creator\n🇨🇦| Welcome to the #1 Automotive Media Company.\n🌐| Car Meets, Exclusive Events, Industry News & Automotive Culture.\n📩|... \nmore\nhoo.be/carswithoutlimits\nPOSTS\nREELS\nTAGGED\nMeta\nAbout\nBlog\nJobs\nHelp\nAPI\nPrivacy\nConsumer Health Privacy\nTerms\nLocations\nInstagram Lite\nThreads\nContact uploading and non-users\nMeta Verified\nEnglish (UK)\nAfrikaans\nالعربية\nČeština\nDansk\nDeutsch\nΕλληνικά\nEnglish\nEnglish (UK)\nEspañol (España)\nEspañol\nفارسی\nSuomi\nFrançais\nעברית\nBahasa Indonesia\nItaliano\n日本語\n한국어\nBahasa Melayu\nNorsk\nNederlands\nPolski\nPortuguês (Brasil)\nPortuguês (Portugal)\nРусский\nSvenska\nภาษาไทย\nFilipino\nTürkçe\n中文(简体)\n中文(台灣)\nবাংলা\nગુજરાતી\nहिन्दी\nHrvatski\nMagyar\nಕನ್ನಡ\nമലയാളം\nमराठी\nनेपाली\nਪੰਜਾਬੀ\nසිංහල\nSlovenčina\nதமிழ்\nతెలుగు\nاردو\nTiếng Việt\n中文(香港)\nБългарски\nFrançais (Canada)\nRomână\nСрпски\nУкраїнська\n© 2025 Instagram from Meta\nHome\nSearch\nExplore\nReels\nMessages\nNotifications\nCreate\nProfile\nMeta AI\nAI Studio\n9+\nThreads\nMore',
         type: 'browser' as const,
         browser: 'chrome' as const,
       };
       await runLlmCategorizationTest({
         activeWindow,
-        mockUser,
+        mockUser: mockUserWithDatingSideProject,
         mockCategories: dreamWifeSeekingCategories,
         expectedCategoryName: socialMediaCategory.name,
       });
     }, 30000);
 
-    test('should categorize browsing a dating-related article as "Find Dream Wife" WITH content', async () => {
+    test('should categorize browsing a more OBVIOUSLY dating-related article as "Find Dream Wife" WITH content', async () => {
       const activeWindow = {
         ownerName: 'Google Chrome',
-        title: "Tallgirlification: it's over for girlbosses",
-        url: 'https://indianbronson.substack.com/p/tallgirlification-its-over-for-girlbosses?utm_source=publication-search',
+        title: '10 Ways to Find the Woman of Your Dreams - wikiHow',
+        url: 'https://www.wikihow.com/Find-the-Woman-of-Your-Dreams',
         content:
-          "Thats right. Another one of these posts detailing an idiotic feature of the Sexual Revolution and why its actually a much more important topic than you think. Consider how this stuff gets PhDs published in Bloomberg Opinion— they are wrong in an old-hat way of course—but what was once tawdry and unserious is finally being recognized as quite serious for the West's future societies & economies.",
+          "\t\n\t\nPRO\nQUIZZES\nEDIT\nEXPLORE\nLOG IN\nRANDOM\nSkip to Content\nLOVETRUE LOVE\nHow to Find the Woman of Your Dreams\nDownload Article\nCo-authored by John Keegan\n\nLast Updated: April 25, 2025 References\n\nAre you waiting for that perfect dream girl to come into your life? While you may just bump into her if you’re lucky, there are some ways to improve your chances at meeting a new partner. This article will help you out with some suggestions aimed at keeping things realistic.\n\n1\nDefine the woman of your dreams.\n\t\nDownload Article\nThink of key personality traits you consider important in a lifelong partner. You might be used to saying \"I want to find the woman of my dreams\" but you need to know what this means for you, such as what her personality is, what she likes/dislikes or even looks like.\nSome important qualities might be loyalty, generosity, fun-loving, outgoing, focused, and so forth.[1] Which of your own personality traits do you want matched?\nThink of the values you'd like this person to hold. Do you want her to have similar values to your own? Or, are you okay with her having quite different ones from you?\nConsider your faith or lack of it. Does your ideal woman need to be of the same faith? Also consider family values––what are yours and in what way must hers match those?\nWhat interests would you like this person to have? Does she have to have the same interests as you? Or would you prefer she had completely different interests, or a mixture of both? Is it enough that she's willing to learn about your interests?\nBe frank with yourself about appearance. How important a factor is this? Might it be holding you back from finding someone with an amazing personality?[2]\nBe a devil's advocate. What sort of things do you not want in your ideal partner? What would you be willing and not willing to compromise about?[3]\n2\nKeep...",
         type: 'browser' as const,
         browser: 'chrome' as const,
       };
       await runLlmCategorizationTest({
         activeWindow,
-        mockUser,
+        mockUser: mockUserWithDatingSideProject,
         mockCategories: dreamWifeSeekingCategories,
         expectedCategoryName: dreamWifeCategory.name,
       });
-    }, 30000);
+    });
 
-    test('should categorize browsing a dating-related article as "Find Dream Wife" WITHOUT content', async () => {
+    // --- Product Management ---
+
+    test('should categorize Twitter DM related to user interviews as "Product Management"', async () => {
+      const twitterDMContent = readFileSync(
+        path.join(__dirname, './twitterConvoTestData.txt'),
+        'utf-8'
+      );
+
       const activeWindow = {
         ownerName: 'Google Chrome',
-        title: "Tallgirlification: it's over for girlbosses",
-        url: 'https://indianbronson.substack.com/p/tallgirlification-its-over-for-girlbosses?utm_source=publication-search',
-        content: null,
+        title: 'Jai Relan - Messages - Twitter',
+        url: 'https://twitter.com/messages/123456-789012',
+        content: twitterDMContent,
         type: 'browser' as const,
         browser: 'chrome' as const,
       };
+
       await runLlmCategorizationTest({
         activeWindow,
-        mockUser,
-        mockCategories: dreamWifeSeekingCategories,
-        expectedCategoryName: dreamWifeCategory.name,
+        mockUser: mockProductManagerUser,
+        mockCategories: productManagerCategories,
+        expectedCategoryName: productManagementCategory.name,
       });
     }, 30000);
 
-    test('should categorize programming tutorial on YouTube as "Work"', async () => {
+    // --- Programming Tutorial part of Work ---
+
+    test('should categorize programming tutorial on YouTube as "Work" (WITH content)', async () => {
       const activeWindow = {
         ownerName: 'Google Chrome',
-        title: '.mm files objective c for typescript developers - YouTube',
-        url: 'https://www.youtube.com/results?search_query=.mm+files+objective+c+for+typescript+developers',
-        content: null,
+        title: 'Getting started with C# for TypeScript Devs - YouTube',
+        url: '(1) Getting started with C# for TypeScript Devs - YouTube',
+        content:
+          'Skip navigation\nCreate\n1\n>>\n1.00\n<<\n1:19 / 14:11\n•\nC Sharp Syntax First Look\nGetting started with C# for TypeScript Devs\nSyntax\n\n403K subscribers\nSubscribe\n305\nShare\nDownload\nClip\n6.1K views  11 months ago  #typescript #javascript #webdevelopment\nIn this video CJ shows how to get started with C# as a TypeScript / JavaScript web developer.\n\n00:00 Intro …\n...more\n\n \n \n \n ',
         type: 'browser' as const,
         browser: 'chrome' as const,
       };
@@ -288,7 +337,7 @@ describe('categorizeActivity', () => {
         userId: mockUserId,
         name: 'Work',
         description:
-          'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
+          'Writing/editing code, reading or watching coding tutorials, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
       };
       const distractionCategory = {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -300,9 +349,9 @@ describe('categorizeActivity', () => {
 
       await runLlmCategorizationTest({
         activeWindow,
-        mockUser,
+        mockUser: mockProductManagerUser,
         mockCategories: [workCategory, distractionCategory],
-        expectedCategoryName: 'Work',
+        expectedCategoryName: workCategory.name,
       });
     }, 30000);
   });
