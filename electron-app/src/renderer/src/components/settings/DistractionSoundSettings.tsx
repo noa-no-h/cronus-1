@@ -113,17 +113,18 @@ const DistractionSoundSettings = () => {
           Configure sounds and notifications for when you get distracted.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="show-notifications-switch">Show System Notifications</Label>
-          <Switch
-            id="show-notifications-switch"
-            checked={showDistractionNotifications}
-            onCheckedChange={handleShowNotificationsChange}
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="notification-interval-select">System Interval</Label>
+      <CardContent className="space-y-6">
+        <div className="flex items-center justify-between space-x-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-notifications-switch"
+              checked={showDistractionNotifications}
+              onCheckedChange={handleShowNotificationsChange}
+            />
+            <Label htmlFor="show-notifications-switch" className="whitespace-nowrap">
+              Show System Notifications
+            </Label>
+          </div>
           <Select
             value={distractionNotificationInterval.toString()}
             onValueChange={handleNotificationIntervalChange}
@@ -142,17 +143,19 @@ const DistractionSoundSettings = () => {
           </Select>
         </div>
 
-        <div className="flex items-center justify-between">
-          <Label htmlFor="play-sound-switch">Play Sound Alert</Label>
-          <Switch
-            id="play-sound-switch"
-            checked={playDistractionSound}
-            onCheckedChange={handlePlaySoundChange}
-          />
-        </div>
+        <div className="border-t border-border/50"></div>
 
-        <div className="flex items-center justify-between">
-          <Label htmlFor="sound-interval-select">Sound Alert Interval</Label>
+        <div className="flex items-center justify-between space-x-4">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="play-sound-switch"
+              checked={playDistractionSound}
+              onCheckedChange={handlePlaySoundChange}
+            />
+            <Label htmlFor="play-sound-switch" className="whitespace-nowrap">
+              Play Sound Alert
+            </Label>
+          </div>
           <Select
             value={distractionSoundInterval.toString()}
             onValueChange={handleIntervalChange}
