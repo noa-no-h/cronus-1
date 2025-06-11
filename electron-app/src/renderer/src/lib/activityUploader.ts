@@ -44,6 +44,16 @@ export const uploadActiveWindowEvent = async (
   windowDetails: ActiveWindowDetails,
   mutateEvent: MutateAsyncFunction
 ): Promise<void> => {
+  // Don't upload browser events that are missing a URL.
+  // This is a workaround for a race condition on macOS where audio-playing tabs report a title change before the URL is available via AppleScript.
+  if (
+    (windowDetails.browser === 'chrome' || windowDetails.browser === 'safari') &&
+    !windowDetails.url
+  ) {
+    console.log('Skipping browser event upload: missing URL.', windowDetails)
+    return
+  }
+
   if (!token || !windowDetails) {
     console.log('Skipping event upload - missing token or details:', {
       token: !!token,

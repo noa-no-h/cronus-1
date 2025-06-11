@@ -16,10 +16,10 @@
     }
     
     // Check if Chrome is frontmost
-    if (![chromeApp isActive]) {
-        MyLog(@"Chrome is not the active application");
-        return nil;
-    }
+    // if (![chromeApp isActive]) {
+    //     MyLog(@"Chrome is not the active application");
+    //     return nil;
+    // }
     
     // First try to get just the URL and title without JavaScript
     NSString *basicScript = @"tell application \"Google Chrome\"\n"

@@ -49,7 +49,15 @@ export const ActivityList = ({
   const hiddenActivities = activities.filter((act) => act.durationMs < oneMinuteMs)
 
   const renderItems = (items: ActivityItem[]) => {
-    return items.map((activity) => {
+    const validItems = items.filter((activity) => {
+      if (activity.itemType === 'website' && !activity.originalUrl) {
+        // This is the problematic entry, let's not render it for now.
+        return false
+      }
+      return true
+    })
+
+    return validItems.map((activity) => {
       const activityKey = `${activity.identifier}-${activity.name}`
       const otherCategories =
         allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
