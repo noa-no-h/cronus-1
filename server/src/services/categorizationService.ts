@@ -15,7 +15,7 @@ const CategoryChoiceSchema = z.object({
   reasoning: z
     .string()
     .describe(
-      'Brief explanation of why this category was chosen based on the content and user goals'
+      'Short explanation of why this category was chosen based on the content and user goals. Keep it very short and concise. Max 20 words.'
     ),
 });
 
@@ -27,6 +27,7 @@ type UserGoals = {
 
 interface CategorizationResult {
   categoryId: string | null;
+  categoryReasoning: string | null;
 }
 
 function _buildOpenAICategoryChoicePromptInput(
@@ -210,7 +211,7 @@ export async function categorizeActivity(
   // 1. History Check
   const historicalCategoryId = await checkActivityHistory(userId, activeWindow);
   if (historicalCategoryId) {
-    return { categoryId: historicalCategoryId };
+    return { categoryId: historicalCategoryId, categoryReasoning: null };
   }
 
   // 2. LLM-based Categorization by choosing from user's list
@@ -228,7 +229,7 @@ export async function categorizeActivity(
     console.warn(
       `[CategorizationService] User ${userId} has no categories defined. Cannot categorize.`
     );
-    return { categoryId: null };
+    return { categoryId: null, categoryReasoning: null };
   }
 
   const categoryNamesForLLM = userCategories.map((c) => ({
@@ -241,6 +242,7 @@ export async function categorizeActivity(
   const choice = await getOpenAICategoryChoice(userGoals, categoryNamesForLLM, activeWindow);
 
   let determinedCategoryId: string | null = null;
+  let categoryReasoning: string | null = null;
 
   if (choice) {
     const { chosenCategoryName, reasoning } = choice;
@@ -249,6 +251,7 @@ export async function categorizeActivity(
     );
     if (matchedCategory) {
       determinedCategoryId = matchedCategory._id;
+      categoryReasoning = reasoning;
       console.log(
         `[CategorizationService] LLM chose category: "${chosenCategoryName}", ID: ${determinedCategoryId}. Reasoning: "${reasoning}"`
       );
@@ -261,6 +264,5 @@ export async function categorizeActivity(
     console.log('[CategorizationService] LLM did not choose a category.');
   }
 
-  // console.log(`[CategorizationService] Final determined categoryId: ${determinedCategoryId}`);
-  return { categoryId: determinedCategoryId };
+  return { categoryId: determinedCategoryId, categoryReasoning };
 }

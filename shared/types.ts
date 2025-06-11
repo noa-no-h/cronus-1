@@ -30,11 +30,13 @@ export interface ActiveWindowDetails {
   localScreenshotPath?: string | null;
   screenshotS3Url?: string | null;
   captureReason?: 'app_switch' | 'periodic_backup' | null;
+  categoryReasoning?: string | null;
 }
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {
   userId: string;
   categoryId?: string | null;
+  categoryReasoning?: string | null;
 }
 
 export interface Category {

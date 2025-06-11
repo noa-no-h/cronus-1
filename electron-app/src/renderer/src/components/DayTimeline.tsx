@@ -132,7 +132,7 @@ const DayTimeline = ({
 
                       <div className="flex-1 border-l pl-2 py-2 relative">
                         <div
-                          className={`relative h-12 rounded-md mb-2 pt-1.5 ${
+                          className={`relative h-12 rounded-md pt-1.5 ${
                             isSelectedHour
                               ? 'bg-blue-200/20 dark:bg-blue-800/30'
                               : 'bg-slate-50 dark:bg-slate-900'

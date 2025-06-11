@@ -13,6 +13,7 @@ const activeWindowEventSchema = new Schema({
   url: { type: String },
   content: { type: String },
   categoryId: { type: String, required: false, index: true },
+  categoryReasoning: { type: String },
   timestamp: { type: Number, required: true, default: Date.now, index: true },
   screenshotS3Url: { type: String },
   captureReason: {
