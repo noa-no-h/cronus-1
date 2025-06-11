@@ -150,7 +150,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
               placeholder="What do you want to achieve in the next 5 years?"
             />
           ) : (
-            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
               {goals.lifeGoal || (
                 <span className="text-muted-foreground italic">No life goal set</span>
               )}
@@ -173,7 +173,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
               placeholder="What do you want to accomplish this week?"
             />
           ) : (
-            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
               {goals.weeklyGoal || (
                 <span className="text-muted-foreground italic">No weekly goal set</span>
               )}
@@ -196,7 +196,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
               placeholder="What's your main focus for today?"
             />
           ) : (
-            <p className="px-3 py-2 bg-input rounded-md text-foreground min-h-[2.5rem]">
+            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
               {goals.dailyGoal || (
                 <span className="text-muted-foreground italic">No daily goal set</span>
               )}

@@ -12,8 +12,8 @@ export function SettingsPage() {
     <div className="flex-1 overflow-y-auto">
       <div className="p-4 pt-0">
         <div className="space-y-4">
-          <CategoryManagement />
           <GoalInputForm />
+          <CategoryManagement />
           <DistractionSoundSettings />
           <ThemeSwitcher />
           <div className="space-y-4">
