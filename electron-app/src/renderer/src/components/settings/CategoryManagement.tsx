@@ -494,7 +494,16 @@ export function CategoryManagement(): JSX.Element {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(category._id)}
+                          onClick={() => {
+                            // just alert that this is not implement yet but we're happy to add this feature if you want to
+                            alert(
+                              'Deleting categories is not implemented yet. We are planning to add this and a smart activity-recategorization feature next :)'
+                            )
+
+                            // if (window.confirm('Are you sure you want to delete this category?')) {
+                            //   handleDelete(category._id)
+                            // }
+                          }}
                           disabled={
                             !token ||
                             (deleteMutation.isLoading &&
