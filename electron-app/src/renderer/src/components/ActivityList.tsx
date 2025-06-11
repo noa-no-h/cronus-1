@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Category as SharedCategory } from 'shared'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
 import { ActivityItem, ProcessedCategory } from '../lib/activityProcessing'
-import { getFaviconURL } from '../utils/favicon'
-import AppIcon from './AppIcon'
+import { ActivityIcon } from './ui/ActivityIcon'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -66,29 +65,23 @@ export const ActivityList = ({
           onMouseLeave={() => setHoveredActivityKey(null)}
         >
           <div className="flex items-center flex-1 min-w-0">
-            {activity.itemType === 'website' && activity.originalUrl ? (
-              !faviconErrors.has(activity.identifier) ? (
-                <img
-                  src={getFaviconURL(activity.originalUrl)}
-                  alt={activity.identifier.charAt(0).toUpperCase()} // More descriptive alt
-                  width={16}
-                  height={16}
-                  className="mr-2 flex-shrink-0 rounded"
-                  onError={() => handleFaviconError(activity.identifier)}
-                />
-              ) : (
-                <div className="w-4 h-4 flex items-center justify-center bg-muted text-muted-foreground rounded text-xs mr-2 flex-shrink-0">
-                  {activity.identifier.charAt(0).toUpperCase()}
-                </div>
-              )
-            ) : activity.itemType === 'app' ? (
-              <AppIcon appName={activity.identifier} size={16} className="mr-2 flex-shrink-0" />
-            ) : (
-              <span
-                className={`w-2 p-2 h-2 rounded-full mr-2 flex-shrink-0`}
-                style={{ backgroundColor: currentCategory.color }}
-              ></span>
-            )}
+            <ActivityIcon
+              itemType={
+                activity.itemType === 'website'
+                  ? 'website'
+                  : activity.itemType === 'app'
+                    ? 'app'
+                    : 'other'
+              }
+              url={activity.originalUrl}
+              appName={activity.identifier}
+              size={16}
+              className="mr-2"
+              color={currentCategory.color}
+              onFaviconError={() => handleFaviconError(activity.identifier)}
+              showFallback={faviconErrors.has(activity.identifier)}
+              fallbackText={activity.identifier.charAt(0).toUpperCase()}
+            />
             <span
               className="text-sm text-muted-foreground cursor-pointer block truncate"
               title={activity.name}
