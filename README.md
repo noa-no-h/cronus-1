@@ -188,169 +188,77 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ---
 
-## Building the Electron App
+## Building and Running the Electron App
 
-### Prerequisites
+There are two primary ways to build the Electron app: a simple, unsigned build for local testing, and a full, signed, and notarized build for production.
 
-- **macOS**: For building macOS DMG files
-- **Node.js**: Version 18 or higher
-- **Bun**: Latest version
-- **Xcode Command Line Tools**: For native module compilation
-- **Apple Developer Account**: For code signing (optional but recommended)
+### Local Development Build (Unsigned)
 
-### Build Process
+For quick local testing, you can create an unsigned build. This does not require any Apple Developer credentials.
 
-The Electron app build process involves several steps to ensure proper module resolution and packaging:
+1.  **Build the app:**
 
-#### 1. Build Shared Package
+    ```bash
+    cd electron-app
+    bun run build:mac
+    ```
 
-First, build the shared package which contains common types and utilities:
+    This command skips the code signing and notarization steps.
+
+2.  **Open the app:**
+    The previous command creates a `.dmg` file in the `electron-app/dist/` directory. To build and open it automatically, you can use the new helper script:
+    ```bash
+    cd electron-app
+    bun run build:mac:open
+    ```
+
+### Production Build (Signed & Notarized)
+
+To distribute the application, you must sign it with an Apple Developer ID and have it notarized by Apple.
+
+#### 1. Prerequisites
+
+- An active Apple Developer Account ($99/year).
+- The "Developer ID Application" certificate exported from a Mac as a `.p12` file and installed in your local Keychain.
+- An App-Specific Password generated from your Apple ID account page.
+- Your Apple Team ID from the Developer Portal.
+
+#### 2. Configure Environment Variables
+
+Create a `.env` file in the `electron-app/` directory with your credentials:
 
 ```bash
-cd shared
-bun run build
+# electron-app/.env
+
+# For Notarization
+APPLE_ID=your-apple-id@example.com
+APPLE_TEAM_ID=YOUR_TEAM_ID
+APPLE_APP_SPECIFIC_PASSWORD=your-app-specific-password
 ```
 
-This creates the `dist/` directory with compiled JavaScript files and TypeScript declarations.
+#### 3. Update Signing Identity
 
-#### 2. Build Server (if needed)
+The project is configured to sign with a specific developer identity. Ensure the identity string in the following files matches the "Common Name" of the certificate in your Keychain:
 
-If the Electron app depends on server types, build the server package:
+- `electron-app/build/scripts/sign-natives.sh`
+- `electron-app/package.json` (in the `build.mac.identity` field)
 
-```bash
-cd server
-bun run build
-```
+#### 4. Build the App
 
-#### 3. Build Electron App
-
-Navigate to the electron-app directory and run the build:
-
-```bash
-cd electron-app
-bun run build:mac
-```
-
-This command:
-
-- Builds the main process, preload scripts, and renderer process
-- Packages the app using electron-builder
-- Creates DMG files for distribution
-
-#### 4. Handle Native Modules
-
-The project uses a native Node.js module for observing system events. This module requires special handling during the build process:
-
-- **Rebuilding:** The native module must be rebuilt whenever Electron or Node.js versions change. Use this command:
-
-  ```bash
-  cd electron-app
-  bun run native-modules:rebuild:arm
-  ```
-
-- **Packaging:** The compiled `.node` file is included in the final application package via the `extraResources` configuration in `electron-app/package.json`.
-
-- **Loading:** The module is loaded with a dynamic path that works in both development and production, preventing "Cannot find module" errors.
-
-### Build Output
-
-After a successful build, you'll find the following files in `electron-app/dist/`:
-
-- `Cronus-1.0.0-arm64.dmg` - ARM64 (Apple Silicon) version
-- `Cronus-1.0.0.dmg` - Universal version (Intel + ARM64)
-- `mac/` and `mac-arm64/` directories containing the app bundles
-
-### Development Build
-
-For development and testing:
+Run the build command with the `ENABLE_NATIVE_SIGNING` and `ENABLE_NOTARIZATION` flags set to `true`:
 
 ```bash
 cd electron-app
-bun run dev
+ENABLE_NATIVE_SIGNING="true" ENABLE_NOTARIZATION="true" bun run build:mac
 ```
 
-This starts the Electron app in development mode with hot reloading.
+This command will execute the full pipeline:
 
-### Troubleshooting
-
-#### Common Issues
-
-1. **Module Resolution Errors**
-
-   - Ensure the shared package is built before building the Electron app
-   - Check that all imports use the correct paths (see Import Guidelines below)
-
-2. **External File Inclusion Errors**
-
-   - The build configuration excludes files from outside the electron-app directory
-   - Shared files are included as extra resources, not as direct imports
-
-3. **TypeScript Compilation Errors**
-
-   - Run `bun run build` in the shared directory to regenerate type definitions
-   - Ensure all dependencies are installed with `bun install`
-
-4. **Code Signing Issues**
-
-   - For distribution, you'll need an Apple Developer account
-   - Update the `electron-builder.yml` configuration with your signing identity
-
-5. **Native Module Errors**
-   - If you see a "Cannot find module" error for `nativeWindows.node`, ensure the module has been rebuilt with `bun run native-modules:rebuild:arm`.
-   - Verify that the `extraResources` path in `electron-app/package.json` correctly points to the compiled `.node` file.
-
-#### Import Guidelines
-
-The Electron app uses specific import patterns to work with the monorepo structure:
-
-```
-
-```
-
-## Code Signing and Notarization
-
-### Prerequisites
-
-- **Apple Developer Account** ($99/year)
-- **Developer ID Application Certificate** (from Apple Developer Portal)
-- **App-Specific Password** (from Apple ID settings)
-- **Team ID** (from Apple Developer Portal)
-
-### Setup
-
-1. **Get Apple Developer Credentials:**
-
-   - Go to [Apple Developer Portal](https://developer.apple.com)
-   - Get your Team ID from Membership section
-   - Create Developer ID Application Certificate
-   - Generate App-Specific Password in Apple ID settings
-
-2. **Configure Environment Variables:**
-
-   ```bash
-   # Create electron-app/.env file
-   APPLE_ID=your-apple-id@example.com
-   APPLE_TEAM_ID=YOUR_TEAM_ID
-   APPLE_APP_SPECIFIC_PASSWORD=your-app-specific-password
-   ```
-
-3. **Update Identity in Scripts:**
-   - Replace `"Your Name (YOUR_TEAM_ID)"` in `build/scripts/sign-natives.sh`
-   - Replace `"YOUR_TEAM_ID"` in `electron-builder.yml`
-
-### Build Signed App
-
-```bash
-# Install notarization dependency
-cd electron-app
-bun add -D @electron/notarize
-
-# Build with signing and notarization
-bun run build:shared
-bun run build:server
-cd electron-app && bun run build:mac
-```
+- Building the application.
+- Signing the native modules.
+- Signing the application bundle.
+- Uploading the app to Apple for notarization.
 
 ### Distribution
 
-The resulting DMG file can be distributed directly to users without App Store approval.
+The resulting DMG file in `electron-app/dist/` can be distributed directly to users. Because it's signed and notarized, users on macOS will be able to open it without security warnings.
