@@ -17,7 +17,7 @@ function AppWrapper(): React.JSX.Element {
   useEffect(() => {
     const cleanup = window.api.onAuthCodeReceived(async (code) => {
       try {
-        await loginWithGoogleCode(code)
+        await loginWithGoogleCode(code, true)
         // Optionally, show a success notification
       } catch (err) {
         // Handle error (show notification, etc)
@@ -31,6 +31,8 @@ function AppWrapper(): React.JSX.Element {
     window.api
       .getEnvVariables()
       .then((envVars) => {
+        console.log('envVars', envVars)
+
         if (envVars.GOOGLE_CLIENT_ID) {
           setGoogleClientId(envVars.GOOGLE_CLIENT_ID)
         } else {

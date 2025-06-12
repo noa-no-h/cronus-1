@@ -1,5 +1,5 @@
 import { User } from '@shared/types';
-import { OAuth2Client } from 'google-auth-library';
+import { GetTokenOptions, OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
@@ -272,18 +272,37 @@ export const authRouter = router({
     }),
 
   exchangeGoogleCode: publicProcedure
-    .input(z.object({ code: z.string() }))
+    .input(
+      z.object({
+        code: z.string(),
+        isDesktopFlow: z.boolean().optional().default(false),
+      })
+    )
     .mutation(async ({ input }) => {
       try {
-        console.log('Attempting to exchange code:', input.code);
-        // Exchange code for tokens with Google
-        const redirectUri = `${process.env.CLIENT_URL}/electron-callback`;
-        console.log('Using redirect URI:', redirectUri);
-
-        const { tokens } = await googleClient.getToken({
+        console.log('Attempting to exchange code:', {
           code: input.code,
-          redirect_uri: redirectUri,
+          isDesktopFlow: input.isDesktopFlow,
         });
+
+        const tokenOptions: GetTokenOptions = {
+          code: input.code,
+        };
+
+        if (input.isDesktopFlow) {
+          // For the production/desktop flow, a redirect URI is required
+          const redirectUri = `${process.env.CLIENT_URL}/electron-callback`;
+          console.log('Using redirect URI for desktop flow:', redirectUri);
+          tokenOptions.redirect_uri = redirectUri;
+        } else {
+          // For the development popup flow, the redirect URI must match the dev server origin
+          const redirectUri = 'http://localhost:5173'; // Your Vite dev server
+          console.log('Using redirect URI for dev popup flow:', redirectUri);
+          tokenOptions.redirect_uri = redirectUri;
+        }
+
+        // Exchange code for tokens with Google
+        const { tokens } = await googleClient.getToken(tokenOptions);
         console.log('Successfully got tokens from Google');
 
         const ticket = await googleClient.verifyIdToken({

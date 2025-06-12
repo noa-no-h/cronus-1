@@ -1,7 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, ipcMain, Notification, screen, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Notification, screen, session, shell } from 'electron'
 import fs from 'fs/promises'
-import { join, resolve as pathResolve } from 'path'
+import { join } from 'path'
 import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows } from '../native-modules/native-windows'
@@ -268,26 +268,44 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // In production, always open Google OAuth URLs externally
     if (url.startsWith('https://accounts.google.com/')) {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 600,
-          height: 700,
-          autoHideMenuBar: true,
-          webPreferences: {}
+      if (is.dev) {
+        // Allow popup in dev mode for in-app Google login
+        return {
+          action: 'allow',
+          overrideBrowserWindowOptions: {
+            width: 600,
+            height: 700,
+            autoHideMenuBar: true,
+            webPreferences: {}
+          }
         }
+      } else {
+        shell.openExternal(url)
+        return { action: 'deny' }
       }
     }
     shell.openExternal(url)
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  // --- DEV/PROD renderer loading logic ---
+  if (is.dev) {
+    const devUrl = process.env['ELECTRON_RENDERER_URL'] || 'http://localhost:5173'
+    console.log('---')
+    console.log('✅ Development Renderer URL for Google Cloud Console:')
+    console.log(devUrl)
+    console.log('---')
+    mainWindow.loadURL(devUrl)
   } else {
+    console.log('---')
+    console.log('❌ Production Renderer URL for Google Cloud Console:')
+    console.log(join(__dirname, '../renderer/index.html'))
+    console.log('---')
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  // ---------------------------------------
 
   if (is.dev) {
     mainWindow.webContents.openDevTools()
@@ -306,40 +324,46 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  await initializeLoggers()
+  electronApp.setAppUserModelId('com.electron')
 
-  // Protocol handler registration
-  if (process.defaultApp) {
-    if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [
-        pathResolve(process.argv[1])
-      ])
-    }
-  } else {
-    app.setAsDefaultProtocolClient(PROTOCOL_SCHEME)
-  }
+  const devServerURL = 'http://localhost:5173'
 
-  // Enforce single instance
-  const gotTheLock = app.requestSingleInstanceLock()
+  // More lenient CSP to allow all Google assets
+  const csp = `default-src 'self'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://*.googleusercontent.com ${is.dev ? "'unsafe-inline' " + devServerURL : ''}; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' data:; img-src * data:; frame-src https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com; connect-src 'self' https://play.google.com https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com http://localhost:3001 https://whatdidyougetdonetoday.s3.us-east-1.amazonaws.com https://whatdidyougetdonetoday.s3.amazonaws.com https://eu.i.posthog.com ${is.dev ? devServerURL : ''}`
 
-  if (!gotTheLock) {
-    app.quit()
-    return
-  } else {
-    app.on('second-instance', (_event, commandLine) => {
-      // Someone tried to run a second instance. We should focus our window.
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) mainWindow.restore()
-        mainWindow.focus()
-      }
-
-      // Find the URL in the command line arguments
-      const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
-      if (url) {
-        handleAppUrl(url)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp],
+        'Cross-Origin-Opener-Policy': ['unsafe-none']
       }
     })
+  })
+
+  // --- SINGLE INSTANCE LOCK (Production-only) ---
+  if (!is.dev) {
+    const gotTheLock = app.requestSingleInstanceLock()
+
+    if (!gotTheLock) {
+      app.quit()
+    } else {
+      app.on('second-instance', (_event, commandLine) => {
+        // Someone tried to run a second instance. We should focus our window.
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore()
+          mainWindow.focus()
+        }
+
+        // Find the URL in the command line arguments
+        const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
+        if (url) {
+          handleAppUrl(url)
+        }
+      })
+    }
   }
+  // --- END SINGLE INSTANCE LOCK ---
 
   // Handle the URL on initial launch (Windows, Linux)
   const initialUrl = process.argv.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
@@ -395,10 +419,12 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('get-env-vars', () => {
     return {
+      isDev: is.dev,
       GOOGLE_CLIENT_ID: import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID,
-      CLIENT_URL: import.meta.env.MAIN_VITE_CLIENT_URL,
       POSTHOG_KEY: import.meta.env.MAIN_VITE_POSTHOG_KEY,
-      POSTHOG_HOST: import.meta.env.MAIN_VITE_POSTHOG_HOST
+      CLIENT_URL: import.meta.env.MAIN_VITE_CLIENT_URL,
+      POSTHOG_HOST: import.meta.env.MAIN_VITE_POSTHOG_HOST,
+      GOOGLE_CLIENT_SECRET: import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET
       // Add other vars you want to expose from your .env file
     }
   })

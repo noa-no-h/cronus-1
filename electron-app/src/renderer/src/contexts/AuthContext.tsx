@@ -10,7 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (accessToken: string, refreshToken?: string, userData?: User) => void
   logout: () => void
-  loginWithGoogleCode: (code: string) => Promise<void>
+  loginWithGoogleCode: (code: string, isDesktopFlow: boolean) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -109,8 +109,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
   }
 
-  const loginWithGoogleCode = async (code: string) => {
-    const { accessToken, refreshToken, user } = await exchangeGoogleCodeForTokens(code)
+  const loginWithGoogleCode = async (code: string, isDesktopFlow: boolean) => {
+    const { accessToken, refreshToken, user } = await exchangeGoogleCodeForTokens(
+      code,
+      isDesktopFlow
+    )
     localStorage.setItem('accessToken', accessToken)
     if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
     setToken(accessToken)

@@ -40,7 +40,7 @@ export async function refreshAccessToken() {
   }
 }
 
-export async function exchangeGoogleCodeForTokens(code: string) {
+export async function exchangeGoogleCodeForTokens(code: string, isDesktopFlow: boolean) {
   const client = createTRPCProxyClient<AppRouter>({
     links: [
       httpBatchLink({
@@ -49,5 +49,5 @@ export async function exchangeGoogleCodeForTokens(code: string) {
     ]
   })
 
-  return client.auth.exchangeGoogleCode.mutate({ code })
+  return client.auth.exchangeGoogleCode.mutate({ code, isDesktopFlow })
 }

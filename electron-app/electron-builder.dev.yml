@@ -1,0 +1,3 @@
+extends: electron-builder.yml
+appId: com.cronus.app.dev
+productName: Cronus (Dev)
