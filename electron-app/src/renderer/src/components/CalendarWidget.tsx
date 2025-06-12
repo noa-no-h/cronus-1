@@ -11,7 +11,6 @@ import { Card } from './ui/card'
 import { Label } from './ui/label'
 import { Switch } from './ui/switch'
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 import WeekView from './WeekView'
 
 interface CalendarWidgetProps {
@@ -189,39 +188,22 @@ const CalendarWidget = ({
               )}
             </div>
           )}
-          <TooltipProvider delayDuration={300}>
-            <ToggleGroup
-              type="single"
-              size="sm"
-              value={viewMode}
-              onValueChange={(value) => {
-                if (value) onViewModeChange(value as 'day' | 'week')
-              }}
-              className="p-1"
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="day">
-                    <Calendar1 size={16} />
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Day</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <ToggleGroupItem value="week">
-                    <CalendarDaysIcon size={16} />
-                  </ToggleGroupItem>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Week</p>
-                </TooltipContent>
-              </Tooltip>
-            </ToggleGroup>
-          </TooltipProvider>
+          <ToggleGroup
+            type="single"
+            size="sm"
+            variant="outline"
+            value={viewMode}
+            onValueChange={(value) => {
+              if (value) onViewModeChange(value as 'day' | 'week')
+            }}
+          >
+            <ToggleGroupItem value="week">
+              <CalendarDaysIcon size={16} />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="day">
+              <Calendar1 size={16} />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 
