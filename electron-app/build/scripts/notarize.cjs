@@ -3,6 +3,12 @@ const dotenv = require('dotenv')
 dotenv.config()
 
 module.exports = async function notarizing(context) {
+  // Only run notarization if ENABLE_NOTARIZATION is explicitly set to "true"
+  if (process.env.ENABLE_NOTARIZATION !== 'true') {
+    console.log('Skipping notarization for this build.')
+    return
+  }
+
   const { electronPlatformName, appOutDir } = context
   if (electronPlatformName !== 'darwin') {
     return
