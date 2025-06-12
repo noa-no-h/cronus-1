@@ -1,5 +1,4 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import dotenv from 'dotenv'
 import { app, BrowserWindow, ipcMain, Notification, screen, shell } from 'electron'
 import fs from 'fs/promises'
 import { join, resolve as pathResolve } from 'path'
@@ -12,7 +11,7 @@ const PROTOCOL_SCHEME = 'cronus'
 let urlToHandleOnReady: string | null = null
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
-dotenv.config({ path: pathResolve(__dirname, '../../.env') })
+// dotenv.config({ path: pathResolve(__dirname, '../../.env') }) -- no longer needed, Vite handles this
 
 let mainWindow: BrowserWindow | null
 let floatingWindow: BrowserWindow | null
@@ -396,10 +395,10 @@ app.whenReady().then(async () => {
 
   ipcMain.handle('get-env-vars', () => {
     return {
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-      POSTHOG_KEY: process.env.REACT_APP_PUBLIC_POSTHOG_KEY,
-      POSTHOG_HOST: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
-      CLIENT_URL: process.env.CLIENT_URL
+      GOOGLE_CLIENT_ID: import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID,
+      CLIENT_URL: import.meta.env.MAIN_VITE_CLIENT_URL,
+      POSTHOG_KEY: import.meta.env.MAIN_VITE_POSTHOG_KEY,
+      POSTHOG_HOST: import.meta.env.MAIN_VITE_POSTHOG_HOST
       // Add other vars you want to expose from your .env file
     }
   })

@@ -206,7 +206,6 @@ mac:
     teamId: '2AZ6648627'
   timestamp: 'http://timestamp.apple.com/ts01'
   beforeBuild: './build/scripts/sign-natives-wrapper.cjs'
-  afterSign: './build/scripts/notarize.cjs'
 
 dmg:
   sign: true
