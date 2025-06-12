@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, JSX, ReactNode, useContext, useEffect, useState } from 'react'
 import { User } from 'shared/dist/types.js'
 import { trpc } from '../utils/trpc'
 

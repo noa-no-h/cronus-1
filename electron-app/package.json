@@ -1,5 +1,5 @@
 {
-  "name": "@saas-template-may-2025/electron-app",
+  "name": "cronus-electron-app",
   "version": "1.0.0",
   "private": true,
   "description": "An Electron application with React and TypeScript",
@@ -24,6 +24,25 @@
     "native-modules:rebuild": "bun run native-modules:clean && npx electron-rebuild -f -m src/native-modules/native-windows",
     "native-modules:rebuild:arm": "bun run native-modules:rebuild -- --arch arm64",
     "native-modules:clean": "rimraf src/native-modules/**/bin && rimraf src/native-modules/**/build"
+  },
+  "build": {
+    "appId": "com.cronus.app",
+    "productName": "Cronus",
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "protocols": {
+      "name": "Cronus Auth",
+      "schemes": [
+        "cronus"
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "src/native-modules/native-windows/build/Release/nativeWindows.node",
+        "to": "native/nativeWindows.node"
+      }
+    ]
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -71,7 +90,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.19",
     "electron": "35.1.5",
-    "electron-builder": "^25.1.8",
+    "electron-builder": "24.9.1",
     "electron-rebuild": "^3.2.9",
     "electron-vite": "^3.1.0",
     "eslint": "^9.24.0",

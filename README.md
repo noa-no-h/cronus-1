@@ -237,12 +237,27 @@ This command:
 - Packages the app using electron-builder
 - Creates DMG files for distribution
 
+#### 4. Handle Native Modules
+
+The project uses a native Node.js module for observing system events. This module requires special handling during the build process:
+
+- **Rebuilding:** The native module must be rebuilt whenever Electron or Node.js versions change. Use this command:
+
+  ```bash
+  cd electron-app
+  bun run native-modules:rebuild:arm
+  ```
+
+- **Packaging:** The compiled `.node` file is included in the final application package via the `extraResources` configuration in `electron-app/package.json`.
+
+- **Loading:** The module is loaded with a dynamic path that works in both development and production, preventing "Cannot find module" errors.
+
 ### Build Output
 
 After a successful build, you'll find the following files in `electron-app/dist/`:
 
-- `What Did You Get Done Today-1.0.0-arm64.dmg` - ARM64 (Apple Silicon) version
-- `What Did You Get Done Today-1.0.0.dmg` - Universal version (Intel + ARM64)
+- `Cronus-1.0.0-arm64.dmg` - ARM64 (Apple Silicon) version
+- `Cronus-1.0.0.dmg` - Universal version (Intel + ARM64)
 - `mac/` and `mac-arm64/` directories containing the app bundles
 
 ### Development Build
@@ -276,75 +291,18 @@ This starts the Electron app in development mode with hot reloading.
    - Ensure all dependencies are installed with `bun install`
 
 4. **Code Signing Issues**
+
    - For distribution, you'll need an Apple Developer account
    - Update the `electron-builder.yml` configuration with your signing identity
+
+5. **Native Module Errors**
+   - If you see a "Cannot find module" error for `nativeWindows.node`, ensure the module has been rebuilt with `bun run native-modules:rebuild:arm`.
+   - Verify that the `extraResources` path in `electron-app/package.json` correctly points to the compiled `.node` file.
 
 #### Import Guidelines
 
 The Electron app uses specific import patterns to work with the monorepo structure:
 
-```typescript
-// ✅ Correct imports
-import { Category } from 'shared/dist/types.js';
-import { defaultComparableCategories } from 'shared/categories';
-import { isVeryLikelyProductive } from 'shared/distractionRules';
-
-// ❌ Avoid these patterns
-import { Category } from '../shared/types'; // Relative paths to external directories
-import { Category } from 'shared/types'; // Missing .js extension for types
 ```
 
-#### Build Configuration
-
-The build process is configured in several key files:
-
-- `electron-app/electron-builder.yml` - Packaging configuration
-- `electron-app/electron.vite.config.ts` - Vite build configuration
-- `shared/package.json` - Module exports configuration
-- `shared/tsconfig.json` - TypeScript compilation settings
-
-### Code Signing and Distribution
-
-For macOS distribution:
-
-1. **Code Signing**: Update the `electron-builder.yml` with your Apple Developer identity
-2. **Notarization**: Enable notarization for Gatekeeper compatibility
-3. **App Store**: Configure for Mac App Store distribution if needed
-
-Example configuration:
-
-```yaml
-mac:
-  hardenedRuntime: true
-  gatekeeperAssess: false
-  notarize: true # Enable for distribution
-  identity: 'Your Developer ID'
 ```
-
----
-
-## License
-
-MIT
-
-## Support
-
-For questions or support, please open an issue in the repository.
-
-### Build Process
-
-The server uses a custom build script (`build.js`) that:
-
-1. Installs dependencies
-2. Compiles TypeScript code
-3. Copies shared types to the build directory
-4. Organizes the compiled files into the correct structure:
-   - Moves the main server file to the root of `dist`
-   - Copies routers, models, and lib directories to their proper locations
-   - Ensures all necessary files are in place for production deployment
-
-This build process is important because:
-
-- It maintains the correct file structure for the server
-- It ensures shared types are available to the compiled server code
-- It prepares the codebase for production deployment

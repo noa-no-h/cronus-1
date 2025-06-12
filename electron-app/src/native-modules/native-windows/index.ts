@@ -1,3 +1,4 @@
+import { app } from 'electron'
 import path from 'path'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 
@@ -6,18 +7,22 @@ interface Addon {
   stopActiveWindowObserver: () => void
 }
 
+const isDevelopment = !app.isPackaged
+
+const addonPath = isDevelopment
+  ? path.join(
+      process.cwd(),
+      'src',
+      'native-modules',
+      'native-windows',
+      'build',
+      'Release',
+      'nativeWindows.node'
+    )
+  : path.join(process.resourcesPath, 'native', 'nativeWindows.node')
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const addon: Addon = require(
-  path.join(
-    process.cwd(),
-    'src',
-    'native-modules',
-    'native-windows',
-    'build',
-    'Release',
-    'nativeWindows.node'
-  )
-)
+const addon: Addon = require(addonPath)
 
 class NativeWindows {
   /**

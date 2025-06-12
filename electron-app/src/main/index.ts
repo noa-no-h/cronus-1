@@ -7,7 +7,9 @@ import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows } from '../native-modules/native-windows'
 const { nativeTheme } = require('electron')
-import { Activity } from '../shared/types.js'
+
+const PROTOCOL_SCHEME = 'cronus'
+let urlToHandleOnReady: string | null = null
 
 // Load .env file from the electron-app directory relative to where this file will be in `out/main`
 dotenv.config({ path: pathResolve(__dirname, '../../.env') })
@@ -68,6 +70,27 @@ async function logRendererToFile(message: string, data?: object): Promise<void> 
   }
 }
 // --- End File Logger Setup ---
+
+function handleAppUrl(url: string): void {
+  logMainToFile('Processing deep link URL', { url })
+
+  new Notification({
+    title: 'URL Received',
+    body: `App received URL: ${url}`
+  }).show()
+
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.focus()
+    // In a future step, we will send this to the renderer:
+    // mainWindow.webContents.send('auth-code-received', url)
+  } else {
+    // If the app is not ready, store the URL to be handled later
+    urlToHandleOnReady = url
+  }
+}
 
 function createFloatingWindow(): void {
   if (is.dev) {
@@ -264,6 +287,46 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   await initializeLoggers()
+
+  // Protocol handler registration
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, process.execPath, [
+        pathResolve(process.argv[1])
+      ])
+    }
+  } else {
+    app.setAsDefaultProtocolClient(PROTOCOL_SCHEME)
+  }
+
+  // Enforce single instance
+  const gotTheLock = app.requestSingleInstanceLock()
+
+  if (!gotTheLock) {
+    app.quit()
+    return
+  } else {
+    app.on('second-instance', (_event, commandLine) => {
+      // Someone tried to run a second instance. We should focus our window.
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.focus()
+      }
+
+      // Find the URL in the command line arguments
+      const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
+      if (url) {
+        handleAppUrl(url)
+      }
+    })
+  }
+
+  // Handle the URL on initial launch (Windows, Linux)
+  const initialUrl = process.argv.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
+  if (initialUrl) {
+    urlToHandleOnReady = initialUrl
+  }
+
   electronApp.setAppUserModelId('com.electron')
 
   // // Enable auto-start on macOS
@@ -288,6 +351,12 @@ app.whenReady().then(async () => {
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+  })
+
+  // Handle protocol links on macOS when the app is running
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    handleAppUrl(url)
   })
 
   ipcMain.on('ping', () => console.log('pong'))
@@ -425,6 +494,13 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+
+  // Handle any URL that was received before the window was created
+  if (urlToHandleOnReady) {
+    handleAppUrl(urlToHandleOnReady)
+    urlToHandleOnReady = null
+  }
+
   createFloatingWindow()
 
   nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {

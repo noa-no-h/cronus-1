@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "dev": "bun --filter '*' dev",
-    "dev:electron": "bun --filter @saas-template-may-2025/electron-app dev",
-    "dev:electron-server": "NO_ELIDE_LOGS=1 bun --filter @saas-template-may-2025/electron-app --filter server dev",
-    "rebuild:electron:arm": "bun --filter @saas-template-may-2025/electron-app native-modules:rebuild:arm",
+    "dev:electron": "bun --filter cronus-electron-app dev",
+    "dev:electron-server": "NO_ELIDE_LOGS=1 bun --filter cronus-electron-app --filter server dev",
+    "rebuild:electron:arm": "bun --filter cronus-electron-app native-modules:rebuild:arm",
     "build:shared": "cd shared && bun run build",
     "build:server": "cd server && bun run build",
     "build:client": "cd client && bun run build",
