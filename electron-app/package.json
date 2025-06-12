@@ -28,8 +28,22 @@
   "build": {
     "appId": "com.cronus.app",
     "productName": "Cronus",
+    "afterSign": "./build/scripts/notarize.cjs",
+    "beforeBuild": "./build/scripts/sign-natives-wrapper.cjs",
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "identity": "Arne Strickmann (2AZ6648627)",
+      "notarize": {
+        "teamId": "2AZ6648627"
+      },
+      "timestamp": "http://timestamp.apple.com/ts01"
+    },
+    "dmg": {
+      "sign": true
     },
     "protocols": {
       "name": "Cronus Auth",
@@ -84,6 +98,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/notarize": "^3.0.1",
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",

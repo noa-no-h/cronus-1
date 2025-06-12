@@ -201,4 +201,12 @@ mac:
   entitlementsInherit: build/entitlements.mac.plist
   hardenedRuntime: true
   gatekeeperAssess: false
-  notarize: false
+  identity: 'Developer ID Application: Your Name (2AZ6648627)'
+  notarize:
+    teamId: '2AZ6648627'
+  timestamp: 'http://timestamp.apple.com/ts01'
+  beforeBuild: './build/scripts/sign-natives-wrapper.cjs'
+  afterSign: './build/scripts/notarize.cjs'
+
+dmg:
+  sign: true

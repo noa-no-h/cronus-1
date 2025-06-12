@@ -306,3 +306,51 @@ The Electron app uses specific import patterns to work with the monorepo structu
 ```
 
 ```
+
+## Code Signing and Notarization
+
+### Prerequisites
+
+- **Apple Developer Account** ($99/year)
+- **Developer ID Application Certificate** (from Apple Developer Portal)
+- **App-Specific Password** (from Apple ID settings)
+- **Team ID** (from Apple Developer Portal)
+
+### Setup
+
+1. **Get Apple Developer Credentials:**
+
+   - Go to [Apple Developer Portal](https://developer.apple.com)
+   - Get your Team ID from Membership section
+   - Create Developer ID Application Certificate
+   - Generate App-Specific Password in Apple ID settings
+
+2. **Configure Environment Variables:**
+
+   ```bash
+   # Create electron-app/.env file
+   APPLE_ID=your-apple-id@example.com
+   APPLE_TEAM_ID=YOUR_TEAM_ID
+   APPLE_APP_SPECIFIC_PASSWORD=your-app-specific-password
+   ```
+
+3. **Update Identity in Scripts:**
+   - Replace `"Your Name (YOUR_TEAM_ID)"` in `build/scripts/sign-natives.sh`
+   - Replace `"YOUR_TEAM_ID"` in `electron-builder.yml`
+
+### Build Signed App
+
+```bash
+# Install notarization dependency
+cd electron-app
+bun add -D @electron/notarize
+
+# Build with signing and notarization
+bun run build:shared
+bun run build:server
+cd electron-app && bun run build:mac
+```
+
+### Distribution
+
+The resulting DMG file can be distributed directly to users without App Store approval.
