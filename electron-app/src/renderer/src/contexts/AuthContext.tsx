@@ -1,5 +1,6 @@
 import { createContext, JSX, ReactNode, useContext, useEffect, useState } from 'react'
 import { User } from 'shared/dist/types.js'
+import { exchangeGoogleCodeForTokens } from '../lib/auth'
 import { trpc } from '../utils/trpc'
 
 interface AuthContextType {
@@ -9,6 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (accessToken: string, refreshToken?: string, userData?: User) => void
   logout: () => void
+  loginWithGoogleCode: (code: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -107,9 +109,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
   }
 
+  const loginWithGoogleCode = async (code: string) => {
+    const { accessToken, refreshToken, user } = await exchangeGoogleCodeForTokens(code)
+    localStorage.setItem('accessToken', accessToken)
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
+    setToken(accessToken)
+    setUser(user)
+    setIsLoading(false)
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, token, isLoading, isAuthenticated: !!user && !!token, login, logout }}
+      value={{
+        user,
+        token,
+        isLoading,
+        isAuthenticated: !!user && !!token,
+        login,
+        logout,
+        loginWithGoogleCode
+      }}
     >
       {children}
     </AuthContext.Provider>

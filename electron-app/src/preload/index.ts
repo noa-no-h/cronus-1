@@ -1,9 +1,17 @@
-import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
 import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 
 // Custom APIs for renderer
 const api = {
+  onAuthCodeReceived: (callback: (code: string) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, code: string) => callback(code)
+    ipcRenderer.on('auth-code-received', listener)
+    return () => {
+      ipcRenderer.removeListener('auth-code-received', listener)
+    }
+  },
+  openExternalUrl: (url: string) => ipcRenderer.send('open-external-url', url),
   onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, details: ActiveWindowDetails) =>
       callback(details)

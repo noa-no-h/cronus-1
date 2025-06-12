@@ -6,6 +6,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import BlogPage from './app/blog/BlogPage';
 import BlogPostPage from './app/blog/BlogPostPage';
+import ElectronCallbackPage from './components/ElectronCallbackPage';
 import HomePage from './components/HomePage';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
@@ -65,6 +66,7 @@ function AppContent() {
       </Helmet>
       <div className="min-h-screen bg-background text-foreground w-full">
         <Routes>
+          <Route path="/electron-callback" element={<ElectronCallbackPage />} />
           <Route
             path="/"
             element={

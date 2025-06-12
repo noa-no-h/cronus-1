@@ -42,8 +42,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           </p>
           <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
             <p className="text-sm text-muted-foreground">
-              💡 <strong>Tip:</strong> You can always update your goals in Settings or get detailed
-              insights about your productivity patterns.
+              💡 <strong>Tip:</strong> You can always update your goals in Settings.
             </p>
           </div>
         </div>
@@ -109,7 +108,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               />
             </div>
 
-            <CardTitle className="text-2xl font-bold text-card-foreground">
+            <CardTitle className="text-2xl mt-4 font-bold text-card-foreground">
               {currentStepData.title}
             </CardTitle>
           </CardHeader>

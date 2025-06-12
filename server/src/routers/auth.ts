@@ -270,4 +270,73 @@ export const authRouter = router({
         throw new Error('Failed to mark onboarding as complete');
       }
     }),
+
+  exchangeGoogleCode: publicProcedure
+    .input(z.object({ code: z.string() }))
+    .mutation(async ({ input }) => {
+      try {
+        console.log('Attempting to exchange code:', input.code);
+        // Exchange code for tokens with Google
+        const redirectUri = `${process.env.CLIENT_URL}/electron-callback`;
+        console.log('Using redirect URI:', redirectUri);
+
+        const { tokens } = await googleClient.getToken({
+          code: input.code,
+          redirect_uri: redirectUri,
+        });
+        console.log('Successfully got tokens from Google');
+
+        const ticket = await googleClient.verifyIdToken({
+          idToken: tokens.id_token!,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        console.log('Successfully verified ID token');
+
+        const payload = ticket.getPayload();
+        if (!payload) throw new Error('No payload');
+
+        // Find or create user (reuse your existing logic)
+        let user = await UserModel.findOne({ googleId: payload.sub });
+        if (!user) {
+          user = await UserModel.create({
+            email: payload.email,
+            name: payload.name,
+            googleId: payload.sub,
+            picture: payload.picture,
+          });
+          await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
+        }
+
+        // Generate tokens (reuse your existing logic)
+        const accessToken = jwt.sign(
+          { userId: user._id },
+          process.env.AUTH_SECRET || 'fallback-secret',
+          { expiresIn: '7d' }
+        );
+        const refreshToken = jwt.sign(
+          { userId: user._id, version: user.tokenVersion },
+          process.env.REFRESH_SECRET || 'refresh-secret',
+          { expiresIn: '14d' }
+        );
+
+        return {
+          accessToken,
+          refreshToken,
+          user: {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            picture: user.picture,
+          },
+        };
+      } catch (error: any) {
+        console.error('Detailed error in exchangeGoogleCode:', {
+          error,
+          message: error?.message,
+          code: error?.code,
+          stack: error?.stack,
+        });
+        throw error;
+      }
+    }),
 });

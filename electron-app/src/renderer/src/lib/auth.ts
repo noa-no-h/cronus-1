@@ -1,5 +1,5 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
-import type { AppRouter } from '../../../../../server/src/index' // Adjusted path
+import type { AppRouter } from '../../../../../server/src/index'
 
 // In Electron, environment variables are typically accessed differently.
 // For now, hardcoding the server URL. Consider using ipcRenderer to get it from main process if needed.
@@ -38,4 +38,16 @@ export async function refreshAccessToken() {
     // For now, just re-throwing. Consider how to handle UI update for login.
     throw error
   }
+}
+
+export async function exchangeGoogleCodeForTokens(code: string) {
+  const client = createTRPCProxyClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: `${serverUrl}/trpc`
+      })
+    ]
+  })
+
+  return client.auth.exchangeGoogleCode.mutate({ code })
 }

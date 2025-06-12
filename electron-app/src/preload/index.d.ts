@@ -31,6 +31,7 @@ declare global {
   interface Window {
     electron: CustomElectronAPI // Use the custom, more specific type
     api: {
+      onAuthCodeReceived: (callback: (code: string) => void) => () => void // Return type for cleanup function
       onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void // Return type for cleanup function
       // Add the new function's type signature here
       getEnvVariables: () => Promise<{ GOOGLE_CLIENT_ID?: string; [key: string]: any }>
@@ -40,6 +41,8 @@ declare global {
       getFloatingWindowVisibility: () => Promise<boolean>
       onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
       getAudioDataUrl: () => Promise<string | null>
+      openExternalUrl: (url: string) => void
+      showNotification: (options: { title: string; body: string }) => void
     }
   }
 }

@@ -9,10 +9,22 @@ import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
 
 function AppWrapper(): React.JSX.Element {
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
+  const { isAuthenticated, isLoading: isAuthLoading, loginWithGoogleCode } = useAuth()
   const [googleClientId, setGoogleClientId] = useState<string | null>(null)
   const [configError, setConfigError] = useState<string | null>(null)
   const [isLoadingConfig, setIsLoadingConfig] = useState(true)
+
+  useEffect(() => {
+    const cleanup = window.api.onAuthCodeReceived(async (code) => {
+      try {
+        await loginWithGoogleCode(code)
+        // Optionally, show a success notification
+      } catch (err) {
+        // Handle error (show notification, etc)
+      }
+    })
+    return cleanup
+  }, [])
 
   useEffect(() => {
     setIsLoadingConfig(true)

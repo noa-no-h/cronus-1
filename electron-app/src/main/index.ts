@@ -74,21 +74,36 @@ async function logRendererToFile(message: string, data?: object): Promise<void> 
 function handleAppUrl(url: string): void {
   logMainToFile('Processing deep link URL', { url })
 
+  // Parse the code from the URL
+  let code: string | null = null
+  try {
+    const parsedUrl = new URL(url)
+    code = parsedUrl.searchParams.get('code')
+  } catch (e) {
+    logMainToFile('Failed to parse deep link URL', { url, error: e })
+  }
+
+  // Show a notification for debugging
   new Notification({
     title: 'URL Received',
     body: `App received URL: ${url}`
   }).show()
 
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore()
-    }
-    mainWindow.focus()
-    // In a future step, we will send this to the renderer:
-    // mainWindow.webContents.send('auth-code-received', url)
-  } else {
-    // If the app is not ready, store the URL to be handled later
+  // If the main window does not exist or is destroyed, store the URL for later
+  if (!mainWindow || mainWindow.isDestroyed()) {
     urlToHandleOnReady = url
+    return
+  }
+
+  // Focus and restore the window if needed
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore()
+  }
+  mainWindow.focus()
+
+  // Send the code to the renderer if available
+  if (code) {
+    mainWindow.webContents.send('auth-code-received', code)
   }
 }
 
@@ -225,13 +240,13 @@ function createWindow(): void {
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
 
   const windowWidth = 800
-  const windowHeight = screenHeight // Or screenHeight if you want it to fill the height
+  const windowHeight = screenHeight
 
   mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
     x: screenWidth - windowWidth,
-    y: 0, // Position at the top of the work area
+    y: 0,
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
@@ -261,9 +276,7 @@ function createWindow(): void {
           width: 600,
           height: 700,
           autoHideMenuBar: true,
-          webPreferences: {
-            // No nodeIntegration or preload script for external auth pages typically
-          }
+          webPreferences: {}
         }
       }
     }
@@ -280,6 +293,14 @@ function createWindow(): void {
   if (is.dev) {
     mainWindow.webContents.openDevTools()
   }
+
+  // After the window loads, if there is a queued URL, process it
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (urlToHandleOnReady) {
+      handleAppUrl(urlToHandleOnReady)
+      urlToHandleOnReady = null
+    }
+  })
 }
 
 // This method will be called when Electron has finished
@@ -353,6 +374,10 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  ipcMain.on('open-external-url', (_event, url: string) => {
+    shell.openExternal(url)
+  })
+
   // Handle protocol links on macOS when the app is running
   app.on('open-url', (event, url) => {
     event.preventDefault()
@@ -373,7 +398,8 @@ app.whenReady().then(async () => {
     return {
       GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
       POSTHOG_KEY: process.env.REACT_APP_PUBLIC_POSTHOG_KEY,
-      POSTHOG_HOST: process.env.REACT_APP_PUBLIC_POSTHOG_HOST
+      POSTHOG_HOST: process.env.REACT_APP_PUBLIC_POSTHOG_HOST,
+      CLIENT_URL: process.env.CLIENT_URL
       // Add other vars you want to expose from your .env file
     }
   })
