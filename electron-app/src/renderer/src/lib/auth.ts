@@ -3,7 +3,7 @@ import type { AppRouter } from '../../../../../server/src/index'
 
 // In Electron, environment variables are typically accessed differently.
 // For now, hardcoding the server URL. Consider using ipcRenderer to get it from main process if needed.
-const serverUrl = 'http://localhost:3001'
+const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
 
 export async function refreshAccessToken() {
   const refreshToken = localStorage.getItem('refreshToken')

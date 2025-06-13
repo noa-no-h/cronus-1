@@ -338,9 +338,10 @@ app.whenReady().then(async () => {
   }
 
   const devServerURL = 'http://localhost:5173'
+  const serverUrl = import.meta.env.MAIN_VITE_SERVER_URL || 'http://localhost:3001'
 
   // More lenient CSP to allow all Google assets
-  const csp = `default-src 'self'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://*.googleusercontent.com ${is.dev ? "'unsafe-inline' " + devServerURL : ''}; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' data:; img-src * data:; frame-src https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com; connect-src 'self' https://play.google.com https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com http://localhost:3001 https://whatdidyougetdonetoday.s3.us-east-1.amazonaws.com https://whatdidyougetdonetoday.s3.amazonaws.com https://eu.i.posthog.com ${is.dev ? devServerURL : ''}`
+  const csp = `default-src 'self'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://*.googleusercontent.com ${is.dev ? "'unsafe-inline' " + devServerURL : ''}; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' data:; img-src * data:; frame-src https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com; connect-src 'self' https://play.google.com https://accounts.google.com https://*.googleusercontent.com https://accounts.youtube.com ${serverUrl} https://whatdidyougetdonetoday.s3.us-east-1.amazonaws.com https://whatdidyougetdonetoday.s3.amazonaws.com https://eu.i.posthog.com ${is.dev ? devServerURL : ''}`
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({

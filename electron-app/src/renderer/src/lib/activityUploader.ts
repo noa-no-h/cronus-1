@@ -4,15 +4,12 @@ import { isVeryLikelyProductive } from 'shared/distractionRules'
 import type { AppRouter } from '../../../../../server/src/index'
 import { SYSTEM_EVENT_NAMES } from './constants'
 import { deleteLocalFile, readFileFromMain, uploadToS3 } from './s3Uploader'
-import { createTRPCReact } from '@trpc/react-query'
-import { refreshAccessToken } from '../lib/auth'
-import { Activity } from 'shared/dist/types.js'
 
 // Create a tRPC client for use outside of React components
 const trpcClient = createTRPCProxyClient<AppRouter>({
   links: [
     httpBatchLink({
-      url: 'http://localhost:3001/trpc',
+      url: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001/trpc',
       headers() {
         const token = localStorage.getItem('accessToken')
         return {
