@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
-import { categorizeActivity } from '../services/categorizationService';
+import { categorizeActivity } from '../services/categorization/categorizationService';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 

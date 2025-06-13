@@ -1,9 +1,9 @@
-import { ActiveWindowDetails, Category as CategoryType } from '../../../shared/types';
-import { logToFile } from '../lib/logger';
-import { CategoryModel } from '../models/category';
-import { User as UserModel } from '../models/user';
-import { checkActivityHistory } from './categorization/history';
-import { getOpenAICategoryChoice, UserGoals } from './categorization/llm';
+import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
+import { logToFile } from '../../lib/logger';
+import { CategoryModel } from '../../models/category';
+import { User as UserModel } from '../../models/user';
+import { checkActivityHistory } from './history';
+import { getOpenAICategoryChoice, UserGoals } from './llm';
 
 interface CategorizationResult {
   categoryId: string | null;

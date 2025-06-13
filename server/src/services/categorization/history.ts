@@ -1,6 +1,14 @@
 import { ActiveWindowDetails } from '../../../../shared/types';
 import { ActiveWindowEventModel } from '../../models/activeWindowEvent';
 
+const getProjectNameFromTitle = (title: string): string | null => {
+  const parts = title.split('—');
+  if (parts.length > 1) {
+    return parts.pop()?.trim() || null;
+  }
+  return null;
+};
+
 export async function checkActivityHistory(
   userId: string,
   activeWindow: Pick<ActiveWindowDetails, 'ownerName' | 'url' | 'type' | 'title'>
@@ -8,6 +16,10 @@ export async function checkActivityHistory(
   try {
     const queryCondition: any = { userId };
     const { ownerName, url, type, title } = activeWindow;
+
+    // Windsurf doesn't put the project name in the title
+    const isCodeEditor = (ownerName: string) =>
+      ['Cursor', 'Code', 'Visual Studio Code'].includes(ownerName);
 
     if (url && type === 'browser') {
       // Most specific: Match by exact URL for browser activities
@@ -17,16 +29,24 @@ export async function checkActivityHistory(
       // Match by ownerName AND title to distinguish between different tabs/windows of the same browser if URL is missing
       queryCondition.ownerName = ownerName;
       queryCondition.title = title;
+    } else if (ownerName && isCodeEditor(ownerName) && title) {
+      const projectName = getProjectNameFromTitle(title);
+      if (projectName) {
+        queryCondition.ownerName = ownerName;
+        // Match other files from the same project
+        queryCondition.title = { $regex: `— ${projectName}$`, $options: 'i' };
+      } else {
+        // Fallback for editor if title format is unexpected (e.g., startup screen)
+        queryCondition.ownerName = ownerName;
+      }
     } else {
       // Fallback: Match by ownerName only (for non-browser apps, or browsers with no URL and no distinct title)
-      queryCondition.ownerName = ownerName;
+      if (ownerName) {
+        queryCondition.ownerName = ownerName;
+      }
     }
 
-    // Only proceed if a specific condition beyond just userId was added
     if (Object.keys(queryCondition).length === 1 && queryCondition.userId) {
-      // console.log(
-      //   '[CategorizationService] History check: Not enough specific identifiers (URL, Title for browser, or App Name) to perform history lookup. Skipping.'
-      // );
       return null;
     }
 
@@ -37,16 +57,11 @@ export async function checkActivityHistory(
 
     if (lastEventWithSameIdentifier && lastEventWithSameIdentifier.categoryId) {
       const categoryId = lastEventWithSameIdentifier.categoryId as string;
-      // const category = await CategoryModel.findById(categoryId).select('name').lean();
-      // const categoryName = category ? category.name : 'Unknown Category';
-      // console.log(
-      //   `[CategorizationService] History check found categoryId: ${categoryId}, Name: "${categoryName}" for ${activeWindow.ownerName || activeWindow.url}`
-      // );
+
       return categoryId;
     }
   } catch (error) {
     console.error('[CategorizationService] Error during history check:', error);
-    // Fall through to allow LLM categorization if history check fails
   }
   return null;
 }

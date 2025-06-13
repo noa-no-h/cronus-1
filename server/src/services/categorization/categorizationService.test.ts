@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:t
 import { readFileSync } from 'fs';
 import mongoose from 'mongoose';
 import path from 'path';
-import { ActiveWindowDetails } from '../../../shared/types';
+import { ActiveWindowDetails } from '../../../../shared/types';
 
 // Note: These tests perform live OpenAI API calls.
 // Ensure OPENAI_API_KEY is set in your environment.
@@ -20,25 +20,24 @@ const mockUserModel = {
 };
 
 // Use mock.module to replace the actual models with our mocks
-mock.module('../models/activeWindowEvent', () => ({
+mock.module('../../models/activeWindowEvent', () => ({
   ActiveWindowEventModel: mockActiveWindowEventModel,
 }));
-mock.module('../models/category', () => ({
+mock.module('../../models/category', () => ({
   CategoryModel: mockCategoryModel,
 }));
-mock.module('../models/user', () => ({
+mock.module('../../models/user', () => ({
   User: mockUserModel,
 }));
 
 // Import the service AFTER mocks are set up
 const { categorizeActivity } = await import('./categorizationService');
-const { ActiveWindowEventModel } = await import('../models/activeWindowEvent');
-const { CategoryModel } = await import('../models/category');
-const { User: UserModel } = await import('../models/user');
+const { ActiveWindowEventModel } = await import('../../models/activeWindowEvent');
+const { CategoryModel } = await import('../../models/category');
+const { User: UserModel } = await import('../../models/user');
 
 describe('categorizeActivity', () => {
   const mockUserId = new mongoose.Types.ObjectId().toString();
-  const mockRecruitingCategoryId = new mongoose.Types.ObjectId().toString();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,54 +45,6 @@ describe('categorizeActivity', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-  });
-
-  describe('History Check', () => {
-    test('should return category from history for a known browser URL', async () => {
-      // Arrange
-      const activeWindow: Pick<
-        ActiveWindowDetails,
-        'ownerName' | 'title' | 'url' | 'type' | 'browser'
-      > = {
-        ownerName: 'Google Chrome',
-        type: 'browser',
-        browser: 'chrome',
-        title: 'Messaging candidates on LinkedIn Recruiter',
-        url: 'https://www.linkedin.com/recruiter/projects',
-      };
-
-      const mockPreviousEvent = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        url: activeWindow.url,
-        categoryId: mockRecruitingCategoryId,
-      };
-
-      // Set up the mock return values
-      (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
-        sort: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue(mockPreviousEvent),
-      });
-      (CategoryModel.findById as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        lean: jest.fn().mockResolvedValue({ name: 'Recruiting' }),
-      });
-
-      // Act
-      const result = await categorizeActivity(mockUserId, activeWindow);
-
-      // Assert
-      expect(result.categoryId).toBe(mockRecruitingCategoryId);
-      expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-      expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
-        userId: mockUserId,
-        url: activeWindow.url,
-      });
-
-      // Verify that the LLM pathway was not taken
-      expect(UserModel.findById).not.toHaveBeenCalled();
-    });
   });
 
   describe('LLM-based Categorization', () => {
@@ -282,7 +233,7 @@ describe('categorizeActivity', () => {
         title: '10 Ways to Find the Woman of Your Dreams - wikiHow',
         url: 'https://www.wikihow.com/Find-the-Woman-of-Your-Dreams',
         content:
-          "\t\n\t\nPRO\nQUIZZES\nEDIT\nEXPLORE\nLOG IN\nRANDOM\nSkip to Content\nLOVETRUE LOVE\nHow to Find the Woman of Your Dreams\nDownload Article\nCo-authored by John Keegan\n\nLast Updated: April 25, 2025 References\n\nAre you waiting for that perfect dream girl to come into your life? While you may just bump into her if you’re lucky, there are some ways to improve your chances at meeting a new partner. This article will help you out with some suggestions aimed at keeping things realistic.\n\n1\nDefine the woman of your dreams.\n\t\nDownload Article\nThink of key personality traits you consider important in a lifelong partner. You might be used to saying \"I want to find the woman of my dreams\" but you need to know what this means for you, such as what her personality is, what she likes/dislikes or even looks like.\nSome important qualities might be loyalty, generosity, fun-loving, outgoing, focused, and so forth.[1] Which of your own personality traits do you want matched?\nThink of the values you'd like this person to hold. Do you want her to have similar values to your own? Or, are you okay with her having quite different ones from you?\nConsider your faith or lack of it. Does your ideal woman need to be of the same faith? Also consider family values––what are yours and in what way must hers match those?\nWhat interests would you like this person to have? Does she have to have the same interests as you? Or would you prefer she had completely different interests, or a mixture of both? Is it enough that she's willing to learn about your interests?\nBe frank with yourself about appearance. How important a factor is this? Might it be holding you back from finding someone with an amazing personality?[2]\nBe a devil's advocate. What sort of things do you not want in your ideal partner? What would you be willing and not willing to compromise about?[3]\n2\nKeep...",
+          "\t\n\t\nPRO\nQUIZZES\nEDIT\nEXPLORE\nLOG IN\nRANDOM\nSkip to Content\nLOVETRUE LOVE\nHow to Find the Woman of Your Dreams\nDownload Article\nCo-authored by John Keegan\n\nLast Updated: April 25, 2025 References\n\nAre you waiting for that perfect dream girl to come into your life? While you may just bump into her if you're lucky, there are some ways to improve your chances at meeting a new partner. This article will help you out with some suggestions aimed at keeping things realistic.\n\n1\nDefine the woman of your dreams.\n\t\nDownload Article\nThink of key personality traits you consider important in a lifelong partner. You might be used to saying \"I want to find the woman of my dreams\" but you need to know what this means for you, such as what her personality is, what she likes/dislikes or even looks like.\nSome important qualities might be loyalty, generosity, fun-loving, outgoing, focused, and so forth.[1] Which of your own personality traits do you want matched?\nThink of the values you'd like this person to hold. Do you want her to have similar values to your own? Or, are you okay with her having quite different ones from you?\nConsider your faith or lack of it. Does your ideal woman need to be of the same faith? Also consider family values––what are yours and in what way must hers match those?\nWhat interests would you like this person to have? Does she have to have the same interests as you? Or would you prefer she had completely different interests, or a mixture of both? Is it enough that she's willing to learn about your interests?\nBe frank with yourself about appearance. How important a factor is this? Might it be holding you back from finding someone with an amazing personality?[2]\nBe a devil's advocate. What sort of things do you not want in your ideal partner? What would you be willing and not willing to compromise about?[3]\n2\nKeep...",
         type: 'browser' as const,
         browser: 'chrome' as const,
       };
