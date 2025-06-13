@@ -324,7 +324,18 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
-  electronApp.setAppUserModelId('com.electron')
+  // Set a different AppUserModelId for development to allow dev and prod to run side-by-side.
+  // This is also what the single-instance lock uses to identify the app.
+  if (is.dev) {
+    app.setAppUserModelId('com.cronus.app.dev')
+  } else {
+    app.setAppUserModelId('com.cronus.app')
+  }
+
+  // On macOS, this is needed for the app to appear in the dock and have a menu bar.
+  if (process.platform === 'darwin') {
+    await app.dock?.show()
+  }
 
   const devServerURL = 'http://localhost:5173'
 
@@ -347,21 +358,22 @@ app.whenReady().then(async () => {
 
     if (!gotTheLock) {
       app.quit()
-    } else {
-      app.on('second-instance', (_event, commandLine) => {
-        // Someone tried to run a second instance. We should focus our window.
-        if (mainWindow) {
-          if (mainWindow.isMinimized()) mainWindow.restore()
-          mainWindow.focus()
-        }
-
-        // Find the URL in the command line arguments
-        const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
-        if (url) {
-          handleAppUrl(url)
-        }
-      })
+      return // Important to exit here
     }
+
+    app.on('second-instance', (_event, commandLine) => {
+      // Someone tried to run a second instance. We should focus our window.
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore()
+        mainWindow.focus()
+      }
+
+      // Find the URL in the command line arguments
+      const url = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_SCHEME}://`))
+      if (url) {
+        handleAppUrl(url)
+      }
+    })
   }
   // --- END SINGLE INSTANCE LOCK ---
 
