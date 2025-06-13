@@ -9,7 +9,8 @@ BOOL shouldExcludeApp(NSString* ownerName, NSString* title) {
     // First check: Exclude system UI elements
     if ([ownerName isEqualToString:@"Dock"] ||
         [ownerName isEqualToString:@"Finder"] ||
-        [ownerName isEqualToString:@"SystemUIServer"]) {
+        [ownerName isEqualToString:@"SystemUIServer"] ||
+        [ownerName isEqualToString:@"WindowManager"]) {
         MyLog(@"🚫 Excluding system UI element: %@", ownerName);
         return YES;
     }

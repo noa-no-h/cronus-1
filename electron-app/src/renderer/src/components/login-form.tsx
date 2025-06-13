@@ -71,13 +71,13 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
   // 1. Define what to do on success (get code, call context)
   const handleGoogleCodeSuccess = useCallback(
     async (codeResponse: Omit<CodeResponse, 'error' | 'error_description' | 'error_uri'>) => {
-      console.log('DEV LOGIN (CODE): Got code from Google popup:', codeResponse.code)
+      // console.log('DEV LOGIN (CODE): Got code from Google popup:', codeResponse.code)
       try {
         await loginWithGoogleCode(codeResponse.code, false)
-        console.log('DEV LOGIN (CODE): Successfully logged in via context.')
+        // console.log('DEV LOGIN (CODE): Successfully logged in via context.')
         onLoginSuccess?.()
       } catch (error) {
-        console.error('DEV LOGIN (CODE): loginWithGoogleCode failed:', error)
+        // console.error('DEV LOGIN (CODE): loginWithGoogleCode failed:', error)
       }
     },
     [loginWithGoogleCode, onLoginSuccess]

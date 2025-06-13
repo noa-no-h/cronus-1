@@ -222,6 +222,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     for (NSDictionary *window in windows) {
         NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
         if ([windowLayer intValue] == 0) { 
+            // Add a check to ignore tiling manager windows
+            NSString *windowOwnerName = [window objectForKey:(id)kCGWindowOwnerName];
+            NSString *windowTitle = [window objectForKey:(id)kCGWindowName];
+            if ([windowOwnerName isEqualToString:@"WindowManager"] && [windowTitle isEqualToString:@"Tiling Handle Window"]) {
+                MyLog(@"[Filter] Ignoring tiling manager helper window.");
+                continue; // This is the helper window, skip it and check the next one.
+            }
+
             frontmostWindow = window;
             break;
         }

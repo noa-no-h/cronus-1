@@ -23,7 +23,7 @@
 }
 
 + (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId {
-    // MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
+    MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
     
     // Different strategies for different app types
     if ([ownerName containsString:@"Code"] || [ownerName containsString:@"Cursor"] || [ownerName containsString:@"Xcode"]) {
@@ -107,7 +107,7 @@
 }
 
 + (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
-    // MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
+    MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
     
     @try {
         // Get the PID for this window
