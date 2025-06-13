@@ -25,6 +25,7 @@
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:mac:open": "bun run build:mac && open dist/Cronus-*-arm64.dmg",
+    "build:mac:open:signed": "ENABLE_NATIVE_SIGNING=true ENABLE_NOTARIZATION=true bun run build:mac:open",
     "build:linux": "electron-vite build && electron-builder --linux",
     "native-modules:rebuild": "bun run native-modules:clean && npx electron-rebuild -f -m src/native-modules/native-windows",
     "native-modules:rebuild:arm": "bun run native-modules:rebuild -- --arch arm64",
