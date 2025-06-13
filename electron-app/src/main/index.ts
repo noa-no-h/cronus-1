@@ -239,13 +239,13 @@ function createWindow(): void {
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
 
   const windowWidth = 800
-  const windowHeight = screenHeight
+  const windowHeight = 900
 
   mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    x: screenWidth - windowWidth,
-    y: 0,
+    x: Math.round((screenWidth - windowWidth) / 2),
+    y: Math.round((screenHeight - windowHeight) / 2),
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
