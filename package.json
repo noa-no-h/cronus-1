@@ -51,5 +51,6 @@
     "lucide-react": "^0.483.0",
     "papaparse": "^5.5.2"
   },
-  "resolutions": {}
+  "resolutions": {},
+  "overrides": {}
 }

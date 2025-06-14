@@ -190,67 +190,102 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ## Building and Running the Electron App
 
-There are two primary ways to build the Electron app: a simple, unsigned build for local testing, and a full, signed, and notarized build for production.
+The Electron app has a streamlined build system with different options for development and production.
 
-### Local Development Build (Unsigned)
+### Development Build (Signed App Bundle)
 
-For quick local testing, you can create an unsigned build. This does not require any Apple Developer credentials.
-
-1.  **Build the app:**
-
-    ```bash
-    cd electron-app
-    bun run build:mac
-    ```
-
-    This command skips the code signing and notarization steps.
-
-2.  **Open the app:**
-    The previous command creates a `.dmg` file in the `electron-app/dist/` directory. To build and open it automatically, you can use a helper script:
-    ```bash
-    cd electron-app
-    bun run build:mac:open
-    ```
-
-### Production Build (Signed & Notarized)
-
-To distribute the application, it must be signed with an Apple Developer ID and notarized by Apple.
-
-#### 1. Prerequisites & Setup
-
-- **Apple Developer Account**: You need an active membership.
-- **Developer ID Certificate**: Ensure your "Developer ID Application" certificate is installed in your local Keychain.
-- **Notarization Credentials**: For notarization, `electron-builder` requires credentials. It is recommended to set them as environment variables (e.g., in your shell profile or a `.env` file):
-  ```bash
-  # Required for notarization
-  export APPLE_ID="your-apple-id@example.com"
-  export APPLE_TEAM_ID="YOUR_TEAM_ID"
-  export APPLE_APP_SPECIFIC_PASSWORD="your-app-specific-password"
-  ```
-- **Update Signing Identity**: The project is configured to sign with a specific identity. If you use a different certificate, update the hardcoded identity string in these two files:
-  - `electron-app/package.json` (in the `build.mac.identity` field)
-  - `electron-app/build/scripts/post-build-sign.sh`
-
-#### 2. Build the App
-
-A single command handles the entire cleanup, build, signing, and notarization pipeline:
+For development and testing, you can create a signed app bundle without creating a DMG:
 
 ```bash
 cd electron-app
-bun run build:mac:open:signed
+bun run build:mac:app-only
 ```
 
-This streamlined script performs the following steps:
+This creates a signed `.app` bundle in `electron-app/dist/mac-arm64/` that you can run directly.
 
-1.  **Aggressive Cleanup**: Deletes the old `Cronus.app` from `/Applications`, removes the app's support data from `~/Library/Application Support`, and resets Apple Event permissions with `tccutil`.
-2.  **Build**: Compiles the Electron app.
-3.  **Deep Sign**: Executes an `afterSign` hook that correctly signs every component (helpers, frameworks, and native `.node` modules) with the necessary entitlements. This script also injects the required `NSAppleEventsUsageDescription` into the helper apps' `Info.plist` files.
-4.  **Notarize**: Submits the app to Apple for notarization (when `ENABLE_NOTARIZATION=true`).
-5.  **Open**: Once complete, it opens the final `.dmg` installer.
+### Production Build (Signed App + DMG)
+
+For distribution, create both a signed app and a proper installer DMG:
+
+```bash
+cd electron-app
+bun run build:mac:dmg
+```
+
+This creates:
+
+- A signed `Cronus.app` bundle
+- A distributable DMG with Applications folder shortcut
+- Automatic signature verification
+- Opens the DMG when complete
+
+### Quick DMG Creation
+
+If you already have a built app and just want to create a new DMG:
+
+```bash
+cd electron-app
+bun run build:mac:dmg-only
+```
+
+This creates a DMG from the existing app bundle without rebuilding.
+
+### Available Build Scripts
+
+| Script               | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| `build:mac:app-only` | Creates signed `.app` bundle (fast, for testing) |
+| `build:mac:dmg`      | Complete build + signed DMG (for distribution)   |
+| `build:mac:dmg-only` | Creates DMG from existing app (quick packaging)  |
+
+### Code Signing Setup
+
+The build system uses environment variables for code signing:
+
+- **Certificate**: Place your `.p12` certificate file in `electron-app/build-assets/mac-cert.p12`
+- **Password**: The certificate password is configured in the build scripts
+- **Identity**: Update the identity in `build-mac.sh` if using a different certificate
 
 ### Distribution
 
-The resulting DMG file in `electron-app/dist/` is fully signed and notarized, ready for distribution. Users on macOS will be able to open it without security warnings.
+The resulting DMG files in `electron-app/dist/` are:
+
+- ✅ **Fully signed** with your Developer ID certificate
+- ✅ **Include Applications folder** for easy installation
+- ✅ **Signature verified** automatically during build
+- ✅ **Ready for distribution** to end users
+
+Users can install by opening the DMG and dragging the app to the Applications folder.
+
+### Apple Events Permission Resolution
+
+## Current Challenges
+
+### ✅ macOS Apple Events Permission Issue - RESOLVED
+
+**The Issue (Previously):**
+The application was unable to retrieve tab information (URL, title) from browsers like Google Chrome due to Apple Events permission issues.
+
+**The Solution:**
+This issue has been **completely resolved** through proper code signing and build configuration:
+
+- ✅ **Proper Certificate Signing**: Using environment variables (`CSC_LINK`, `CSC_KEY_PASSWORD`) for reliable certificate handling
+- ✅ **Correct Entitlements**: The `entitlements.mac.plist` file includes `com.apple.security.automation.apple-events`
+- ✅ **NSAppleEventsUsageDescription**: Properly configured in `package.json` under `mac.extendInfo`
+- ✅ **Hardened Runtime**: Enabled with appropriate security settings
+- ✅ **Signature Verification**: All components are properly signed and verified
+
+**Current Status:**
+
+- The app now shows the permission prompt to users when first accessing browser information
+- Users can grant permission through the standard macOS dialog
+- Browser tab information is successfully retrieved after permission is granted
+- The build system creates reliable, distributable applications
+
+**Build Commands:**
+
+- `bun run build:mac:app-only` - For development/testing
+- `bun run build:mac:dmg` - For production distribution
 
 ## Debugging
 
@@ -263,24 +298,3 @@ The native Objective-C modules use Apple's Unified Logging system (`os_log`). To
 3.  In the search bar of the Console app, enter the following filter and press Enter:
     `    subsystem:com.cronus.app`
     This will display all log messages generated by the native modules, which is essential for diagnosing issues related to window tracking and native code execution.
-
-## Current Challenges
-
-### macOS Apple Events Permission Issue
-
-Despite a comprehensive build and signing process, the application currently faces a persistent issue on macOS where it is unable to retrieve tab information (URL, title) from browsers like Google Chrome.
-
-**The Problem:**
-
-- The application's native module uses AppleScript to communicate with other applications.
-- In the signed and notarized production build, this communication fails with the error: `Not authorised to send Apple events to Google Chrome.`
-- Crucially, the operating system never displays the standard permission prompt to the user to grant this access.
-
-**Current Implementation State:**
-
-- The build process uses a robust `afterSign` script to "deep sign" every executable component within the app bundle, including helper apps, frameworks, and the native `.node` module.
-- The `post-build-sign.sh` script correctly injects the required `NSAppleEventsUsageDescription` key into the `Info.plist` of all helper apps.
-- A single, authoritative `entitlements.mac.plist` file is used, containing all necessary entitlements for a hardened runtime app that needs to perform these actions (`com.apple.security.automation.apple-events`, `com.apple.security.cs.disable-library-validation`, etc.).
-- A pre-build cleanup script ensures the application and its support files are completely removed before each build to prevent issues with cached data or permissions.
-
-The root cause of why the OS denies the permission without prompting the user remains unresolved, despite the build configuration adhering to all known best practices for this scenario.
