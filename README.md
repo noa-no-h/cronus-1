@@ -190,7 +190,7 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ## Building and Running the Electron App
 
-The Electron app has a streamlined build system with different options for development and production.
+The Electron app uses [Electron Builder](https://www.electron.build/) for packaging and distribution, with a streamlined build system offering different options for development and production.
 
 ### Development Build (Signed App Bundle)
 
@@ -259,28 +259,11 @@ Users can install by opening the DMG and dragging the app to the Applications fo
 
 ### Apple Events Permission Resolution
 
-## Current Challenges
+**✅ RESOLVED**: The Apple Events permission issue has been successfully resolved through proper code signing. The app now:
 
-### ✅ macOS Apple Events Permission Issue - RESOLVED
-
-**The Issue (Previously):**
-The application was unable to retrieve tab information (URL, title) from browsers like Google Chrome due to Apple Events permission issues.
-
-**The Solution:**
-This issue has been **completely resolved** through proper code signing and build configuration:
-
-- ✅ **Proper Certificate Signing**: Using environment variables (`CSC_LINK`, `CSC_KEY_PASSWORD`) for reliable certificate handling
-- ✅ **Correct Entitlements**: The `entitlements.mac.plist` file includes `com.apple.security.automation.apple-events`
-- ✅ **NSAppleEventsUsageDescription**: Properly configured in `package.json` under `mac.extendInfo`
-- ✅ **Hardened Runtime**: Enabled with appropriate security settings
-- ✅ **Signature Verification**: All components are properly signed and verified
-
-**Current Status:**
-
-- The app now shows the permission prompt to users when first accessing browser information
-- Users can grant permission through the standard macOS dialog
-- Browser tab information is successfully retrieved after permission is granted
-- The build system creates reliable, distributable applications
+- Shows the permission prompt to users when first accessing browser information
+- Successfully retrieves browser tab information after permission is granted
+- Works reliably with the current build and signing process
 
 **Build Commands:**
 
