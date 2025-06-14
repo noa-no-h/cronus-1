@@ -11,64 +11,59 @@ An Electron application with React and TypeScript
 ### Install
 
 ```bash
-$ npm install
+$ bun install
 ```
 
 ### Development
 
 ```bash
-$ npm run dev
+$ bun run dev
 ```
 
 ### Build
 
 ```bash
-# For windows
-$ npm run build:win
-
 # For macOS
-$ npm run build:mac
-
-# For Linux
-$ npm run build:linux
-```
+$ bun run build:mac:open:signed
 
 ## Project Structure Overview
 
 ```
+
 electron-app/
-├── out/                     # Build output (Main, Preload, Renderer JS files)
-├── resources/               # Static assets (e.g., icons)
+├── out/ # Build output (Main, Preload, Renderer JS files)
+├── resources/ # Static assets (e.g., icons)
 ├── src/
-│   ├── main/                # Main process source (Node.js environment)
-│   │   └── index.ts
-│   ├── preload/             # Preload script source
-│   │   ├── index.ts
-│   │   └── index.d.ts       # Type definitions for preload API
-│   ├── renderer/            # Renderer process source (React UI)
-│   │   ├── src/
-│   │   │   ├── App.tsx
-│   │   │   ├── main.tsx     # React entry point
-│   │   │   ├── env.d.ts     # Renderer environment types
-│   │   │   └── components/  # UI components (example)
-│   │   └── index.html       # HTML entry for renderer
-│   └── native-modules/      # Native Node.js addons
-│       └── native-windows/  # Example native module
-│           ├── macos/       # macOS specific native code
-│           │   ├── activeWindowObserver.h
-│           │   ├── activeWindowObserver.mm
-│           │   └── nativeWindows.mm
-│           ├── binding.gyp  # node-gyp build configuration
-│           ├── index.ts     # TypeScript wrapper for native module
-│           └── package.json # for the native module
+│ ├── main/ # Main process source (Node.js environment)
+│ │ └── index.ts
+│ ├── preload/ # Preload script source
+│ │ ├── index.ts
+│ │ └── index.d.ts # Type definitions for preload API
+│ ├── renderer/ # Renderer process source (React UI)
+│ │ ├── src/
+│ │ │ ├── App.tsx
+│ │ │ ├── main.tsx # React entry point
+│ │ │ ├── env.d.ts # Renderer environment types
+│ │ │ └── components/ # UI components (example)
+│ │ └── index.html # HTML entry for renderer
+│ └── native-modules/ # Native Node.js addons
+│ └── native-windows/ # Example native module
+│ ├── macos/ # macOS specific native code
+│ │ ├── activeWindowObserver.h
+│ │ ├── activeWindowObserver.mm
+│ │ └── nativeWindows.mm
+│ ├── binding.gyp # node-gyp build configuration
+│ ├── index.ts # TypeScript wrapper for native module
+│ └── package.json # for the native module
 ├── .eslintrc.js (or .mjs, eslint.config.mjs) # ESLint configuration
 ├── .gitignore
 ├── package.json
-├── tsconfig.json            # Base TypeScript configuration (if present)
-├── tsconfig.node.json       # TypeScript config for main/preload
-├── tsconfig.web.json        # TypeScript config for renderer
+├── tsconfig.json # Base TypeScript configuration (if present)
+├── tsconfig.node.json # TypeScript config for main/preload
+├── tsconfig.web.json # TypeScript config for renderer
 └── README.md
-```
+
+````
 
 # trackingelectron
 
@@ -182,3 +177,4 @@ IPC allows Electron's main and renderer processes to communicate. This guide cov
 - **Type Definitions:** Maintain `*.d.ts` files for all preload APIs for type safety.
 - **Cleanup Listeners:** Always remove listeners (e.g., in `useEffect` cleanup) to prevent memory leaks.
 - **Error Handling:** Use try/catch for `invoke/handle` if needed.
+````
