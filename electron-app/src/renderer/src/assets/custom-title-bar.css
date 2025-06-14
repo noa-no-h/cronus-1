@@ -25,6 +25,7 @@
      allowing dragging around and to the right of the traffic lights.
   */
   padding-left: 78px; /* Adjust this value based on testing and traffic light size */
+  padding-right: 78px; /* Match left padding to truly center the title */
   display: flex; /* Added to allow for centering */
   align-items: center; /* Vertically center content */
   justify-content: center; /* Horizontally center content */
