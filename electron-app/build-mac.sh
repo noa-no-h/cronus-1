@@ -5,10 +5,34 @@ set -ex
 # This script should be run from the root of the 'electron-app' directory.
 export CSC_LINK="./build-assets/mac-cert.p12"
 export CSC_KEY_PASSWORD="6xC;).arne"
-export DEBUG="electron-builder"
+
+echo "🧹 Cleaning up any existing Cronus processes and files..."
+
+# Kill any running Cronus processes
+pkill -f "Cronus" || true
+pkill -f "cronus" || true
+
+# Wait a moment for processes to fully terminate
+sleep 2
+
+# Remove any existing app bundles
+rm -rf "/Applications/Cronus.app" || true
+rm -rf "$HOME/Applications/Cronus.app" || true
+rm -rf "./dist/mac-arm64/Cronus.app" || true
+rm -rf "./dist/mac/Cronus.app" || true
+rm -rf "./dist/Cronus.app" || true
+
+# Clear any cached app data
+rm -rf "$HOME/Library/Application Support/cronus-electron-app" || true
+rm -rf "$HOME/Library/Application Support/Cronus" || true
+rm -rf "$HOME/Library/Caches/com.cronus.app" || true
+rm -rf "$HOME/Library/Preferences/com.cronus.app.plist" || true
+
+# Reset accessibility permissions for our app (this will require re-granting)
+tccutil reset AppleEvents com.cronus.app || true
+tccutil reset Accessibility com.cronus.app || true
 
 echo "🔐 Signing certificate and password environment variables set."
-echo "🐛 Electron-builder debug mode enabled."
 
 # Run the Electron build process. electron-builder will automatically pick up
 # the CSC_LINK and CSC_KEY_PASSWORD environment variables.
@@ -21,7 +45,7 @@ echo "🔍 Verifying application signature..."
 APP_PATH=$(find dist/mac* -name "Cronus.app" | head -n 1)
 
 if [ -z "$APP_PATH" ]; then
-    echo "❌ ERROR: Could not find Cronus.app in dist/ directory to verify."
+    echo "❌ ERROR: Could not find Cronus.app in dist/ directory."
     exit 1
 fi
 

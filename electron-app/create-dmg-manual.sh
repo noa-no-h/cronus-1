@@ -5,6 +5,32 @@ set -ex
 export CSC_LINK="./build-assets/mac-cert.p12"
 export CSC_KEY_PASSWORD="6xC;).arne"
 
+echo "🧹 Cleaning up any existing Cronus processes and files..."
+
+# Kill any running Cronus processes
+pkill -f "Cronus" || true
+pkill -f "cronus" || true
+
+# Wait a moment for processes to fully terminate
+sleep 2
+
+# Remove any existing app bundles
+rm -rf "/Applications/Cronus.app" || true
+rm -rf "$HOME/Applications/Cronus.app" || true
+rm -rf "./dist/mac-arm64/Cronus.app" || true
+rm -rf "./dist/mac/Cronus.app" || true
+rm -rf "./dist/Cronus.app" || true
+
+# Clear any cached app data
+rm -rf "$HOME/Library/Application Support/cronus-electron-app" || true
+rm -rf "$HOME/Library/Application Support/Cronus" || true
+rm -rf "$HOME/Library/Caches/com.cronus.app" || true
+rm -rf "$HOME/Library/Preferences/com.cronus.app.plist" || true
+
+# Reset accessibility permissions for our app (this will require re-granting)
+tccutil reset AppleEvents com.cronus.app || true
+tccutil reset Accessibility com.cronus.app || true
+
 echo "🔐 Signing certificate and password environment variables set."
 echo "🚀 Building signed app bundle..."
 
@@ -24,7 +50,7 @@ fi
 
 echo "Found app at: $APP_PATH"
 
-# Create DMG with proper installer layout
+# Create DMG with proper installer layout using the exact working command
 DMG_NAME="Cronus-$(date +%Y%m%d-%H%M%S).dmg"
 TEMP_DMG_DIR="/tmp/cronus_dmg_temp"
 
@@ -35,7 +61,7 @@ mkdir -p "$TEMP_DMG_DIR"
 # Copy the app to temp directory
 cp -R "$APP_PATH" "$TEMP_DMG_DIR/"
 
-# Create Applications folder symlink
+# Create Applications folder shortcut
 ln -s /Applications "$TEMP_DMG_DIR/Applications"
 
 # Create the DMG
@@ -44,14 +70,12 @@ hdiutil create -volname "Cronus" -srcfolder "$TEMP_DMG_DIR" -ov -format UDZO "di
 # Clean up temp directory
 rm -rf "$TEMP_DMG_DIR"
 
-echo "✅ DMG created successfully: dist/$DMG_NAME"
-echo "🔍 Verifying app signature in DMG..."
+echo "✅ DMG created: dist/$DMG_NAME"
 
-# Mount the DMG and verify the signature
-hdiutil attach "dist/$DMG_NAME" -mountpoint "/tmp/cronus_dmg_mount"
-codesign --verify --verbose --deep --strict "/tmp/cronus_dmg_mount/Cronus.app"
-hdiutil detach "/tmp/cronus_dmg_mount"
+# Verify the app signature
+echo "🔍 Verifying application signature..."
+codesign --verify --verbose --deep --strict "$APP_PATH"
+echo "✅ Signature verification passed."
 
-echo "✅ DMG verification complete!"
-echo "🚀 Ready for distribution: dist/$DMG_NAME"
-echo "📁 DMG now includes Applications folder for easy installation" 
+# Open the DMG
+open "dist/$DMG_NAME" 
