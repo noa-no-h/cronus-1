@@ -11,9 +11,7 @@ const FLOATING_WINDOW_HEIGHT = 55
 export function createFloatingWindow(
   getMainWindow: () => BrowserWindow | null
 ): BrowserWindow | null {
-  if (is.dev) {
-    nativeTheme.themeSource = 'dark'
-  }
+  nativeTheme.themeSource = 'system'
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width: screenWidth } = primaryDisplay.workAreaSize
 
