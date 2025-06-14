@@ -1,12 +1,20 @@
 #import "browserTabUtils.h"
+#import <os/log.h>
 
 // Custom Log Macro
-#define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
+#define MyLog(format, ...) { \
+    static os_log_t log_handle = NULL; \
+    if (log_handle == NULL) { \
+        log_handle = os_log_create("com.cronus.app", "BrowserTabUtils"); \
+    } \
+    NSString *log_message = [NSString stringWithFormat:format, ##__VA_ARGS__]; \
+    os_log(log_handle, "%{public}s", [log_message UTF8String]); \
+}
 
 @implementation BrowserTabUtils
 
 + (NSDictionary*)getChromeTabInfo {
-    MyLog(@"Starting Chrome tab info gathering...");
+    MyLog(@"Starting Chrome tab info gathering... (now with entitlements)");
     
     // First check if Chrome is running
     NSRunningApplication *chromeApp = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.google.Chrome"] firstObject];
@@ -39,21 +47,26 @@
     
     if (error) {
         MyLog(@"Basic AppleScript error: %@", error);
+        [basicAppleScript release];
         return nil;
     }
     
     NSString *basicInfo = [basicResult stringValue];
     if (!basicInfo || [basicInfo hasPrefix:@"ERROR|"]) {
-        MyLog(@"Basic script error: %@", basicInfo);
+        MyLog(@"Basic script error or no result: %@", basicInfo);
+        [basicAppleScript release];
         return nil;
     }
     
     NSArray *basicComponents = [basicInfo componentsSeparatedByString:@"|"];
     if (basicComponents.count < 2) {
         MyLog(@"Invalid basic info components");
+        [basicAppleScript release];
         return nil;
     }
     
+    [basicAppleScript release];
+
     // Create base info with URL and title
     NSMutableDictionary *tabInfo = [@{
         @"url": basicComponents[0],
@@ -96,8 +109,12 @@
                 MyLog(@"   Content Preview (first 200 chars): %@", [jsInfo length] > 200 ? [jsInfo substringToIndex:200] : jsInfo);
             }
         }
+    } else if (error) {
+        MyLog(@"JS AppleScript error: %@", error);
     }
     
+    [jsAppleScript release];
+
     return tabInfo;
 }
 
@@ -120,7 +137,13 @@
     NSDictionary *error = nil;
     NSAppleEventDescriptor *basicResult = [basicAppleScript executeAndReturnError:&error];
     
-    if (!error && basicResult) {
+    if (error) {
+        MyLog(@"Safari basic AppleScript error: %@", error);
+        [basicAppleScript release];
+        return nil;
+    }
+    
+    if (basicResult) {
         NSString *basicInfo = [basicResult stringValue];
         if (basicInfo && ![basicInfo hasPrefix:@"ERROR|"]) {
             NSArray *components = [basicInfo componentsSeparatedByString:@"|"];
@@ -130,6 +153,8 @@
                 tabInfo[@"type"] = @"browser";
                 tabInfo[@"ownerName"] = @"Safari";
                 
+                [basicAppleScript release];
+
                 // Now try to get the content
                 NSString *contentScript = @"tell application \"Safari\"\n"
                                         "  try\n"
@@ -147,7 +172,9 @@
                 NSAppleScript *contentAppleScript = [[NSAppleScript alloc] initWithSource:contentScript];
                 NSAppleEventDescriptor *contentResult = [contentAppleScript executeAndReturnError:&error];
                 
-                if (!error && contentResult) {
+                if (error) {
+                    MyLog(@"Safari content AppleScript error: %@", error);
+                } else if (contentResult) {
                     NSString *content = [contentResult stringValue];
                     if (content && ![content hasPrefix:@"ERROR|"]) {
                         if ([content isEqualToString:@"JS_DISABLED"]) {
@@ -163,6 +190,7 @@
                         }
                     }
                 }
+                [contentAppleScript release];
                 
                 tabInfo[@"browser"] = @"safari";
                 return tabInfo;
@@ -170,6 +198,8 @@
         }
     }
     
+    [basicAppleScript release];
+
     if (error) {
         MyLog(@"Safari AppleScript error: %@", error);
     }

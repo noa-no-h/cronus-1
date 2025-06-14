@@ -190,75 +190,94 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ## Building and Running the Electron App
 
-There are two primary ways to build the Electron app: a simple, unsigned build for local testing, and a full, signed, and notarized build for production.
+The Electron app uses [Electron Builder](https://www.electron.build/) for packaging and distribution, with a streamlined build system offering different options for development and production.
 
-### Local Development Build (Unsigned)
+### Development Build (Signed App Bundle)
 
-For quick local testing, you can create an unsigned build. This does not require any Apple Developer credentials.
-
-1.  **Build the app:**
-
-    ```bash
-    cd electron-app
-    bun run build:mac
-    ```
-
-    This command skips the code signing and notarization steps.
-
-2.  **Open the app:**
-    The previous command creates a `.dmg` file in the `electron-app/dist/` directory. To build and open it automatically, you can use the new helper script:
-    ```bash
-    cd electron-app
-    bun run build:mac:open
-    ```
-
-### Production Build (Signed & Notarized)
-
-To distribute the application, you must sign it with an Apple Developer ID and have it notarized by Apple.
-
-#### 1. Prerequisites
-
-- An active Apple Developer Account ($99/year).
-- The "Developer ID Application" certificate exported from a Mac as a `.p12` file and installed in your local Keychain.
-- An App-Specific Password generated from your Apple ID account page.
-- Your Apple Team ID from the Developer Portal.
-
-#### 2. Configure Environment Variables
-
-Create a `.env` file in the `electron-app/` directory with your credentials:
-
-```bash
-# electron-app/.env
-
-# For Notarization
-APPLE_ID=your-apple-id@example.com
-APPLE_TEAM_ID=YOUR_TEAM_ID
-APPLE_APP_SPECIFIC_PASSWORD=your-app-specific-password
-```
-
-#### 3. Update Signing Identity
-
-The project is configured to sign with a specific developer identity. Ensure the identity string in the following files matches the "Common Name" of the certificate in your Keychain:
-
-- `electron-app/build/scripts/sign-natives.sh`
-- `electron-app/package.json` (in the `build.mac.identity` field)
-
-#### 4. Build the App
-
-Run the build command with the `ENABLE_NATIVE_SIGNING` and `ENABLE_NOTARIZATION` flags set to `true`:
+For development and testing, you can create a signed app bundle without creating a DMG:
 
 ```bash
 cd electron-app
-ENABLE_NATIVE_SIGNING="true" ENABLE_NOTARIZATION="true" bun run build:mac
+bun run build:mac:app-only
 ```
 
-This command will execute the full pipeline:
+This creates a signed `.app` bundle in `electron-app/dist/mac-arm64/` that you can run directly.
 
-- Building the application.
-- Signing the native modules.
-- Signing the application bundle.
-- Uploading the app to Apple for notarization.
+### Production Build (Signed App + DMG)
+
+For distribution, create both a signed app and a proper installer DMG:
+
+```bash
+cd electron-app
+bun run build:mac:dmg
+```
+
+This creates:
+
+- A signed `Cronus.app` bundle
+- A distributable DMG with Applications folder shortcut
+- Automatic signature verification
+- Opens the DMG when complete
+
+### Quick DMG Creation
+
+If you already have a built app and just want to create a new DMG:
+
+```bash
+cd electron-app
+bun run build:mac:dmg-only
+```
+
+This creates a DMG from the existing app bundle without rebuilding.
+
+### Available Build Scripts
+
+| Script               | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| `build:mac:app-only` | Creates signed `.app` bundle (fast, for testing) |
+| `build:mac:dmg`      | Complete build + signed DMG (for distribution)   |
+| `build:mac:dmg-only` | Creates DMG from existing app (quick packaging)  |
+
+### Code Signing Setup
+
+The build system uses environment variables for code signing:
+
+- **Certificate**: Place your `.p12` certificate file in `electron-app/build-assets/mac-cert.p12`
+- **Password**: The certificate password is configured in the build scripts
+- **Identity**: Update the identity in `build-mac.sh` if using a different certificate
 
 ### Distribution
 
-The resulting DMG file in `electron-app/dist/` can be distributed directly to users. Because it's signed and notarized, users on macOS will be able to open it without security warnings.
+The resulting DMG files in `electron-app/dist/` are:
+
+- ✅ **Fully signed** with your Developer ID certificate
+- ✅ **Include Applications folder** for easy installation
+- ✅ **Signature verified** automatically during build
+- ✅ **Ready for distribution** to end users
+
+Users can install by opening the DMG and dragging the app to the Applications folder.
+
+### Apple Events Permission Resolution
+
+**✅ RESOLVED**: The Apple Events permission issue has been successfully resolved through proper code signing. The app now:
+
+- Shows the permission prompt to users when first accessing browser information
+- Successfully retrieves browser tab information after permission is granted
+- Works reliably with the current build and signing process
+
+**Build Commands:**
+
+- `bun run build:mac:app-only` - For development/testing
+- `bun run build:mac:dmg` - For production distribution
+
+## Debugging
+
+### Viewing Logs on macOS
+
+The native Objective-C modules use Apple's Unified Logging system (`os_log`). To view these logs for debugging purposes:
+
+1.  Open the **Console.app** on macOS.
+2.  Start the Cronus application.
+3.  In the search bar of the Console app, enter the following filter and press Enter:
+    `    subsystem:com.cronus.app`
+    This will display all log messages generated by the native modules, which is essential for diagnosing issues related to window tracking and native code execution.

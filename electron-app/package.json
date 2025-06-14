@@ -16,27 +16,31 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "bun run typecheck:node && bun run typecheck:web",
-    "start": "electron-vite preview",
+    "start": "electron-forge start",
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "build:with-typecheck": "bun run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "bun run build && electron-builder --dir",
     "build:win": "bun run build && electron-builder --win",
-    "build:mac": "electron-vite build && electron-builder --mac",
+    "build:mac": "bash build-mac.sh",
+    "build:mac:app-only": "bash build-mac.sh",
+    "build:mac:dmg": "bash create-dmg-manual.sh",
+    "build:mac:dmg-only": "DMG_NAME=\"Cronus-$(date +%Y%m%d-%H%M%S).dmg\" && TEMP_DMG_DIR=\"/tmp/cronus_dmg_temp\" && rm -rf \"$TEMP_DMG_DIR\" && mkdir -p \"$TEMP_DMG_DIR\" && cp -R \"dist/mac-arm64/Cronus.app\" \"$TEMP_DMG_DIR/\" && ln -s /Applications \"$TEMP_DMG_DIR/Applications\" && hdiutil create -volname \"Cronus\" -srcfolder \"$TEMP_DMG_DIR\" -ov -format UDZO \"dist/$DMG_NAME\" && rm -rf \"$TEMP_DMG_DIR\" && echo \"✅ DMG created: dist/$DMG_NAME\" && open \"dist/$DMG_NAME\"",
     "build:mac:open": "bun run build:mac && open dist/Cronus-*-arm64.dmg",
-    "build:mac:open:signed": "ENABLE_NATIVE_SIGNING=true ENABLE_NOTARIZATION=true bun run build:mac:open",
     "build:linux": "electron-vite build && electron-builder --linux",
     "native-modules:rebuild": "bun run native-modules:clean && npx electron-rebuild -f -m src/native-modules/native-windows",
     "native-modules:rebuild:arm": "bun run native-modules:rebuild -- --arch arm64",
-    "native-modules:clean": "rimraf src/native-modules/**/bin && rimraf src/native-modules/**/build"
+    "native-modules:clean": "rimraf src/native-modules/**/bin && rimraf src/native-modules/**/build",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "build": {
     "appId": "com.cronus.app",
     "productName": "Cronus",
-    "beforeBuild": "./build/scripts/sign-natives-wrapper.cjs",
     "files": [
-      "out/"
+      "out/",
+      "!build-assets/**/*"
     ],
     "mac": {
       "category": "public.app-category.productivity",
@@ -44,11 +48,13 @@
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
-      "identity": "Arne Strickmann (2AZ6648627)",
-      "notarize": {
-        "teamId": "2AZ6648627"
-      },
-      "timestamp": "http://timestamp.apple.com/ts01"
+      "forceCodeSigning": true,
+      "notarize": false,
+      "timestamp": "http://timestamp.apple.com/ts01",
+      "icon": "build/icon.icns",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Cronus needs to access information from your web browser to track your activity."
+      }
     },
     "dmg": {
       "sign": true
@@ -113,7 +119,7 @@
     "autoprefixer": "^10.4.19",
     "dotenv": "^16.4.5",
     "electron": "35.1.5",
-    "electron-builder": "24.9.1",
+    "electron-builder": "26.0.15",
     "electron-rebuild": "^3.2.9",
     "electron-vite": "^3.1.0",
     "eslint": "^9.24.0",

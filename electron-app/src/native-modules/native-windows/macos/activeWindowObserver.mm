@@ -9,9 +9,17 @@
 #include <stdio.h> // For fprintf, stderr
 #include <stdarg.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <os/log.h>
 
 // Custom Log Macro
-#define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
+#define MyLog(format, ...) { \
+    static os_log_t log_handle = NULL; \
+    if (log_handle == NULL) { \
+        log_handle = os_log_create("com.cronus.app", "ActiveWindowObserver"); \
+    } \
+    NSString *log_message = [NSString stringWithFormat:format, ##__VA_ARGS__]; \
+    os_log(log_handle, "%{public}s", [log_message UTF8String]); \
+}
 
 Napi::ThreadSafeFunction activeWindowChangedCallback;
 ActiveWindowObserver *windowObserver;
