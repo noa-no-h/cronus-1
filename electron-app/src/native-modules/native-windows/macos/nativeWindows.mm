@@ -33,6 +33,46 @@ Napi::Value GetShouldRequestPermissionsMethod(const Napi::CallbackInfo& info) {
   return Napi::Boolean::New(env, shouldRequest);
 }
 
+Napi::Value GetPermissionStatusMethod(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  
+  if (info.Length() < 1 || !info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Expected number argument for permission type").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+  
+  int permissionType = info[0].As<Napi::Number>().Int32Value();
+  PermissionStatus status = [PermissionManager statusForPermission:(PermissionType)permissionType];
+  return Napi::Number::New(env, (int)status);
+}
+
+Napi::Value HasPermissionsForTitleExtractionMethod(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  BOOL hasPermissions = [PermissionManager hasPermissionsForTitleExtraction];
+  return Napi::Boolean::New(env, hasPermissions);
+}
+
+Napi::Value HasPermissionsForContentExtractionMethod(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  BOOL hasPermissions = [PermissionManager hasPermissionsForContentExtraction];
+  return Napi::Boolean::New(env, hasPermissions);
+}
+
+void RequestPermissionMethod(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  
+  if (info.Length() < 1 || !info[0].IsNumber()) {
+    Napi::TypeError::New(env, "Expected number argument for permission type").ThrowAsJavaScriptException();
+    return;
+  }
+  
+  int permissionType = info[0].As<Napi::Number>().Int32Value();
+  [PermissionManager requestPermission:(PermissionType)permissionType completion:^(PermissionStatus status) {
+    // Could potentially send back result via callback if needed
+    NSLog(@"Permission request completed with status: %ld", (long)status);
+  }];
+}
+
 Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "startActiveWindowObserver"),
               Napi::Function::New(env, StartActiveWindowObserverMethod));
@@ -42,6 +82,14 @@ Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {
               Napi::Function::New(env, SetShouldRequestPermissionsMethod));
   exports.Set(Napi::String::New(env, "getShouldRequestPermissions"),
               Napi::Function::New(env, GetShouldRequestPermissionsMethod));
+  exports.Set(Napi::String::New(env, "getPermissionStatus"),
+              Napi::Function::New(env, GetPermissionStatusMethod));
+  exports.Set(Napi::String::New(env, "hasPermissionsForTitleExtraction"),
+              Napi::Function::New(env, HasPermissionsForTitleExtractionMethod));
+  exports.Set(Napi::String::New(env, "hasPermissionsForContentExtraction"),
+              Napi::Function::New(env, HasPermissionsForContentExtractionMethod));
+  exports.Set(Napi::String::New(env, "requestPermission"),
+              Napi::Function::New(env, RequestPermissionMethod));
   return exports;
 }
 

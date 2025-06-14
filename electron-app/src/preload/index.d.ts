@@ -1,5 +1,20 @@
-import { ElectronAPI as BaseElectronAPI } from '@electron-toolkit/preload'
-import type { ActiveWindowDetails } from '../native-modules/native-windows'
+import { ElectronAPI } from '@electron-toolkit/preload'
+import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+
+// Use the BaseElectronAPI type from electron-toolkit if available
+type BaseElectronAPI = ElectronAPI
+
+// Permission types and status enums (must match the preload)
+export enum PermissionType {
+  Accessibility = 0,
+  AppleEvents = 1
+}
+
+export enum PermissionStatus {
+  Denied = 0,
+  Granted = 1,
+  Pending = 2
+}
 
 // Define ActiveWindowDetails here, as it's used by the api type
 export interface ActiveWindowDetails {
@@ -43,6 +58,14 @@ declare global {
       getAudioDataUrl: () => Promise<string | null>
       openExternalUrl: (url: string) => void
       showNotification: (options: { title: string; body: string }) => void
+
+      // Permission-related methods
+      getPermissionRequestStatus: () => Promise<boolean>
+      getPermissionStatus: (permissionType: PermissionType) => Promise<PermissionStatus>
+      getPermissionsForTitleExtraction: () => Promise<boolean>
+      getPermissionsForContentExtraction: () => Promise<boolean>
+      requestPermission: (permissionType: PermissionType) => Promise<void>
+      forceEnablePermissionRequests: () => Promise<void>
     }
   }
 }

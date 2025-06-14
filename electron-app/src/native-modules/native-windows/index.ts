@@ -2,11 +2,28 @@ import { app } from 'electron'
 import path from 'path'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 
+// Permission types enum to match native layer
+export enum PermissionType {
+  Accessibility = 0,
+  AppleEvents = 1
+}
+
+// Permission status enum to match native layer
+export enum PermissionStatus {
+  Denied = 0,
+  Granted = 1,
+  Pending = 2
+}
+
 interface Addon {
   startActiveWindowObserver: (callback: (jsonString: string) => void) => void
   stopActiveWindowObserver: () => void
   setShouldRequestPermissions: (shouldRequest: boolean) => void
   getShouldRequestPermissions: () => boolean
+  getPermissionStatus: (permissionType: number) => number
+  hasPermissionsForTitleExtraction: () => boolean
+  hasPermissionsForContentExtraction: () => boolean
+  requestPermission: (permissionType: number) => void
 }
 
 const isDevelopment = !app.isPackaged
@@ -73,6 +90,37 @@ class NativeWindows {
    */
   public getShouldRequestPermissions(): boolean {
     return addon.getShouldRequestPermissions()
+  }
+
+  /**
+   * Gets the status of a specific permission
+   * @param permissionType The permission type to check
+   * @returns PermissionStatus enum value
+   */
+  public getPermissionStatus(permissionType: PermissionType): PermissionStatus {
+    return addon.getPermissionStatus(permissionType) as PermissionStatus
+  }
+
+  /**
+   * Checks if the app has permissions for title extraction
+   */
+  public hasPermissionsForTitleExtraction(): boolean {
+    return addon.hasPermissionsForTitleExtraction()
+  }
+
+  /**
+   * Checks if the app has permissions for content extraction
+   */
+  public hasPermissionsForContentExtraction(): boolean {
+    return addon.hasPermissionsForContentExtraction()
+  }
+
+  /**
+   * Manually requests a specific permission
+   * @param permissionType The permission type to request
+   */
+  public requestPermission(permissionType: PermissionType): void {
+    addon.requestPermission(permissionType)
   }
 }
 

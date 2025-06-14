@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
-import { ChromeAppleEventsModal } from './components/ChromeAppleEventsModal'
 import { DashboardView } from './components/DashboardView'
 import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
-import DistractionCategorizationResult from './components/ui/DistractionStatusBar'
+import DistractionStatusBar from './components/ui/DistractionStatusBar'
 import { Toaster } from './components/ui/toaster'
 import { useAuth } from './contexts/AuthContext'
 import { toast } from './hooks/use-toast'
@@ -37,7 +36,6 @@ export function MainAppContent() {
 
   const [isRecategorizeDialogOpen, setIsRecategorizeDialogOpen] = useState(false)
   const [recategorizeTarget, setRecategorizeTarget] = useState<ActivityToRecategorize | null>(null)
-  const [showChromeAppleEventsModal, setShowChromeAppleEventsModal] = useState(false)
 
   const { data: allCategoriesData, isLoading: isLoadingAllCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
@@ -205,28 +203,24 @@ export function MainAppContent() {
     }
   })
 
-  // auto open mini timer when starting the app
+  // Show onboarding for all authenticated users (every login)
   useEffect(() => {
-    // TODO: this will always open even if the user has just closed it manually via the X button in the FloatingDisplay(?). Which might be a bit annoying to them.
-    if (isAuthenticated && user?.hasCompletedOnboarding && window.electron?.ipcRenderer) {
-      window.electron.ipcRenderer.send('show-floating-window')
-    }
-  }, [isAuthenticated, user?.hasCompletedOnboarding])
-
-  useEffect(() => {
-    if (user && !user.hasCompletedOnboarding) {
+    if (isAuthenticated && user) {
       setShowOnboarding(true)
     }
-  }, [user])
+  }, [isAuthenticated, user])
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
-    setShowChromeAppleEventsModal(true)
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.invoke('set-open-at-login', true)
       // Enable permission requests now that onboarding is complete
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
+  }
+
+  const handleResetOnboarding = () => {
+    setShowOnboarding(true)
   }
 
   const handleOpenMiniTimer = () => {
@@ -272,11 +266,18 @@ export function MainAppContent() {
     }
   }, [])
 
+  // auto open mini timer when onboarding is completed and the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !showOnboarding && window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.send('show-floating-window')
+    }
+  }, [isAuthenticated, showOnboarding])
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="custom-title-bar">{APP_NAME}</div>
       <div className="p-4">
-        <DistractionCategorizationResult
+        <DistractionStatusBar
           activeWindow={activeWindow}
           onOpenMiniTimerClick={handleOpenMiniTimer}
           isMiniTimerVisible={isMiniTimerVisible}
@@ -287,13 +288,9 @@ export function MainAppContent() {
       </div>
 
       <DashboardView className={isSettingsOpen ? 'hidden' : ''} />
-      {isSettingsOpen && <SettingsPage />}
+      {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
-      <ChromeAppleEventsModal
-        open={showChromeAppleEventsModal}
-        onClose={() => setShowChromeAppleEventsModal(false)}
-      />
       <Toaster />
       {allCategories && recategorizeTarget && (
         <RecategorizeDialog

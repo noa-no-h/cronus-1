@@ -6,7 +6,7 @@
 
 // Static variables for singleton and state management
 static PermissionManager *_sharedManager = nil;
-static BOOL _shouldRequestPermissions = NO;
+static BOOL _shouldRequestPermissions = YES; // Enable by default for development
 static BOOL _isRequestingPermission = NO;
 static NSMutableArray *_pendingRequests = nil;
 
@@ -51,10 +51,28 @@ static NSMutableArray *_pendingRequests = nil;
             return hasAccess ? PermissionStatusGranted : PermissionStatusDenied;
         }
         case PermissionTypeAppleEvents: {
-            // For Apple Events, we can't easily check without triggering a request
-            // So we'll assume it's denied unless we know otherwise
-            // This could be enhanced with more sophisticated tracking
-            return PermissionStatusDenied;
+            // Try to detect Apple Events permission by checking if we can access Chrome
+            // This is a heuristic - if Chrome tab tracking is working, Apple Events is likely granted
+            @try {
+                NSArray *chromeApps = [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.google.Chrome"];
+                if (chromeApps.count > 0) {
+                    // If Chrome is running and we can detect it, Apple Events might be working
+                    // We could add a more sophisticated test here, but for now, assume granted if Chrome tracking works
+                    
+                    // Simple test: try to create an AppleScript (this doesn't trigger permission dialog)
+                    NSAppleScript *testScript = [[NSAppleScript alloc] initWithSource:@"tell application \"System Events\" to get name of first process"];
+                    if (testScript) {
+                        // If we can create the script, permissions are likely OK
+                        return PermissionStatusGranted;
+                    }
+                }
+            } @catch (NSException *exception) {
+                // If we can't access, it's likely denied
+                return PermissionStatusDenied;
+            }
+            
+            // Default to unknown/pending since we can't definitively check without triggering dialogs
+            return PermissionStatusPending;
         }
     }
     return PermissionStatusDenied;

@@ -4,7 +4,7 @@ import fs from 'fs/promises'
 import { join } from 'path'
 import { Category } from 'shared/dist/types'
 import icon from '../../resources/icon.png?asset'
-import { nativeWindows } from '../native-modules/native-windows'
+import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 
 interface Windows {
@@ -48,6 +48,33 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
 
   ipcMain.handle('enable-permission-requests', () => {
     logMainToFile('Enabling permission requests after onboarding completion')
+    nativeWindows.setShouldRequestPermissions(true)
+  })
+
+  // Permission-related IPC handlers
+  ipcMain.handle('get-permission-request-status', () => {
+    return nativeWindows.getShouldRequestPermissions()
+  })
+
+  ipcMain.handle('get-permission-status', (_event, permissionType: PermissionType) => {
+    return nativeWindows.getPermissionStatus(permissionType)
+  })
+
+  ipcMain.handle('get-permissions-for-title-extraction', () => {
+    return nativeWindows.hasPermissionsForTitleExtraction()
+  })
+
+  ipcMain.handle('get-permissions-for-content-extraction', () => {
+    return nativeWindows.hasPermissionsForContentExtraction()
+  })
+
+  ipcMain.handle('request-permission', (_event, permissionType: PermissionType) => {
+    logMainToFile(`Manually requesting permission: ${permissionType}`)
+    nativeWindows.requestPermission(permissionType)
+  })
+
+  ipcMain.handle('force-enable-permission-requests', () => {
+    logMainToFile('Force enabling permission requests via settings')
     nativeWindows.setShouldRequestPermissions(true)
   })
 

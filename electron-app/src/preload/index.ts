@@ -2,6 +2,25 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
 import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 
+// Permission types and status enums (match the native layer)
+export enum PermissionType {
+  Accessibility = 0,
+  AppleEvents = 1
+}
+
+export enum PermissionStatus {
+  Denied = 0,
+  Granted = 1,
+  Pending = 2
+}
+
+export interface PermissionInfo {
+  type: PermissionType
+  status: PermissionStatus
+  name: string
+  description: string
+}
+
 // Custom APIs for renderer
 const api = {
   onAuthCodeReceived: (callback: (code: string) => void) => {
@@ -38,7 +57,21 @@ const api = {
       ipcRenderer.removeListener('display-recategorize-page', listener)
     }
   },
-  getFloatingWindowVisibility: () => ipcRenderer.invoke('get-floating-window-visibility')
+  getFloatingWindowVisibility: () => ipcRenderer.invoke('get-floating-window-visibility'),
+
+  // Permission-related methods
+  getPermissionRequestStatus: (): Promise<boolean> =>
+    ipcRenderer.invoke('get-permission-request-status'),
+  getPermissionStatus: (permissionType: PermissionType): Promise<PermissionStatus> =>
+    ipcRenderer.invoke('get-permission-status', permissionType),
+  getPermissionsForTitleExtraction: (): Promise<boolean> =>
+    ipcRenderer.invoke('get-permissions-for-title-extraction'),
+  getPermissionsForContentExtraction: (): Promise<boolean> =>
+    ipcRenderer.invoke('get-permissions-for-content-extraction'),
+  requestPermission: (permissionType: PermissionType): Promise<void> =>
+    ipcRenderer.invoke('request-permission', permissionType),
+  forceEnablePermissionRequests: (): Promise<void> =>
+    ipcRenderer.invoke('force-enable-permission-requests')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

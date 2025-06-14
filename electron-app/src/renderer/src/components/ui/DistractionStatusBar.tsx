@@ -52,7 +52,7 @@ const arePropsEqual = (
   )
 }
 
-const DistractionCategorizationResult = ({
+const DistractionStatusBar = ({
   activeWindow,
   onOpenMiniTimerClick,
   isMiniTimerVisible,
@@ -244,6 +244,11 @@ const DistractionCategorizationResult = ({
     return <DistractionStatusLoadingSkeleton cardBgColor={cardBgColor} />
   }
 
+  console.log(
+    'displayWindowInfo in DistractionCategorizationResult',
+    JSON.stringify(displayWindowInfo, null, 2)
+  )
+
   return (
     <div className="flex items-center gap-2 w-full">
       <div
@@ -317,4 +322,4 @@ const DistractionCategorizationResult = ({
   )
 }
 
-export default React.memo(DistractionCategorizationResult, arePropsEqual)
+export default React.memo(DistractionStatusBar, arePropsEqual)
