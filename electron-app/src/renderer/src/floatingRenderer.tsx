@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import { ThemeProvider } from './contexts/ThemeContext'
 import FloatingDisplay from './FloatingDisplay'
 import './styles/index.css' // Corrected path to Tailwind CSS
 
@@ -10,11 +9,7 @@ const AppWithForcedDarkMode = () => {
     document.documentElement.classList.add('dark')
   }, [])
 
-  return (
-    <ThemeProvider>
-      <FloatingDisplay />
-    </ThemeProvider>
-  )
+  return <FloatingDisplay />
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
