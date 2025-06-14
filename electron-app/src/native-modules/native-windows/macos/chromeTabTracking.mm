@@ -1,5 +1,6 @@
 #import "chromeTabTracking.h"
 #import "browserTabUtils.h"
+#import "permissionManager.h"
 
 // Custom Log Macro
 #define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
@@ -25,6 +26,12 @@
 }
 
 - (NSDictionary*)getCurrentChromeTabBriefInfo {
+    // Check if permission requests are enabled before proceeding
+    if (![PermissionManager shouldRequestPermissions]) {
+        MyLog(@"[Chrome Tab Brief] ⚠️  Permission requests disabled - skipping Chrome tab tracking during onboarding");
+        return nil;
+    }
+    
     NSString *scriptSource = @"tell application \"Google Chrome\"\n\
   try\n\
     if not (exists front window) then return \"ERROR|No window\"\n\
@@ -43,6 +50,16 @@ end tell";
 
     if (errorInfo) {
         MyLog(@"[Chrome Tab Brief] AppleScript execution error: %@", errorInfo);
+        
+        // If this is the first time accessing Chrome and permissions aren't granted,
+        // request Apple Events permission through our centralized system
+        if ([PermissionManager shouldRequestPermissions]) {
+            MyLog(@"[Chrome Tab Brief] 🔑 Requesting Apple Events permission for Chrome tab tracking");
+            [PermissionManager requestPermission:PermissionTypeAppleEvents completion:^(PermissionStatus status) {
+                MyLog(@"[Chrome Tab Brief] 📋 Apple Events permission request completed with status: %ld", (long)status);
+            }];
+        }
+        
         return nil;
     }
 

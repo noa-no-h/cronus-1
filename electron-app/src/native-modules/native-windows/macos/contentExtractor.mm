@@ -1,4 +1,5 @@
 #import "contentExtractor.h"
+#import "permissionManager.h"
 #include <stdio.h>
 
 // Custom Log Macro
@@ -290,13 +291,21 @@
     // MyLog(@"📝 Trying specialized code editor extraction...");
     
     // Check accessibility permissions first
-    BOOL accessibilityEnabled = AXIsProcessTrusted();
+    BOOL accessibilityEnabled = [PermissionManager statusForPermission:PermissionTypeAccessibility] == PermissionStatusGranted;
     // MyLog(@"🔐 Accessibility permissions: %@", accessibilityEnabled ? @"GRANTED" : @"DENIED");
     
     if (!accessibilityEnabled) {
         // MyLog(@"❌ Need to enable accessibility permissions:");
         // MyLog(@"   Go to System Preferences > Security & Privacy > Privacy > Accessibility");
         // MyLog(@"   Add this Electron app to the list");
+        
+        // Request accessibility permissions via centralized manager
+        if ([PermissionManager shouldRequestPermissions]) {
+            [PermissionManager requestPermission:PermissionTypeAccessibility completion:^(PermissionStatus status) {
+                MyLog(@"📋 Content extraction permission request completed with status: %ld", (long)status);
+            }];
+        }
+        
         return [self getCodeEditorFallback:windowId];
     }
     
@@ -308,6 +317,19 @@
     // }
     
     return [self getCodeEditorFallback:windowId];
+}
+
++ (void)requestAccessibilityPermissions {
+    MyLog(@"🔐 Requesting accessibility permissions via PermissionManager...");
+    
+    [PermissionManager requestPermission:PermissionTypeAccessibility completion:^(PermissionStatus status) {
+        if (status == PermissionStatusGranted) {
+            MyLog(@"✅ Accessibility permissions granted");
+        } else {
+            MyLog(@"⚠️ Accessibility permissions request completed with status: %ld", (long)status);
+            MyLog(@"   Please grant accessibility permissions to enable full text extraction");
+        }
+    }];
 }
 
 + (NSString*)getTerminalText:(CGWindowID)windowId {

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
+import { ChromeAppleEventsModal } from './components/ChromeAppleEventsModal'
 import { DashboardView } from './components/DashboardView'
 import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
@@ -10,7 +11,6 @@ import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
-import { ChromeAppleEventsModal } from './components/ChromeAppleEventsModal'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
@@ -224,6 +224,8 @@ export function MainAppContent() {
     setShowChromeAppleEventsModal(true)
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.invoke('set-open-at-login', true)
+      // Enable permission requests now that onboarding is complete
+      window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
   }
 

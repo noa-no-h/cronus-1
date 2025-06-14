@@ -5,6 +5,8 @@ import { ActiveWindowDetails } from 'shared/dist/types.js'
 interface Addon {
   startActiveWindowObserver: (callback: (jsonString: string) => void) => void
   stopActiveWindowObserver: () => void
+  setShouldRequestPermissions: (shouldRequest: boolean) => void
+  getShouldRequestPermissions: () => boolean
 }
 
 const isDevelopment = !app.isPackaged
@@ -56,6 +58,21 @@ class NativeWindows {
 
   public stopActiveWindowObserver(): void {
     addon.stopActiveWindowObserver()
+  }
+
+  /**
+   * Controls whether permission dialogs should be shown to users
+   * Call this with true after onboarding is complete
+   */
+  public setShouldRequestPermissions(shouldRequest: boolean): void {
+    addon.setShouldRequestPermissions(shouldRequest)
+  }
+
+  /**
+   * Returns whether permission requests are currently enabled
+   */
+  public getShouldRequestPermissions(): boolean {
+    return addon.getShouldRequestPermissions()
   }
 }
 

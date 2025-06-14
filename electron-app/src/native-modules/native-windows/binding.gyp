@@ -14,7 +14,9 @@
               "<!@(node -p \"require('fs').readdirSync('./macos').map(f=>'macos/'+f).join(' ')\")",
               "macos/nativeWindows.mm",
               "macos/activeWindowObserver.mm",
-              "macos/sleepAndLockObserver.mm"
+              "macos/sleepAndLockObserver.mm",
+              "macos/titleExtractor.mm",
+              "macos/permissionManager.mm"
             ],
             "libraries": ["-framework Cocoa"],
             "xcode_settings": {

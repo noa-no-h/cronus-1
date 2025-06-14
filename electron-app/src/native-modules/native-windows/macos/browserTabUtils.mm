@@ -1,4 +1,5 @@
 #import "browserTabUtils.h"
+#import "permissionManager.h"
 #import <os/log.h>
 
 // Custom Log Macro
@@ -14,7 +15,13 @@
 @implementation BrowserTabUtils
 
 + (NSDictionary*)getChromeTabInfo {
-    MyLog(@"Starting Chrome tab info gathering... (now with entitlements)");
+    MyLog(@"Starting Chrome tab info gathering...");
+    
+    // Check if permission requests are enabled before proceeding
+    if (![PermissionManager shouldRequestPermissions]) {
+        MyLog(@"⚠️  Permission requests disabled - skipping Chrome tab info gathering during onboarding");
+        return nil;
+    }
     
     // First check if Chrome is running
     NSRunningApplication *chromeApp = [[NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.google.Chrome"] firstObject];
@@ -48,6 +55,16 @@
     if (error) {
         MyLog(@"Basic AppleScript error: %@", error);
         [basicAppleScript release];
+        
+        // If this is the first time accessing Chrome and permissions aren't granted,
+        // request Apple Events permission through our centralized system
+        if ([PermissionManager shouldRequestPermissions]) {
+            MyLog(@"🔑 Requesting Apple Events permission for Chrome access");
+            [PermissionManager requestPermission:PermissionTypeAppleEvents completion:^(PermissionStatus status) {
+                MyLog(@"📋 Apple Events permission request completed with status: %ld", (long)status);
+            }];
+        }
+        
         return nil;
     }
     
@@ -119,6 +136,12 @@
 }
 
 + (NSDictionary*)getSafariTabInfo {
+    // Check if permission requests are enabled before proceeding
+    if (![PermissionManager shouldRequestPermissions]) {
+        MyLog(@"⚠️  Permission requests disabled - skipping Safari tab info gathering during onboarding");
+        return nil;
+    }
+    
     NSMutableDictionary *tabInfo = [NSMutableDictionary dictionary];
     
     // First try to get just the URL and title
@@ -140,6 +163,16 @@
     if (error) {
         MyLog(@"Safari basic AppleScript error: %@", error);
         [basicAppleScript release];
+        
+        // If this is the first time accessing Safari and permissions aren't granted,
+        // request Apple Events permission through our centralized system
+        if ([PermissionManager shouldRequestPermissions]) {
+            MyLog(@"🔑 Requesting Apple Events permission for Safari access");
+            [PermissionManager requestPermission:PermissionTypeAppleEvents completion:^(PermissionStatus status) {
+                MyLog(@"📋 Apple Events permission request completed with status: %ld", (long)status);
+            }];
+        }
+        
         return nil;
     }
     

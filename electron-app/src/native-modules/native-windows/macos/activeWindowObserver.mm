@@ -5,11 +5,14 @@
 #import "contentExtractor.h"
 #import "iconUtils.h"
 #import "appFilter.h"
+#import "titleExtractor.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #include <stdarg.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <os/log.h>
+#import <ApplicationServices/ApplicationServices.h>
+#import <Cocoa/Cocoa.h>
 
 // Custom Log Macro
 #define MyLog(format, ...) { \
@@ -266,6 +269,17 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
             @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
         } mutableCopy];
 
+        // If we don't have a window title, try to get it using our title extractor
+        if (!windowTitle || windowTitle.length == 0) {
+            NSString *extractedTitle = [TitleExtractor extractWindowTitleForApp:windowOwnerName];
+            if (extractedTitle && extractedTitle.length > 0) {
+                windowInfo[@"title"] = extractedTitle;
+                MyLog(@"   ✅ Title extracted successfully: '%@'", extractedTitle);
+            } else {
+                MyLog(@"   ⚠️  Could not extract title for app: %@", windowOwnerName);
+            }
+        }
+
         MyLog(@"🔍 ACTIVE WINDOW CHANGED:");
         MyLog(@"   Owner: %@", windowOwnerName);
         MyLog(@"   Title: %@", windowTitle);
@@ -311,13 +325,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         } else {
             MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
             NSString *extractedText = [ContentExtractor getAppTextContent:windowOwnerName windowId:windowId];
-        if (extractedText && extractedText.length > 0) {
-            windowInfo[@"content"] = extractedText;
-            MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
-            MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
-        } else {
-            MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
-        }
+            if (extractedText && extractedText.length > 0) {
+                windowInfo[@"content"] = extractedText;
+                MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
+                MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+            } else {
+                MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+            }
         }
         
         return windowInfo;

@@ -4,6 +4,7 @@ import fs from 'fs/promises'
 import { join } from 'path'
 import { Category } from 'shared/dist/types'
 import icon from '../../resources/icon.png?asset'
+import { nativeWindows } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 
 interface Windows {
@@ -43,6 +44,11 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
         openAsHidden: true
       })
     }
+  })
+
+  ipcMain.handle('enable-permission-requests', () => {
+    logMainToFile('Enabling permission requests after onboarding completion')
+    nativeWindows.setShouldRequestPermissions(true)
   })
 
   ipcMain.on('open-external-url', (_event, url: string) => {
