@@ -48,6 +48,11 @@ export const ActivityList = ({
   const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
   const hiddenActivities = activities.filter((act) => act.durationMs < oneMinuteMs)
 
+  // If all activities are below 1 minute, show them all directly
+  const shouldShowAllActivities = visibleActivities.length === 0 && hiddenActivities.length > 0
+  const activitiesToShow = shouldShowAllActivities ? activities : visibleActivities
+  const activitiesToHide = shouldShowAllActivities ? [] : hiddenActivities
+
   const renderItems = (items: ActivityItem[]) => {
     const validItems = items.filter((activity) => {
       if (activity.itemType === 'website' && !activity.originalUrl) {
@@ -189,14 +194,14 @@ export const ActivityList = ({
 
   return (
     <>
-      {renderItems(visibleActivities)}
-      {hiddenActivities.length > 0 && (
+      {renderItems(activitiesToShow)}
+      {activitiesToHide.length > 0 && (
         <Button
           variant="link"
           className="p-1 px-2 mt-2 w-full h-auto text-xs text-left justify-start text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors flex items-center gap-1"
           onClick={onToggleShowMore}
         >
-          {isShowMore ? 'Show less' : `Show ${hiddenActivities.length} more`}
+          {isShowMore ? 'Show less' : `Show ${activitiesToHide.length} more`}
           <ChevronDownIcon
             className={`ml-.5 h-4 w-4 transition-transform duration-200 ${
               isShowMore ? 'rotate-180' : ''
@@ -213,7 +218,7 @@ export const ActivityList = ({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            {renderItems(hiddenActivities)}
+            {renderItems(activitiesToHide)}
           </motion.div>
         )}
       </AnimatePresence>
