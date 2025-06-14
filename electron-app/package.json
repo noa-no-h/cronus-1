@@ -25,7 +25,7 @@
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:mac:open": "bun run build:mac && open dist/Cronus-*-arm64.dmg",
-    "build:mac:open:signed": "ENABLE_NATIVE_SIGNING=true ENABLE_NOTARIZATION=true bun run build:mac:open",
+    "build:mac:open:signed": "echo '--- Running aggressive pre-build cleanup ---' && rm -rf /Applications/Cronus.app && rm -rf '~/Library/Application Support/cronus-electron-app' && tccutil reset AppleEvents com.cronus.app && echo '--- Cleanup complete, starting build ---' && ENABLE_NATIVE_SIGNING=true ENABLE_NOTARIZATION=true bun run build:mac:open",
     "build:linux": "electron-vite build && electron-builder --linux",
     "native-modules:rebuild": "bun run native-modules:clean && npx electron-rebuild -f -m src/native-modules/native-windows",
     "native-modules:rebuild:arm": "bun run native-modules:rebuild -- --arch arm64",
@@ -34,7 +34,7 @@
   "build": {
     "appId": "com.cronus.app",
     "productName": "Cronus",
-    "beforeBuild": "./build/scripts/sign-natives-wrapper.cjs",
+    "afterSign": "./build/scripts/after-sign-hook.cjs",
     "files": [
       "out/"
     ],
@@ -42,13 +42,14 @@
       "category": "public.app-category.productivity",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
       "identity": "Arne Strickmann (2AZ6648627)",
       "notarize": {
         "teamId": "2AZ6648627"
       },
-      "timestamp": "http://timestamp.apple.com/ts01"
+      "timestamp": "http://timestamp.apple.com/ts01",
+      "icon": "build/icon.icns"
     },
     "dmg": {
       "sign": true
