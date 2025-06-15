@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -41,6 +41,13 @@
     "files": [
       "out/",
       "!build-assets/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "moritzWa",
+        "repo": "whatdidyougetdonetoday-ai"
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",

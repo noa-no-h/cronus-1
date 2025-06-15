@@ -45,6 +45,23 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
     )
   }
 
+  const UpdatesSection = () => {
+    return (
+      <div className="space-y-4">
+        <div className="bg-muted/30 rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-semibold mb-4">Updates</h2>
+          <p className="text-muted-foreground mb-4">
+            Check if a new version of Cronus is available.
+          </p>
+          <Button onClick={() => window.api.checkForUpdates()} variant="default" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Check for Updates
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="p-4 pt-0">
@@ -54,6 +71,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
           <DistractionSoundSettings />
           <ThemeSwitcher />
           <PermissionsStatus />
+          <UpdatesSection />
           <OnboardingSection />
           <LogOutButtonSection />
         </div>
