@@ -11,6 +11,7 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
+import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
 
 let mainWindow: BrowserWindow | null
 let floatingWindow: BrowserWindow | null
@@ -38,6 +39,7 @@ function App() {
     setupProtocolHandlers(() => mainWindow)
 
     mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) => handleAppUrl(url, window))
+    initializeAutoUpdater(mainWindow)
     floatingWindow = createFloatingWindow(() => mainWindow)
 
     mainWindow.on('closed', () => {
@@ -57,6 +59,7 @@ function App() {
     }
 
     registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow)
+    registerAutoUpdaterHandlers()
 
     // Start observing active window changes
     nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {

@@ -10,6 +10,7 @@ import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
+import { UpdateNotification } from './components/UpdateNotification'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
@@ -291,6 +292,7 @@ export function MainAppContent() {
       {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      <UpdateNotification />
       <Toaster />
       {allCategories && recategorizeTarget && (
         <RecategorizeDialog

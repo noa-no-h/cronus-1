@@ -178,3 +178,17 @@ IPC allows Electron's main and renderer processes to communicate. This guide cov
 - **Cleanup Listeners:** Always remove listeners (e.g., in `useEffect` cleanup) to prevent memory leaks.
 - **Error Handling:** Use try/catch for `invoke/handle` if needed.
 ````
+
+-
+
+When building the Electron app for production, you must ensure all required dependencies are present in electron-app/node_modules before packaging.
+If you use Bun or a monorepo, some dependencies (like electron-updater, fs-extra, jsonfile, debug, etc.) may not be installed where Electron expects them.
+Before building, run:
+
+cp -r ../node_modules/electron-updater node_modules/
+cp -r ../node_modules/fs-extra node_modules/
+cp -r ../node_modules/jsonfile node_modules/
+cp -r ../node_modules/debug node_modules/
+
+bun run build:mac
+bash create-dmg-manual.sh
