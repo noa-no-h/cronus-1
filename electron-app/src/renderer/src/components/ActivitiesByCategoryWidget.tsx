@@ -85,45 +85,17 @@ const ActivitiesByCategoryWidget = ({
     let processedCategoriesResult: ProcessedCategory[] = []
 
     if (filteredEvents.length === 0) {
-      processedCategoriesResult = (categories || [])
-        .map((cat: SharedCategory) => ({
-          id: cat._id,
-          name: cat.name,
-          color: cat.color,
-          isProductive: cat.isProductive,
-          totalDurationMs: 0,
-          activities: []
-        }))
-        .sort((a, b) => {
-          if (a.isProductive !== b.isProductive) {
-            return a.isProductive ? -1 : 1
-          }
-          return 0
-        })
+      processedCategoriesResult = []
     } else {
       processedCategoriesResult = processActivityEvents(filteredEvents, categoriesMap)
     }
 
-    const allCategoryIdsWithActivity = new Set(processedCategoriesResult.map((r) => r.id))
-    const categoriesWithoutActivity = (categories || [])
-      .filter((cat: SharedCategory) => !allCategoryIdsWithActivity.has(cat._id))
-      .map((cat: SharedCategory) => ({
-        id: cat._id,
-        name: cat.name,
-        color: cat.color,
-        isProductive: cat.isProductive,
-        totalDurationMs: 0,
-        activities: []
-      }))
-
-    const finalResult = [...processedCategoriesResult, ...categoriesWithoutActivity].sort(
-      (a, b) => {
-        if (a.isProductive !== b.isProductive) {
-          return a.isProductive ? -1 : 1
-        }
-        return b.totalDurationMs - a.totalDurationMs
+    const finalResult = processedCategoriesResult.sort((a, b) => {
+      if (a.isProductive !== b.isProductive) {
+        return a.isProductive ? -1 : 1
       }
-    )
+      return b.totalDurationMs - a.totalDurationMs
+    })
 
     setProcessedData(finalResult)
   }, [categories, todayProcessedEvents, isLoadingCategories, isLoadingEventsProp])
