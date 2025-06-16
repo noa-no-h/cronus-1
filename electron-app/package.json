@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -46,7 +46,8 @@
       {
         "provider": "github",
         "owner": "moritzWa",
-        "repo": "whatdidyougetdonetoday-ai"
+        "repo": "whatdidyougetdonetoday-ai",
+        "private": true
       }
     ],
     "mac": {
@@ -106,7 +107,7 @@
     "crc": "^4.3.2",
     "debug": "^4.4.1",
     "electron-app": "^1.0.0",
-    "electron-updater": "^6.3.9",
+    "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
     "jsonfile": "^6.1.0",
@@ -130,7 +131,7 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.19",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "electron": "35.1.5",
     "electron-builder": "26.0.15",
     "electron-rebuild": "^3.2.9",
