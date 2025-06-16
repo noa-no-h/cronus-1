@@ -10,6 +10,7 @@ import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
+import { UpdateNotification } from './components/UpdateNotification'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
@@ -243,6 +244,24 @@ export function MainAppContent() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
+      {/* Test button for OTA */}
+      {/* <button
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999,
+          padding: '8px 16px',
+          background: '#007bff',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          cursor: 'pointer'
+        }}
+        onClick={() => window.api.checkForUpdates()}
+      >
+        Check for Updates
+      </button> */}
       <div className="custom-title-bar">{APP_NAME}</div>
       <div className="p-4">
         <DistractionStatusBar
@@ -259,6 +278,7 @@ export function MainAppContent() {
       {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
 
       {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+      <UpdateNotification />
       <Toaster />
       {allCategories && recategorizeTarget && (
         <RecategorizeDialog

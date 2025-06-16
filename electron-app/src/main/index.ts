@@ -11,6 +11,13 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
+import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+// for testing
+// console.log('GH_TOKEN in main process:', process.env.GH_TOKEN)
 
 let mainWindow: BrowserWindow | null
 let floatingWindow: BrowserWindow | null
@@ -38,6 +45,7 @@ function App() {
     setupProtocolHandlers(() => mainWindow)
 
     mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) => handleAppUrl(url, window))
+    initializeAutoUpdater(mainWindow)
     floatingWindow = createFloatingWindow(() => mainWindow)
 
     mainWindow.on('closed', () => {
@@ -57,6 +65,7 @@ function App() {
     }
 
     registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow)
+    registerAutoUpdaterHandlers()
 
     // Start observing active window changes
     nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {
