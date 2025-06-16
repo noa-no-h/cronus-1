@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { toast } from '../hooks/use-toast'
+import { ToastAction } from './ui/toast'
 import { Button } from './ui/button'
 
 export function UpdateNotification() {
@@ -10,9 +11,11 @@ export function UpdateNotification() {
           title: 'Update Available',
           description: `Version ${status.version} is ready to download.`,
           action: (
-            <Button variant="default" size="sm" onClick={() => window.api.downloadUpdate()}>
-              Download
-            </Button>
+            <ToastAction asChild altText="Download">
+              <Button variant="default" size="sm" onClick={() => window.api.downloadUpdate()}>
+                Download
+              </Button>
+            </ToastAction>
           )
         })
       }
@@ -29,9 +32,11 @@ export function UpdateNotification() {
           title: 'Update Ready',
           description: 'Restart the app to install the update.',
           action: (
-            <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
-              Restart
-            </Button>
+            <ToastAction asChild altText="Restart">
+              <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
+                Restart
+              </Button>
+            </ToastAction>
           )
         })
       }
