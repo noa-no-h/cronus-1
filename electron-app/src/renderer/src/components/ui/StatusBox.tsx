@@ -74,7 +74,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
       >
         {isHovered && isEnlarged && (
-          <EditIcon className="w-4 h-4  text-muted-foreground mr-2 cursor-pointer" />
+          <EditIcon size={18} className="text-muted-foreground mr-2 cursor-pointer" />
         )}
         <span className="truncate w-full max-w-[80px]">
           {categoryDetails?.name || label}
