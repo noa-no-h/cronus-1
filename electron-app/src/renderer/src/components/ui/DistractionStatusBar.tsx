@@ -244,11 +244,6 @@ const DistractionStatusBar = ({
     return <DistractionStatusLoadingSkeleton cardBgColor={cardBgColor} />
   }
 
-  console.log(
-    'displayWindowInfo in DistractionCategorizationResult',
-    JSON.stringify(displayWindowInfo, null, 2)
-  )
-
   return (
     <div className="flex items-center gap-2 w-full">
       <div

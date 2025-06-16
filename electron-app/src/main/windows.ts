@@ -7,6 +7,7 @@ const { nativeTheme } = require('electron')
 
 const FLOATING_WINDOW_WIDTH = 400
 const FLOATING_WINDOW_HEIGHT = 55
+const IS_FLOATING_WINDOW_DEV_MODE = false
 
 export function createFloatingWindow(
   getMainWindow: () => BrowserWindow | null
@@ -54,7 +55,7 @@ export function createFloatingWindow(
   }
 
   floatingWindow.webContents.on('did-finish-load', () => {
-    if (is.dev) {
+    if (is.dev && IS_FLOATING_WINDOW_DEV_MODE) {
       floatingWindow?.webContents.openDevTools({ mode: 'detach' })
     }
   })
@@ -91,12 +92,12 @@ export function createMainWindow(
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
 
   const windowWidth = 800
-  const windowHeight = 900
+  const windowHeight = is.dev ? 1200 : 900
 
   const mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    x: Math.round((screenWidth - windowWidth) / 2),
+    x: is.dev ? Math.round(screenWidth - windowWidth) : Math.round((screenWidth - windowWidth) / 2),
     y: Math.round((screenHeight - windowHeight) / 2),
     show: false,
     frame: false,
