@@ -9,7 +9,9 @@ export function UpdateNotification() {
       if (status.status === 'available') {
         toast({
           title: 'Update Available',
-          description: `Version ${status.version} is ready to download.`,
+          description: `Version ${status.version} is ready to download. Click to download now.`,
+          className: 'cursor-pointer',
+          onClick: () => window.api.downloadUpdate(),
           action: (
             <ToastAction asChild altText="Download">
               <Button variant="default" size="sm" onClick={() => window.api.downloadUpdate()}>
@@ -30,7 +32,9 @@ export function UpdateNotification() {
       if (status.status === 'downloaded') {
         toast({
           title: 'Update Ready',
-          description: 'Restart the app to install the update.',
+          description: 'Restart the app to install the update. Click to restart now.',
+          className: 'cursor-pointer',
+          onClick: () => window.api.installUpdate(),
           action: (
             <ToastAction asChild altText="Restart">
               <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>

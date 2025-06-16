@@ -66,6 +66,10 @@ declare global {
       getPermissionsForContentExtraction: () => Promise<boolean>
       requestPermission: (permissionType: PermissionType) => Promise<void>
       forceEnablePermissionRequests: () => Promise<void>
+      checkForUpdates: () => Promise<void>
+      downloadUpdate: () => Promise<void>
+      installUpdate: () => Promise<void>
+      onUpdateStatus: (callback: (status: any) => void) => () => void
     }
   }
 }
