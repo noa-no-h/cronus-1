@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.0.0",
+  "version": "1.2.5",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -42,6 +42,13 @@
       "out/",
       "!build-assets/**/*"
     ],
+    "publish": [
+      {
+        "provider": "s3",
+        "bucket": "cronusnewupdates",
+        "region": "us-east-1"
+      }
+    ],
     "mac": {
       "category": "public.app-category.productivity",
       "hardenedRuntime": true,
@@ -49,7 +56,7 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "forceCodeSigning": true,
-      "notarize": false,
+      "notarize": true,
       "timestamp": "http://timestamp.apple.com/ts01",
       "icon": "build/icon.icns",
       "extendInfo": {
@@ -90,13 +97,19 @@
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@types/color": "^4.2.0",
+    "app-builder-lib": "^26.0.12",
+    "builder-util": "^26.0.11",
+    "builder-util-runtime": "^9.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "color": "^5.0.0",
     "crc": "^4.3.2",
+    "debug": "^4.4.1",
     "electron-app": "^1.0.0",
     "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
+    "fs-extra": "^11.3.0",
+    "jsonfile": "^6.1.0",
     "lucide-react": "^0.511.0",
     "node-addon-api": "^4.3.0",
     "posthog-js": "^1.249.5",
@@ -117,7 +130,7 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.19",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "electron": "35.1.5",
     "electron-builder": "26.0.15",
     "electron-rebuild": "^3.2.9",

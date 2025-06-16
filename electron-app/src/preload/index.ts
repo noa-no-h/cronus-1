@@ -71,7 +71,15 @@ const api = {
   requestPermission: (permissionType: PermissionType): Promise<void> =>
     ipcRenderer.invoke('request-permission', permissionType),
   forceEnablePermissionRequests: (): Promise<void> =>
-    ipcRenderer.invoke('force-enable-permission-requests')
+    ipcRenderer.invoke('force-enable-permission-requests'),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  onUpdateStatus: (callback: (status: any) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, status: any) => callback(status)
+    ipcRenderer.on('update-status', listener)
+    return () => ipcRenderer.removeListener('update-status', listener)
+  }
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
