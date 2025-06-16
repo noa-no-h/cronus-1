@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import icon from '../assets/icon.png';
 import { APP_NAME } from '../lib/constants';
 
 const ElectronCallbackPage: React.FC = () => {
@@ -28,7 +29,8 @@ const ElectronCallbackPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen font-sans bg-gray-100 dark:bg-gray-900">
-      <div className="p-10 bg-white rounded-lg shadow-md dark:bg-gray-800 text-center">
+      <div className="p-10 bg-white rounded-xl flex flex-col items-center justify-center shadow-md dark:bg-gray-800 text-center">
+        <img src={icon} alt="Cronus" className="w-24 h-24 mb-5" />
         <h1 className="text-2xl mb-5 font-bold text-gray-800 dark:text-white">{APP_NAME}</h1>
         <p className="text-gray-600 dark:text-gray-300">{status}</p>
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">

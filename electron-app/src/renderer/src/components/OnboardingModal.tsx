@@ -2,6 +2,7 @@ import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
+import icon from './../assets/icon.png'
 import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
 import GoalInputForm from './ui/GoalInputForm'
 import { Button } from './ui/button'
@@ -46,6 +47,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
+          <img src={icon} alt="Cronus" className="w-24 h-24 mx-auto" />
           <div className="text-7xl mb-6">Cronus</div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.
