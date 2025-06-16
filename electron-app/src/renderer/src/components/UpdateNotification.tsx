@@ -7,19 +7,16 @@ export function UpdateNotification() {
   useEffect(() => {
     const handleUpdateStatus = (status: any) => {
       if (status.status === 'available') {
+        // Show brief notification and auto-start download
         toast({
           title: 'Update Available',
-          description: `Version ${status.version} is ready to download. Click to download now.`,
-          className: 'cursor-pointer',
-          onClick: () => window.api.downloadUpdate(),
-          action: (
-            <ToastAction asChild altText="Download">
-              <Button variant="default" size="sm" onClick={() => window.api.downloadUpdate()}>
-                Download
-              </Button>
-            </ToastAction>
-          )
+          description: `Version ${status.version} found. Downloading automatically...`
         })
+
+        // Automatically start download
+        setTimeout(() => {
+          window.api.downloadUpdate()
+        }, 1000)
       }
 
       if (status.status === 'downloading') {
@@ -30,25 +27,17 @@ export function UpdateNotification() {
       }
 
       if (status.status === 'downloaded') {
+        // Only show restart prompt
         toast({
           title: 'Update Ready',
-          description: 'Restart the app to install the update. Click to restart now.',
-          className: 'cursor-pointer',
-          onClick: () => window.api.installUpdate(),
+          description: 'Update downloaded successfully. Restart to apply the update.',
           action: (
-            <ToastAction asChild altText="Restart">
+            <ToastAction asChild altText="Restart Now">
               <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
-                Restart
+                Restart Now
               </Button>
             </ToastAction>
           )
-        })
-      }
-
-      if (status.status === 'not-available') {
-        toast({
-          title: 'No Update',
-          description: 'You already have the latest version.'
         })
       }
 
