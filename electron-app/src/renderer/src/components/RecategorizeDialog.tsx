@@ -1,6 +1,7 @@
 import React from 'react'
 import { Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
+import { ActivityIcon } from './ui/ActivityIcon'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 
@@ -41,16 +42,27 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Re-categorize Activity</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
-            <div>
-              Change the category for <strong>{activityTarget.nameToDisplay}</strong>
-            </div>
-            <div>
-              Currently categorized as <strong>{activityTarget.currentCategoryName}</strong>
-            </div>
+            <p className="pt-2">
+              Change target:{' '}
+              <ActivityIcon
+                url={activityTarget.originalUrl}
+                size={16}
+                className="inline-block align-middle"
+              />{' '}
+              <strong className="text-primary">{activityTarget.nameToDisplay}</strong>
+            </p>
+            <p>
+              Currently categorized as{' '}
+              <span
+                className="w-4 h-4 rounded-full inline-block align-middle mr-1 mb-[4px]"
+                style={{ backgroundColor: activityTarget.currentCategoryColor }}
+              ></span>
+              <strong className="text-primary">{activityTarget.currentCategoryName}</strong>
+            </p>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div>
           <h4 className="mb-3 text-sm font-medium text-muted-foreground">Move to Category:</h4>
           {availableCategories.length > 0 ? (
             <div className="flex flex-wrap items-start gap-2">
@@ -64,7 +76,7 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
                   style={{
                     borderColor: cat.color
                   }}
-                  className={`hover:bg-[${cat.color}]/10`}
+                  className={`border-2 hover:bg-[${cat.color}]/10`}
                 >
                   {cat.name}
                 </Button>

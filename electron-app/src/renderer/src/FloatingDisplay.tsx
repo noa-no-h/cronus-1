@@ -130,14 +130,7 @@ const FloatingDisplay: React.FC = () => {
         console.warn('[FloatingDisplay] No category details to send for recategorization.')
         return
       }
-      const payload = {
-        ...currentCategoryDetails,
-        activityIdentifier: activityInfo.identifier,
-        itemType: activityInfo.itemType,
-        activityName: activityInfo.name,
-        activityUrl: activityInfo.url
-      }
-      window.floatingApi.requestRecategorizeView(payload)
+      window.floatingApi.requestRecategorizeView(currentCategoryDetails)
     } else {
       console.warn('[FloatingDisplay] floatingApi.requestRecategorizeView is not available.')
     }

@@ -1,5 +1,6 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+import { FloatingWindowApi } from './floatingPreload'
 
 // Use the BaseElectronAPI type from electron-toolkit if available
 type BaseElectronAPI = ElectronAPI
@@ -50,7 +51,7 @@ declare global {
       onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void // Return type for cleanup function
       // Add the new function's type signature here
       getEnvVariables: () => Promise<{ GOOGLE_CLIENT_ID?: string; [key: string]: any }>
-      // Define other methods of 'api' if you have them
+
       readFile: (filePath: string) => Promise<ArrayBuffer>
       deleteFile: (filePath: string) => Promise<void>
       getFloatingWindowVisibility: () => Promise<boolean>
@@ -58,6 +59,10 @@ declare global {
       getAudioDataUrl: () => Promise<string | null>
       openExternalUrl: (url: string) => void
       showNotification: (options: { title: string; body: string }) => void
+
+      onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
+      onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void
+      getFloatingWindowVisibility: () => Promise<boolean>
 
       // Permission-related methods
       getPermissionRequestStatus: () => Promise<boolean>
@@ -67,5 +72,6 @@ declare global {
       requestPermission: (permissionType: PermissionType) => Promise<void>
       forceEnablePermissionRequests: () => Promise<void>
     }
+    floatingApi: FloatingWindowApi
   }
 }

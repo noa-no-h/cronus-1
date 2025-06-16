@@ -20,6 +20,7 @@ export interface ActivityToRecategorize {
   itemType: 'app' | 'website'
   currentCategoryId: string
   currentCategoryName: string
+  currentCategoryColor: string
   originalUrl?: string
   startDateMs?: number
   endDateMs?: number
@@ -114,72 +115,38 @@ export function MainAppContent() {
   useEffect(() => {
     const handleRecategorizeRequestFromIPC = (receivedData: any) => {
       console.log('App.tsx: IPC Handler - Raw received data:', receivedData)
-      console.log('App.tsx: IPC Handler - Typeof raw data:', typeof receivedData)
 
-      let parsedData = receivedData
-      if (typeof receivedData === 'string') {
-        try {
-          parsedData = JSON.parse(receivedData)
-          console.log('App.tsx: IPC Handler - Successfully parsed string data:', parsedData)
-        } catch (e) {
-          console.error('App.tsx: IPC Handler - Failed to parse string data:', e, receivedData)
-          parsedData = null // Set to null if parsing fails
+      // The received data should be the category object.
+      const categoryObject = receivedData as Category
+
+      if (categoryObject && typeof categoryObject === 'object' && categoryObject._id) {
+        if (!activeWindow) {
+          console.warn('Recategorize request received but activeWindow is null.')
+          toast({
+            title: 'Cannot recategorize',
+            description: 'No active window information available.',
+            variant: 'destructive'
+          })
+          return
         }
-      }
 
-      // Use the (potentially parsed) data
-      const ipcData = parsedData as Category & {
-        activityName?: string
-        activityUrl?: string
-        activityIdentifier?: string
-        itemType?: 'app' | 'website'
-      }
-
-      let conditionMet = false
-      if (ipcData && typeof ipcData === 'object' && ipcData !== null) {
-        const hasId = typeof ipcData._id === 'string' && ipcData._id.length > 0
-        const hasName = typeof ipcData.name === 'string' && ipcData.name.length > 0
-        console.log(
-          'App.tsx: IPC Handler - Checking parsedData: _id:',
-          ipcData._id,
-          '(hasId:',
-          hasId,
-          '), name:',
-          ipcData.name,
-          '(hasName:',
-          hasName,
-          ')'
-        )
-        if (hasId && hasName) {
-          conditionMet = true
-        }
-      } else {
-        console.log('App.tsx: IPC Handler - parsedData is not a valid object or is null.')
-      }
-
-      if (conditionMet) {
-        const categoryObject = ipcData
-        const { activityName, activityUrl, activityIdentifier, itemType } = ipcData
-
-        const nameToDisplay = activityName || categoryObject.name
-        const finalIdentifier = activityIdentifier || categoryObject.name
-        const finalItemType = itemType || 'app'
+        const nameToDisplay = activeWindow.title
+        const identifier = activeWindow.url
+        const itemType = activeWindow.url ? 'website' : 'app'
 
         const target: ActivityToRecategorize = {
-          identifier: finalIdentifier,
+          identifier: identifier || '',
           nameToDisplay: nameToDisplay,
-          itemType: finalItemType,
+          itemType: itemType,
           currentCategoryId: categoryObject._id,
           currentCategoryName: categoryObject.name,
-          originalUrl: activityUrl
+          currentCategoryColor: categoryObject.color,
+          originalUrl: activeWindow.url || undefined
         }
         console.log('App.tsx: Opening dialog with target from IPC:', target)
         openRecategorizeDialog(target)
       } else {
-        console.warn(
-          'App.tsx: IPC recategorize request failed condition (robust check). Data after potential parse:',
-          parsedData
-        )
+        console.warn('App.tsx: IPC recategorize request failed. Data received:', receivedData)
       }
     }
 
@@ -190,7 +157,7 @@ export function MainAppContent() {
       console.warn('App.tsx: window.api.onDisplayRecategorizePage not available for IPC.')
       return () => {}
     }
-  }, [token, openRecategorizeDialog])
+  }, [token, openRecategorizeDialog, activeWindow])
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation({
     onSuccess: () => {

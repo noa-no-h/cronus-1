@@ -95,7 +95,7 @@
     "color": "^5.0.0",
     "crc": "^4.3.2",
     "electron-app": "^1.0.0",
-    "electron-updater": "^6.3.9",
+    "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
     "lucide-react": "^0.511.0",
     "node-addon-api": "^4.3.0",
