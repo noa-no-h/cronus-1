@@ -8,9 +8,11 @@ interface AuthContextType {
   token: string | null
   isLoading: boolean
   isAuthenticated: boolean
+  justLoggedIn: boolean
   login: (accessToken: string, refreshToken?: string, userData?: User) => void
   logout: () => void
   loginWithGoogleCode: (code: string, isDesktopFlow: boolean) => Promise<void>
+  resetJustLoggedIn: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,6 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken'))
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [justLoggedIn, setJustLoggedIn] = useState(false)
 
   const {
     data: _fetchedUser,
@@ -82,6 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     if (newRefreshToken) {
       localStorage.setItem('refreshToken', newRefreshToken)
     }
+    setJustLoggedIn(true)
     if (userData) {
       setUser(userData)
       setIsLoading(false)
@@ -119,6 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     setToken(accessToken)
     setUser(user)
     setIsLoading(false)
+    setJustLoggedIn(true)
   }
 
   return (
@@ -128,9 +133,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         token,
         isLoading,
         isAuthenticated: !!user && !!token,
+        justLoggedIn,
         login,
         logout,
-        loginWithGoogleCode
+        loginWithGoogleCode,
+        resetJustLoggedIn: () => setJustLoggedIn(false)
       }}
     >
       {children}

@@ -27,7 +27,7 @@ export interface ActivityToRecategorize {
 }
 
 export function MainAppContent() {
-  const { isAuthenticated, token, user } = useAuth()
+  const { isAuthenticated, token, user, justLoggedIn, resetJustLoggedIn } = useAuth()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -170,12 +170,13 @@ export function MainAppContent() {
     }
   })
 
-  // Show onboarding for all authenticated users (every login)
+  // Show onboarding only after a fresh login
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (justLoggedIn) {
       setShowOnboarding(true)
+      resetJustLoggedIn() // Reset the flag immediately
     }
-  }, [isAuthenticated, user])
+  }, [justLoggedIn, resetJustLoggedIn])
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
