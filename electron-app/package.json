@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -56,7 +56,7 @@
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist",
       "forceCodeSigning": true,
-      "notarize": false,
+      "notarize": true,
       "timestamp": "http://timestamp.apple.com/ts01",
       "icon": "build/icon.icns",
       "extendInfo": {
