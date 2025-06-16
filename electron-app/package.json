@@ -44,10 +44,9 @@
     ],
     "publish": [
       {
-        "provider": "github",
-        "owner": "moritzWa",
-        "repo": "whatdidyougetdonetoday-ai",
-        "private": true
+        "provider": "s3",
+        "bucket": "cronusnewupdates",
+        "region": "us-east-1"
       }
     ],
     "mac": {
