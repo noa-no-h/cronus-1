@@ -33,7 +33,12 @@ export function UpdateNotification() {
           description: 'Update downloaded successfully. Restart to apply the update.',
           action: (
             <ToastAction asChild altText="Restart Now">
-              <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
+              <Button
+                variant="default"
+                size="sm"
+                className="text-white"
+                onClick={() => window.api.installUpdate()}
+              >
                 Restart Now
               </Button>
             </ToastAction>
