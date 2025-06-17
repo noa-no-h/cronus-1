@@ -110,7 +110,7 @@
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
     "jsonfile": "^6.1.0",
-    "lucide-react": "^0.511.0",
+    "lucide-react": "^0.516.0",
     "node-addon-api": "^4.3.0",
     "posthog-js": "^1.249.5",
     "react-router-dom": "^7.6.1",

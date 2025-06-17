@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { useEffect, useRef } from 'react'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
 import { hexToRgba } from '../lib/colors'
@@ -115,14 +116,17 @@ const DayTimeline = ({
               const isCurrentHour = hour === currentHour
               const isSelectedHour = selectedHour === hour
               const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
+              const isLastHour = hour === 23
 
               return (
                 <Tooltip key={hour} delayDuration={200}>
                   <TooltipTrigger asChild>
                     <div
-                      className={`group relative px-2 flex cursor-pointer border-b border-slate-300 dark:border-slate-600 ${
-                        isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : 'hover:bg-muted/50'
-                      }`}
+                      className={clsx(
+                        'group relative px-2 flex cursor-pointer border-slate-300 dark:border-slate-600',
+                        isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : 'hover:bg-muted/50',
+                        isLastHour ? '' : 'border-b'
+                      )}
                       ref={isCurrentHour ? currentHourRef : null}
                       onClick={() => onHourSelect(isSelectedHour ? null : hour)}
                     >

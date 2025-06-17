@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { toast } from '../hooks/use-toast'
+import useActivitySelection from '../hooks/useActivitySelection'
 import { ActivityItem, ProcessedCategory, processActivityEvents } from '../lib/activityProcessing'
 import { SYSTEM_EVENT_NAMES } from '../lib/constants'
 import { trpc } from '../utils/trpc'
@@ -42,6 +43,11 @@ const ActivitiesByCategoryWidget = ({
   const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null)
   const [openDropdownActivityKey, setOpenDropdownActivityKey] = useState<string | null>(null)
   const [showMore, setShowMore] = useState<Record<string, boolean>>({})
+  const { selectedActivities, handleSelectActivity, clearSelection } = useActivitySelection(
+    processedData,
+    showMore
+  )
+  const [isBulkMoving, setIsBulkMoving] = useState(false)
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
@@ -69,6 +75,61 @@ const ActivitiesByCategoryWidget = ({
         console.error('Error updating category:', error)
       }
     })
+
+  const bulkUpdateCategoryMutation =
+    trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation()
+
+  const handleMoveMultipleActivities = async (
+    activitiesToMove: ActivityItem[],
+    targetCategoryId: string
+  ) => {
+    if (!token || startDateMs === null || endDateMs === null || activitiesToMove.length === 0) {
+      return
+    }
+
+    setIsBulkMoving(true)
+
+    const targetCategory = categories?.find((cat) => cat._id === targetCategoryId)
+    const targetCategoryName = targetCategory ? targetCategory.name : 'Unknown Category'
+
+    const movePromises = activitiesToMove.map((activity) =>
+      bulkUpdateCategoryMutation.mutateAsync({
+        token,
+        startDateMs,
+        endDateMs,
+        activityIdentifier: activity.identifier,
+        itemType: activity.itemType,
+        newCategoryId: targetCategoryId
+      })
+    )
+
+    try {
+      await Promise.all(movePromises)
+      refetchEvents()
+      toast({
+        title: 'Activities Moved',
+        description: `${
+          activitiesToMove.length
+        } activities moved to ${targetCategoryName} ${getTimeRangeDescription(
+          selectedHour,
+          selectedDay,
+          'day',
+          startDateMs,
+          endDateMs
+        )}.`
+      })
+      clearSelection()
+    } catch (error) {
+      console.error('Error moving activities:', error)
+      toast({
+        title: 'Error',
+        description: 'Could not move all activities.',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsBulkMoving(false)
+    }
+  }
 
   useEffect(() => {
     if (isLoadingCategories || isLoadingEventsProp) {
@@ -138,7 +199,6 @@ const ActivitiesByCategoryWidget = ({
     return (
       <Card>
         <CardContent className="space-y-4">
-          {/* Show a message if there are no categories or if all categories have no time and no events */}
           {(!categories || categories.length === 0) &&
             (!todayProcessedEvents || todayProcessedEvents.length === 0) && (
               <p>No activity data for the selected period, or no categories defined.</p>
@@ -148,11 +208,30 @@ const ActivitiesByCategoryWidget = ({
               category.totalDurationMs === 0 &&
               (!todayProcessedEvents || todayProcessedEvents.length === 0)
             )
-              return null // Don't render categories with no time if there are no events at all
+              return null
+
+            const isAnyActivitySelected = category.activities.some((act) =>
+              selectedActivities.has(`${act.identifier}-${act.name}`)
+            )
+            const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
+            const selectedActivitiesInThisCategory = category.activities.filter((act) =>
+              selectedActivities.has(`${act.identifier}-${act.name}`)
+            )
+            const handleMoveSelected = (targetCategoryId: string) => {
+              handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
+            }
 
             return (
               <div key={category.id}>
-                <CategorySectionHeader category={category} variant="empty" />
+                <CategorySectionHeader
+                  category={category}
+                  variant="empty"
+                  isAnyActivitySelected={isAnyActivitySelected}
+                  otherCategories={otherCategories}
+                  isMovingActivity={isBulkMoving}
+                  handleMoveSelected={handleMoveSelected}
+                  handleClearSelection={clearSelection}
+                />
                 <ActivityList
                   activities={category.activities}
                   currentCategory={category}
@@ -174,6 +253,8 @@ const ActivitiesByCategoryWidget = ({
                   viewMode="day"
                   startDateMs={startDateMs}
                   endDateMs={endDateMs}
+                  selectedActivities={selectedActivities}
+                  onSelectActivity={handleSelectActivity}
                 />
               </div>
             )
@@ -197,12 +278,30 @@ const ActivitiesByCategoryWidget = ({
             category.totalDurationMs === 0 &&
             (!todayProcessedEvents || todayProcessedEvents.length === 0)
           ) {
-            return null // If no events at all for the day, and category is empty, skip it.
+            return null
+          }
+
+          const isAnyActivitySelected = category.activities.some((act) =>
+            selectedActivities.has(`${act.identifier}-${act.name}`)
+          )
+          const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
+          const selectedActivitiesInThisCategory = category.activities.filter((act) =>
+            selectedActivities.has(`${act.identifier}-${act.name}`)
+          )
+          const handleMoveSelected = (targetCategoryId: string) => {
+            handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
           }
 
           return (
             <div key={category.id}>
-              <CategorySectionHeader category={category} />
+              <CategorySectionHeader
+                category={category}
+                isAnyActivitySelected={isAnyActivitySelected}
+                otherCategories={otherCategories}
+                isMovingActivity={isBulkMoving}
+                handleMoveSelected={handleMoveSelected}
+                handleClearSelection={clearSelection}
+              />
               <ActivityList
                 activities={category.activities}
                 currentCategory={category}
@@ -224,6 +323,8 @@ const ActivitiesByCategoryWidget = ({
                 viewMode="day"
                 startDateMs={startDateMs}
                 endDateMs={endDateMs}
+                selectedActivities={selectedActivities}
+                onSelectActivity={handleSelectActivity}
               />
             </div>
           )

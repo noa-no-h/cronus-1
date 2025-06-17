@@ -1,18 +1,9 @@
 import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Category as SharedCategory } from 'shared'
-import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
-import { getTimeRangeDescription } from '../lib/activityMoving'
 import { ActivityItem, ProcessedCategory } from '../lib/activityProcessing'
-import { ActivityIcon } from './ActivityIcon'
+import { ActivityListItem } from './ActivityListItem'
 import { Button } from './ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from './ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 interface ActivityListProps {
   activities: ActivityItem[]
@@ -33,6 +24,8 @@ interface ActivityListProps {
   viewMode: 'day' | 'week'
   startDateMs: number | null
   endDateMs: number | null
+  selectedActivities: Set<string>
+  onSelectActivity: (activityKey: string, event: React.MouseEvent) => void
 }
 
 export const ActivityList = ({
@@ -53,7 +46,9 @@ export const ActivityList = ({
   selectedDay,
   viewMode,
   startDateMs,
-  endDateMs
+  endDateMs,
+  selectedActivities,
+  onSelectActivity
 }: ActivityListProps) => {
   const oneMinuteMs = 60 * 1000
   const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
@@ -73,150 +68,43 @@ export const ActivityList = ({
       return true
     })
 
-    return validItems.map((activity) => {
+    return validItems.map((activity, index) => {
       const activityKey = `${activity.identifier}-${activity.name}`
-      const otherCategories =
-        currentCategory.id === 'uncategorized'
-          ? allUserCategories || []
-          : allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
-      const showMoveUI =
-        (hoveredActivityKey === activityKey || openDropdownActivityKey === activityKey) &&
-        otherCategories.length > 0
+      const isSelected = selectedActivities.has(activityKey)
+
+      const prevItem = validItems[index - 1]
+      const nextItem = validItems[index + 1]
+
+      const prevActivityKey = prevItem ? `${prevItem.identifier}-${prevItem.name}` : null
+      const nextActivityKey = nextItem ? `${nextItem.identifier}-${nextItem.name}` : null
+
+      const isPrevSelected = prevActivityKey ? selectedActivities.has(prevActivityKey) : false
+      const isNextSelected = nextActivityKey ? selectedActivities.has(nextActivityKey) : false
 
       return (
-        <div
+        <ActivityListItem
           key={activityKey}
-          className="flex items-center justify-between py-0.5 group w-full hover:bg-muted rounded-md px-2"
-          onMouseEnter={() => setHoveredActivityKey(activityKey)}
-          onMouseLeave={() => setHoveredActivityKey(null)}
-        >
-          <div className="flex items-center flex-1 min-w-0">
-            <ActivityIcon
-              itemType={
-                activity.itemType === 'website'
-                  ? 'website'
-                  : activity.itemType === 'app'
-                    ? 'app'
-                    : 'other'
-              }
-              url={activity.originalUrl}
-              appName={activity.identifier}
-              size={16}
-              className="mr-2"
-              color={currentCategory.color}
-              onFaviconError={() => handleFaviconError(activity.identifier)}
-              showFallback={faviconErrors.has(activity.identifier)}
-              fallbackText={activity.identifier.charAt(0).toUpperCase()}
-            />
-            <span
-              className="text-sm text-muted-foreground cursor-pointer block truncate"
-              title={activity.name}
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>{activity.name}</span>
-                  </TooltipTrigger>
-                  <TooltipContent className="overflow-x-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
-                    {activity.name}
-                    <br />
-                    <ul>
-                      <li>
-                        <strong>Name:</strong> {activity.name}
-                      </li>
-                      <li>
-                        <strong>Identifier:</strong> {activity.identifier}
-                      </li>
-                      {activity.originalUrl && (
-                        <li className="whitespace-normal break-all">
-                          <strong>URL:</strong> {activity.originalUrl}
-                        </li>
-                      )}
-                      <li>
-                        <strong>Type:</strong> {activity.itemType}
-                      </li>
-                      <li>
-                        <strong>Duration:</strong> {formatDuration(activity.durationMs)}
-                      </li>
-                    </ul>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </span>
-          </div>
-          <div className="flex items-center flex-shrink-0 ml-2">
-            {showMoveUI && (
-              <>
-                {otherCategories.length === 1 ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-5 px-2 py-1 text-xs"
-                    onClick={() => handleMoveActivity(activity, otherCategories[0]._id)}
-                    disabled={isMovingActivity}
-                  >
-                    {isMovingActivity
-                      ? 'Moving...'
-                      : `Move: ${otherCategories[0].name.substring(0, 10)}${
-                          otherCategories[0].name.length > 10 ? '...' : ''
-                        }`}
-                  </Button>
-                ) : (
-                  <DropdownMenu
-                    open={openDropdownActivityKey === activityKey}
-                    onOpenChange={(isOpen) => {
-                      setOpenDropdownActivityKey(isOpen ? activityKey : null)
-                      // If closing, also clear hover to prevent immediate re-show if mouse is still over row
-                      if (!isOpen) {
-                        setHoveredActivityKey(null)
-                      }
-                    }}
-                  >
-                    <TooltipProvider>
-                      <Tooltip delayDuration={100}>
-                        <TooltipTrigger asChild>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs">
-                              Move to...
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Move this activity to another category{' '}
-                          {getTimeRangeDescription(
-                            selectedHour,
-                            selectedDay,
-                            viewMode,
-                            startDateMs,
-                            endDateMs
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-                      {otherCategories.map((targetCat) => (
-                        <DropdownMenuItem
-                          key={targetCat._id}
-                          onClick={() => {
-                            handleMoveActivity(activity, targetCat._id)
-                          }}
-                          disabled={isMovingActivity}
-                        >
-                          {targetCat.name}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </>
-            )}
-            {!showMoveUI && (
-              <span className="text-sm text-muted-foreground">
-                {formatDuration(activity.durationMs)}
-              </span>
-            )}
-          </div>
-        </div>
+          activity={activity}
+          isSelected={isSelected}
+          isPrevSelected={isPrevSelected}
+          isNextSelected={isNextSelected}
+          currentCategory={currentCategory}
+          allUserCategories={allUserCategories}
+          handleMoveActivity={handleMoveActivity}
+          isMovingActivity={isMovingActivity}
+          faviconErrors={faviconErrors}
+          handleFaviconError={handleFaviconError}
+          hoveredActivityKey={hoveredActivityKey}
+          setHoveredActivityKey={setHoveredActivityKey}
+          openDropdownActivityKey={openDropdownActivityKey}
+          setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+          onSelectActivity={onSelectActivity}
+          selectedHour={selectedHour}
+          selectedDay={selectedDay}
+          viewMode={viewMode}
+          startDateMs={startDateMs}
+          endDateMs={endDateMs}
+        />
       )
     })
   }
