@@ -3,6 +3,7 @@ import { APP_NAME, APP_USP } from '@renderer/App'
 import { cn } from '@renderer/lib/utils'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import GoogleLogo from '../assets/icons/google.png'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
@@ -67,8 +68,6 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     window.api.openExternalUrl(authUrl.toString())
   }, [googleClientId, clientUrl])
 
-  // --- NEW UNIFIED DEV FLOW ---
-  // 1. Define what to do on success (get code, call context)
   const handleGoogleCodeSuccess = useCallback(
     async (codeResponse: Omit<CodeResponse, 'error' | 'error_description' | 'error_uri'>) => {
       // console.log('DEV LOGIN (CODE): Got code from Google popup:', codeResponse.code)
@@ -83,7 +82,6 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     [loginWithGoogleCode, onLoginSuccess]
   )
 
-  // 2. Initialize the login hook
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleCodeSuccess,
     onError: (error) => console.error('DEV LOGIN (CODE): useGoogleLogin hook onError:', error),
@@ -93,13 +91,13 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
 
   const renderLoginButton = () => {
     if (isDev) {
-      // 3. Render a simple button that triggers the hook
       return (
         <button
           onClick={() => googleLogin()}
           disabled={!googleClientId}
-          className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
+          <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
           Sign in with Google
         </button>
       )
@@ -109,8 +107,9 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       <button
         onClick={handleProdLoginClick}
         disabled={!googleClientId || !clientUrl}
-        className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
       >
+        <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
         Sign in with Google
       </button>
     )
