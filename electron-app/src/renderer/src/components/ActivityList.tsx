@@ -76,7 +76,9 @@ export const ActivityList = ({
     return validItems.map((activity) => {
       const activityKey = `${activity.identifier}-${activity.name}`
       const otherCategories =
-        allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
+        currentCategory.id === 'uncategorized'
+          ? allUserCategories || []
+          : allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
       const showMoveUI =
         (hoveredActivityKey === activityKey || openDropdownActivityKey === activityKey) &&
         otherCategories.length > 0

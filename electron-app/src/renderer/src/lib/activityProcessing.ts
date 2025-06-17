@@ -64,9 +64,18 @@ export const processActivityEvents = (
   processedBlocks: ProcessedEventBlock[],
   categoriesMap: Map<string, SharedCategory>
 ): ProcessedCategory[] => {
-  // This accumulator will hold activities grouped by their category ID.
-  // For each category, it stores the category's details and a map of its activities.
-  // The inner 'activitiesMap' maps an activity's display name to its full ActivityItem details (duration, type, etc.).
+  const UNCATEGORIZED_ID = 'uncategorized'
+  const uncategorizedCategory: SharedCategory = {
+    _id: UNCATEGORIZED_ID,
+    name: 'Uncategorized',
+    color: '#808080', // Gray color
+    isProductive: false,
+    userId: '', // Assuming userId is not strictly needed for display
+    isDefault: false,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+
   const categoryActivityAccumulator: Record<
     string, // categoryId
     { categoryDetails: SharedCategory; activitiesMap: Map<string, ActivityItem> }
@@ -74,13 +83,18 @@ export const processActivityEvents = (
 
   // Iterate through processed blocks
   for (const block of processedBlocks) {
-    const categoryId = block.categoryId
-    if (!categoryId) continue
+    let effectiveCategoryId: string
+    let categoryDetails: SharedCategory | undefined
 
-    const categoryDetails = categoriesMap.get(categoryId)
-    if (!categoryDetails) {
-      // console.warn(`Category details not found for categoryId: ${categoryId}. Skipping event.`);
-      continue
+    if (block.categoryId && categoriesMap.has(block.categoryId)) {
+      // This is a known, existing category.
+      effectiveCategoryId = block.categoryId
+      categoryDetails = categoriesMap.get(block.categoryId)!
+    } else {
+      // This is either an event with no categoryID, or a deleted categoryID.
+      // In both cases, it belongs to "Uncategorized".
+      effectiveCategoryId = UNCATEGORIZED_ID
+      categoryDetails = uncategorizedCategory
     }
 
     // Duration is already calculated in ProcessedEventBlock
@@ -95,15 +109,15 @@ export const processActivityEvents = (
     )
 
     // Ensure an entry for the category exists in the accumulator.
-    if (!categoryActivityAccumulator[categoryId]) {
-      categoryActivityAccumulator[categoryId] = {
+    if (!categoryActivityAccumulator[effectiveCategoryId]) {
+      categoryActivityAccumulator[effectiveCategoryId] = {
         categoryDetails,
         activitiesMap: new Map<string, ActivityItem>() // Initialize map for this category's activities
       }
     }
 
     // Aggregate duration and details for the specific activity within its category.
-    const { activitiesMap } = categoryActivityAccumulator[categoryId]
+    const { activitiesMap } = categoryActivityAccumulator[effectiveCategoryId]
     const existingActivity = activitiesMap.get(activityName)
 
     activitiesMap.set(activityName, {
@@ -133,5 +147,24 @@ export const processActivityEvents = (
       activities: activityItems.sort((a, b) => b.durationMs - a.durationMs)
     }
   })
-  return result // This is the array of categories with their aggregated activity times.
+
+  // Add any categories that had no activity so they still appear in the list.
+  categoriesMap.forEach((category) => {
+    if (!result.some((r) => r.id === category._id)) {
+      // Also, do not add a category named "Uncategorized" here, as it's handled separately.
+      if (category.name === 'Uncategorized') {
+        return
+      }
+      result.push({
+        id: category._id,
+        name: category.name,
+        color: category.color,
+        isProductive: category.isProductive,
+        totalDurationMs: 0,
+        activities: []
+      })
+    }
+  })
+
+  return result
 }
