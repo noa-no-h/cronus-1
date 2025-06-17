@@ -127,7 +127,7 @@ export function createMainWindow(
   }
 
   if (is.dev) {
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools({ mode: 'bottom' })
   }
 
   mainWindow.webContents.on('did-finish-load', () => {
