@@ -102,3 +102,33 @@ If you just need a local installer use `--publish never` instead; nothing will b
 | `AccessControlListNotSupported`    | Enable ACLs on the bucket _or_ add `"acl": null` to the `publish` block in `package.json`.  |
 | No toast after "Check for updates" | Ensure the installed build has a lower version than the one referenced in `latest-mac.yml`. |
 | Still nothing happens              | Open DevTools → Console, look for `update-status` events to see errors or states.           |
+
+### 4 – Common build issues
+
+**Missing module errors during runtime:**
+If you get "Cannot find module" errors (like `debug`, `electron-updater`, etc.), copy the required dependencies from the workspace root:
+
+```bash
+cd electron-app
+cp -r ../node_modules/electron-updater node_modules/
+cp -r ../node_modules/fs-extra node_modules/
+cp -r ../node_modules/jsonfile node_modules/
+cp -r ../node_modules/debug node_modules/
+```
+
+This happens because electron-builder doesn't always properly resolve workspace dependencies.
+
+**Complete build sequence:**
+
+```bash
+cd electron-app
+# 1. Copy dependencies if needed (see above)
+# 2. Build source code
+bun run build
+# 3. Package and publish
+npx electron-builder --mac --arm64 --publish always
+```
+
+```
+
+```
