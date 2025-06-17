@@ -4,7 +4,8 @@
 
 typedef NS_ENUM(NSInteger, PermissionType) {
     PermissionTypeAccessibility,
-    PermissionTypeAppleEvents
+    PermissionTypeAppleEvents,
+    PermissionTypeScreenRecording
 };
 
 typedef NS_ENUM(NSInteger, PermissionStatus) {

@@ -6,6 +6,7 @@
 #import "iconUtils.h"
 #import "appFilter.h"
 #import "titleExtractor.h"
+#import "ScreenshotManager.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #include <stdarg.h>
@@ -63,6 +64,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     BOOL isCurrentlyTracking;           
     ChromeTabTracking *chromeTabTracking;
     SleepAndLockObserver *sleepAndLockObserver;
+    ScreenshotManager *screenshotManager;
 }
 
 - (id)init {
@@ -72,6 +74,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     sleepAndLockObserver = [[SleepAndLockObserver alloc] initWithWindowObserver:self];
     chromeTabTracking = [[ChromeTabTracking alloc] init];
     chromeTabTracking.delegate = self;
+    
+    screenshotManager = [[ScreenshotManager alloc] init];
+    screenshotManager.delegate = self;
+    [screenshotManager startPeriodicScreenshotCapture];
     
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
@@ -92,6 +98,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     chromeTabTracking = nil;
     [sleepAndLockObserver release];
     sleepAndLockObserver = nil;
+    [screenshotManager release];
+    screenshotManager = nil;
 
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
@@ -351,6 +359,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 - (void)cleanUp {
     [self stopPeriodicBackupTimer];    
     [chromeTabTracking stopChromeTabTimer];
+    [screenshotManager stopPeriodicScreenshotCapture];
     [sleepAndLockObserver stopObserving];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
@@ -364,6 +373,24 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
           newTabInfo[@"title"],
           newTabInfo[@"url"]);
     [self sendWindowInfoToJS:newTabInfo withReason:@"chrome_tab_switch"];
+}
+
+#pragma mark - ScreenshotManagerDelegate
+
+- (NSDictionary *)getActiveWindowForScreenshotManager:(ScreenshotManager *)manager {
+    return [self getActiveWindow];
+}
+
+- (void)screenshotManager:(ScreenshotManager *)manager didCaptureScreenshot:(NSString *)filePath forWindowInfo:(NSDictionary *)windowInfo {
+    MyLog(@"[Screenshot] Captured screenshot for %@ at path %@", windowInfo[@"ownerName"], filePath);
+
+    NSMutableDictionary *mutableWindowInfo = [windowInfo mutableCopy];
+    mutableWindowInfo[@"localScreenshotPath"] = filePath;
+    mutableWindowInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
+
+    [self sendWindowInfoToJS:mutableWindowInfo withReason:@"screenshot"];
+
+    [mutableWindowInfo release];
 }
 
 @end

@@ -18,6 +18,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingPermission, setIsRequestingPermission] = useState(false)
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false)
   const [permissionStatus, setPermissionStatus] = useState<number | null>(null)
+  const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
+  const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
+  const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
   const [isUsingSafari, setIsUsingSafari] = useState(false)
   const { token } = useAuth()
 
@@ -29,8 +32,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       // Poll permission status every 2 seconds
       const interval = setInterval(checkPermissionStatus, 2000)
       return () => clearInterval(interval)
+    } else if (currentStep === 3) {
+      // Screen recording step
+      checkScreenRecordingStatus()
+      // Poll screen recording status every 2 seconds
+      const interval = setInterval(checkScreenRecordingStatus, 2000)
+      return () => clearInterval(interval)
     }
-    return () => {} // Return empty cleanup function when not on accessibility step
+    return () => {} // Return empty cleanup function when not on permission steps
   }, [currentStep])
 
   const checkPermissionStatus = async () => {
@@ -39,6 +48,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       setPermissionStatus(status)
     } catch (error) {
       console.error('Failed to check permission status:', error)
+    }
+  }
+
+  const checkScreenRecordingStatus = async () => {
+    try {
+      const status = await window.api.getPermissionStatus(2) // 2 = PermissionType.ScreenRecording
+      setScreenRecordingStatus(status)
+    } catch (error) {
+      console.error('Failed to check screen recording status:', error)
     }
   }
 
@@ -102,6 +120,59 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
           )}
           {hasRequestedPermission && permissionStatus === 1 && (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                <strong>Permission granted! You can now continue.</strong>
+              </p>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
+      title: 'Enable Screen Recording Permission',
+      content: (
+        <div className="text-center space-y-6">
+          <div className="flex justify-center mb-4">
+            <div className="bg-purple-100 dark:bg-purple-900 p-4 rounded-full">
+              <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+            We need screen recording access to understand what you're doing to help categorize your
+            activity and provide better insights.
+          </p>
+          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
+            <p className="text-sm text-muted-foreground">
+              <strong>What this enables:</strong>
+              <br />• Visual context for better activity categorization
+              <br />• Enhanced productivity insights
+              <br />• Smarter automatic categorization
+            </p>
+          </div>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mt-4 border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Privacy:</strong> Screenshots are processed locally and only sent to our
+              servers with your explicit consent for analysis.
+            </p>
+          </div>
+          {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mt-4 border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Next steps:</strong>
+                <br />
+                1. Go to System Preferences → Security & Privacy → Privacy
+                <br />
+                2. Click "Screen & System Audio Recording" on the left
+                <br />
+                3. Check the box next to "Cronus" to enable access
+                <br />
+                4. Come back here and click "Next" when done
+              </p>
+            </div>
+          )}
+          {hasRequestedScreenRecording && screenRecordingStatus === 1 && (
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
               <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -236,11 +307,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // Reset permission-related states when going back from accessibility step
+      // Reset permission-related states when going back from permission steps
       if (currentStep === 2) {
         setHasRequestedPermission(false)
         setPermissionStatus(null)
         setIsRequestingPermission(false)
+      } else if (currentStep === 3) {
+        setHasRequestedScreenRecording(false)
+        setScreenRecordingStatus(null)
+        setIsRequestingScreenRecording(false)
       }
       setCurrentStep(currentStep - 1)
     }
@@ -265,6 +340,25 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }
 
+  const handleRequestScreenRecordingPermission = async () => {
+    setIsRequestingScreenRecording(true)
+    try {
+      // Request screen recording permission
+      await window.api.requestPermission(2) // 2 = PermissionType.ScreenRecording
+      setHasRequestedScreenRecording(true)
+
+      // Check permission status after a short delay
+      setTimeout(() => {
+        checkScreenRecordingStatus()
+        setIsRequestingScreenRecording(false)
+      }, 1000)
+    } catch (error) {
+      console.error('Failed to request screen recording permission:', error)
+      setIsRequestingScreenRecording(false)
+      setHasRequestedScreenRecording(true) // Still mark as requested even if error
+    }
+  }
+
   const handleSkip = () => {
     handleComplete()
   }
@@ -281,6 +375,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const currentStepData = steps[currentStep]
   const isGoalStep = currentStep === 1
   const isAccessibilityStep = currentStep === 2
+  const isScreenRecordingStep = currentStep === 3
   const isLastStep = currentStep === steps.length - 1
 
   return (
@@ -340,6 +435,23 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                     className="min-w-[140px]"
                   >
                     {isRequestingPermission ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Requesting...
+                      </div>
+                    ) : (
+                      'Enable Permission'
+                    )}
+                  </Button>
+                ) : isScreenRecordingStep && !hasRequestedScreenRecording ? (
+                  <Button
+                    onClick={handleRequestScreenRecordingPermission}
+                    disabled={isRequestingScreenRecording}
+                    variant="default"
+                    size="default"
+                    className="min-w-[140px]"
+                  >
+                    {isRequestingScreenRecording ? (
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Requesting...

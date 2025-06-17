@@ -8,7 +8,8 @@ type BaseElectronAPI = ElectronAPI
 // Permission types and status enums (must match the preload)
 export enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
 export enum PermissionStatus {

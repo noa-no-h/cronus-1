@@ -47,18 +47,16 @@
         MyLog(@"📊 Using CGWindowList approach for app: %@", appName);
         
         // Get window information directly from Core Graphics
-        CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+        // Use __bridge_transfer to move ownership to ARC
+        NSArray *windowList = (__bridge_transfer NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
         if (!windowList) {
             MyLog(@"❌ Failed to get window list from CGWindowListCopyWindowInfo");
             return nil;
         }
         
-        CFIndex windowCount = CFArrayGetCount(windowList);
-        MyLog(@"📋 Found %ld windows to examine", windowCount);
+        MyLog(@"📋 Found %ld windows to examine", [windowList count]);
         
-        for (CFIndex i = 0; i < windowCount; i++) {
-            NSDictionary *windowInfo = (__bridge NSDictionary *)CFArrayGetValueAtIndex(windowList, i);
-            
+        for (NSDictionary *windowInfo in windowList) {
             NSString *ownerName = windowInfo[(id)kCGWindowOwnerName];
             NSString *windowName = windowInfo[(id)kCGWindowName];
             NSNumber *ownerPID = windowInfo[(id)kCGWindowOwnerPID];
@@ -74,13 +72,11 @@
                 
                 if (windowName && windowName.length > 0) {
                     MyLog(@"🎯 Found window title via CGWindowList: '%@' for app: %@ (PID: %@)", windowName, ownerName, ownerPID);
-                    CFRelease(windowList);
                     return [windowName copy];
                 }
             }
         }
         
-        CFRelease(windowList);
         MyLog(@"⚠️  No window title found via CGWindowList for app: %@", appName);
         
     } @catch (NSException *exception) {

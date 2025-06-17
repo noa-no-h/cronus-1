@@ -105,6 +105,8 @@ export const uploadActiveWindowEvent = async (
             // Add the S3 URL to the event data
             eventData.screenshotS3Url = publicUrl
 
+            console.log('eventData in uploadActiveWindowEvent', eventData)
+
             // Clean up the local file
             await deleteLocalFile(windowDetails.localScreenshotPath)
           } catch (error) {

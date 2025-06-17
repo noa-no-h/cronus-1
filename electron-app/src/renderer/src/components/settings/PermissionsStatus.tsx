@@ -45,6 +45,13 @@ export function PermissionsStatus() {
       description:
         'Allows getting detailed browser tab info. Optional - basic functionality works without this.',
       required: false
+    },
+    {
+      type: 2, // PermissionType.ScreenRecording
+      name: 'Screen Recording',
+      description:
+        'Allows capturing screenshots to help categorize your activity. Enhances productivity insights.',
+      required: false
     }
   ]
 

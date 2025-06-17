@@ -5,7 +5,8 @@ import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 // Permission types and status enums (match the native layer)
 export enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
 export enum PermissionStatus {
