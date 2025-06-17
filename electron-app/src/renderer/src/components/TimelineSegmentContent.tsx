@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { HourlyTimelineSegment } from './TimelineTooltipContent'
-import { ActivityIcon } from './ui/ActivityIcon'
+import { ActivityIcon } from './ActivityIcon'
 
 const TimelineSegmentContent = ({ segment }: { segment: HourlyTimelineSegment }) => {
   const containerRef = useRef<HTMLDivElement>(null)

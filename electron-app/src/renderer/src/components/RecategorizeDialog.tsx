@@ -1,7 +1,7 @@
 import React from 'react'
 import { Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
-import { ActivityIcon } from './ui/ActivityIcon'
+import { ActivityIcon } from './ActivityIcon'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 

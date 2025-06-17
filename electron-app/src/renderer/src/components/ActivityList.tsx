@@ -2,8 +2,9 @@ import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Category as SharedCategory } from 'shared'
 import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
+import { getTimeRangeDescription } from '../lib/activityMoving'
 import { ActivityItem, ProcessedCategory } from '../lib/activityProcessing'
-import { ActivityIcon } from './ui/ActivityIcon'
+import { ActivityIcon } from './ActivityIcon'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -27,6 +28,11 @@ interface ActivityListProps {
   setHoveredActivityKey: (key: string | null) => void
   openDropdownActivityKey: string | null
   setOpenDropdownActivityKey: (key: string | null) => void
+  selectedHour: number | null
+  selectedDay: Date | null
+  viewMode: 'day' | 'week'
+  startDateMs: number | null
+  endDateMs: number | null
 }
 
 export const ActivityList = ({
@@ -42,7 +48,12 @@ export const ActivityList = ({
   hoveredActivityKey,
   setHoveredActivityKey,
   openDropdownActivityKey,
-  setOpenDropdownActivityKey
+  setOpenDropdownActivityKey,
+  selectedHour,
+  selectedDay,
+  viewMode,
+  startDateMs,
+  endDateMs
 }: ActivityListProps) => {
   const oneMinuteMs = 60 * 1000
   const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
@@ -159,11 +170,27 @@ export const ActivityList = ({
                       }
                     }}
                   >
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs">
-                        Move to...
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-5 px-2 py-1 text-xs">
+                              Move to...
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Move this activity to another category{' '}
+                          {getTimeRangeDescription(
+                            selectedHour,
+                            selectedDay,
+                            viewMode,
+                            startDateMs,
+                            endDateMs
+                          )}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
                       {otherCategories.map((targetCat) => (
                         <DropdownMenuItem

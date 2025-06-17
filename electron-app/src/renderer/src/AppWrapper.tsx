@@ -4,7 +4,7 @@ import { HashRouter, Route, Routes } from 'react-router-dom'
 import { MainAppContent } from './App'
 import './assets/custom-title-bar.css'
 import { PageContainer } from './components/layout/PageContainer'
-import { LoginForm } from './components/login-form'
+import { LoginForm } from './components/LoginForm'
 import Spinner from './components/ui/Spinner'
 import { useAuth } from './contexts/AuthContext'
 

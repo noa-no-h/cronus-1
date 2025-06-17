@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
 import icon from './../assets/icon.png'
 import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
-import GoalInputForm from './ui/GoalInputForm'
+import GoalInputForm from './GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 

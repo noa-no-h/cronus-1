@@ -3,22 +3,22 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, EditIcon, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
-import type { ActivityToRecategorize } from '../../App'
-import { useAuth } from '../../contexts/AuthContext'
-import { useDistractionNotification } from '../../hooks/useDistractionNotification'
-import { useDistractionSound } from '../../hooks/useDistractionSound'
-import { useRecategorizationHandler } from '../../hooks/useRecategorizationHandler'
+import type { ActivityToRecategorize } from '../App'
+import { useAuth } from '../contexts/AuthContext'
+import { useDistractionNotification } from '../hooks/useDistractionNotification'
+import { useDistractionSound } from '../hooks/useDistractionSound'
+import { useRecategorizationHandler } from '../hooks/useRecategorizationHandler'
 import {
   getCardBgColor,
   getDisplayWindowInfo,
   getStatusText,
   getStatusTextColor
-} from '../../utils/distractionStatusBarUIHelpers'
-import { calculateProductivityMetrics } from '../../utils/timeMetrics'
-import { trpc } from '../../utils/trpc'
-import { ActivityIcon } from './ActivityIcon'
-import { Button } from './button'
+} from '../utils/distractionStatusBarUIHelpers'
+import { calculateProductivityMetrics } from '../utils/timeMetrics'
+import { trpc } from '../utils/trpc'
 import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
+import { ActivityIcon } from './ActivityIcon'
+import { Button } from './ui/button'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null

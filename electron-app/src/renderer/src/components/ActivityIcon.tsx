@@ -1,6 +1,6 @@
-import { cn } from '../../lib/utils'
-import { getFaviconURL, getGoogleFaviconURL } from '../../utils/favicon'
-import AppIcon from '../AppIcon'
+import { cn } from '../lib/utils'
+import { getFaviconURL, getGoogleFaviconURL } from '../utils/favicon'
+import AppIcon from './AppIcon'
 
 interface ActivityIconProps {
   url?: string | null

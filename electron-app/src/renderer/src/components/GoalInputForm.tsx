@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
-import { trpc } from '../../utils/trpc'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Button } from './button'
-import { Textarea } from './textarea'
+import { useAuth } from '../contexts/AuthContext'
+import { trpc } from '../utils/trpc'
+import { Button } from './ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Textarea } from './ui/textarea'
 
 interface GoalInputFormProps {
   onboardingMode?: boolean

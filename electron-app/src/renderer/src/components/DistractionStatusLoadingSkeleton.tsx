@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Card } from './card'
+import { Card } from './ui/card'
 
 const DistractionStatusLoadingSkeleton = ({ cardBgColor }: { cardBgColor: string }) => {
   return (

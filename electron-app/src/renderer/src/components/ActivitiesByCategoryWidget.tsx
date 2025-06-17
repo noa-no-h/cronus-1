@@ -1,4 +1,5 @@
 import { formatDuration } from '@renderer/lib/activityByCategoryWidgetHelpers'
+import { getTimeRangeDescription } from '@renderer/lib/activityMoving'
 import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
@@ -55,7 +56,13 @@ const ActivitiesByCategoryWidget = ({
 
         toast({
           title: 'Activity Moved',
-          description: `${variables.activityIdentifier} moved to ${targetCategoryName}.`
+          description: `${variables.activityIdentifier} moved to ${targetCategoryName} ${getTimeRangeDescription(
+            selectedHour,
+            selectedDay,
+            'day',
+            startDateMs,
+            endDateMs
+          )}.`
         })
       },
       onError: (error) => {
@@ -201,6 +208,11 @@ const ActivitiesByCategoryWidget = ({
                   setHoveredActivityKey={setHoveredActivityKey}
                   openDropdownActivityKey={openDropdownActivityKey}
                   setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+                  selectedHour={selectedHour}
+                  selectedDay={selectedDay}
+                  viewMode="day"
+                  startDateMs={startDateMs}
+                  endDateMs={endDateMs}
                 />
               </div>
             )
@@ -278,6 +290,11 @@ const ActivitiesByCategoryWidget = ({
                 setHoveredActivityKey={setHoveredActivityKey}
                 openDropdownActivityKey={openDropdownActivityKey}
                 setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+                selectedHour={selectedHour}
+                selectedDay={selectedDay}
+                viewMode="day"
+                startDateMs={startDateMs}
+                endDateMs={endDateMs}
               />
             </div>
           )
