@@ -31,10 +31,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   } = trpc.auth.getUser.useQuery(
     { token: token! },
     {
-      enabled: !!token,
+      enabled: !!token && !user,
       retry: 1,
       onSuccess: (data) => {
-        setUser(data as User)
+        if (token) {
+          login(token, undefined, data as User)
+        }
       },
       onError: (err) => {
         console.error('Failed to fetch user with token during query:', err)
@@ -69,29 +71,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
   }, [refetchUser])
 
-  useEffect(() => {
-    if (!token) {
-      setIsLoading(false)
-    } else if (userIsLoading) {
-      setIsLoading(true)
-    } else {
-      setIsLoading(false)
-    }
-  }, [token, userIsLoading])
-
   const login = (accessToken: string, newRefreshToken?: string, userData?: User) => {
     localStorage.setItem('accessToken', accessToken)
     setToken(accessToken)
     if (newRefreshToken) {
       localStorage.setItem('refreshToken', newRefreshToken)
     }
-    setJustLoggedIn(true)
     if (userData) {
       setUser(userData)
-      setIsLoading(false)
-    } else {
-      refetchUser()
     }
+    setJustLoggedIn(true)
+    setIsLoading(false)
   }
 
   const logout = () => {
@@ -118,12 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       code,
       isDesktopFlow
     )
-    localStorage.setItem('accessToken', accessToken)
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
-    setToken(accessToken)
-    setUser(user)
-    setIsLoading(false)
-    setJustLoggedIn(true)
+    login(accessToken, refreshToken, user)
   }
 
   return (
