@@ -42,15 +42,21 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Re-categorize Activity</DialogTitle>
           <DialogDescription className="flex flex-col gap-2">
-            <p className="pt-2">
+            <div className="pt-2">
               Change target:{' '}
               <ActivityIcon
                 url={activityTarget.originalUrl}
+                appName={activityTarget.identifier}
                 size={16}
                 className="inline-block align-middle"
+                itemType={activityTarget.originalUrl ? 'website' : 'app'}
+                color={activityTarget.currentCategoryColor}
+                onFaviconError={() => {}}
+                showFallback={false}
+                fallbackText={activityTarget.identifier.charAt(0).toUpperCase()}
               />{' '}
               <strong className="text-primary">{activityTarget.nameToDisplay}</strong>
-            </p>
+            </div>
             <p>
               Currently categorized as{' '}
               <span
