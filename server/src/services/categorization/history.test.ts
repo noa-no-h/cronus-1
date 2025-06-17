@@ -7,12 +7,19 @@ import { checkActivityHistory } from './history';
 const mockActiveWindowEventModel = {
   findOne: jest.fn(),
 };
+const mockCategoryModel = {
+  findById: jest.fn(),
+};
 
 // Use mock.module to replace the actual models with our mocks
 mock.module('../../models/activeWindowEvent', () => ({
   ActiveWindowEventModel: mockActiveWindowEventModel,
 }));
+mock.module('../../models/category', () => ({
+  CategoryModel: mockCategoryModel,
+}));
 const { ActiveWindowEventModel } = await import('../../models/activeWindowEvent');
+const { CategoryModel } = await import('../../models/category');
 
 describe('checkActivityHistory', () => {
   const mockUserId = new mongoose.Types.ObjectId().toString();
@@ -49,6 +56,11 @@ describe('checkActivityHistory', () => {
       lean: jest.fn().mockResolvedValue(mockPreviousEvent),
     });
 
+    // Mock the category validation check
+    (CategoryModel.findById as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ _id: mockRecruitingCategoryId, name: 'Recruiting' }),
+    });
+
     // Act
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
@@ -59,6 +71,8 @@ describe('checkActivityHistory', () => {
       userId: mockUserId,
       url: activeWindow.url,
     });
+    // Assert that the category check was performed
+    expect(CategoryModel.findById).toHaveBeenCalledWith(mockRecruitingCategoryId);
   });
 
   test('should return category from history for a Cursor project', async () => {
@@ -84,6 +98,11 @@ describe('checkActivityHistory', () => {
       lean: jest.fn().mockResolvedValue(mockPreviousEvent),
     });
 
+    // Mock the category validation check
+    (CategoryModel.findById as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
+    });
+
     // Act
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
@@ -95,6 +114,8 @@ describe('checkActivityHistory', () => {
       ownerName: 'Cursor',
       title: { $regex: '— spellbound$', $options: 'i' },
     });
+    // Assert that the category check was performed
+    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
   });
 
   test('should return category from history for a VSCode project with complex title', async () => {
@@ -120,6 +141,11 @@ describe('checkActivityHistory', () => {
       lean: jest.fn().mockResolvedValue(mockPreviousEvent),
     });
 
+    // Mock the category validation check
+    (CategoryModel.findById as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
+    });
+
     // Act
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
@@ -131,6 +157,8 @@ describe('checkActivityHistory', () => {
       ownerName: 'Code',
       title: { $regex: '— whatdidyougetdonethisweek-ai$', $options: 'i' },
     });
+    // Assert that the category check was performed
+    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
   });
 
   test('should fallback to ownerName for editor if title has no project', async () => {
@@ -155,6 +183,11 @@ describe('checkActivityHistory', () => {
       lean: jest.fn().mockResolvedValue(mockPreviousEvent),
     });
 
+    // Mock the category validation check
+    (CategoryModel.findById as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
+    });
+
     // Act
     await checkActivityHistory(mockUserId, activeWindow);
 
@@ -163,5 +196,82 @@ describe('checkActivityHistory', () => {
       userId: mockUserId,
       ownerName: 'Cursor',
     });
+    // Assert that the category check was performed
+    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
+  });
+
+  test('should return null if history exists but has no categoryId', async () => {
+    // Arrange
+    const activeWindow: Pick<ActiveWindowDetails, 'ownerName' | 'title' | 'url' | 'type'> = {
+      ownerName: 'Google Chrome',
+      type: 'browser',
+      title: 'An uncategorized page',
+      url: 'https://example.com/new-page',
+    };
+
+    const mockPreviousEvent = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId: mockUserId,
+      url: activeWindow.url,
+      categoryId: null, // The key part of this test
+    };
+
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(mockPreviousEvent),
+    });
+
+    // Act
+    const result = await checkActivityHistory(mockUserId, activeWindow);
+
+    // Assert
+    expect(result).toBeNull();
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
+      userId: mockUserId,
+      url: activeWindow.url,
+    });
+    // Ensure the category check was NOT performed
+    expect(CategoryModel.findById).not.toHaveBeenCalled();
+  });
+
+  test('should return null if history points to a deleted category', async () => {
+    // Arrange
+    const activeWindow: Pick<ActiveWindowDetails, 'ownerName' | 'title' | 'url' | 'type'> = {
+      ownerName: 'Google Chrome',
+      type: 'browser',
+      title: 'A page with a deleted category',
+      url: 'https://example.com/deleted-category-page',
+    };
+
+    const mockPreviousEvent = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId: mockUserId,
+      url: activeWindow.url,
+      categoryId: mockRecruitingCategoryId, // This category will not be found
+    };
+
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(mockPreviousEvent),
+    });
+
+    // Mock the category validation to return null (category not found)
+    (CategoryModel.findById as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    // Act
+    const result = await checkActivityHistory(mockUserId, activeWindow);
+
+    // Assert
+    expect(result).toBeNull();
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
+      userId: mockUserId,
+      url: activeWindow.url,
+    });
+    expect(CategoryModel.findById).toHaveBeenCalledWith(mockRecruitingCategoryId);
   });
 });

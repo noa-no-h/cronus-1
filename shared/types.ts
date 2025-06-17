@@ -46,6 +46,7 @@ export interface Category {
   description?: string;
   color: string; // Hex color code, e.g., "#FF5733"
   isProductive: boolean;
+  isDefault: boolean; // Whether this is a default category
   createdAt: Date;
   updatedAt: Date;
 }

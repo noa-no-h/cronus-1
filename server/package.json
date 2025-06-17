@@ -12,7 +12,9 @@
     "db:delete": "bun run src/scripts/delete.ts",
     "db:seed": "bun run src/scripts/seeder.ts",
     "db:reset": "bun run db:delete && bun run db:seed",
-    "test": "rm -rf ./dist && bun test"
+    "test": "rm -rf ./dist && bun test",
+    "test:reset_categories": "bun test src/services/categorization/reset_categories.test.ts",
+    "test:history": "bun test src/services/categorization/history.test.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,7 +1,10 @@
 import { Category } from './types'; // Ensure Category is imported from shared/types.ts
 
 // Type for comparison, using only the properties relevant for checking against defaults
-export type ComparableCategory = Pick<Category, 'name' | 'description' | 'color' | 'isProductive'>;
+export type ComparableCategory = Pick<
+  Category,
+  'name' | 'description' | 'color' | 'isProductive' | 'isDefault'
+>;
 
 // This function is for backend use or when defaults NEED a userId
 export const defaultCategoriesData = (userId: string) => [
@@ -10,16 +13,18 @@ export const defaultCategoriesData = (userId: string) => [
     name: 'Work',
     description:
       'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
-    color: '#3B82F6', // Blue
+    color: '#22C55E', // Blue
     isProductive: true,
+    isDefault: true,
   },
   {
     userId,
     name: 'Distraction',
     description:
       'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
-    color: '#EF4444', // Red
+    color: '#EC4899', // Red
     isProductive: false,
+    isDefault: true,
   },
 ];
 
@@ -29,14 +34,16 @@ export const defaultComparableCategories: ComparableCategory[] = [
     name: 'Work',
     description:
       'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
-    color: '#3B82F6',
+    color: '#22C55E',
     isProductive: true,
+    isDefault: true,
   },
   {
     name: 'Distraction',
     description:
       'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
-    color: '#EF4444',
+    color: '#EC4899',
     isProductive: false,
+    isDefault: true,
   },
 ];

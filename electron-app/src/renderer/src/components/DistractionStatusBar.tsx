@@ -16,8 +16,8 @@ import {
 } from '../utils/distractionStatusBarUIHelpers'
 import { calculateProductivityMetrics } from '../utils/timeMetrics'
 import { trpc } from '../utils/trpc'
-import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 import { ActivityIcon } from './ActivityIcon'
+import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 import { Button } from './ui/button'
 
 interface DistractionStatusBarProps {
@@ -94,18 +94,21 @@ const DistractionStatusBar = ({
 
   const categoryId = latestEvent?.categoryId
 
-  const { data: categoryDetails, isLoading: isLoadingCategory } =
-    trpc.category.getCategoryById.useQuery(
-      { token: token || '', categoryId: categoryId || '' },
-      {
-        enabled:
-          !!token &&
-          typeof token === 'string' &&
-          token.length > 0 &&
-          !!categoryId &&
-          categoryId !== ''
-      }
-    )
+  const {
+    data: categoryDetails,
+    isLoading: isLoadingCategory,
+    error: categoryError
+  } = trpc.category.getCategoryById.useQuery(
+    { token: token || '', categoryId: categoryId || '' },
+    {
+      enabled:
+        !!token &&
+        typeof token === 'string' &&
+        token.length > 0 &&
+        !!categoryId &&
+        categoryId !== ''
+    }
+  )
 
   const { data: userCategories, isLoading: isLoadingUserCategories } =
     trpc.category.getCategories.useQuery(
@@ -208,7 +211,8 @@ const DistractionStatusBar = ({
         categoryId,
         isLoadingCategory,
         isLoadingUserCategories,
-        categoryDetails
+        categoryDetails,
+        categoryError
       ),
     [
       latestEvent,
@@ -216,7 +220,8 @@ const DistractionStatusBar = ({
       categoryId,
       isLoadingCategory,
       isLoadingUserCategories,
-      categoryDetails
+      categoryDetails,
+      categoryError
     ]
   )
 
@@ -226,8 +231,14 @@ const DistractionStatusBar = ({
     statusText
   )
 
-  const cardBgColor = useMemo(() => getCardBgColor(categoryDetails), [categoryDetails])
-  const statusTextColor = useMemo(() => getStatusTextColor(categoryDetails), [categoryDetails])
+  const cardBgColor = useMemo(
+    () => getCardBgColor(categoryDetails, categoryError),
+    [categoryDetails, categoryError]
+  )
+  const statusTextColor = useMemo(
+    () => getStatusTextColor(categoryDetails, categoryError),
+    [categoryDetails, categoryError]
+  )
 
   const isLoadingPrimary =
     isLoadingLatestEvent ||

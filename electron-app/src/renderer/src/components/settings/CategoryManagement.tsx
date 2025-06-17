@@ -36,13 +36,15 @@ function checkCategoriesAgainstDefaults(
     name: cat.name,
     description: cat.description || '', // Treat undefined/null description as empty string
     color: cat.color.toUpperCase(),
-    isProductive: cat.isProductive
+    isProductive: cat.isProductive,
+    isDefault: cat.isDefault
   }))
 
   const normalizedDefaults: ComparableCategory[] = defaults.map((def) => ({
     ...def,
     description: def.description || '', // Treat undefined/null description as empty string
-    color: def.color.toUpperCase()
+    color: def.color.toUpperCase(),
+    isDefault: def.isDefault
   }))
 
   if (normalizedCurrentCategories.length !== normalizedDefaults.length) {
@@ -59,7 +61,8 @@ function checkCategoriesAgainstDefaults(
     // Compare properties
     if (
       currentCatMatch.description !== defaultCat.description ||
-      currentCatMatch.isProductive !== defaultCat.isProductive
+      currentCatMatch.isProductive !== defaultCat.isProductive ||
+      currentCatMatch.isDefault !== defaultCat.isDefault
     ) {
       return false // Properties don't match
     }
@@ -152,7 +155,7 @@ function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormP
       return
     }
     setError('')
-    onSave({ name, description, color, isProductive })
+    onSave({ name, description, color, isProductive, isDefault: initialData?.isDefault ?? false })
   }
 
   return (

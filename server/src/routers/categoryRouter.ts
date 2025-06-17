@@ -1,8 +1,8 @@
 import { TRPCError } from '@trpc/server';
 import mongoose from 'mongoose';
-import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
+import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
@@ -16,12 +16,13 @@ export const categoryRouter = router({
         description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format (e.g., #FF5733)'),
         isProductive: z.boolean(),
+        isDefault: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-      const { name, description, color, isProductive } = input;
+      const { name, description, color, isProductive, isDefault = false } = input;
 
       const existingCategory = await CategoryModel.findOne({ userId, name });
       if (existingCategory) {
@@ -37,6 +38,7 @@ export const categoryRouter = router({
         description,
         color,
         isProductive,
+        isDefault,
       });
       await category.save();
       return category.toJSON();
@@ -124,11 +126,7 @@ export const categoryRouter = router({
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-
-      await CategoryModel.deleteMany({ userId });
-
-      const createdCategories = await CategoryModel.insertMany(defaultCategoriesData(userId));
-      return createdCategories.map((cat) => cat.toJSON());
+      return await resetCategoriesToDefault(userId);
     }),
 
   getCategoryById: publicProcedure

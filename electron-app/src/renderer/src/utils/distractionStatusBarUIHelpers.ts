@@ -66,7 +66,10 @@ export const getDisplayWindowInfo = (
   }
 }
 
-export const getCardBgColor = (categoryDetails: unknown): string => {
+export const getCardBgColor = (categoryDetails: unknown, error?: unknown): string => {
+  if (error) {
+    return 'bg-gray-100 dark:bg-gray-800'
+  }
   if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
     const fullCategoryDetails = categoryDetails as Category
     if (fullCategoryDetails.isProductive === true) {
@@ -77,10 +80,13 @@ export const getCardBgColor = (categoryDetails: unknown): string => {
     }
   }
   // Default if categoryDetails is null, not found, or still loading, treat as not productive for background
-  return 'bg-red-100 dark:bg-red-900'
+  return 'bg-gray-100 dark:bg-gray-800'
 }
 
-export const getStatusTextColor = (categoryDetails: unknown): string => {
+export const getStatusTextColor = (categoryDetails: unknown, error?: unknown): string => {
+  if (error) {
+    return 'text-gray-700 dark:text-gray-300'
+  }
   if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
     const fullCategoryDetails = categoryDetails as Category
     if (fullCategoryDetails.isProductive === true) {
@@ -101,15 +107,17 @@ export const getStatusText = (
   categoryId: string | null | undefined,
   isLoadingCategory: boolean,
   isLoadingUserCategories: boolean,
-  categoryDetails: unknown
+  categoryDetails: unknown,
+  error?: unknown
 ): string => {
   if (!latestEvent && !activeWindow) return 'Waiting for activity...'
+  if (error) return 'Uncategorized'
   if (!latestEvent && activeWindow) return 'Processing...'
   if (!categoryId) return 'Uncategorized'
   if (isLoadingCategory || isLoadingUserCategories) return 'Loading category...'
 
   if (!categoryDetails || typeof categoryDetails !== 'object' || !('_id' in categoryDetails)) {
-    return categoryDetails === null ? 'Category not found' : 'Category unavailable'
+    return categoryDetails === null ? 'Uncategorized' : 'Category unavailable'
   }
 
   const fullCategoryDetails = categoryDetails as Category

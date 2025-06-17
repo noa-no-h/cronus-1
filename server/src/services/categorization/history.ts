@@ -1,5 +1,6 @@
 import { ActiveWindowDetails } from '../../../../shared/types';
 import { ActiveWindowEventModel } from '../../models/activeWindowEvent';
+import { CategoryModel } from '../../models/category';
 
 const getProjectNameFromTitle = (title: string): string | null => {
   const parts = title.split('—');
@@ -58,7 +59,11 @@ export async function checkActivityHistory(
     if (lastEventWithSameIdentifier && lastEventWithSameIdentifier.categoryId) {
       const categoryId = lastEventWithSameIdentifier.categoryId as string;
 
-      return categoryId;
+      // Validate that the category still exists
+      const categoryExists = await CategoryModel.findById(categoryId).lean();
+      if (categoryExists) {
+        return categoryId;
+      }
     }
   } catch (error) {
     console.error('[CategorizationService] Error during history check:', error);
