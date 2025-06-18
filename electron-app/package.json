@@ -33,7 +33,9 @@
     "native-modules:rebuild:arm": "bun run native-modules:rebuild -- --arch arm64",
     "native-modules:clean": "rimraf src/native-modules/**/bin && rimraf src/native-modules/**/build",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "create-latest-links": "bash create-latest-links.sh",
+    "publish:with-links": "NODE_ENV=production bun run build && npx electron-builder --mac --arm64 --publish always && bun run create-latest-links"
   },
   "build": {
     "appId": "com.cronus.app",

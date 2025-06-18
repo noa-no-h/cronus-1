@@ -95,7 +95,21 @@ set -a && source .env && set +a
 
 If you just need a local installer use `--publish never` instead; nothing will be uploaded.
 
-### 3 – Troubleshooting quick reference
+### 3 – Permanent Download Links
+
+After publishing a new version, create permanent download links for website integration:
+
+```bash
+bun run create-latest-links
+```
+
+This creates permanent URLs that always point to the latest version:
+
+- **Latest DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest.dmg`
+
+The website can use this fixed URL and never needs updating - it automatically serves the newest build.
+
+### 4 – Troubleshooting quick reference
 
 | Symptom                            | Likely fix                                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
