@@ -122,10 +122,12 @@ This happens because electron-builder doesn't always properly resolve workspace 
 
 ```bash
 cd electron-app
-# 1. Copy dependencies if needed (see above)
-# 2. Build source code
-bun run build
-# 3. Package and publish
+# Update version in package.json
+# Set environment variables (if needed)
+set -a && source .env.production && set +a
+# Build source code
+NODE_ENV=production bun run build
+# Package and publish
 npx electron-builder --mac --arm64 --publish always
 ```
 
