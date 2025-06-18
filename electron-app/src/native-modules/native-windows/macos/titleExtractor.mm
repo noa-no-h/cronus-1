@@ -53,41 +53,94 @@
             return nil;
         }
         
+        // Ensure we have a valid array
         CFIndex windowCount = CFArrayGetCount(windowList);
+        if (windowCount <= 0) {
+            MyLog(@"❌ Empty window list returned");
+            CFRelease(windowList);
+            return nil;
+        }
+        
         MyLog(@"📋 Found %ld windows to examine", windowCount);
         
+        NSString *result = nil;
+        
         for (CFIndex i = 0; i < windowCount; i++) {
-            NSDictionary *windowInfo = (__bridge NSDictionary *)CFArrayGetValueAtIndex(windowList, i);
-            
-            NSString *ownerName = windowInfo[(id)kCGWindowOwnerName];
-            NSString *windowName = windowInfo[(id)kCGWindowName];
-            NSNumber *ownerPID = windowInfo[(id)kCGWindowOwnerPID];
-            NSNumber *layer = windowInfo[(id)kCGWindowLayer];
-            
-            // Check if this window belongs to the target app
-            if (ownerName && [ownerName isEqualToString:appName]) {
-                // Skip system-level windows (layer > 0 typically indicates system windows)
-                if (layer && layer.intValue > 0) {
-                    MyLog(@"⏭️  Skipping system window (layer %@) for app: %@", layer, ownerName);
+            @autoreleasepool {
+                // Get the window info and validate it
+                CFDictionaryRef windowInfoRef = (CFDictionaryRef)CFArrayGetValueAtIndex(windowList, i);
+                if (!windowInfoRef) {
+                    MyLog(@"⚠️  Skipping null window at index %ld", i);
                     continue;
                 }
                 
-                if (windowName && windowName.length > 0) {
-                    MyLog(@"🎯 Found window title via CGWindowList: '%@' for app: %@ (PID: %@)", windowName, ownerName, ownerPID);
-                    CFRelease(windowList);
-                    return [windowName copy];
+                // Safely bridge to NSDictionary
+                NSDictionary *windowInfo = (__bridge NSDictionary *)windowInfoRef;
+                if (!windowInfo || ![windowInfo isKindOfClass:[NSDictionary class]]) {
+                    MyLog(@"⚠️  Skipping invalid window info at index %ld", i);
+                    continue;
+                }
+                
+                // Safely extract window properties with nil checks
+                NSString *ownerName = nil;
+                NSString *windowName = nil;
+                NSNumber *ownerPID = nil;
+                NSNumber *layer = nil;
+                
+                @try {
+                    id ownerNameObj = windowInfo[(id)kCGWindowOwnerName];
+                    if (ownerNameObj && [ownerNameObj isKindOfClass:[NSString class]]) {
+                        ownerName = (NSString *)ownerNameObj;
+                    }
+                    
+                    id windowNameObj = windowInfo[(id)kCGWindowName];
+                    if (windowNameObj && [windowNameObj isKindOfClass:[NSString class]]) {
+                        windowName = (NSString *)windowNameObj;
+                    }
+                    
+                    id ownerPIDObj = windowInfo[(id)kCGWindowOwnerPID];
+                    if (ownerPIDObj && [ownerPIDObj isKindOfClass:[NSNumber class]]) {
+                        ownerPID = (NSNumber *)ownerPIDObj;
+                    }
+                    
+                    id layerObj = windowInfo[(id)kCGWindowLayer];
+                    if (layerObj && [layerObj isKindOfClass:[NSNumber class]]) {
+                        layer = (NSNumber *)layerObj;
+                    }
+                } @catch (NSException *exception) {
+                    MyLog(@"⚠️  Exception accessing window properties at index %ld: %@", i, exception.reason);
+                    continue;
+                }
+                
+                // Check if this window belongs to the target app
+                if (ownerName && [ownerName isEqualToString:appName]) {
+                    // Skip system-level windows (layer > 0 typically indicates system windows)
+                    if (layer && layer.intValue > 0) {
+                        MyLog(@"⏭️  Skipping system window (layer %@) for app: %@", layer, ownerName);
+                        continue;
+                    }
+                    
+                    if (windowName && windowName.length > 0) {
+                        MyLog(@"🎯 Found window title via CGWindowList: '%@' for app: %@ (PID: %@)", windowName, ownerName, ownerPID);
+                        result = [windowName copy];
+                        break; // Exit loop early when we find what we're looking for
+                    }
                 }
             }
         }
         
         CFRelease(windowList);
-        MyLog(@"⚠️  No window title found via CGWindowList for app: %@", appName);
+        
+        if (!result) {
+            MyLog(@"⚠️  No window title found via CGWindowList for app: %@", appName);
+        }
+        
+        return result;
         
     } @catch (NSException *exception) {
         MyLog(@"❌ Exception in CGWindowList approach: %@", exception.reason);
+        return nil;
     }
-    
-    return nil;
 }
 
 + (NSString*)extractTitleUsingAppleScript:(NSString*)appName {

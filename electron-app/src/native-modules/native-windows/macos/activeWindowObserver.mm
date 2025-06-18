@@ -227,116 +227,170 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSDictionary*)getActiveWindow {
-    NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
-    NSDictionary *frontmostWindow = nil;
-
-    for (NSDictionary *window in windows) {
-        NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
-        if ([windowLayer intValue] == 0) { 
-            // Add a check to ignore tiling manager windows
-            NSString *windowOwnerName = [window objectForKey:(id)kCGWindowOwnerName];
-            NSString *windowTitle = [window objectForKey:(id)kCGWindowName];
-            if ([windowOwnerName isEqualToString:@"WindowManager"] && [windowTitle isEqualToString:@"Tiling Handle Window"]) {
-                MyLog(@"[Filter] Ignoring tiling manager helper window.");
-                continue; // This is the helper window, skip it and check the next one.
-            }
-
-            frontmostWindow = window;
-            break;
-        }
-    }
-
-    if (frontmostWindow) {
-        NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
-        NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
-        NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
-        CGWindowID windowId = [windowNumber unsignedIntValue];
-
-        // filter out specific apps 
-        if (shouldExcludeApp(windowOwnerName, windowTitle)) {
+    @try {
+        CFArrayRef windowListRef = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+        if (!windowListRef) {
+            MyLog(@"❌ Failed to get window list from CGWindowListCopyWindowInfo");
             return nil;
         }
         
-        NSString *iconPath = getAppIconPath(windowOwnerName);
+        NSArray *windows = (__bridge_transfer NSArray *)windowListRef;
+        if (!windows || windows.count == 0) {
+            MyLog(@"❌ Empty or invalid window list");
+            return nil;
+        }
         
-        // Create base window info
-        NSMutableDictionary *windowInfo = [@{
-            @"id": windowNumber,
-            @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown",
-            @"title": windowTitle ? windowTitle : @"",
-            @"type": @"window",
-            @"icon": iconPath ? iconPath : @"",
-            @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-        } mutableCopy];
+        NSDictionary *frontmostWindow = nil;
 
-        // If we don't have a window title, try to get it using our title extractor
-        if (!windowTitle || windowTitle.length == 0) {
-            NSString *extractedTitle = [TitleExtractor extractWindowTitleForApp:windowOwnerName];
-            if (extractedTitle && extractedTitle.length > 0) {
-                windowInfo[@"title"] = extractedTitle;
-                MyLog(@"   ✅ Title extracted successfully: '%@'", extractedTitle);
-            } else {
-                MyLog(@"   ⚠️  Could not extract title for app: %@", windowOwnerName);
+        for (NSDictionary *window in windows) {
+            if (!window || ![window isKindOfClass:[NSDictionary class]]) {
+                MyLog(@"⚠️  Skipping invalid window object");
+                continue;
+            }
+            
+            NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
+            if (windowLayer && [windowLayer intValue] == 0) { 
+                // Add a check to ignore tiling manager windows
+                NSString *windowOwnerName = [window objectForKey:(id)kCGWindowOwnerName];
+                NSString *windowTitle = [window objectForKey:(id)kCGWindowName];
+                
+                // Validate owner name
+                if (!windowOwnerName || ![windowOwnerName isKindOfClass:[NSString class]]) {
+                    MyLog(@"⚠️  Skipping window with invalid owner name");
+                    continue;
+                }
+                
+                if ([windowOwnerName isEqualToString:@"WindowManager"] && [windowTitle isEqualToString:@"Tiling Handle Window"]) {
+                    MyLog(@"[Filter] Ignoring tiling manager helper window.");
+                    continue; // This is the helper window, skip it and check the next one.
+                }
+
+                frontmostWindow = window;
+                break;
             }
         }
 
-        MyLog(@"🔍 ACTIVE WINDOW CHANGED:");
-        MyLog(@"   Owner: %@", windowOwnerName);
-        MyLog(@"   Title: %@", windowTitle);
-        MyLog(@"   Type: %@", windowInfo[@"type"]);
-        
-        // --- Start Chrome Tab Timer Management within getActiveWindow ---
-        if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
-            if (!chromeTabTracking.isChromeActive) { // Chrome just became the active app's window owner
-                MyLog(@"[Chrome Tab] Chrome became active window. Initializing tab tracking.");
-                chromeTabTracking.isChromeActive = YES;
-                [chromeTabTracking startChromeTabTimer];
+        if (frontmostWindow) {
+            NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
+            NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
+            NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
+            
+            // Validate required properties
+            if (!windowOwnerName || ![windowOwnerName isKindOfClass:[NSString class]]) {
+                MyLog(@"⚠️  Frontmost window has invalid owner name");
+                return nil;
             }
-        } else { // Active window is not Chrome
-            if (chromeTabTracking.isChromeActive) { // Chrome was active, but no longer is
-                MyLog(@"[Chrome Tab] Chrome no longer active window.");
-                chromeTabTracking.isChromeActive = NO;
-                [chromeTabTracking stopChromeTabTimer];
-                chromeTabTracking.lastKnownChromeURL = nil;
-                chromeTabTracking.lastKnownChromeTitle = nil;
-            }
-        }
-        // --- End Chrome Tab Timer Management ---
-        
-        // Check for browser windows
-        if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
-            NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
-            if (chromeInfo) {
-                [windowInfo addEntriesFromDictionary:chromeInfo];
+            
+            CGWindowID windowId = windowNumber ? [windowNumber unsignedIntValue] : 0;
 
-                // If Chrome is active and this is the first time we're getting its info
-                // (e.g., after Chrome activation), set the baseline for tab change detection.
-                if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
-                    MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
-                    chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
-                    chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
+            // filter out specific apps 
+            if (shouldExcludeApp(windowOwnerName, windowTitle)) {
+                return nil;
+            }
+            
+            NSString *iconPath = getAppIconPath(windowOwnerName);
+            
+            // Create base window info
+            NSMutableDictionary *windowInfo = [@{
+                @"id": windowNumber ? windowNumber : @0,
+                @"ownerName": windowOwnerName,
+                @"title": windowTitle && [windowTitle isKindOfClass:[NSString class]] ? windowTitle : @"",
+                @"type": @"window",
+                @"icon": iconPath ? iconPath : @"",
+                @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+            } mutableCopy];
+
+            // If we don't have a window title, try to get it using our title extractor
+            if (!windowTitle || windowTitle.length == 0) {
+                @try {
+                    NSString *extractedTitle = [TitleExtractor extractWindowTitleForApp:windowOwnerName];
+                    if (extractedTitle && extractedTitle.length > 0) {
+                        windowInfo[@"title"] = extractedTitle;
+                        MyLog(@"   ✅ Title extracted successfully: '%@'", extractedTitle);
+                    } else {
+                        MyLog(@"   ⚠️  Could not extract title for app: %@", windowOwnerName);
+                    }
+                } @catch (NSException *exception) {
+                    MyLog(@"   ❌ Exception during title extraction for %@: %@", windowOwnerName, exception.reason);
                 }
             }
-        } else if ([windowOwnerName isEqualToString:@"Safari"]) {
-            NSDictionary *safariInfo = [BrowserTabUtils getSafariTabInfo];
-            if (safariInfo) {
-                [windowInfo addEntriesFromDictionary:safariInfo];
+
+            MyLog(@"🔍 ACTIVE WINDOW CHANGED:");
+            MyLog(@"   Owner: %@", windowOwnerName);
+            MyLog(@"   Title: %@", windowInfo[@"title"]);
+            MyLog(@"   Type: %@", windowInfo[@"type"]);
+            
+            // --- Start Chrome Tab Timer Management within getActiveWindow ---
+            if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
+                if (!chromeTabTracking.isChromeActive) { // Chrome just became the active app's window owner
+                    MyLog(@"[Chrome Tab] Chrome became active window. Initializing tab tracking.");
+                    chromeTabTracking.isChromeActive = YES;
+                    [chromeTabTracking startChromeTabTimer];
+                }
+            } else { // Active window is not Chrome
+                if (chromeTabTracking.isChromeActive) { // Chrome was active, but no longer is
+                    MyLog(@"[Chrome Tab] Chrome no longer active window.");
+                    chromeTabTracking.isChromeActive = NO;
+                    [chromeTabTracking stopChromeTabTimer];
+                    chromeTabTracking.lastKnownChromeURL = nil;
+                    chromeTabTracking.lastKnownChromeTitle = nil;
+                }
             }
-        } else {
-            MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
-            NSString *extractedText = [ContentExtractor getAppTextContent:windowOwnerName windowId:windowId];
-            if (extractedText && extractedText.length > 0) {
-                windowInfo[@"content"] = extractedText;
-                MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
-                MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+            // --- End Chrome Tab Timer Management ---
+            
+            // Check for browser windows
+            if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
+                @try {
+                    NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
+                    if (chromeInfo) {
+                        [windowInfo addEntriesFromDictionary:chromeInfo];
+
+                        // If Chrome is active and this is the first time we're getting its info
+                        // (e.g., after Chrome activation), set the baseline for tab change detection.
+                        if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
+                            MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
+                            chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
+                            chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
+                        }
+                    }
+                } @catch (NSException *exception) {
+                    MyLog(@"   ❌ Exception getting Chrome tab info: %@", exception.reason);
+                }
+            } else if ([windowOwnerName isEqualToString:@"Safari"]) {
+                @try {
+                    NSDictionary *safariInfo = [BrowserTabUtils getSafariTabInfo];
+                    if (safariInfo) {
+                        [windowInfo addEntriesFromDictionary:safariInfo];
+                    }
+                } @catch (NSException *exception) {
+                    MyLog(@"   ❌ Exception getting Safari tab info: %@", exception.reason);
+                }
             } else {
-                MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+                MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowInfo[@"title"]);
+                @try {
+                    NSString *extractedText = [ContentExtractor getAppTextContent:windowOwnerName windowId:windowId];
+                    if (extractedText && extractedText.length > 0) {
+                        windowInfo[@"content"] = extractedText;
+                        MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
+                        MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+                    } else {
+                        MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+                    }
+                } @catch (NSException *exception) {
+                    MyLog(@"   ❌ Exception extracting content from %@: %@", windowOwnerName, exception.reason);
+                }
             }
+            
+            return windowInfo;
         }
         
-        return windowInfo;
+        MyLog(@"⚠️  No frontmost window found");
+        return nil;
+        
+    } @catch (NSException *exception) {
+        MyLog(@"❌ Exception in getActiveWindow: %@", exception.reason);
+        return nil;
     }
-    return nil;
 }
 
 - (void) removeWindowObserver
