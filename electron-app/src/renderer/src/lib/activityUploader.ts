@@ -84,12 +84,18 @@ export const uploadActiveWindowEvent = async (
       // dont burden s3 with too many image if 99% likelyhood of it being productive
       if (isVeryLikelyProductive(windowDetails)) {
         if (windowDetails.localScreenshotPath) {
+          console.log(
+            `[ActivityUploader] Productive app detected (${windowDetails.ownerName}), deleting screenshot.`
+          )
           await deleteLocalFile(windowDetails.localScreenshotPath)
         }
       } else {
         // If we have a local screenshot, upload it to S3 first
         if (windowDetails.localScreenshotPath) {
           try {
+            console.log(
+              `[ActivityUploader] Non-productive app, attempting screenshot upload for: ${windowDetails.title}`
+            )
             // Get pre-signed URL from server
             const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
               fileType: 'image/jpeg',
@@ -105,7 +111,7 @@ export const uploadActiveWindowEvent = async (
             // Add the S3 URL to the event data
             eventData.screenshotS3Url = publicUrl
 
-            console.log('eventData in uploadActiveWindowEvent', eventData)
+            console.log('[ActivityUploader] Screenshot uploaded, event data being sent:', eventData)
 
             // Clean up the local file
             await deleteLocalFile(windowDetails.localScreenshotPath)
@@ -113,6 +119,10 @@ export const uploadActiveWindowEvent = async (
             console.error('Error handling screenshot upload:', error)
             // Continue with event upload even if screenshot upload fails
           }
+        } else {
+          console.log(
+            `[ActivityUploader] No screenshot available for non-productive app: ${windowDetails.ownerName}`
+          )
         }
       }
     }

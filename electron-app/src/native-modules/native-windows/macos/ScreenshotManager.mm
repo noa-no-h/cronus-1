@@ -61,6 +61,8 @@
         return;
     }
     
+    MyLog(@"[ScreenshotManager] Screenshot saved to temp file: %@", filePath);
+    
     [self.delegate screenshotManager:self didCaptureScreenshot:filePath forWindowInfo:windowInfo];
 }
 
@@ -80,7 +82,7 @@
     }
 
     CGImageRef imageRef = CGWindowListCreateImage(
-        windowBounds,
+        CGRectNull,
         kCGWindowListOptionIncludingWindow,
         windowId,
         kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution
