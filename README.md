@@ -190,85 +190,16 @@ This project is set up for easy deployment on [Render](https://render.com/). Bel
 
 ## Building and Running the Electron App
 
-The Electron app uses [Electron Builder](https://www.electron.build/) for packaging and distribution, with a streamlined build system offering different options for development and production.
+The Electron app uses [Electron Builder](https://www.electron.build/) for packaging and distribution. For detailed instructions on building, code signing, and publishing new releases, please refer to the dedicated README in the Electron app directory:
 
-### Development Build (Signed App Bundle)
+[**➡️ Electron App Build and Release Guide (`electron-app/README.md`)**](./electron-app/README.md)
 
-For development and testing, you can create a signed app bundle without creating a DMG:
+This guide covers:
 
-```bash
-cd electron-app
-bun run build:mac:app-only
-```
-
-This creates a signed `.app` bundle in `electron-app/dist/mac-arm64/` that you can run directly.
-
-### Production Build (Signed App + DMG)
-
-For distribution, create both a signed app and a proper installer DMG:
-
-```bash
-cd electron-app
-bun run build:mac:dmg
-```
-
-This creates:
-
-- A signed `Cronus.app` bundle
-- A distributable DMG with Applications folder shortcut
-- Automatic signature verification
-- Opens the DMG when complete
-
-### Quick DMG Creation
-
-If you already have a built app and just want to create a new DMG:
-
-```bash
-cd electron-app
-bun run build:mac:dmg-only
-```
-
-This creates a DMG from the existing app bundle without rebuilding.
-
-### Available Build Scripts
-
-| Script               | Purpose                                          |
-| -------------------- | ------------------------------------------------ |
-| `build:mac:app-only` | Creates signed `.app` bundle (fast, for testing) |
-| `build:mac:dmg`      | Complete build + signed DMG (for distribution)   |
-| `build:mac:dmg-only` | Creates DMG from existing app (quick packaging)  |
-
-### Code Signing Setup
-
-The build system uses environment variables for code signing:
-
-- **Certificate**: Place your `.p12` certificate file in `electron-app/build-assets/mac-cert.p12`
-- **Password**: The certificate password is configured in the build scripts
-- **Identity**: Update the identity in `build-mac.sh` if using a different certificate
-
-### Distribution
-
-The resulting DMG files in `electron-app/dist/` are:
-
-- ✅ **Fully signed** with your Developer ID certificate
-- ✅ **Include Applications folder** for easy installation
-- ✅ **Signature verified** automatically during build
-- ✅ **Ready for distribution** to end users
-
-Users can install by opening the DMG and dragging the app to the Applications folder.
-
-### Apple Events Permission Resolution
-
-**✅ RESOLVED**: The Apple Events permission issue has been successfully resolved through proper code signing. The app now:
-
-- Shows the permission prompt to users when first accessing browser information
-- Successfully retrieves browser tab information after permission is granted
-- Works reliably with the current build and signing process
-
-**Build Commands:**
-
-- `bun run build:mac:app-only` - For development/testing
-- `bun run build:mac:dmg` - For production distribution
+- Development builds
+- Production builds (signed `.app` and `.dmg`)
+- Code signing setup
+- Publishing releases with OTA updates to S3
 
 ## Debugging
 

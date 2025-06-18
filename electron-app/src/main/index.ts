@@ -2,6 +2,7 @@ import { is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, session } from 'electron'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { nativeWindows } from '../native-modules/native-windows'
+import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
 import { registerIpcHandlers } from './ipc'
 import { initializeLoggers } from './logging'
 import {
@@ -11,10 +12,6 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
-import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
-import dotenv from 'dotenv'
-
-dotenv.config({ path: is.dev ? '.env' : '.env.production' })
 
 // for testing
 // console.log('GH_TOKEN in main process:', process.env.GH_TOKEN)

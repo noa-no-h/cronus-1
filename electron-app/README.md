@@ -63,18 +63,47 @@ electron-app/
 ├── tsconfig.web.json # TypeScript config for renderer
 └── README.md
 
+## Building the Electron App
+
+The primary method for creating local builds is through `electron-builder`, which ensures that all packaging, code signing, and entitlements are handled correctly and consistently.
+
+### Local Production Build (for Testing)
+
+To create a full, signed production-ready build on your local machine (including a `.dmg` installer) without publishing it, run:
+
+```bash
+bun run build:mac:electron-builder
+```
+
+This command is the recommended way to create a local build for testing and verification. It builds, signs, and packages the application, producing a `.dmg` file in the `dist/` directory.
+
+### Development Utility Scripts
+
+**Full Installation Cleanup**
+
+If you need to reset your local environment, you can use the cleanup script. This is useful when debugging permissions or first-launch issues.
+
+```bash
+bun run clean:cronus-installation
+```
+
+This script will:
+
+- Delete `Cronus.app` from your `/Applications` folder.
+- Reset macOS permissions (TCC) for Apple Events and Accessibility for the app.
+
 ## Over-the-air (OTA) updates via S3
 
-Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `eu-central-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks **Settings → Check for Updates**.
+Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `us-east-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks _Settings → Check for Updates_.
 
 ### 1 – Prerequisites
 
-Create a local **.env** (never commit it) with a key that can upload to the bucket:
+Create a local **.env** (never commit it) with a key that can upload to the `cronusnewupdates`-bucket:
 
 ```bash
 AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxxxxxx
 AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-AWS_REGION=eu-central-1
+AWS_REGION=us-east-1
 ```
 
 Load it in each terminal before building:
@@ -143,8 +172,4 @@ set -a && source .env.production && set +a
 NODE_ENV=production bun run build
 # Package and publish
 npx electron-builder --mac --arm64 --publish always
-```
-
-```
-
 ```
