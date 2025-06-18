@@ -92,6 +92,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-oauth/google": "^0.12.1",
+    "@sentry/electron": "^6.8.0",
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@types/color": "^4.2.0",
@@ -107,6 +108,7 @@
     "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
+    "js-yaml": "^4.1.0",
     "jsonfile": "^6.1.0",
     "lucide-react": "^0.516.0",
     "node-addon-api": "^4.3.0",
@@ -114,8 +116,7 @@
     "react-router-dom": "^7.6.1",
     "shared": "workspace:*",
     "tailwind-merge": "^3.3.0",
-    "zod": "^3.24.1",
-    "js-yaml": "^4.1.0"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

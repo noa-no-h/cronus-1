@@ -1,4 +1,5 @@
 import { is, optimizer } from '@electron-toolkit/utils'
+import * as Sentry from '@sentry/electron/main'
 import { app, BrowserWindow, session } from 'electron'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { nativeWindows } from '../native-modules/native-windows'
@@ -12,6 +13,11 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
+
+// Initialize Sentry
+Sentry.init({
+  dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
+})
 
 // for testing
 // console.log('GH_TOKEN in main process:', process.env.GH_TOKEN)
