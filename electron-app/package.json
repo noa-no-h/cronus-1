@@ -31,7 +31,9 @@
     "create-latest-links": "bash create-latest-links.sh",
     "build:for-publish": "NODE_ENV=production bun run build && npx electron-builder --mac --arm64",
     "publish": "npx electron-builder --mac --arm64 --publish always",
-    "publish:with-links": "bun run build:for-publish && bun run publish && bun run create-latest-links"
+    "publish:with-links": "bun run build:for-publish && bun run publish && bun run create-latest-links",
+    "clean-and-build": "bun run clean:cronus-installation && bun run build:for-publish && open dist/Cronus-*-arm64.dmg",
+    "clean-and-quick-build": "bun run clean:cronus-installation && NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg"
   },
   "build": {
     "appId": "com.cronus.app",

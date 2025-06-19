@@ -19,11 +19,8 @@ Sentry.init({
   dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
 })
 
-// for testing
-// console.log('GH_TOKEN in main process:', process.env.GH_TOKEN)
-
-let mainWindow: BrowserWindow | null
-let floatingWindow: BrowserWindow | null
+let mainWindow: BrowserWindow | null = null
+let floatingWindow: BrowserWindow | null = null
 
 function App() {
   async function initializeApp() {

@@ -2,8 +2,8 @@ import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
 import { APP_NAME, APP_USP } from '@renderer/App'
 import { cn } from '@renderer/lib/utils'
 import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
 import GoogleLogo from '../assets/icons/google.png'
+import { useAuth } from '../contexts/AuthContext'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
@@ -42,6 +42,8 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         } else {
           console.error('CLIENT_URL not found for production mode')
         }
+
+
       })
       .catch((err) => {
         console.error('Error fetching env vars from main process:', err)
@@ -114,9 +116,6 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       </button>
     )
   }
-
-  // console log isDev
-  console.log('isDev', isDev)
 
   return (
     <div className={cn('flex flex-col gap-6 items-center w-full p-8 m-auto', className)} {...props}>
