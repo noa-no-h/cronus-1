@@ -31,7 +31,7 @@
     "create-latest-links": "bash create-latest-links.sh",
     "build:for-publish": "NODE_ENV=production bun run build && npx electron-builder --mac --arm64",
     "publish": "npx electron-builder --mac --arm64 --publish always",
-    "publish:with-links": "bun run build:for-publish && AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY bun run publish && bun run create-latest-links"
+    "publish:with-links": "bun run build:for-publish && bun run publish && bun run create-latest-links"
   },
   "build": {
     "appId": "com.cronus.app",
