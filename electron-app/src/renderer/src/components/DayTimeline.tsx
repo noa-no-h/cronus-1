@@ -188,7 +188,8 @@ const DayTimeline = ({
                             <span className="px-2 py-0.5 text-xs text-red-500 dark:text-red-300 font-medium bg-white dark:bg-slate-800 rounded border">
                               {currentTime.toLocaleTimeString([], {
                                 hour: '2-digit',
-                                minute: '2-digit'
+                                minute: '2-digit',
+                                hour12: false
                               })}
                             </span>
                           </div>
