@@ -92,6 +92,24 @@ This script will:
 - Delete `Cronus.app` from your `/Applications` folder.
 - Reset macOS permissions (TCC) for Apple Events and Accessibility for the app.
 
+### Environment Variables
+
+The Electron app uses different environment variables for development and production builds. These are managed via `.env` files in the `electron-app` directory:
+
+- **`.env.development`**: Used when running the app locally with `bun run dev`.
+- **`.env.production`**: Used for packaged builds created with `electron-builder`.
+
+These files are loaded at runtime by the main process (`src/main/index.ts`). Create these files from the example below and populate them with the necessary service keys.
+
+### .env.example
+
+```
+# Example environment variables
+GOOGLE_CLIENT_ID="your-google-client-id"
+CLIENT_URL="your-client-url"
+...
+```
+
 ## Over-the-air (OTA) updates via S3
 
 Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `us-east-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks _Settings → Check for Updates_.

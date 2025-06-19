@@ -42,8 +42,6 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         } else {
           console.error('CLIENT_URL not found for production mode')
         }
-
-
       })
       .catch((err) => {
         console.error('Error fetching env vars from main process:', err)
