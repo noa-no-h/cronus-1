@@ -6,7 +6,7 @@
 
 // Static variables for singleton and state management
 static PermissionManager *_sharedManager = nil;
-static BOOL _shouldRequestPermissions = YES; // Enable by default for development
+static BOOL _explicitPermissionDialogsEnabled = NO; // Disabled by default - only enabled after onboarding
 static BOOL _isRequestingPermission = NO;
 static NSMutableArray *_pendingRequests = nil;
 
@@ -30,18 +30,18 @@ static NSMutableArray *_pendingRequests = nil;
 }
 
 + (void)setShouldRequestPermissions:(BOOL)shouldRequest {
-    _shouldRequestPermissions = shouldRequest;
-    MyLog(@"🎛️  Permission request mode set to: %@", shouldRequest ? @"ENABLED" : @"DISABLED");
+    _explicitPermissionDialogsEnabled = shouldRequest;
+    MyLog(@"🎛️  Explicit permission dialog mode set to: %@", shouldRequest ? @"ENABLED" : @"DISABLED");
     
     // If we just enabled permissions and have pending requests, process them
     if (shouldRequest && _pendingRequests.count > 0) {
-        MyLog(@"🔄 Processing %lu pending permission requests", (unsigned long)_pendingRequests.count);
+        MyLog(@"🔄 Processing %lu pending explicit permission requests", (unsigned long)_pendingRequests.count);
         [self processPendingRequests];
     }
 }
 
 + (BOOL)shouldRequestPermissions {
-    return _shouldRequestPermissions;
+    return _explicitPermissionDialogsEnabled;
 }
 
 + (PermissionStatus)statusForPermission:(PermissionType)permissionType {
@@ -81,9 +81,9 @@ static NSMutableArray *_pendingRequests = nil;
 + (void)requestPermission:(PermissionType)permissionType 
                completion:(void(^)(PermissionStatus status))completion {
     
-    // Check if permissions are enabled
+    // Check if explicit permission dialogs are enabled
     if (![self shouldRequestPermissions]) {
-        MyLog(@"⚠️  Permission requests disabled, queuing request for type %ld", (long)permissionType);
+        MyLog(@"⚠️  Explicit permission dialogs disabled, queuing request for type %ld", (long)permissionType);
         
         // Queue the request for later
         PermissionRequest *request = [[PermissionRequest alloc] init];

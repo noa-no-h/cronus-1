@@ -4,23 +4,24 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 
-// Import types from preload
-declare const PermissionType: {
-  Accessibility: number
-  AppleEvents: number
+// Import types from preload - use proper enum imports
+// Define enums locally to match preload definitions
+enum PermissionType {
+  Accessibility = 0,
+  AppleEvents = 1
 }
 
-declare const PermissionStatus: {
-  Denied: number
-  Granted: number
-  Pending: number
+enum PermissionStatus {
+  Denied = 0,
+  Granted = 1,
+  Pending = 2
 }
 
 interface PermissionInfo {
-  type: number
+  type: PermissionType
   name: string
   description: string
-  status: number
+  status: PermissionStatus
   required: boolean
 }
 
@@ -28,19 +29,19 @@ export function PermissionsStatus() {
   const [permissions, setPermissions] = useState<PermissionInfo[]>([])
   const [permissionRequestsEnabled, setPermissionRequestsEnabled] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
-  const [requesting, setRequesting] = useState<number[]>([])
-  const [polling, setPolling] = useState<number[]>([]) // Track which permissions we're polling for
+  const [requesting, setRequesting] = useState<PermissionType[]>([])
+  const [polling, setPolling] = useState<PermissionType[]>([]) // Track which permissions we're polling for
 
   const permissionDefinitions: Omit<PermissionInfo, 'status'>[] = [
     {
-      type: 0, // PermissionType.Accessibility
+      type: PermissionType.Accessibility,
       name: 'Accessibility',
       description:
         'Allows reading window titles and content from other applications. Required for advanced features.',
       required: true
     },
     {
-      type: 1, // PermissionType.AppleEvents
+      type: PermissionType.AppleEvents,
       name: 'Apple Events',
       description:
         'Allows getting detailed browser tab info. Optional - basic functionality works without this.',
@@ -69,7 +70,7 @@ export function PermissionsStatus() {
   }
 
   // Polling function to check permission status
-  const pollPermissionStatus = (permissionType: number, maxAttempts: number = 30) => {
+  const pollPermissionStatus = (permissionType: PermissionType, maxAttempts: number = 30) => {
     let attempts = 0
 
     const pollInterval = setInterval(async () => {
@@ -86,12 +87,11 @@ export function PermissionsStatus() {
         )
 
         // If permission is granted or we've tried too many times, stop polling
-        if (currentStatus === 1 || attempts >= maxAttempts) {
-          // 1 = PermissionStatus.Granted
+        if (currentStatus === PermissionStatus.Granted || attempts >= maxAttempts) {
           setPolling((prev) => prev.filter((type) => type !== permissionType))
           clearInterval(pollInterval)
 
-          if (currentStatus === 1) {
+          if (currentStatus === PermissionStatus.Granted) {
             console.log(`✅ Permission ${permissionType} was granted!`)
           } else {
             console.log(
@@ -117,7 +117,7 @@ export function PermissionsStatus() {
     loadPermissionStatus()
   }, [])
 
-  const handleRequestPermission = async (permissionType: number) => {
+  const handleRequestPermission = async (permissionType: PermissionType) => {
     try {
       setRequesting((prev) => [...prev, permissionType])
       await window.api.requestPermission(permissionType)
@@ -146,9 +146,9 @@ export function PermissionsStatus() {
     }
   }
 
-  const getStatusBadge = (status: number) => {
+  const getStatusBadge = (status: PermissionStatus) => {
     switch (status) {
-      case 1: // PermissionStatus.Granted
+      case PermissionStatus.Granted:
         return (
           <Badge
             variant="secondary"
@@ -158,14 +158,14 @@ export function PermissionsStatus() {
             Granted
           </Badge>
         )
-      case 2: // PermissionStatus.Pending
+      case PermissionStatus.Pending:
         return (
           <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
             <Loader2 className="w-3 h-3 mr-1 animate-spin" />
             Pending
           </Badge>
         )
-      case 0: // PermissionStatus.Denied
+      case PermissionStatus.Denied:
       default:
         return (
           <Badge
@@ -179,13 +179,13 @@ export function PermissionsStatus() {
     }
   }
 
-  const getStatusIcon = (status: number) => {
+  const getStatusIcon = (status: PermissionStatus) => {
     switch (status) {
-      case 1: // PermissionStatus.Granted
+      case PermissionStatus.Granted:
         return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 2: // PermissionStatus.Pending
+      case PermissionStatus.Pending:
         return <Loader2 className="w-5 h-5 text-yellow-600 animate-spin" />
-      case 0: // PermissionStatus.Denied
+      case PermissionStatus.Denied:
       default:
         return <XCircle className="w-5 h-5 text-red-600" />
     }
@@ -207,7 +207,9 @@ export function PermissionsStatus() {
     )
   }
 
-  const hasPermissionIssues = permissions.some((p) => p.required && p.status !== 1)
+  const hasPermissionIssues = permissions.some(
+    (p) => p.required && p.status !== PermissionStatus.Granted
+  )
 
   return (
     <Card>
@@ -275,7 +277,7 @@ export function PermissionsStatus() {
                 </div>
               </div>
 
-              {permission.status !== 1 && permissionRequestsEnabled && (
+              {permission.status !== PermissionStatus.Granted && permissionRequestsEnabled && (
                 <Button
                   size="sm"
                   variant="outline"

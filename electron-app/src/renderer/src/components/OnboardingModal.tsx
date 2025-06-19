@@ -1,12 +1,23 @@
 import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
 import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
 import icon from './../assets/icon.png'
 import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
 import GoalInputForm from './GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+
+// Define enums locally to match preload definitions
+enum PermissionType {
+  Accessibility = 0,
+  AppleEvents = 1
+}
+
+enum PermissionStatus {
+  Denied = 0,
+  Granted = 1,
+  Pending = 2
+}
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -17,9 +28,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isRequestingPermission, setIsRequestingPermission] = useState(false)
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false)
-  const [permissionStatus, setPermissionStatus] = useState<number | null>(null)
+  const [permissionStatus, setPermissionStatus] = useState<PermissionStatus | null>(null)
   const [isUsingSafari, setIsUsingSafari] = useState(false)
-  const { token } = useAuth()
+  const [showBrowserConfirmation, setShowBrowserConfirmation] = useState(false)
 
   // Check permission status when on accessibility step
   useEffect(() => {
@@ -35,7 +46,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const checkPermissionStatus = async () => {
     try {
-      const status = await window.api.getPermissionStatus(0) // 0 = PermissionType.Accessibility
+      const status = await window.api.getPermissionStatus(PermissionType.Accessibility)
       setPermissionStatus(status)
     } catch (error) {
       console.error('Failed to check permission status:', error)
@@ -86,7 +97,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               servers with your explicit consent for analysis.
             </p>
           </div>
-          {hasRequestedPermission && permissionStatus !== 1 && (
+          {hasRequestedPermission && permissionStatus !== PermissionStatus.Granted && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mt-4 border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Next steps:</strong>
@@ -101,7 +112,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               </p>
             </div>
           )}
-          {hasRequestedPermission && permissionStatus === 1 && (
+          {hasRequestedPermission && permissionStatus === PermissionStatus.Granted && (
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
               <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -114,7 +125,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     },
     {
       title: 'Browser Setup for Better Tracking',
-      content: (
+      content: !showBrowserConfirmation ? (
         <div className="text-center space-y-6">
           <div className="flex justify-center mb-4">
             <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
@@ -197,6 +208,24 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             />
           </div>
         </div>
+      ) : (
+        <div className="text-center space-y-6">
+          <div className="flex justify-center mb-4">
+            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+              <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold">Confirm Browser Setup</h3>
+          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Have you enabled JavaScript from Apple Events in your{' '}
+            {isUsingSafari ? 'Safari' : 'Chrome'} browser?
+          </p>
+          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
+            <p className="text-sm text-muted-foreground">
+              This step is optional but recommended for the best tracking experience.
+            </p>
+          </div>
+        </div>
       )
     },
     {
@@ -242,6 +271,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
         setPermissionStatus(null)
         setIsRequestingPermission(false)
       }
+      // Reset browser setup states when going back from browser setup step
+      if (currentStep === 3) {
+        setShowBrowserConfirmation(false)
+      }
       setCurrentStep(currentStep - 1)
     }
   }
@@ -249,8 +282,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const handleRequestAccessibilityPermission = async () => {
     setIsRequestingPermission(true)
     try {
+      // Enable permission dialogs before requesting permission
+      await window.api.enablePermissionRequests()
+
       // Request accessibility permission
-      await window.api.requestPermission(0) // 0 = PermissionType.Accessibility
+      await window.api.requestPermission(PermissionType.Accessibility)
       setHasRequestedPermission(true)
 
       // Check permission status after a short delay
@@ -265,14 +301,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }
 
-  const handleSkip = () => {
-    handleComplete()
-  }
-
   const handleComplete = async () => {
     setIsCompleting(true)
-    // No need to call markOnboardingComplete mutation anymore
-    // Just complete the onboarding process
+    // Start window tracking now that onboarding is complete
+    try {
+      await window.api.startWindowTracking()
+    } catch (error) {
+      console.error('Failed to start window tracking:', error)
+    }
+    // Complete the onboarding process
     setTimeout(() => {
       onComplete()
     }, 500)
@@ -281,11 +318,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const currentStepData = steps[currentStep]
   const isGoalStep = currentStep === 1
   const isAccessibilityStep = currentStep === 2
+  const isBrowserSetupStep = currentStep === 3
   const isLastStep = currentStep === steps.length - 1
 
   return (
     <>
-      <div className="fixed inset-0 bg-background z-50" onClick={handleSkip} />
+      <div className="fixed inset-0 bg-background z-50" onClick={handleNext} />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto bg-card/95 shadow-2xl border-border/50">
@@ -331,23 +369,67 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 )}
 
                 {/* Main action button */}
-                {isAccessibilityStep && !hasRequestedPermission ? (
-                  <Button
-                    onClick={handleRequestAccessibilityPermission}
-                    disabled={isRequestingPermission}
-                    variant="default"
-                    size="default"
-                    className="min-w-[140px]"
-                  >
-                    {isRequestingPermission ? (
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Requesting...
-                      </div>
-                    ) : (
-                      'Enable Permission'
-                    )}
-                  </Button>
+                {isAccessibilityStep ? (
+                  permissionStatus === PermissionStatus.Granted ? (
+                    <Button
+                      onClick={handleNext}
+                      disabled={isCompleting}
+                      variant="default"
+                      size="default"
+                      className="min-w-[140px]"
+                    >
+                      Next
+                    </Button>
+                  ) : !hasRequestedPermission ? (
+                    <Button
+                      onClick={handleRequestAccessibilityPermission}
+                      disabled={isRequestingPermission}
+                      variant="default"
+                      size="default"
+                      className="min-w-[140px]"
+                    >
+                      {isRequestingPermission ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Requesting...
+                        </div>
+                      ) : (
+                        'Enable Permission'
+                      )}
+                    </Button>
+                  ) : (
+                    <div></div> // Empty div to maintain spacing
+                  )
+                ) : isBrowserSetupStep ? (
+                  !showBrowserConfirmation ? (
+                    <Button
+                      onClick={() => setShowBrowserConfirmation(true)}
+                      variant="default"
+                      size="default"
+                      className="min-w-[140px]"
+                    >
+                      Enable
+                    </Button>
+                  ) : (
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleNext}
+                        variant="default"
+                        size="default"
+                        className="min-w-[120px]"
+                      >
+                        Yes, I have enabled it
+                      </Button>
+                      <Button
+                        onClick={() => setShowBrowserConfirmation(false)}
+                        variant="outline"
+                        size="default"
+                        className="min-w-[120px]"
+                      >
+                        No, go back
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <Button
                     onClick={handleNext}

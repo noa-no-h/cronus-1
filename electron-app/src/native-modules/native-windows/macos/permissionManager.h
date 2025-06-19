@@ -21,13 +21,18 @@ typedef NS_ENUM(NSInteger, PermissionStatus) {
 + (instancetype)sharedManager;
 
 /**
- * Controls whether permission dialogs should be shown to users
- * Call this with YES after onboarding is complete
+ * Controls whether explicit permission dialogs should be shown to users
+ * Call this with YES after onboarding is complete to enable explicit permission requests
+ * 
+ * IMPORTANT: This does NOT prevent automatic system permission dialogs that occur
+ * when protected APIs are first used (like AXObserverCreate or AppleScript execution).
+ * This only controls explicit calls to requestPermission:completion:
  */
 + (void)setShouldRequestPermissions:(BOOL)shouldRequest;
 
 /**
- * Returns whether permission requests are currently enabled
+ * Returns whether explicit permission requests are currently enabled
+ * This does NOT indicate whether automatic system dialogs are prevented
  */
 + (BOOL)shouldRequestPermissions;
 

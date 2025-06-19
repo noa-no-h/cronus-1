@@ -47,13 +47,23 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
   })
 
   ipcMain.handle('enable-permission-requests', () => {
-    logMainToFile('Enabling permission requests after onboarding completion')
-    nativeWindows.setShouldRequestPermissions(true)
+    logMainToFile('Enabling explicit permission requests after onboarding completion')
+    nativeWindows.setPermissionDialogsEnabled(true)
+  })
+
+  ipcMain.handle('start-window-tracking', () => {
+    logMainToFile('Starting active window observer after onboarding completion')
+    // Call the global function we set up in main/index.ts
+    if ((global as any).startActiveWindowObserver) {
+      ;(global as any).startActiveWindowObserver()
+    } else {
+      logMainToFile('ERROR: startActiveWindowObserver function not available')
+    }
   })
 
   // Permission-related IPC handlers
   ipcMain.handle('get-permission-request-status', () => {
-    return nativeWindows.getShouldRequestPermissions()
+    return nativeWindows.getPermissionDialogsEnabled()
   })
 
   ipcMain.handle('get-permission-status', (_event, permissionType: PermissionType) => {
@@ -74,8 +84,8 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
   })
 
   ipcMain.handle('force-enable-permission-requests', () => {
-    logMainToFile('Force enabling permission requests via settings')
-    nativeWindows.setShouldRequestPermissions(true)
+    logMainToFile('Force enabling explicit permission requests via settings')
+    nativeWindows.setPermissionDialogsEnabled(true)
   })
 
   ipcMain.on('open-external-url', (_event, url: string) => {

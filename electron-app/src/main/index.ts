@@ -72,12 +72,19 @@ function App() {
     registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow)
     registerAutoUpdaterHandlers()
 
-    // Start observing active window changes
-    nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {
+    // Don't start observing active window changes immediately
+    // This will be started after onboarding is complete via IPC call
+    // Store the callback for later use
+    const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
       if (windowInfo && mainWindow) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }
-    })
+    }
+
+    // Make the callback available to IPC handlers
+    ;(global as any).startActiveWindowObserver = () => {
+      nativeWindows.startActiveWindowObserver(windowChangeCallback)
+    }
 
     // Handle app activation (e.g., clicking the dock icon on macOS)
     app.on('activate', () => {
