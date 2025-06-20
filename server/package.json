@@ -9,12 +9,11 @@
     "start": "bun run ./dist/index.js",
     "tsc:build": "tsc --outDir ./dist_tsc",
     "node:start": "node ./dist_tsc/index.js",
-    "db:delete": "bun run src/scripts/delete.ts",
-    "db:seed": "bun run src/scripts/seeder.ts",
-    "db:reset": "bun run db:delete && bun run db:seed",
     "test": "rm -rf ./dist && bun test",
     "test:reset_categories": "bun test src/services/categorization/reset_categories.test.ts",
-    "test:history": "bun test src/services/categorization/history.test.ts"
+    "test:history": "bun test src/services/categorization/history.test.ts",
+    "script:reset-activity-events": "bun run src/seeder/activity-events-reset.ts",
+    "script:reset-activity-events:prod": "NODE_ENV=production bun run src/seeder/activity-events-reset.ts"
   },
   "keywords": [],
   "author": "",
