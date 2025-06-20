@@ -19,7 +19,7 @@ const DownloadPage = () => {
           <CardHeader>
             <div className="flex items-center gap-4">
               <RocketIcon className="w-8 h-8" />
-              <div>
+              <div className="flex flex-col space-y-1">
                 <CardTitle>Apple Silicon</CardTitle>
                 <CardDescription>For Macs with M1, M2, M3 chips and newer.</CardDescription>
               </div>
@@ -31,7 +31,7 @@ const DownloadPage = () => {
               best performance and efficiency.
             </p>
             <Button asChild className="w-full mt-auto">
-              <a href={arm64Url}>Download for Apple Silicon</a>
+              <a href={arm64Url}>Download</a>
             </Button>
           </CardContent>
         </Card>
@@ -39,7 +39,7 @@ const DownloadPage = () => {
           <CardHeader>
             <div className="flex items-center gap-4">
               <LaptopIcon className="w-8 h-8" />
-              <div>
+              <div className="flex flex-col space-y-1">
                 <CardTitle>Intel</CardTitle>
                 <CardDescription>For Macs with Intel processors.</CardDescription>
               </div>
@@ -51,7 +51,7 @@ const DownloadPage = () => {
               This Mac.
             </p>
             <Button asChild className="w-full mt-auto">
-              <a href={x64Url}>Download for Intel</a>
+              <a href={x64Url}>Download</a>
             </Button>
           </CardContent>
         </Card>
