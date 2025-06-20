@@ -146,24 +146,36 @@ Publishing the application to S3 requires valid AWS credentials with permission 
 
 1.  **Bump the version** in `electron-app/package.json` (e.g. `"1.0.8" → "1.0.9"`).
 2.  **Build, publish, and update download links:**
-    Run the all-in-one script from within the `electron-app` directory:
+    Run the all-in-one script from within the `electron-app` directory. You can publish for a specific architecture (`arm64` or `x64`) or for both.
+
     ```bash
-    bun run publish:with-links
+    # To publish for Apple Silicon (arm64)
+    bun run publish:with-links:arm64
+
+    # To publish for Intel (x64)
+    bun run publish:with-links:x64
+
+    # To publish for both architectures
+    bun run publish:with-links:all
     ```
-    This single command handles the entire release process:
+
+    This single command handles the entire release process for the specified architecture(s):
+
     - Builds the application.
     - Packages the `.dmg` and `.zip` files.
     - Publishes the new version and its `latest-mac.yml` file to S3.
-    - Updates the `Cronus-latest.dmg` and `Cronus-latest.zip` files in S3 to point to the new version.
+    - Updates the `Cronus-latest-[arch].dmg` and `Cronus-latest-[arch].zip` files in S3 to point to the new version.
 
-If you just need to create a local build for testing without uploading, use `bun run build:for-publish`.
+If you just need to create a local build for testing without uploading, use `bun run build:for-publish:arm64` or `bun run build:for-publish:x64`.
 
 ### 3 – Permanent Download Links
 
-The `publish:with-links` script automatically handles updating the permanent download links. You can find them at:
+The `publish:with-links:*` scripts automatically handle updating the permanent download links. You can find them at:
 
-- **Latest DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest.dmg`
-- **Latest ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest.zip`
+- **Latest ARM64 DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg`
+- **Latest ARM64 ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.zip`
+- **Latest Intel DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-x64.dmg`
+- **Latest Intel ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-x64.zip`
 
 The website can use these fixed URLs and never needs updating - they will automatically serve the newest build.
 
