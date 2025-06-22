@@ -16,7 +16,7 @@ import {
 } from '../utils/distractionStatusBarUIHelpers'
 import { calculateProductivityMetrics } from '../utils/timeMetrics'
 import { trpc } from '../utils/trpc'
-import { ActivityIcon } from './ActivityIcon'
+import { ActivityIcon } from './ActivityList/ActivityIcon'
 import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 import { Button } from './ui/button'
 

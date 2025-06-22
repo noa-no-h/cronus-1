@@ -1,11 +1,11 @@
 import { Category as SharedCategory } from 'shared'
-import { Button } from './ui/button'
+import { Button } from '../ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
-} from './ui/dropdown-menu'
+} from '../ui/dropdown-menu'
 
 interface MoveSelectedActivitiesButtonProps {
   otherCategories: SharedCategory[]

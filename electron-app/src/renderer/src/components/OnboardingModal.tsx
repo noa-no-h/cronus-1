@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
 import icon from './../assets/icon.png'
 import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
-import GoalInputForm from './GoalInputForm'
+import GoalInputForm from './Settings/GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 

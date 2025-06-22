@@ -1,16 +1,15 @@
-import { Calendar1, CalendarDaysIcon, ChevronLeft, ChevronRight, Layers } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Layers } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useCurrentTime } from '../hooks/useCurrentTime'
-import { useDarkMode } from '../hooks/useDarkMode'
-import { useWindowWidth } from '../hooks/useWindowWidth'
-import { SYSTEM_EVENT_NAMES } from '../lib/constants'
-import type { ProcessedEventBlock } from './DashboardView'
-import DayTimeline, { type TimeBlock } from './DayTimeline'
-import { Button } from './ui/button'
-import { Card } from './ui/card'
-import { Label } from './ui/label'
-import { Switch } from './ui/switch'
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group'
+import { useCurrentTime } from '../../hooks/useCurrentTime'
+import { useDarkMode } from '../../hooks/useDarkMode'
+import { useWindowWidth } from '../../hooks/useWindowWidth'
+import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
+import type { TimeBlock } from '../../lib/dayTimelineHelpers'
+import type { ProcessedEventBlock } from '../DashboardView'
+import { Button } from '../ui/button'
+import { Label } from '../ui/label'
+import { Switch } from '../ui/switch'
+import DayTimeline from './DayTimeline'
 import WeekView from './WeekView'
 
 interface CalendarWidgetProps {
@@ -95,7 +94,7 @@ const CalendarWidget = ({
         endTime: eventBlock.endTime,
         durationMs: eventBlock.durationMs,
         name: eventBlock.name,
-        description: eventBlock.title,
+        description: eventBlock.title || '',
         url: eventBlock.url,
         categoryColor: eventBlock.categoryColor
       }))
@@ -156,8 +155,8 @@ const CalendarWidget = ({
   }, [selectedDate, viewMode])
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <div className="p-2 border-b shadow-sm">
+    <div className="flex flex-col h-full bg-card border-1 border border-border rounded-xl">
+      <div className="p-2 border-b rounded-t-xl shadow-sm sticky top-0 bg-card z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="xs" onClick={handlePrev}>
@@ -188,45 +187,47 @@ const CalendarWidget = ({
               )}
             </div>
           )}
-          <ToggleGroup
-            type="single"
-            size="sm"
-            variant="outline"
-            value={viewMode}
-            onValueChange={(value) => {
-              if (value) onViewModeChange(value as 'day' | 'week')
-            }}
-          >
-            <ToggleGroupItem value="week">
-              <CalendarDaysIcon size={16} />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="day">
-              <Calendar1 size={16} />
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={viewMode === 'day' ? 'secondary' : 'outline'}
+              size="xs"
+              onClick={() => onViewModeChange('day')}
+            >
+              Day
+            </Button>
+            <Button
+              variant={viewMode === 'week' ? 'secondary' : 'outline'}
+              size="xs"
+              onClick={() => onViewModeChange('week')}
+            >
+              Week
+            </Button>
+          </div>
         </div>
       </div>
 
-      {viewMode === 'day' ? (
-        <DayTimeline
-          timeBlocks={timeBlocks}
-          currentTime={currentTime}
-          isToday={isToday}
-          isDarkMode={isDarkMode}
-          selectedHour={selectedHour}
-          onHourSelect={onHourSelect}
-        />
-      ) : (
-        <WeekView
-          processedEvents={processedEvents}
-          selectedDate={selectedDate}
-          isDarkMode={isDarkMode}
-          weekViewMode={weekViewMode}
-          selectedDay={selectedDay}
-          onDaySelect={onDaySelect}
-        />
-      )}
-    </Card>
+      <div className="flex-grow overflow-auto">
+        {viewMode === 'week' ? (
+          <WeekView
+            processedEvents={processedEvents || []}
+            selectedDay={selectedDay}
+            onDaySelect={onDaySelect}
+            selectedDate={selectedDate}
+            isDarkMode={isDarkMode}
+            weekViewMode={weekViewMode}
+          />
+        ) : (
+          <DayTimeline
+            timeBlocks={timeBlocks}
+            onHourSelect={onHourSelect}
+            selectedHour={selectedHour}
+            currentTime={currentTime}
+            isToday={isToday}
+            isDarkMode={isDarkMode}
+          />
+        )}
+      </div>
+    </div>
   )
 }
 

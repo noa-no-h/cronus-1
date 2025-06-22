@@ -3,9 +3,9 @@ import { ActivityItem, ProcessedCategory } from '@renderer/lib/activityProcessin
 import clsx from 'clsx'
 import React from 'react'
 import { Category as SharedCategory } from 'shared'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { ActivityIcon } from './ActivityIcon'
 import { MoveActivityButton } from './MoveActivityButton'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
 
 interface ActivityListItemProps {
   activity: ActivityItem

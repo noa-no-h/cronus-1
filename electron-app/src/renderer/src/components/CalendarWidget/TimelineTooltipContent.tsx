@@ -1,5 +1,5 @@
-import { formatDuration } from '../lib/activityByCategoryWidgetHelpers'
-import { ActivityIcon } from './ActivityIcon'
+import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
+import { ActivityIcon } from '../ActivityList/ActivityIcon'
 
 interface HourlyTimelineSegment {
   startMinute: number
@@ -9,6 +9,8 @@ interface HourlyTimelineSegment {
   description?: string
   url?: string
   categoryColor?: string
+  heightPercentage: number
+  topPercentage: number
   widthPercentage: number
   leftPercentage: number
 }

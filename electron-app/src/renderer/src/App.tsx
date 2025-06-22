@@ -263,7 +263,7 @@ export function MainAppContent() {
         Check for Updates
       </button> */}
       <div className="custom-title-bar">{APP_NAME}</div>
-      <div className="p-4">
+      <div className="p-2">
         <DistractionStatusBar
           activeWindow={activeWindow}
           onOpenMiniTimerClick={handleOpenMiniTimer}

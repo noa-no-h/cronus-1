@@ -1,9 +1,9 @@
 import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Category as SharedCategory } from 'shared'
-import { ActivityItem, ProcessedCategory } from '../lib/activityProcessing'
+import { ActivityItem, ProcessedCategory } from '../../lib/activityProcessing'
+import { Button } from '../ui/button'
 import { ActivityListItem } from './ActivityListItem'
-import { Button } from './ui/button'
 
 interface ActivityListProps {
   activities: ActivityItem[]

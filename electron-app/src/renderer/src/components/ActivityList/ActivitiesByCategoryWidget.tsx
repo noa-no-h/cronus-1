@@ -1,18 +1,22 @@
 import { getTimeRangeDescription } from '@renderer/lib/activityMoving'
 import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
-import { useAuth } from '../contexts/AuthContext'
-import { toast } from '../hooks/use-toast'
-import useActivitySelection from '../hooks/useActivitySelection'
-import { ActivityItem, ProcessedCategory, processActivityEvents } from '../lib/activityProcessing'
-import { SYSTEM_EVENT_NAMES } from '../lib/constants'
-import { trpc } from '../utils/trpc'
+import { useAuth } from '../../contexts/AuthContext'
+import { toast } from '../../hooks/use-toast'
+import useActivitySelection from '../../hooks/useActivitySelection'
+import {
+  ActivityItem,
+  ProcessedCategory,
+  processActivityEvents
+} from '../../lib/activityProcessing'
+import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
+import { trpc } from '../../utils/trpc'
+import type { ProcessedEventBlock } from '../DashboardView'
+import { Card, CardContent } from '../ui/card'
 import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
 import { ActivityList } from './ActivityList'
 import { CategorySectionHeader } from './CategorySectionHeader'
-import type { ProcessedEventBlock } from './DashboardView'
 import { TimeRangeSelectionInfo } from './TimeRangeSelectionInfo'
-import { Card, CardContent } from './ui/card'
 
 interface ActivitiesByCategoryWidgetProps {
   processedEvents: ProcessedEventBlock[] | null

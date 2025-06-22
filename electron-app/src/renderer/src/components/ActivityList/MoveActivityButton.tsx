@@ -1,14 +1,14 @@
 import { Category as SharedCategory } from 'shared'
-import { getTimeRangeDescription } from '../lib/activityMoving'
-import { ActivityItem } from '../lib/activityProcessing'
-import { Button } from './ui/button'
+import { getTimeRangeDescription } from '../../lib/activityMoving'
+import { ActivityItem } from '../../lib/activityProcessing'
+import { Button } from '../ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
-} from './ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'
+} from '../ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 
 interface MoveActivityButtonProps {
   activity: ActivityItem

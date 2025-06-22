@@ -1,9 +1,9 @@
 import clsx from 'clsx'
 import { useMemo } from 'react'
-import { getDarkerColor, processColor } from '../lib/colors'
-import type { ProcessedEventBlock } from './DashboardView'
-import { notionStyleCategoryColors } from './settings/CategoryManagement'
-import { TooltipProvider } from './ui/tooltip'
+import { getDarkerColor, processColor } from '../../lib/colors'
+import type { ProcessedEventBlock } from '../DashboardView'
+import { notionStyleCategoryColors } from '../Settings/CategoryManagement'
+import { TooltipProvider } from '../ui/tooltip'
 
 interface WeekViewProps {
   processedEvents: ProcessedEventBlock[] | null

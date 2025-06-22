@@ -4,9 +4,8 @@ import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
-import ActivitiesByCategoryWidget from './ActivitiesByCategoryWidget'
-import CalendarWidget from './CalendarWidget'
-import TopActivityWidget from './TopActivityWidget'
+import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
+import CalendarWidget from './CalendarWidget/CalendarWidget'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -129,7 +128,7 @@ export function DashboardView({ className }: { className?: string }) {
 
   return (
     <div
-      className={`flex-1 flex flex-row overflow-hidden min-h-0 px-4 pb-4 space-x-4 ${className}`}
+      className={`flex-1 flex flex-row overflow-hidden min-h-0 px-2 pb-2 space-x-2 ${className}`}
     >
       <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <ActivitiesByCategoryWidget
@@ -143,10 +142,10 @@ export function DashboardView({ className }: { className?: string }) {
           selectedDay={selectedDay}
           onDaySelect={handleDaySelect}
         />
-        <TopActivityWidget
+        {/* <TopActivityWidget
           processedEvents={activityWidgetProcessedEvents}
           isLoadingEvents={isLoadingEvents}
-        />
+        /> */}
       </div>
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget

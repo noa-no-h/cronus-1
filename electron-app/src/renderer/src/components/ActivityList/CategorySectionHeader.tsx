@@ -2,9 +2,9 @@ import { formatDuration } from '@renderer/lib/activityByCategoryWidgetHelpers'
 import { XIcon } from 'lucide-react'
 import React from 'react'
 import { Category as SharedCategory } from 'shared'
-import type { ProcessedCategory } from '../lib/activityProcessing'
+import type { ProcessedCategory } from '../../lib/activityProcessing'
+import { Button } from '../ui/button'
 import { MoveSelectedActivitiesButton } from './MoveSelectedActivitiesButton'
-import { Button } from './ui/button'
 
 interface CategorySectionHeaderProps {
   category: ProcessedCategory

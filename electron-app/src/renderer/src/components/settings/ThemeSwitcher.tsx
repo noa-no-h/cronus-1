@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Button } from '../../components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { useAuth } from '../../contexts/AuthContext'
 import type { Theme } from '../../contexts/ThemeContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { trpc } from '../../utils/trpc'
+import { Button } from '../ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme()
