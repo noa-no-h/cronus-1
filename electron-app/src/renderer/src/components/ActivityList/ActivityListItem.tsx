@@ -76,7 +76,7 @@ export const ActivityListItem = ({
   return (
     <div
       key={activityKey}
-      className={`group flex w-full select-none items-center cursor-pointer justify-between px-2 py-0.5 ${borderRadiusClass} ${
+      className={`group flex w-full select-none items-center cursor-pointer justify-between px-1 py-0.5 ${borderRadiusClass} ${
         isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-muted'
       }`}
       onMouseEnter={() => setHoveredActivityKey(activityKey)}

@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import {
   getTimelineSegmentsForHour,
   type EnrichedTimelineSegment,
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
-import { ScrollArea } from '../ui/scroll-area'
 import { TooltipProvider } from '../ui/tooltip'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
 import { TimelineHour } from './TimelineHour'
@@ -18,6 +17,8 @@ interface DayTimelineProps {
   isDarkMode: boolean
   selectedHour: number | null
   onHourSelect: (hour: number | null) => void
+  hourHeight: number
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>
 }
 
 const DayTimeline = ({
@@ -26,17 +27,38 @@ const DayTimeline = ({
   isToday,
   isDarkMode,
   selectedHour,
-  onHourSelect
+  onHourSelect,
+  hourHeight,
+  scrollContainerRef
 }: DayTimelineProps) => {
   const currentHourRef = useRef<HTMLDivElement>(null)
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const prevHourHeightRef = useRef(hourHeight)
 
   // Scroll to current hour when viewing today
   useEffect(() => {
-    if (isToday && currentHourRef.current && scrollAreaRef.current) {
+    if (isToday && currentHourRef.current && scrollContainerRef.current) {
       currentHourRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-  }, [isToday, timeBlocks])
+  }, [isToday, timeBlocks, scrollContainerRef])
+
+  // Adjust scroll position on zoom to keep the view centered
+  useLayoutEffect(() => {
+    const scrollElement = scrollContainerRef.current
+    if (!scrollElement) return
+
+    const prevHourHeight = prevHourHeightRef.current
+    const zoomRatio = hourHeight / prevHourHeight
+
+    if (zoomRatio !== 1) {
+      const { scrollTop, clientHeight } = scrollElement
+      const scrollCenter = scrollTop + clientHeight / 2
+      const newScrollTop = scrollCenter * zoomRatio - clientHeight / 2
+      scrollElement.scrollTop = newScrollTop
+    }
+
+    // Update ref for the next render
+    prevHourHeightRef.current = hourHeight
+  }, [hourHeight, scrollContainerRef])
 
   // Calculate current time position
   const getCurrentTimePosition = () => {
@@ -47,12 +69,12 @@ const DayTimeline = ({
   }
 
   return (
-    <ScrollArea className="flex-1" ref={scrollAreaRef}>
+    <div className="flex-1">
       <TooltipProvider>
         <div>
           <div>
             {Array.from({ length: 24 }).map((_, hour) => {
-              const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
+              let currentActiveSegment: EnrichedTimelineSegment | null = null
               const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
               const showCurrentTime = isToday && hour === currentHour
               const isCurrentHour = hour === currentHour
@@ -60,7 +82,7 @@ const DayTimeline = ({
               const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
               const isLastHour = hour === 23
 
-              let currentActiveSegment: EnrichedTimelineSegment | null = null
+              const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
               if (showCurrentTime && timelineSegments.length > 0) {
                 const lastSegment = timelineSegments[timelineSegments.length - 1]
                 const currentMinute = currentTime.getMinutes()
@@ -85,6 +107,7 @@ const DayTimeline = ({
                     onHourSelect={onHourSelect}
                     isLastHour={isLastHour}
                     currentActiveSegment={currentActiveSegment}
+                    hourHeight={hourHeight}
                   />
                   {showCurrentTime && (
                     <CurrentTimeIndicator
@@ -98,7 +121,7 @@ const DayTimeline = ({
           </div>
         </div>
       </TooltipProvider>
-    </ScrollArea>
+    </div>
   )
 }
 

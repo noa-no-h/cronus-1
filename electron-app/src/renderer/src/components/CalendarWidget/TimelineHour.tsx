@@ -19,6 +19,7 @@ interface TimelineHourProps {
   onHourSelect: (hour: number | null) => void
   isLastHour: boolean
   currentActiveSegment: EnrichedTimelineSegment | null
+  hourHeight: number
 }
 
 export const TimelineHour = memo(
@@ -32,7 +33,8 @@ export const TimelineHour = memo(
     currentHourRef,
     onHourSelect,
     isLastHour,
-    currentActiveSegment
+    currentActiveSegment,
+    hourHeight
   }: TimelineHourProps) => {
     const SEGMENT_TOP_OFFSET_PX = 1
     const SEGMENT_SPACING_PX = 1 // Gap between segments
@@ -45,7 +47,7 @@ export const TimelineHour = memo(
       <div
         key={hour}
         className={clsx(
-          'group relative px-2 flex cursor-pointer border-slate-300 dark:border-slate-600',
+          'group relative pl-2 flex cursor-pointer border-slate-300 dark:border-slate-600',
           isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : 'hover:bg-muted/50',
           isLastHour ? '' : 'border-b'
         )}
@@ -58,11 +60,10 @@ export const TimelineHour = memo(
 
         <div className="flex-1 border-l relative">
           <div
-            className={`relative h-32 rounded-md pt-1.5 ${
-              isSelectedHour
-                ? 'bg-blue-200/20 dark:bg-blue-800/30'
-                : 'bg-slate-50 dark:bg-slate-900'
+            className={`relative rounded-md pt-1.5 ${
+              isSelectedHour && 'bg-blue-200/20 dark:bg-blue-800/30'
             }`}
+            style={{ height: `${hourHeight}rem` }}
           >
             <div className="absolute inset-0 overflow-hidden rounded-md">
               <div className="absolute inset-0 flex flex-col">
