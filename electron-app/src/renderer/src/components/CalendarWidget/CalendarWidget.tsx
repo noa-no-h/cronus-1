@@ -162,7 +162,7 @@ const CalendarWidget = ({
   }, [selectedDate, viewMode])
 
   return (
-    <div className="flex flex-col h-full bg-card border-1 border border-border rounded-xl">
+    <div className="flex flex-col h-full bg-card border-1 border border-border rounded-lg">
       <CalendarWidgetHeader
         handlePrev={handlePrev}
         width={width}
