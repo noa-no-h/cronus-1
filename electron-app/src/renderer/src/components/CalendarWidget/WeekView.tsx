@@ -54,10 +54,9 @@ const WeekView = ({
     }
 
     const startOfWeek = new Date(selectedDate)
-    // Use getDay() which returns 0 for Sunday, 1 for Monday, etc.
     const dayOfWeek = startOfWeek.getDay()
-    startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek)
-    startOfWeek.setHours(0, 0, 0, 0)
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract)
 
     const days = Array.from({ length: 7 }).map((_, i) => {
       const day = new Date(startOfWeek)

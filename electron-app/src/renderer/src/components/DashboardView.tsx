@@ -50,8 +50,9 @@ export function DashboardView({ className }: { className?: string }) {
         endOfPeriod.setDate(startOfPeriod.getDate() + 1)
       } else {
         const dayOfWeek = localSelectedDate.getDay()
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
         startOfPeriod = new Date(localSelectedDate)
-        startOfPeriod.setDate(localSelectedDate.getDate() - dayOfWeek)
+        startOfPeriod.setDate(localSelectedDate.getDate() - daysToSubtract)
         startOfPeriod.setHours(0, 0, 0, 0)
         endOfPeriod = new Date(startOfPeriod)
         endOfPeriod.setDate(startOfPeriod.getDate() + 7)
