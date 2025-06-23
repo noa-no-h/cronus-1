@@ -57,10 +57,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     {
       title: 'Welcome!',
       content: (
-        <div className="text-center space-y-6">
+        <div className="text-left space-y-6">
           <img src={icon} alt="Cronus" className="w-24 h-24 mx-auto" />
           <div className="text-7xl mb-6">Cronus</div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.
           </p>
         </div>
@@ -73,13 +73,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     {
       title: 'Enable Accessibility Permission',
       content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
+        <div className="text-left space-y-6">
+          <div className="flex justify-start mb-4">
             <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
               <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
             To track your productivity accurately, we need permission to read window titles and
             content from other applications.
           </p>
@@ -126,13 +126,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     {
       title: 'Browser Setup for Better Tracking',
       content: !showBrowserConfirmation ? (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
+        <div className="text-left space-y-6">
+          <div className="flex justify-start mb-4">
             <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
               <Chrome className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
             To get the most accurate insights, please enable JavaScript from Apple Events in your
             browser.
           </p>
@@ -163,7 +163,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </span>
           </div>
 
-          <div className="text-left max-w-md mx-auto">
+          <div className="text-left max-w-md">
             {isUsingSafari ? (
               <ol className="list-decimal pl-6 text-base space-y-2">
                 <li>
@@ -200,7 +200,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             )}
           </div>
 
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-start mt-4">
             <img
               src={isUsingSafari ? safariEnableJsScreenshot : chromeAppleEventsScreenshot}
               alt={`How to enable JavaScript from Apple Events in ${isUsingSafari ? 'Safari' : 'Chrome'}`}
@@ -209,14 +209,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           </div>
         </div>
       ) : (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
+        <div className="text-left space-y-6">
+          <div className="flex justify-start mb-4">
             <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
               <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <h3 className="text-xl font-semibold">Confirm Browser Setup</h3>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
             Have you enabled JavaScript from Apple Events in your{' '}
             {isUsingSafari ? 'Safari' : 'Chrome'} browser?
           </p>
@@ -231,14 +231,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     {
       title: "You're All Set!",
       content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
+        <div className="text-left space-y-6">
+          <div className="flex justify-start mb-4">
             <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
               <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Your productivity tracking is now configured. We&apos;ll start monitoring your activity
+          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
+            Your productivity tracking is now configured. Cronus will start monitoring your activity
             and help you stay focused on your goals.
           </p>
           <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
