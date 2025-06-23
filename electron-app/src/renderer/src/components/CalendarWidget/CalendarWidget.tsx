@@ -135,8 +135,9 @@ const CalendarWidget = ({
   const formattedDate = useMemo(() => {
     if (viewMode === 'week') {
       const startOfWeek = new Date(selectedDate)
-      const dayOfWeek = startOfWeek.getDay() // Sunday = 0
-      startOfWeek.setDate(startOfWeek.getDate() - dayOfWeek)
+      const dayOfWeek = startOfWeek.getDay() // Sunday = 0, Monday = 1, etc.
+      const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Monday start
+      startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract)
       startOfWeek.setHours(0, 0, 0, 0)
 
       const endOfWeek = new Date(startOfWeek)
