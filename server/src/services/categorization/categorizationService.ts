@@ -28,7 +28,7 @@ export async function categorizeActivity(
   const user = await UserModel.findById(userId).select('userGoals').lean();
   const userGoals: UserGoals = user?.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' };
 
-  const rawUserCategories = await CategoryModel.find({ userId }).lean();
+  const rawUserCategories = await CategoryModel.find({ userId, isArchived: { $ne: true } }).lean();
   const userCategories: CategoryType[] = rawUserCategories.map((cat) => ({
     ...cat,
     _id: cat._id.toString(),

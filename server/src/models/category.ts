@@ -10,6 +10,7 @@ export interface ICategoryDoc extends Document {
   color: SharedCategory['color'];
   isProductive: SharedCategory['isProductive'];
   isDefault: SharedCategory['isDefault'];
+  isArchived: boolean;
   createdAt: Date; // from timestamps
   updatedAt: Date; // from timestamps
 }
@@ -33,6 +34,7 @@ const categorySchema: Schema = new Schema<ICategoryDoc>(
     },
     isProductive: { type: Boolean, required: true, default: true },
     isDefault: { type: Boolean, required: true, default: false },
+    isArchived: { type: Boolean, default: false },
   },
   {
     timestamps: true,

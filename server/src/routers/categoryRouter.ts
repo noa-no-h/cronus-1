@@ -65,6 +65,7 @@ export const categoryRouter = router({
           .regex(/^#[0-9A-F]{6}$/i, 'Invalid color format')
           .optional(),
         isProductive: z.boolean().optional(),
+        isArchived: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {

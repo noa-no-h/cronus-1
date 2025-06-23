@@ -99,7 +99,7 @@ export const TimelineHour = memo(
                           opacity: individualSegmentOpacity
                         }}
                       >
-                        <TimelineSegmentContent segment={segment} />
+                        <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" align="start" sideOffset={10}>

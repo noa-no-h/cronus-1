@@ -1,230 +1,14 @@
-import {
-  Check,
-  Edit3,
-  FolderPlus,
-  Loader2,
-  PlusCircle,
-  ToggleLeft,
-  ToggleRight,
-  Trash2
-} from 'lucide-react'
+import { FolderPlus, PlusCircle } from 'lucide-react'
 import { JSX, useEffect, useState } from 'react'
-import { defaultComparableCategories, type ComparableCategory } from 'shared/categories'
+import { defaultComparableCategories } from 'shared/categories'
 import { Category } from 'shared/dist/types.js'
-import { useAuth } from '../../contexts/AuthContext' // Added useAuth import
+import { useAuth } from '../../contexts/AuthContext'
+import { checkCategoriesAgainstDefaults } from '../../lib/categoryHelpers'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card' // Added Card components
-import { Input } from '../ui/input' // Added shadcn/ui Input
-import { Label } from '../ui/label' // Added shadcn/ui Label
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover' // Added Popover imports
-import { Switch } from '../ui/switch' // Added shadcn/ui Switch
-import { Textarea } from '../ui/textarea'
-
-function checkCategoriesAgainstDefaults(
-  currentCategories: Category[] | undefined,
-  defaults: ComparableCategory[]
-): boolean {
-  if (!currentCategories) {
-    // If currentCategories is undefined (e.g. loading), or null
-    // they are not considered matching the defaults.
-    return false
-  }
-
-  // Normalize current categories for comparison
-  const normalizedCurrentCategories: ComparableCategory[] = currentCategories.map((cat) => ({
-    name: cat.name,
-    description: cat.description || '', // Treat undefined/null description as empty string
-    color: cat.color.toUpperCase(),
-    isProductive: cat.isProductive,
-    isDefault: cat.isDefault
-  }))
-
-  const normalizedDefaults: ComparableCategory[] = defaults.map((def) => ({
-    ...def,
-    description: def.description || '', // Treat undefined/null description as empty string
-    color: def.color.toUpperCase(),
-    isDefault: def.isDefault
-  }))
-
-  if (normalizedCurrentCategories.length !== normalizedDefaults.length) {
-    return false // Different number of categories
-  }
-
-  for (const defaultCat of normalizedDefaults) {
-    const currentCatMatch = normalizedCurrentCategories.find((cc) => cc.name === defaultCat.name)
-
-    if (!currentCatMatch) {
-      return false // A default category name is missing from current
-    }
-
-    // Compare properties
-    if (
-      currentCatMatch.description !== defaultCat.description ||
-      currentCatMatch.isProductive !== defaultCat.isProductive ||
-      currentCatMatch.isDefault !== defaultCat.isDefault
-    ) {
-      return false // Properties don't match
-    }
-  }
-
-  return true // All defaults found and match current categories
-}
-
-export const notionStyleCategoryColors = [
-  '#3B82F6', // Blue - defualt productive
-  '#EC4899', // Pink - default unproductive
-  '#A855F7', // Purple
-  '#F97316', // Orange
-  '#CA8A04', // Gold
-  '#10B981', // Green
-  '#06B6D4', // Cyan
-  '#6B7280', // Gray
-  '#8B5CF6', // Violet
-  '#D946EF', // Fuchsia
-  '#F59E0B', // Amber
-  '#22C55E' // Lime
-]
-
-interface CategoryColorPickerProps {
-  selectedColor: string
-  onColorChange: (color: string) => void
-}
-
-function CategoryColorPicker({
-  selectedColor,
-  onColorChange
-}: CategoryColorPickerProps): JSX.Element {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-10 h-10 p-0 border-border hover:border-ring flex-shrink-0"
-          style={{ backgroundColor: selectedColor, transition: 'background-color 0.2s' }}
-          aria-label="Pick a color"
-          title={selectedColor}
-        ></Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-popover border-border">
-        <div className="grid grid-cols-6 gap-2 p-3 rounded-md">
-          {notionStyleCategoryColors.map((bgColor) => (
-            <button
-              type="button"
-              key={bgColor}
-              className={`w-8 h-8 rounded-full flex items-center justify-center focus:outline-none ring-1 ring-border hover:ring-2 hover:ring-ring transition-all`}
-              style={{ backgroundColor: bgColor }}
-              onClick={() => {
-                onColorChange(bgColor)
-              }}
-              title={bgColor}
-            >
-              {selectedColor === bgColor && <Check size={18} className="text-white" />}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// Basic Form for Create/Edit
-interface CategoryFormProps {
-  initialData?: Category
-  onSave: (data: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>) => void
-  onCancel: () => void
-  isSaving: boolean
-}
-
-function CategoryForm({ initialData, onSave, onCancel, isSaving }: CategoryFormProps): JSX.Element {
-  const [name, setName] = useState(initialData?.name || '')
-  const [description, setDescription] = useState(initialData?.description || '')
-  const [color, setColor] = useState(
-    initialData?.color ||
-      notionStyleCategoryColors[Math.floor(Math.random() * notionStyleCategoryColors.length)]
-  )
-  const [isProductive, setIsProductive] = useState(
-    initialData?.isProductive === undefined ? true : initialData.isProductive
-  )
-  const [error, setError] = useState('')
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim()) {
-      setError('Name is required.')
-      return
-    }
-    setError('')
-    onSave({ name, description, color, isProductive, isDefault: initialData?.isDefault ?? false })
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="p-6 bg-card rounded-lg shadow-md space-y-6">
-      <div>
-        <Label htmlFor="categoryName" className="block text-sm font-medium text-foreground mb-1">
-          Name <span className="text-red-500">*</span>
-        </Label>
-        <Input
-          placeholder="Enter category name"
-          id="categoryName"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary"
-          required
-        />
-      </div>
-      <div>
-        <Label
-          htmlFor="categoryDescription"
-          className="block text-sm font-medium text-foreground mb-1"
-        >
-          Description
-        </Label>
-        <Textarea
-          rows={2}
-          placeholder="Enter category description"
-          id="categoryDescription"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground focus:ring-primary focus:border-primary resize-none"
-        />
-      </div>
-
-      {/* Container for Type and Color, arranged side-by-side on medium screens and up */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="flex items-center space-x-2 mt-1">
-          <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
-          <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
-            {isProductive ? 'Productive' : 'Unproductive'}
-          </Label>
-        </div>
-
-        <div>
-          <div className="flex items-start space-x-2 mt-1">
-            <CategoryColorPicker selectedColor={color} onColorChange={setColor} />
-            <span className="text-red-500">*</span>
-          </div>
-        </div>
-
-        {error && <p className="text-sm text-destructive-foreground">{error}</p>}
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSaving} className="flex items-center">
-          {isSaving ? (
-            <>
-              <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground" />
-              Saving...
-            </>
-          ) : (
-            'Save Category'
-          )}
-        </Button>
-      </div>
-    </form>
-  )
-}
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { CategoryForm } from './CategoryForm'
+import { CategoryListItem } from './CategoryListItem'
 
 export function CategoryManagement(): JSX.Element {
   const { token } = useAuth()
@@ -352,6 +136,18 @@ export function CategoryManagement(): JSX.Element {
     })
   }
 
+  const handleToggleArchive = async (category: Category) => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    await updateMutation.mutateAsync({
+      id: category._id,
+      isArchived: !category.isArchived,
+      token
+    })
+  }
+
   if (!token && !isLoading) {
     return (
       <div className="p-4 text-center text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-md">
@@ -359,6 +155,9 @@ export function CategoryManagement(): JSX.Element {
       </div>
     )
   }
+
+  const activeCategories = categories?.filter((c) => !c.isArchived) || []
+  const archivedCategories = categories?.filter((c) => c.isArchived) || []
 
   if (isLoading)
     return <div className="text-center p-4 text-muted-foreground">Loading categories...</div>
@@ -442,91 +241,52 @@ export function CategoryManagement(): JSX.Element {
             </div>
           )}
 
-          {!isFormOpen && categories && categories.length > 0 && (
+          {!isFormOpen && activeCategories.length > 0 && (
             <div className="border border-border rounded-lg overflow-hidden">
               <ul role="list" className="divide-y divide-border">
-                {categories.map((category) => (
-                  <li
+                {activeCategories.map((category) => (
+                  <CategoryListItem
                     key={category._id}
-                    className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <span
-                          style={{ backgroundColor: category.color }}
-                          className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
-                        ></span>
-                        <div>
-                          <p className="text-md font-medium text-foreground truncate">
-                            {category.name}
-                          </p>
-                          {category.description && (
-                            <p className="text-sm text-muted-foreground truncate max-w-xs">
-                              {category.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="ml-2 flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggleProductive(category)}
-                          title={
-                            category.isProductive ? 'Mark as Unproductive' : 'Mark as Productive'
-                          }
-                          className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${category.isProductive ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500' : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'}`}
-                          disabled={!token}
-                        >
-                          {category.isProductive ? (
-                            <ToggleRight size={22} />
-                          ) : (
-                            <ToggleLeft size={22} />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(category)}
-                          className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
-                          title="Edit category"
-                          disabled={!token}
-                        >
-                          <Edit3 size={18} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            // just alert that this is not implement yet but we're happy to add this feature if you want to
-                            alert(
-                              'Deleting categories is not implemented yet. We are planning to add this and a smart activity-recategorization feature next :)'
-                            )
-
-                            // if (window.confirm('Are you sure you want to delete this category?')) {
-                            //   handleDelete(category._id)
-                            // }
-                          }}
-                          disabled={
-                            !token ||
-                            (deleteMutation.isLoading &&
-                              deleteMutation.variables?.id === category._id)
-                          }
-                          className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-destructive disabled:opacity-50"
-                          title="Delete category"
-                        >
-                          {deleteMutation.isLoading &&
-                          deleteMutation.variables?.id === category._id ? (
-                            <Loader2 className="animate-spin h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <Trash2 size={18} />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </li>
+                    category={category}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleProductive={handleToggleProductive}
+                    onToggleArchive={handleToggleArchive}
+                    isDeleting={
+                      deleteMutation.isLoading && deleteMutation.variables?.id === category._id
+                    }
+                    isUpdating={
+                      updateMutation.isLoading && updateMutation.variables?.id === category._id
+                    }
+                  />
                 ))}
               </ul>
+            </div>
+          )}
+
+          {!isFormOpen && archivedCategories.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <ul role="list" className="divide-y divide-border">
+                  {archivedCategories.map((category) => (
+                    <CategoryListItem
+                      key={category._id}
+                      category={category}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onToggleProductive={handleToggleProductive}
+                      onToggleArchive={handleToggleArchive}
+                      isDeleting={
+                        deleteMutation.isLoading && deleteMutation.variables?.id === category._id
+                      }
+                      isUpdating={
+                        updateMutation.isLoading && updateMutation.variables?.id === category._id
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
         </CardContent>

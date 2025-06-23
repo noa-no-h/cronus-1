@@ -1,9 +1,15 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { getDarkerColor } from '../../lib/colors'
+import { getDarkerColor, getLighterColor } from '../../lib/colors'
 import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
 import { ActivityIcon } from '../ActivityList/ActivityIcon'
 
-const TimelineSegmentContent = ({ segment }: { segment: EnrichedTimelineSegment }) => {
+const TimelineSegmentContent = ({
+  segment,
+  isDarkMode
+}: {
+  segment: EnrichedTimelineSegment
+  isDarkMode: boolean
+}) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [canShowContent, setCanShowContent] = useState(false)
   const [canShowIcon, setCanShowIcon] = useState(false)
@@ -25,7 +31,11 @@ const TimelineSegmentContent = ({ segment }: { segment: EnrichedTimelineSegment 
     return () => resizeObserver.disconnect()
   }, [])
 
-  const textColor = segment.categoryColor ? getDarkerColor(segment.categoryColor, 0.6) : undefined
+  const textColor = segment.categoryColor
+    ? isDarkMode
+      ? getLighterColor(segment.categoryColor, 0.8)
+      : getDarkerColor(segment.categoryColor, 0.6)
+    : undefined
 
   return (
     <div
@@ -34,10 +44,12 @@ const TimelineSegmentContent = ({ segment }: { segment: EnrichedTimelineSegment 
       style={{ color: textColor }}
     >
       {canShowIcon && (
-        <div className="flex flex-row items-center space-x-2 py-0.5">
+        <div className="flex w-full flex-row items-center space-x-2 py-0.5">
           <ActivityIcon url={segment.url} appName={segment.name} size={12} />
           {canShowContent && (
-            <span className="text-xs font-medium text-left leading-tight">{segment.name}</span>
+            <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
+              {segment.name}
+            </span>
           )}
         </div>
       )}
