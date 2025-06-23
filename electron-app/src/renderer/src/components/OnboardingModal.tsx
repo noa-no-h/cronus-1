@@ -398,7 +398,27 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                       )}
                     </Button>
                   ) : (
-                    <div></div> // Empty div to maintain spacing
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleNext}
+                        variant="default"
+                        size="default"
+                        className="min-w-[140px]"
+                      >
+                        I&apos;ve Already Enabled This
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setHasRequestedPermission(false)
+                          setPermissionStatus(null)
+                        }}
+                        variant="outline"
+                        size="default"
+                        className="min-w-[120px]"
+                      >
+                        Try Again
+                      </Button>
+                    </div>
                   )
                 ) : isBrowserSetupStep ? (
                   !showBrowserConfirmation ? (
