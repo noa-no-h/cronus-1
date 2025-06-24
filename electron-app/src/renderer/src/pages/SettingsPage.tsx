@@ -1,9 +1,9 @@
 import { RefreshCw } from 'lucide-react'
-import { CategoryManagement } from '../components/Settings/CategoryManagement.tsx' // We'll create this next
-import DistractionSoundSettings from '../components/Settings/DistractionSoundSettings.tsx'
-import GoalInputForm from '../components/Settings/GoalInputForm.tsx'
-import { PermissionsStatus } from '../components/Settings/PermissionsStatus.tsx'
-import { ThemeSwitcher } from '../components/Settings/ThemeSwitcher.tsx'
+import { CategoryManagement } from '../components/Settings/CategoryManagement' // We'll create this next
+import DistractionSoundSettings from '../components/Settings/DistractionSoundSettings'
+import GoalInputForm from '../components/Settings/GoalInputForm'
+import { PermissionsStatus } from '../components/Settings/PermissionsStatus'
+import { ThemeSwitcher } from '../components/Settings/ThemeSwitcher'
 import { Button } from '../components/ui/button'
 import { useAuth } from '../contexts/AuthContext'
 
