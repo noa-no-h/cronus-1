@@ -168,6 +168,7 @@ const CalendarWidget = ({
         handlePrev={handlePrev}
         width={width}
         formattedDate={formattedDate}
+        selectedDate={selectedDate}
         handleNext={handleNext}
         canGoNext={canGoNext}
         handleZoomOut={handleZoomOut}
