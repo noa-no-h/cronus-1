@@ -21,19 +21,18 @@ export interface User {
 export interface ActiveWindowDetails {
   windowId?: number;
   ownerName: string;
-  type: 'window' | 'browser' | 'system';
+  type: 'window' | 'browser' | 'system' | 'manual';
   browser?: 'chrome' | 'safari' | null;
-  title: string;
+  title?: string | null;
   url?: string | null;
   content?: string | null;
-  timestamp?: number;
-  localScreenshotPath?: string | null;
+  timestamp: number;
   screenshotS3Url?: string | null;
-  captureReason?: 'app_switch' | 'periodic_backup' | null;
-  categoryReasoning?: string | null;
+  durationMs?: number;
 }
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {
+  _id?: string;
   userId: string;
   categoryId?: string | null;
   categoryReasoning?: string | null;

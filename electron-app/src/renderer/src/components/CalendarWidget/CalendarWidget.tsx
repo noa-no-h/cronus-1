@@ -88,15 +88,22 @@ const CalendarWidget = ({
 
     const blocks: TimeBlock[] = processedEvents
       .filter((event) => !SYSTEM_EVENT_NAMES.includes(event.name))
-      .map((eventBlock) => ({
-        startTime: eventBlock.startTime,
-        endTime: eventBlock.endTime,
-        durationMs: eventBlock.durationMs,
-        name: eventBlock.name,
-        description: eventBlock.title || '',
-        url: eventBlock.url,
-        categoryColor: eventBlock.categoryColor
-      }))
+      .map((eventBlock) => {
+        const timeBlock = {
+          _id: eventBlock.originalEvent._id,
+          startTime: eventBlock.startTime,
+          endTime: eventBlock.endTime,
+          durationMs: eventBlock.durationMs,
+          name: eventBlock.name,
+          description: eventBlock.title || '',
+          url: eventBlock.url,
+          categoryColor: eventBlock.categoryColor,
+          categoryId: eventBlock.categoryId || undefined,
+          type: eventBlock.originalEvent.type
+        }
+
+        return timeBlock
+      })
 
     setTimeBlocks(blocks)
   }, [processedEvents, isLoadingEvents])

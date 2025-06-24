@@ -76,8 +76,8 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
   }
 
   return (
-    <div className="sticky top-0 z-10 ml-2 flex select-none items-center justify-between border-b border-border bg-card py-2">
-      <div className="flex items-center">
+    <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
+      <div className="flex items-center ml-1">
         <span
           className="mr-2 h-4 w-4 flex-shrink-0 rounded-full"
           style={{ backgroundColor: category.color }}

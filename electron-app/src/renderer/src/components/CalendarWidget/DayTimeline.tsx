@@ -1,11 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
+import { useTimeSelection } from '../../hooks/useTimeSelection'
 import {
   getTimelineSegmentsForHour,
   type EnrichedTimelineSegment,
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
+import { trpc } from '../../utils/trpc'
 import { TooltipProvider } from '../ui/tooltip'
+import { CreateEntryModal } from './CreateEntryModal'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
+import { SelectionBox } from './SelectionBox'
 import { TimelineHour } from './TimelineHour'
 
 export type { TimeBlock }
@@ -34,17 +39,51 @@ const DayTimeline = ({
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
+  const { token } = useAuth()
+  const utils = trpc.useUtils()
 
-  const [dragState, setDragState] = useState<{
-    isSelecting: boolean
-    isDragging: boolean
-    startPos: { y: number } | null
-    currentPos: { y: number } | null
+  const createManualEntry = trpc.activeWindowEvents.createManual.useMutation({
+    onSuccess: () => {
+      // After a successful mutation, invalidate the query for the current day
+      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    },
+    onError: (error) => {
+      // Basic error handling
+      console.error('Failed to create manual entry:', error)
+      alert('Error: Could not create the entry. Please try again.')
+    }
+  })
+
+  const updateManualEntry = trpc.activeWindowEvents.updateManual.useMutation({
+    onSuccess: () => {
+      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    },
+    onError: (error) => {
+      console.error('Failed to update manual entry:', error)
+      alert('Error: Could not update the entry. Please try again.')
+    }
+  })
+
+  const deleteManualEntry = trpc.activeWindowEvents.deleteManual.useMutation({
+    onSuccess: () => {
+      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    },
+    onError: (error) => {
+      console.error('Failed to delete manual entry:', error)
+      alert('Error: Could not delete the entry. Please try again.')
+    }
+  })
+
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean
+    startTime: { hour: number; minute: number } | null
+    endTime: { hour: number; minute: number } | null
+    editingEntry: TimeBlock | null
   }>({
-    isSelecting: false,
-    isDragging: false,
-    startPos: null,
-    currentPos: null
+    isOpen: false,
+    startTime: null,
+    endTime: null,
+    editingEntry: null
   })
 
   // Scroll to current hour when viewing today
@@ -82,70 +121,103 @@ const DayTimeline = ({
     const hourHeightInRem = hourHeight
     const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
     const hourHeightInPx = hourHeightInRem * rootFontSize
+
+    // Account for the pt-1.5 (6px) padding at the top of each hour
+    const paddingTopPx = 6
+    const effectiveHourHeight = hourHeightInPx - paddingTopPx
     const totalHeight = 24 * hourHeightInPx
 
-    const snappedY = Math.max(0, Math.min(relativeY, totalHeight))
+    const clampedY = Math.max(0, Math.min(relativeY, totalHeight))
 
-    const hour = Math.floor(snappedY / hourHeightInPx)
-    const minuteFraction = (snappedY % hourHeightInPx) / hourHeightInPx
+    const hour = Math.floor(clampedY / hourHeightInPx)
+
+    // Adjust for the padding within the hour
+    const yWithinHour = clampedY % hourHeightInPx
+    const adjustedYWithinHour = Math.max(0, yWithinHour - paddingTopPx)
+    const minuteFraction = adjustedYWithinHour / effectiveHourHeight
     const minute = Math.floor(minuteFraction * 60)
 
-    // Snap to 15-minute intervals
-    const snappedMinute = Math.round(minute / 15) * 15
+    console.log('minute', minute)
 
-    return { hour, minute: snappedMinute, y: snappedY }
-  }
+    // Snap to 5-minute intervals - use floor to snap to the start of the interval
+    let snappedMinute = Math.floor(minute / 5) * 5
+    let finalHour = hour
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    const startPos = yToTime(e.clientY)
-    if (!startPos) return
-
-    setDragState({
-      isSelecting: true,
-      isDragging: false,
-      startPos: { y: e.clientY },
-      currentPos: { y: e.clientY }
-    })
-  }
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragState.isSelecting) return
-
-    setDragState((prev) => {
-      if (!prev.startPos) return prev
-      const isDragging = prev.isDragging || Math.abs(e.clientY - prev.startPos.y) > 5 // 5px threshold
-      return { ...prev, isDragging, currentPos: { y: e.clientY } }
-    })
-  }
-
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragState.isSelecting) return
-
-    if (dragState.isDragging) {
-      // It's a drag
-      const startTime = yToTime(dragState.startPos!.y)
-      const endTime = yToTime(e.clientY)
-
-      if (startTime && endTime) {
-        // Ensure start is before end
-        const selectionStart = startTime.y < endTime.y ? startTime : endTime
-        const selectionEnd = startTime.y < endTime.y ? endTime : startTime
-
-        const entryName = 'New Entry' // Hardcoded for now
-        console.log('Creating new entry:', {
-          name: entryName,
-          startTime: `${String(selectionStart.hour).padStart(2, '0')}:${String(
-            selectionStart.minute
-          ).padStart(2, '0')}`,
-          endTime: `${String(selectionEnd.hour).padStart(2, '0')}:${String(
-            selectionEnd.minute
-          ).padStart(2, '0')}`
-        })
-      }
+    if (snappedMinute === 60) {
+      finalHour += 1
+      snappedMinute = 0
     }
-    // Click logic is now handled by a button in TimelineHour.
 
-    setDragState({ isSelecting: false, isDragging: false, startPos: null, currentPos: null })
+    // Recalculate the y position based on the snapped time for visual snapping
+    const snappedYPosition =
+      finalHour * hourHeightInPx + paddingTopPx + (snappedMinute / 60) * effectiveHourHeight
+
+    return { hour: finalHour, minute: snappedMinute, y: snappedYPosition }
+  }
+
+  const handleSelectionEnd = (
+    startTime: { hour: number; minute: number },
+    endTime: { hour: number; minute: number }
+  ) => {
+    setModalState({ isOpen: true, startTime, endTime, editingEntry: null })
+  }
+
+  const {
+    dragState,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    resetDragState
+  } = useTimeSelection(yToTime, handleSelectionEnd, !modalState.isOpen)
+
+  const handleModalClose = () => {
+    setModalState({ isOpen: false, startTime: null, endTime: null, editingEntry: null })
+    resetDragState()
+  }
+
+  const handleModalSubmit = (data: { name: string; categoryId?: string }) => {
+    if (modalState.editingEntry) {
+      if (!token || !modalState.editingEntry._id) return
+      updateManualEntry.mutate({
+        token,
+        id: modalState.editingEntry._id,
+        name: data.name,
+        categoryId: data.categoryId
+      })
+    } else if (modalState.startTime && modalState.endTime && token) {
+      const getAbsTime = (time: { hour: number; minute: number }) => {
+        const date = new Date(currentTime)
+        date.setHours(time.hour, time.minute, 0, 0)
+        return date.getTime()
+      }
+
+      createManualEntry.mutate({
+        token,
+        name: data.name,
+        categoryId: data.categoryId,
+        startTime: getAbsTime(modalState.startTime),
+        endTime: getAbsTime(modalState.endTime)
+      })
+    }
+    handleModalClose()
+  }
+
+  const handleModalDelete = (entryId: string) => {
+    if (!token) return
+    if (window.confirm('Are you sure you want to delete this entry?')) {
+      deleteManualEntry.mutate({ token, id: entryId })
+      handleModalClose()
+    }
+  }
+
+  const handleSelectManualEntry = (entry: TimeBlock) => {
+    setModalState({
+      isOpen: true,
+      startTime: null,
+      endTime: null,
+      editingEntry: entry
+    })
   }
 
   // Calculate current time position
@@ -156,27 +228,6 @@ const DayTimeline = ({
     return { hours, minutePercentage }
   }
 
-  const renderSelectionBox = () => {
-    if (!dragState.isDragging || !dragState.startPos || !dragState.currentPos) return null
-
-    const start = yToTime(dragState.startPos.y)
-    const end = yToTime(dragState.currentPos.y)
-    if (!start || !end) return null
-
-    const top = Math.min(start.y, end.y)
-    const height = Math.abs(start.y - end.y)
-
-    return (
-      <div
-        className="absolute ml-16 left-0 right-0 bg-blue-500/30 border border-blue-500 rounded-md z-10"
-        style={{
-          top: `${top}px`,
-          height: `${height}px`
-        }}
-      />
-    )
-  }
-
   return (
     <div className="flex-1">
       <TooltipProvider>
@@ -185,10 +236,15 @@ const DayTimeline = ({
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp} // End drag if mouse leaves container
+          onMouseLeave={handleMouseLeave}
           className="relative"
         >
-          {renderSelectionBox()}
+          <SelectionBox
+            isVisible={dragState.isDragging || modalState.isOpen}
+            dragState={dragState}
+            yToTime={yToTime}
+          />
+
           {Array.from({ length: 24 }).map((_, hour) => {
             let currentActiveSegment: EnrichedTimelineSegment | null = null
             const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
@@ -199,6 +255,8 @@ const DayTimeline = ({
             const isLastHour = hour === 23
 
             const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
+
+            // current activity helpers
             if (showCurrentTime && timelineSegments.length > 0) {
               const lastSegment = timelineSegments[timelineSegments.length - 1]
               const currentMinute = currentTime.getMinutes()
@@ -221,6 +279,7 @@ const DayTimeline = ({
                   individualSegmentOpacity={individualSegmentOpacity}
                   currentHourRef={currentHourRef}
                   onHourSelect={onHourSelect}
+                  onSelectManualEntry={handleSelectManualEntry}
                   isLastHour={isLastHour}
                   currentActiveSegment={currentActiveSegment}
                   hourHeight={hourHeight}
@@ -237,6 +296,17 @@ const DayTimeline = ({
           })}
         </div>
       </TooltipProvider>
+      {modalState.isOpen && (
+        <CreateEntryModal
+          isOpen={modalState.isOpen}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          onDelete={handleModalDelete}
+          startTime={modalState.startTime}
+          endTime={modalState.endTime}
+          existingEntry={modalState.editingEntry}
+        />
+      )}
     </div>
   )
 }

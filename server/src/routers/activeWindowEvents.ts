@@ -231,4 +231,104 @@ export const activeWindowEventsRouter = router({
         });
       }
     }),
+
+  createManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        name: z.string(),
+        categoryId: z.string().optional(),
+        startTime: z.number(),
+        endTime: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      const { name, categoryId, startTime, endTime } = input;
+
+      const eventToSave: ActiveWindowEvent = {
+        userId,
+        ownerName: name,
+        title: name,
+        type: 'manual',
+        timestamp: startTime,
+        // Manual entries won't have these, but the schema expects them
+        windowId: 0,
+        browser: null,
+        url: '',
+        content: '',
+        screenshotS3Url: '',
+        // These fields are crucial
+        categoryId,
+        // We can store the duration if needed, or calculate it on the fly
+        durationMs: endTime - startTime,
+      };
+
+      console.log('eventToSave in createManual', JSON.stringify(eventToSave, null, 2));
+
+      try {
+        const newEvent = new ActiveWindowEventModel(eventToSave);
+        await newEvent.save();
+        return newEvent.toObject() as ActiveWindowEvent;
+      } catch (error) {
+        console.error('Error saving manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to save manual window event',
+        });
+      }
+    }),
+
+  updateManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        id: z.string(),
+        name: z.string(),
+        categoryId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { token, id, ...updateData } = input;
+      verifyToken(token);
+
+      try {
+        const updatedEvent = await ActiveWindowEventModel.findByIdAndUpdate(id, updateData, {
+          new: true,
+        });
+        if (!updatedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return updatedEvent.toObject() as ActiveWindowEvent;
+      } catch (error) {
+        console.error('Error updating manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update manual window event',
+        });
+      }
+    }),
+
+  deleteManual: publicProcedure
+    .input(z.object({ token: z.string(), id: z.string() }))
+    .mutation(async ({ input }) => {
+      const { token, id } = input;
+      verifyToken(token);
+
+      try {
+        const deletedEvent = await ActiveWindowEventModel.findByIdAndDelete(id);
+        if (!deletedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return { success: true };
+      } catch (error) {
+        console.error('Error deleting manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete manual window event',
+        });
+      }
+    }),
 });

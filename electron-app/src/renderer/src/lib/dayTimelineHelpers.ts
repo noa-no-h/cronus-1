@@ -1,4 +1,5 @@
 export interface TimeBlock {
+  _id?: string
   startTime: Date
   endTime: Date
   durationMs: number
@@ -6,6 +7,8 @@ export interface TimeBlock {
   description: string
   url?: string
   categoryColor?: string
+  categoryId?: string
+  type: 'window' | 'browser' | 'system' | 'manual'
 }
 
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
@@ -18,11 +21,13 @@ interface TimelineSlot {
 }
 
 export interface EnrichedTimelineSegment extends TimeBlock {
+  _id?: string
   startMinute: number
   endMinute: number
   heightPercentage: number
   topPercentage: number
   allActivities: Record<string, { duration: number; block: TimeBlock }>
+  type: 'window' | 'browser' | 'system' | 'manual'
 }
 
 const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', 'Arc']
@@ -30,6 +35,7 @@ const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', '
 function createTimelineSlots(timeBlocks: TimeBlock[], hourStart: Date): TimelineSlot[] {
   const slots: TimelineSlot[] = []
   const slotsPerHour = 60 / SLOT_DURATION_MINUTES
+
   for (let i = 0; i < slotsPerHour; i++) {
     const slotStart = new Date(hourStart.getTime() + i * SLOT_DURATION_MINUTES * 60 * 1000)
     const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MINUTES * 60 * 1000)
@@ -144,6 +150,7 @@ export const getTimelineSegmentsForHour = (
   hourStart.setHours(hour, 0, 0, 0)
 
   const slots = createTimelineSlots(timeBlocks, hourStart)
+
   const mergedSlots = mergeConsecutiveSlots(slots)
   const segments = convertSlotsToSegments(mergedSlots)
 

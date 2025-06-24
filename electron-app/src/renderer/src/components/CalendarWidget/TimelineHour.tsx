@@ -4,7 +4,7 @@ import { memo } from 'react'
 
 import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
 import { hexToRgba } from '../../lib/colors'
-import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
+import { EnrichedTimelineSegment, TimeBlock } from '../../lib/dayTimelineHelpers'
 import { ActivityIcon } from '../ActivityList/ActivityIcon'
 import { Button } from '../ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
@@ -19,6 +19,7 @@ interface TimelineHourProps {
   individualSegmentOpacity: number
   currentHourRef: React.RefObject<HTMLDivElement | null>
   onHourSelect: (hour: number | null) => void
+  onSelectManualEntry: (entry: TimeBlock) => void
   isLastHour: boolean
   currentActiveSegment: EnrichedTimelineSegment | null
   hourHeight: number
@@ -35,6 +36,7 @@ export const TimelineHour = memo(
     individualSegmentOpacity,
     currentHourRef,
     onHourSelect,
+    onSelectManualEntry,
     isLastHour,
     currentActiveSegment,
     hourHeight,
@@ -109,14 +111,19 @@ export const TimelineHour = memo(
 
               {timelineSegments.map((segment, idx) => {
                 const isCurrentActive = segment === currentActiveSegment
+                const isManual = segment.type === 'manual'
+                const canInteract = isManual || (selectedHour === null && !isManual)
+                const segmentCursor = isManual ? 'pointer' : 'default'
+
                 return (
                   <Tooltip key={`${hour}-${segment.name}-${idx}`} delayDuration={200}>
                     <TooltipTrigger asChild>
                       <div
                         className={`absolute left-1 right-1 rounded-md
-                          hover:brightness-75 transition-all cursor-pointer
+                          ${canInteract ? 'hover:brightness-75' : ''} transition-all
                           flex items-center justify-center overflow-hidden`}
                         style={{
+                          cursor: segmentCursor,
                           backgroundColor: segment.categoryColor
                             ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
                             : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2),
@@ -129,6 +136,11 @@ export const TimelineHour = memo(
                               : `${totalSegmentVerticalSpacing}px`
                           }))`,
                           opacity: individualSegmentOpacity
+                        }}
+                        onClick={() => {
+                          if (isManual) {
+                            onSelectManualEntry(segment)
+                          }
                         }}
                       >
                         <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
