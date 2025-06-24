@@ -18,7 +18,12 @@
               "macos/titleExtractor.mm",
               "macos/permissionManager.mm"
             ],
-            "libraries": ["-framework Cocoa"],
+            "libraries": [
+              "-framework Cocoa",
+              "-framework ApplicationServices",
+              "-framework CoreGraphics", 
+              "-framework Vision"
+            ],
             "xcode_settings": {
               "OTHER_CFLAGS": ["-fno-exceptions"]
             }
