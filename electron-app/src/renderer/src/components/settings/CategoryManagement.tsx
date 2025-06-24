@@ -1,4 +1,4 @@
-import { FolderPlus, PlusCircle } from 'lucide-react'
+import { ChevronDown, FolderPlus, PlusCircle, Rows } from 'lucide-react'
 import { JSX, useEffect, useState } from 'react'
 import { defaultComparableCategories } from 'shared/categories'
 import { Category } from 'shared/dist/types.js'
@@ -7,8 +7,15 @@ import { checkCategoriesAgainstDefaults } from '../../lib/categoryHelpers'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '../ui/dropdown-menu'
 import { CategoryForm } from './CategoryForm'
 import { CategoryListItem } from './CategoryListItem'
+import { CategoryTemplateList } from './CategoryTemplateList'
 
 export function CategoryManagement(): JSX.Element {
   const { token } = useAuth()
@@ -64,6 +71,7 @@ export function CategoryManagement(): JSX.Element {
   })
 
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isTemplateViewOpen, setIsTemplateViewOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [areCategoriesMatchingDefaults, setAreCategoriesMatchingDefaults] = useState(false)
 
@@ -79,6 +87,10 @@ export function CategoryManagement(): JSX.Element {
   const handleAddNew = () => {
     setEditingCategory(null)
     setIsFormOpen(true)
+  }
+
+  const handleOpenTemplateView = () => {
+    setIsTemplateViewOpen(true)
   }
 
   const handleEdit = (category: Category) => {
@@ -122,6 +134,16 @@ export function CategoryManagement(): JSX.Element {
     } else {
       await createMutation.mutateAsync({ ...data, token })
     }
+  }
+
+  const handleAddFromTemplate = async (
+    data: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    await createMutation.mutateAsync({ ...data, token })
   }
 
   const handleToggleProductive = async (category: Category) => {
@@ -188,6 +210,7 @@ export function CategoryManagement(): JSX.Element {
                   disabled={
                     !token ||
                     isFormOpen ||
+                    isTemplateViewOpen ||
                     resetToDefaultMutation.isLoading ||
                     createMutation.isLoading ||
                     updateMutation.isLoading ||
@@ -197,17 +220,39 @@ export function CategoryManagement(): JSX.Element {
                   Reset to Default
                 </Button>
               )}
-            <Button
-              onClick={handleAddNew}
-              className="flex items-center text-sm font-medium"
-              disabled={!token || isFormOpen} // Disable if form is open
-            >
-              <PlusCircle size={18} className="mr-2" />
-              Add New Category
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center text-sm font-medium"
+                  disabled={!token || isFormOpen || isTemplateViewOpen}
+                >
+                  Add Category
+                  <ChevronDown size={18} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleAddNew}>
+                  <PlusCircle size={18} className="mr-2" />
+                  New Category
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleOpenTemplateView}>
+                  <Rows size={18} className="mr-2" />
+                  From Templates
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent>
+          {isTemplateViewOpen && (
+            <CategoryTemplateList
+              onAdd={handleAddFromTemplate}
+              onCancel={() => setIsTemplateViewOpen(false)}
+              existingCategories={categories || []}
+              isSaving={createMutation.isLoading}
+            />
+          )}
           {isFormOpen && (
             <CategoryForm
               initialData={editingCategory || undefined}
@@ -220,7 +265,7 @@ export function CategoryManagement(): JSX.Element {
             />
           )}
 
-          {!isFormOpen && (!categories || categories.length === 0) && (
+          {!isFormOpen && !isTemplateViewOpen && (!categories || categories.length === 0) && (
             <div className="text-center py-8 px-4 bg-muted/50 rounded-lg border border-dashed border-border">
               <FolderPlus className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <h3 className="mt-2 text-sm font-medium text-foreground">No categories yet</h3>
@@ -241,7 +286,7 @@ export function CategoryManagement(): JSX.Element {
             </div>
           )}
 
-          {!isFormOpen && activeCategories.length > 0 && (
+          {!isFormOpen && !isTemplateViewOpen && activeCategories.length > 0 && (
             <div className="border border-border rounded-lg overflow-hidden">
               <ul role="list" className="divide-y divide-border">
                 {activeCategories.map((category) => (
@@ -264,7 +309,7 @@ export function CategoryManagement(): JSX.Element {
             </div>
           )}
 
-          {!isFormOpen && archivedCategories.length > 0 && (
+          {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
               <div className="border border-border rounded-lg overflow-hidden">
