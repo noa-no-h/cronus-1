@@ -22,6 +22,7 @@
     "build:with-typecheck": "bun run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "bun run build && electron-builder --dir",
+    "build:local": "bun run build && electron-builder --mac --dir --config.mac.notarize=false",
     "build:win": "bun run build && electron-builder --win",
     "build:mac": "bash build-mac.sh",
     "build:mac:app-only": "bash build-mac.sh",

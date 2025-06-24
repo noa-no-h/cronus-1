@@ -17,7 +17,5 @@ void stopActiveWindowObserver(Napi::Env env);
 - (void)dealloc;
 - (void)removeWindowObserver;
 - (void)receiveAppChangeNotification:(NSNotification *)notification;
-- (NSString*)captureScreenshotForOCR;
-- (void)performOCROnImage:(NSString*)imagePath completion:(void(^)(NSString*))completion;
-- (void)extractChromeContentWithOCR:(NSMutableDictionary*)windowInfo;
+- (NSString*)performSynchronousOCR;
 @end

@@ -328,11 +328,18 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
         }
     }
     
-    MyLog(@"🐛 DEBUG: About to call extractChromeContentWithOCR");
-    // NEW: Extract Chrome content with OCR
-    [self extractChromeContentWithOCR:windowInfo];
-    MyLog(@"🐛 DEBUG: extractChromeContentWithOCR call completed");
-    return nil; // Don't return windowInfo here, OCR will send it asynchronously
+    // SYNCHRONOUS OCR - no completion blocks!
+    MyLog(@"🐛 DEBUG: About to perform synchronous OCR");
+    NSString *ocrContent = [self performSynchronousOCR];
+    
+    // Add OCR content directly to windowInfo
+    windowInfo[@"content"] = ocrContent ?: @"";
+    windowInfo[@"contentSource"] = @"ocr";
+    windowInfo[@"type"] = @"browser";
+    windowInfo[@"browser"] = @"chrome";
+    
+    MyLog(@"📤 Returning Chrome data with OCR content (%lu chars)", (unsigned long)[ocrContent length]);
+    return windowInfo; // Return normally like other apps
 } else if ([windowOwnerName isEqualToString:@"Safari"]) {
             NSDictionary *safariInfo = [BrowserTabUtils getSafariTabInfo];
             if (safariInfo) {
@@ -402,215 +409,91 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
 }
 
 // OCR Methods for Chrome content extraction
-- (NSString*)captureScreenshotForOCR {
-    MyLog(@"📷 Capturing screenshot for OCR...");
+- (NSString*)performSynchronousOCR {
+    MyLog(@"🔍 Starting synchronous OCR");
     
-    CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite,
-                                                   kCGWindowListOptionOnScreenOnly,
-                                                   kCGNullWindowID,
-                                                   kCGWindowImageDefault);
-    if (!screenshot) {
-        MyLog(@"❌ Failed to capture screenshot");
-        return nil;
-    }
-    
-    // Create unique filename
-    NSString *timestamp = [NSString stringWithFormat:@"%.0f", [[NSDate date] timeIntervalSince1970] * 1000];
-    NSString *filename = [NSString stringWithFormat:@"chrome_ocr_%@.png", timestamp];
-    NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
-    
-    // Save screenshot to file
-    NSURL *url = [NSURL fileURLWithPath:outputPath];
-    CGImageDestinationRef destination = CGImageDestinationCreateWithURL((__bridge CFURLRef)url, CFSTR("public.png"), 1, NULL);
-    
-    if (destination) {
-        CGImageDestinationAddImage(destination, screenshot, NULL);
-        BOOL success = CGImageDestinationFinalize(destination);
-        CFRelease(destination);
-        CFRelease(screenshot);
-        
-        if (success) {
-            MyLog(@"✅ Screenshot saved: %@", outputPath);
-            return outputPath;
+    @try {
+        // Capture screenshot
+        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite,
+                                                       kCGWindowListOptionOnScreenOnly,
+                                                       kCGNullWindowID,
+                                                       kCGWindowImageDefault);
+        if (!screenshot) {
+            MyLog(@"❌ Failed to capture screenshot");
+            return @"";
         }
-    } else {
-        CFRelease(screenshot);
-    }
-    
-    MyLog(@"❌ Failed to save screenshot");
-    return nil;
-}
-
-- (void)performOCROnImage:(NSString*)imagePath completion:(void(^)(NSString*))completion {
-    MyLog(@"🔍 Starting OCR on image: %@", imagePath);
-    
-    NSImage *image = [[NSImage alloc] initWithContentsOfFile:imagePath];
-    if (!image) {
-        MyLog(@"❌ Failed to load image");
-        completion(@"");
-        [image release];
-        return;
-    }
-    
-    CGImageRef cgImage = [image CGImageForProposedRect:nil context:nil hints:nil];
-    if (!cgImage) {
-        MyLog(@"❌ Failed to convert NSImage to CGImage");
-        completion(@"");
-        [image release];
-        return;
-    }
-    
-    // Create the request with completion handler
-    VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] 
-        initWithCompletionHandler:^(VNRequest *vnRequest, NSError *error) {
-            MyLog(@"🐛 DEBUG: VNRecognizeTextRequest completion handler called");
-            
-            if (error) {
-                MyLog(@"❌ OCR error: %@", error.localizedDescription);
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    completion(@"");
-                });
-                return;
-            }
-            
+        
+        MyLog(@"✅ Screenshot captured successfully");
+        
+        // Create OCR request
+        VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] init];
+        if (!request) {
+            MyLog(@"❌ Failed to create VNRecognizeTextRequest");
+            CFRelease(screenshot);
+            return @"";
+        }
+        
+        request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
+        request.usesLanguageCorrection = YES;
+        
+        MyLog(@"✅ OCR request created and configured");
+        
+        // Create handler and perform synchronously
+        VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] 
+            initWithCGImage:screenshot options:@{}];
+        
+        if (!handler) {
+            MyLog(@"❌ Failed to create VNImageRequestHandler");
+            [request release];
+            CFRelease(screenshot);
+            return @"";
+        }
+        
+        MyLog(@"✅ Image request handler created");
+        
+        NSError *error = nil;
+        NSArray *requestArray = @[request];
+        BOOL success = [handler performRequests:requestArray error:&error];
+        
+        MyLog(@"🔍 OCR performRequests completed: success=%d", success);
+        
+        NSString *result = @"";
+        
+        if (success && !error) {
+            MyLog(@"✅ OCR successful, processing results");
             NSMutableArray *textSegments = [[NSMutableArray alloc] init];
-            for (VNRecognizedTextObservation *observation in vnRequest.results) {
+            
+            NSArray *results = request.results;
+            MyLog(@"📊 OCR found %lu observations", (unsigned long)[results count]);
+            
+            for (VNRecognizedTextObservation *observation in results) {
                 VNRecognizedText *topCandidate = [observation topCandidates:1].firstObject;
                 if (topCandidate && topCandidate.confidence > 0.3) {
                     [textSegments addObject:topCandidate.string];
                 }
             }
             
-            NSString *extractedText = [textSegments componentsJoinedByString:@" "];
-            MyLog(@"✅ OCR completed: %lu characters extracted", (unsigned long)extractedText.length);
+            result = [textSegments componentsJoinedByString:@" "];
+            MyLog(@"✅ Synchronous OCR completed: %lu characters extracted", (unsigned long)result.length);
             [textSegments release];
-            
-            // Clean up screenshot file
-            [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
-            
-            // Call completion on main thread
-            dispatch_async(dispatch_get_main_queue(), ^{
-                MyLog(@"🐛 DEBUG: About to call completion with OCR text");
-                completion(extractedText);
-                MyLog(@"🐛 DEBUG: Completion called successfully");
-            });
-        }];
-    
-    // Configure OCR settings
-    request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
-    request.usesLanguageCorrection = YES;
-    
-    // Create handler and perform request
-    VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] 
-        initWithCGImage:cgImage options:@{}];
-    
-    NSError *error;
-    BOOL success = [handler performRequests:@[request] error:&error];
-    
-    // Clean up
-    [request release];
-    [handler release];
-    [image release];
-    
-    if (!success || error) {
-        MyLog(@"❌ Failed to perform OCR: %@", error ? error.localizedDescription : @"Unknown error");
-        completion(@"");
-    } else {
-        MyLog(@"✅ OCR request submitted successfully, waiting for completion...");
-    }
-}
-
-- (void)extractChromeContentWithOCR:(NSMutableDictionary*)windowInfo {
-    MyLog(@"🐛 DEBUG: Starting extractChromeContentWithOCR");
-    
-    @try {
-        MyLog(@"🐛 DEBUG: About to call captureScreenshotForOCR");
-        NSString *screenshotPath = [self captureScreenshotForOCR];
-        MyLog(@"🐛 DEBUG: captureScreenshotForOCR returned: %@", screenshotPath ? @"SUCCESS" : @"NIL");
-        
-        if (screenshotPath) {
-            // Create an immutable copy of just the data we need
-            NSDictionary *baseWindowData = [[NSDictionary alloc] initWithObjectsAndKeys:
-                windowInfo[@"ownerName"] ?: @"Google Chrome", @"ownerName",
-                windowInfo[@"title"] ?: @"", @"title", 
-                windowInfo[@"url"] ?: @"", @"url",
-                windowInfo[@"id"] ?: @0, @"id",
-                windowInfo[@"icon"] ?: @"", @"icon",
-                nil];
-            
-            // Set up a timeout to prevent hanging
-            __block BOOL ocrCompleted = NO;
-            
-            // Start timeout timer (10 seconds)
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                if (!ocrCompleted) {
-                    MyLog(@"⏰ OCR timeout - sending fallback data");
-                    NSDictionary *timeoutInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
-                        @"Google Chrome", @"ownerName",
-                        @"browser", @"type",
-                        @"chrome", @"browser", 
-                        @"Chrome Window (OCR Timeout)", @"title",
-                        @([[NSDate date] timeIntervalSince1970] * 1000), @"timestamp",
-                        nil];
-                    [self sendWindowInfoToJS:timeoutInfo withReason:@"app_switch"];
-                    [timeoutInfo release];
-                }
-            });
-            
-            MyLog(@"🐛 DEBUG: About to call performOCROnImage");
-            [self performOCROnImage:screenshotPath completion:^(NSString *ocrText) {
-                MyLog(@"🐛 DEBUG: OCR completion block called with %lu characters", (unsigned long)[ocrText length]);
-                
-                if (ocrCompleted) {
-                    MyLog(@"⚠️ OCR already completed or timed out, ignoring duplicate callback");
-                    return;
-                }
-                ocrCompleted = YES;
-                
-                @try {
-                    // Create a fresh mutable dictionary for the final result
-                    NSMutableDictionary *chromeWithOCR = [[NSMutableDictionary alloc] initWithDictionary:baseWindowData];
-                    [chromeWithOCR setObject:(ocrText ?: @"") forKey:@"content"];
-                    [chromeWithOCR setObject:@"ocr" forKey:@"contentSource"];
-                    [chromeWithOCR setObject:@"browser" forKey:@"type"];
-                    [chromeWithOCR setObject:@"chrome" forKey:@"browser"];
-                    [chromeWithOCR setObject:@([[NSDate date] timeIntervalSince1970] * 1000) forKey:@"timestamp"];
-                    
-                    MyLog(@"📤 Sending Chrome data with OCR content (%lu chars)", (unsigned long)[ocrText length]);
-                    [self sendWindowInfoToJS:chromeWithOCR withReason:@"app_switch"];
-                    
-                    [chromeWithOCR release];
-                    
-                } @catch (NSException *exception) {
-                    MyLog(@"💥 CRASH in OCR completion block: %@", exception.reason);
-                    // Fallback - create minimal info
-                    NSDictionary *fallbackInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
-                        @"Google Chrome", @"ownerName",
-                        @"browser", @"type",
-                        @"chrome", @"browser", 
-                        @"Chrome Window", @"title",
-                        @([[NSDate date] timeIntervalSince1970] * 1000), @"timestamp",
-                        nil];
-                    [self sendWindowInfoToJS:fallbackInfo withReason:@"app_switch"];
-                    [fallbackInfo release];
-                }
-                
-                [baseWindowData release];
-            }];
-            MyLog(@"🐛 DEBUG: performOCROnImage call completed");
         } else {
-            MyLog(@"❌ Screenshot failed, sending Chrome data without content");
-            windowInfo[@"type"] = @"browser";
-            windowInfo[@"browser"] = @"chrome";
-            [self sendWindowInfoToJS:windowInfo withReason:@"app_switch"];
+            if (error) {
+                MyLog(@"❌ OCR failed with error: %@", [error description]);
+            } else {
+                MyLog(@"❌ OCR failed without error object");
+            }
         }
-        MyLog(@"🐛 DEBUG: extractChromeContentWithOCR method finished");
+        
+        // Clean up
+        [request release];
+        [handler release];
+        CFRelease(screenshot);
+        
+        return result;
+        
     } @catch (NSException *exception) {
-        MyLog(@"💥 CRASH in extractChromeContentWithOCR: %@", exception.reason);
-        // Fallback
-        windowInfo[@"type"] = @"browser";
-        windowInfo[@"browser"] = @"chrome";
-        [self sendWindowInfoToJS:windowInfo withReason:@"app_switch"];
+        MyLog(@"💥 Exception in performSynchronousOCR: %@", [exception reason]);
+        return @"";
     }
 }
 
