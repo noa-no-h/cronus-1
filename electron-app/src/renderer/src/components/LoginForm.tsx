@@ -95,7 +95,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         <button
           onClick={() => googleLogin()}
           disabled={!googleClientId}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
           <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
           Sign in with Google
@@ -107,7 +107,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       <button
         onClick={handleProdLoginClick}
         disabled={!googleClientId || !clientUrl}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
       >
         <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
         Sign in with Google
@@ -116,8 +116,14 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
   }
 
   return (
-    <div className={cn('flex flex-col gap-6 items-center w-full p-8 m-auto', className)} {...props}>
-      <div className="w-full max-w-md mx-auto rounded-lg p-8 bg-white">
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center w-full h-screen p-8 draggable-area',
+        className
+      )}
+      {...props}
+    >
+      <div className="w-full max-w-md mx-auto rounded-lg p-8 ">
         <div className="text-center">
           <h1 className="text-2xl text-gray-800 font-semibold">
             Welcome to {APP_NAME} {isDev ? '(Dev Mode)' : ''}
