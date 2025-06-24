@@ -208,11 +208,7 @@ const ActivitiesByCategoryWidget = ({
               <p>No activity data for the selected period, or no categories defined.</p>
             )}
           {processedData.map((category) => {
-            if (
-              category.totalDurationMs === 0 &&
-              (!todayProcessedEvents || todayProcessedEvents.length === 0)
-            )
-              return null
+            if (category.totalDurationMs === 0) return null
 
             const isAnyActivitySelected = category.activities.some((act) =>
               selectedActivities.has(`${act.identifier}-${act.name}`)
@@ -278,12 +274,7 @@ const ActivitiesByCategoryWidget = ({
           onDaySelect={onDaySelect}
         />
         {processedData.map((category) => {
-          if (
-            category.totalDurationMs === 0 &&
-            (!todayProcessedEvents || todayProcessedEvents.length === 0)
-          ) {
-            return null
-          }
+          if (category.totalDurationMs === 0) return null
 
           const isAnyActivitySelected = category.activities.some((act) =>
             selectedActivities.has(`${act.identifier}-${act.name}`)
