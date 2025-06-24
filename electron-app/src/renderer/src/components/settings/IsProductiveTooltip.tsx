@@ -1,5 +1,10 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@renderer/components/ui/tooltip'
 import { ReactNode } from 'react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from 'src/components/ui/tooltip'
 
 interface IsProductiveTooltipProps {
   children: ReactNode
