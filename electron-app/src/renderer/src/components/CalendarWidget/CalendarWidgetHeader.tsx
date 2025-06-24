@@ -76,7 +76,7 @@ export const CalendarWidgetHeader = ({
             <Button variant="outline" size="xs" onClick={handleNext} disabled={!canGoNext()}>
               <ChevronRight size={20} />
             </Button>
-            {width >= 800 ? (
+            {width >= 900 ? (
               width >= 1000 ? (
                 <span className="text-sm text-muted-foreground font-medium">{fullDate}</span>
               ) : (
@@ -128,18 +128,11 @@ export const CalendarWidgetHeader = ({
         )}
         <div className="flex items-center space-x-2">
           <Button
-            variant={viewMode === 'day' ? 'secondary' : 'outline'}
+            variant="outline"
             size="xs"
-            onClick={() => onViewModeChange('day')}
+            onClick={() => onViewModeChange(viewMode === 'day' ? 'week' : 'day')}
           >
-            Day
-          </Button>
-          <Button
-            variant={viewMode === 'week' ? 'secondary' : 'outline'}
-            size="xs"
-            onClick={() => onViewModeChange('week')}
-          >
-            Week
+            {viewMode === 'day' ? 'Week' : 'Day'}
           </Button>
         </div>
       </div>

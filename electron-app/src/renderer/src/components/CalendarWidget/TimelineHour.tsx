@@ -1,11 +1,13 @@
 import clsx from 'clsx'
+import { MoreHorizontal, X } from 'lucide-react'
 import { memo } from 'react'
 
 import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
 import { hexToRgba } from '../../lib/colors'
 import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
 import { ActivityIcon } from '../ActivityList/ActivityIcon'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { Button } from '../ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
 
 interface TimelineHourProps {
@@ -20,6 +22,7 @@ interface TimelineHourProps {
   isLastHour: boolean
   currentActiveSegment: EnrichedTimelineSegment | null
   hourHeight: number
+  selectedHour: number | null
 }
 
 export const TimelineHour = memo(
@@ -34,7 +37,8 @@ export const TimelineHour = memo(
     onHourSelect,
     isLastHour,
     currentActiveSegment,
-    hourHeight
+    hourHeight,
+    selectedHour
   }: TimelineHourProps) => {
     const SEGMENT_TOP_OFFSET_PX = 1
     const SEGMENT_SPACING_PX = 1 // Gap between segments
@@ -47,15 +51,43 @@ export const TimelineHour = memo(
       <div
         key={hour}
         className={clsx(
-          'group relative pl-2 flex cursor-pointer border-slate-300 dark:border-slate-600',
-          isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : 'hover:bg-muted/50',
+          'group relative pl-2 flex border-slate-300 dark:border-slate-600',
+          isSelectedHour
+            ? 'bg-blue-200/20 dark:bg-blue-800/30'
+            : selectedHour === null // only apply hover when no hour is selected
+              ? 'todo'
+              : '',
           isLastHour ? '' : 'border-b'
         )}
         ref={isCurrentHour ? currentHourRef : null}
-        onClick={() => onHourSelect(isSelectedHour ? null : hour)}
       >
-        <div className="w-12 py-2 text-xs text-muted-foreground font-medium sticky left-0 flex items-start">
-          <span>{hour.toString().padStart(2, '0')}:00</span>
+        <div className="w-14 py-2 text-xs text-muted-foreground font-medium flex-col sticky left-0 flex items-center justify-between pr-2">
+          <span className="select-none">{hour.toString().padStart(2, '0')}:00</span>
+          {/* only show this below if the hours has entries */}
+          {timelineSegments.length > 0 && (
+            <TooltipProvider>
+              <Tooltip delayDuration={150}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 place-self-center opacity-0 group-hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onHourSelect(isSelectedHour ? null : hour)
+                    }}
+                  >
+                    {isSelectedHour ? <X size={14} /> : <MoreHorizontal size={14} />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start" sideOffset={10}>
+                  <div className="text-xs select-none">
+                    {isSelectedHour ? 'Unselect this hour' : 'View activities in this hour'}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         <div className="flex-1 border-l relative">
