@@ -17,7 +17,7 @@ import { CategoryForm } from './CategoryForm'
 import { CategoryListItem } from './CategoryListItem'
 import { CategoryTemplateList } from './CategoryTemplateList'
 
-export function CategoryManagement(): JSX.Element {
+export function CategoryManagementSettings(): JSX.Element {
   const { token } = useAuth()
   const utils = trpc.useUtils()
   const {
