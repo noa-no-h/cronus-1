@@ -1,9 +1,9 @@
-import GoalInputForm from '@renderer/components/Settings/GoalInputForm'
 import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
 import icon from './../assets/icon.png'
 import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
+import GoalInputForm from './Settings/GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
@@ -334,6 +334,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               </div>
             </div>
 
+            <CardTitle className="text-2xl font-bold text-card-foreground">
+              {currentStepData.title}
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
             <div className="w-full bg-muted/60 rounded-full h-2 ">
               <div
                 className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
@@ -341,12 +347,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               />
             </div>
 
-            <CardTitle className="text-2xl mt-8 font-bold text-card-foreground">
-              {currentStepData.title}
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
             <div className="min-h-[320px] flex items-center justify-center py-4">
               {currentStepData.content}
             </div>

@@ -1,9 +1,9 @@
-import { getTimeRangeDescription } from '@renderer/lib/activityMoving'
 import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { toast } from '../../hooks/use-toast'
 import useActivitySelection from '../../hooks/useActivitySelection'
+import { getTimeRangeDescription } from '../../lib/activityMoving'
 import {
   ActivityItem,
   ProcessedCategory,

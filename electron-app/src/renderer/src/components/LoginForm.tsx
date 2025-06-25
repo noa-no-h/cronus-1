@@ -1,9 +1,9 @@
 import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
-import { APP_NAME, APP_USP } from '@renderer/App'
-import { cn } from '@renderer/lib/utils'
 import { useCallback, useEffect, useState } from 'react'
+import { APP_NAME, APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
 import { useAuth } from '../contexts/AuthContext'
+import { cn } from '../lib/utils'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void

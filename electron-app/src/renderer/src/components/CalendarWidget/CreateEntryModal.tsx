@@ -213,9 +213,9 @@ export const CreateEntryModal = ({
           </Popover>
 
           {selectedCategory && (
-            <div>
+            <div className="flex flex-row gap-4 items-center">
               <Label>Selected Category</Label>
-              <Badge variant="outline" className="mt-2 flex w-fit items-center">
+              <Badge variant="outline" className="flex w-fit items-center">
                 <span
                   className="mr-2 h-2 w-2 rounded-full"
                   style={{ backgroundColor: selectedCategory.color }}
