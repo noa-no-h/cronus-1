@@ -1,11 +1,11 @@
 import { RefreshCw } from 'lucide-react'
-import { CategoryManagement } from '../components/Settings/CategoryManagement' // We'll create this next
-import DistractionSoundSettings from '../components/Settings/DistractionSoundSettings'
-import GoalInputForm from '../components/Settings/GoalInputForm'
-import { PermissionsStatus } from '../components/Settings/PermissionsStatus'
-import { ThemeSwitcher } from '../components/Settings/ThemeSwitcher'
-import { Button } from '../components/ui/button'
 import { useAuth } from '../contexts/AuthContext'
+import { CategoryManagement } from './Settings/CategoryManagement'
+import DistractionSoundSettings from './Settings/DistractionSoundSettings'
+import GoalInputForm from './Settings/GoalInputForm'
+import { PermissionsStatus } from './Settings/PermissionsStatus'
+import { ThemeSwitcher } from './Settings/ThemeSwitcher'
+import { Button } from './ui/button'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void

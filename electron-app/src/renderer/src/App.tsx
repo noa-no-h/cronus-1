@@ -4,12 +4,12 @@ import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
+import { SettingsPage } from './components/SettingsPage'
 import { Toaster } from './components/ui/toaster'
 import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
-import { SettingsPage } from './pages/SettingsPage'
 import { trpc } from './utils/trpc'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
@@ -137,7 +137,7 @@ export function MainAppContent() {
 
         const target: ActivityToRecategorize = {
           identifier: identifier || '',
-          nameToDisplay: nameToDisplay,
+          nameToDisplay: nameToDisplay || 'Unknown',
           itemType: itemType,
           currentCategoryId: categoryObject._id,
           currentCategoryName: categoryObject.name,
