@@ -111,11 +111,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 <br />
                 1. Go to System Preferences → Security & Privacy → Privacy
                 <br />
-                2. Click "Accessibility" on the left
+                2. Click &quot;Accessibility&quot; on the left
                 <br />
-                3. Check the box next to "Cronus" to enable access
+                3. Check the box next to &quot;Cronus&quot; to enable access
                 <br />
-                4. Come back here and click "Next" when done
+                4. Come back here and click &quot;Next&quot; when done
               </p>
             </div>
           )}
@@ -140,8 +140,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
           </div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            We need screen recording access to understand what you're doing to help categorize your
-            activity and provide better insights.
+            We need screen recording access to understand what you&apos;re doing to help categorize
+            your activity and provide better insights.
           </p>
           <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
             <p className="text-sm text-muted-foreground">
@@ -164,11 +164,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 <br />
                 1. Go to System Preferences → Security & Privacy → Privacy
                 <br />
-                2. Click "Screen & System Audio Recording" on the left
+                2. Click &quot;Screen & System Audio Recording&quot; on the left
                 <br />
-                3. Check the box next to "Cronus" to enable access
+                3. Check the box next to &quot;Cronus&quot; to enable access
                 <br />
-                4. Come back here and click "Next" when done
+                4. Come back here and click &quot;Next&quot; when done
               </p>
             </div>
           )}
@@ -180,93 +180,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               </p>
             </div>
           )}
-        </div>
-      )
-    },
-    {
-      title: 'Browser Setup for Better Tracking',
-      content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
-            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
-              <Chrome className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            To get the most accurate insights, please enable JavaScript from Apple Events in your
-            browser.
-          </p>
-
-          {/* Safari/Chrome Toggle */}
-          <div className="flex justify-center items-center space-x-4 mb-6">
-            <span
-              className={`text-sm ${!isUsingSafari ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-            >
-              Chrome
-            </span>
-            <button
-              onClick={() => setIsUsingSafari(!isUsingSafari)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isUsingSafari ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isUsingSafari ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span
-              className={`text-sm ${isUsingSafari ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-            >
-              Safari
-            </span>
-          </div>
-
-          <div className="text-left max-w-md mx-auto">
-            {isUsingSafari ? (
-              <ol className="list-decimal pl-6 text-base space-y-2">
-                <li>
-                  Open Safari and click <strong>Safari</strong> in the menu bar
-                </li>
-                <li>
-                  Select <strong>Settings</strong> (or <strong>Preferences</strong>)
-                </li>
-                <li>
-                  Go to the <strong>Advanced</strong> tab
-                </li>
-                <li>
-                  Check <strong>Show Develop menu in menu bar</strong>
-                </li>
-                <li>
-                  Click <strong>Develop</strong> in the menu bar
-                </li>
-                <li>
-                  Select <strong>Allow JavaScript from Apple Events</strong>
-                </li>
-              </ol>
-            ) : (
-              <ol className="list-decimal pl-6 text-base space-y-2">
-                <li>
-                  Open Chrome and click the <strong>View</strong> menu at the top of your screen.
-                </li>
-                <li>
-                  Select <strong>Developer</strong>
-                </li>
-                <li>
-                  Select <strong>Allow JavaScript from Apple Events</strong>
-                </li>
-              </ol>
-            )}
-          </div>
-
-          <div className="flex justify-center mt-4">
-            <img
-              src={isUsingSafari ? safariEnableJsScreenshot : chromeAppleEventsScreenshot}
-              alt={`How to enable JavaScript from Apple Events in ${isUsingSafari ? 'Safari' : 'Chrome'}`}
-              className="min-h-[400px] rounded-lg border shadow-lg max-w-full max-h-48 object-contain"
-            />
-          </div>
         </div>
       )
     },
