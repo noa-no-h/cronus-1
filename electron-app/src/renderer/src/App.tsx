@@ -171,9 +171,11 @@ export function MainAppContent() {
     }
   })
 
-  // Show onboarding only after a fresh login
+  // Show onboarding only if user hasn't completed it before
   useEffect(() => {
-    if (justLoggedIn) {
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    if (justLoggedIn && !hasCompletedOnboarding) {
       setShowOnboarding(true)
       resetJustLoggedIn() // Reset the flag immediately
     }
@@ -181,6 +183,8 @@ export function MainAppContent() {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
+    // Set the local storage flag to mark onboarding as completed
+    localStorage.setItem('hasCompletedOnboarding', 'true')
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.invoke('set-open-at-login', true)
       // Enable permission requests now that onboarding is complete
@@ -190,6 +194,8 @@ export function MainAppContent() {
 
   const handleResetOnboarding = () => {
     setShowOnboarding(true)
+    // Remove the local storage flag to allow onboarding to show again
+    localStorage.removeItem('hasCompletedOnboarding')
   }
 
   const handleOpenMiniTimer = () => {
