@@ -23,7 +23,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
   // Fetch user goals
   const { data: userGoals, isLoading } = trpc.user.getUserGoals.useQuery(
     { token: token || '' },
-    { enabled: !!token && !onboardingMode }
+    { enabled: !!token }
   )
 
   // Update goals mutation
@@ -92,7 +92,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
     }))
   }
 
-  if (isLoading && !onboardingMode) {
+  if (isLoading) {
     return (
       <Card className="bg-card border-border">
         <CardContent className="pt-6">
