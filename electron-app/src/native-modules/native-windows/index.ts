@@ -117,6 +117,13 @@ class NativeWindows {
   }
 
   /**
+   * Captures screenshot and performs ocr for current window
+   */
+  public captureScreenshotAndOCRForCurrentWindow(): any {
+    return addon.captureScreenshotAndOCRForCurrentWindow()
+  }
+
+  /**
    * Manually requests a specific permission
    * @param permissionType The permission type to request
    */

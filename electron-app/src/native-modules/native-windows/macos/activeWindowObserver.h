@@ -18,4 +18,6 @@ void stopActiveWindowObserver(Napi::Env env);
 - (void)removeWindowObserver;
 - (void)receiveAppChangeNotification:(NSNotification *)notification;
 - (NSString*)performSynchronousOCR;
+- (NSString*)captureScreenshotAndPerformOCR:(CGWindowID)windowId;
+- (NSDictionary*)captureScreenshotAndOCRForCurrentWindow;
 @end

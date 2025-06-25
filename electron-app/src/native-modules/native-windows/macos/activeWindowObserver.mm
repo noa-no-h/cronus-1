@@ -6,7 +6,6 @@
 #import "iconUtils.h"
 #import "appFilter.h"
 #import "titleExtractor.h"
-#import "ScreenshotManager.h"
 #include <iostream>
 #include <stdio.h> // For fprintf, stderr
 #include <stdarg.h>
@@ -66,7 +65,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     BOOL isCurrentlyTracking;           
     ChromeTabTracking *chromeTabTracking;
     SleepAndLockObserver *sleepAndLockObserver;
-    ScreenshotManager *screenshotManager;
 }
 
 - (id)init {
@@ -77,18 +75,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     chromeTabTracking = [[ChromeTabTracking alloc] init];
     chromeTabTracking.delegate = self;
     
-    screenshotManager = [[ScreenshotManager alloc] init];
-    screenshotManager.delegate = self;
-    [screenshotManager startPeriodicScreenshotCapture];
-    
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
     
     // Workspace notifications (sleep/wake)
     [workspaceCenter addObserver:self 
-                                                         selector:@selector(receiveAppChangeNotification:) 
-                                                             name:NSWorkspaceDidActivateApplicationNotification 
-                                                           object:nil];
+                        selector:@selector(receiveAppChangeNotification:) 
+                            name:NSWorkspaceDidActivateApplicationNotification 
+                          object:nil];
     
     MyLog(@"🔧 DEBUG: Initialized observers for sleep/wake and lock/unlock events");
     
@@ -100,8 +94,6 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     chromeTabTracking = nil;
     [sleepAndLockObserver release];
     sleepAndLockObserver = nil;
-    [screenshotManager release];
-    screenshotManager = nil;
 
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
@@ -222,18 +214,35 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     enrichedInfo[@"captureReason"] = reason;  // "app_switch", "periodic_backup", "chrome_tab_switch", etc.
     enrichedInfo[@"timestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
     
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:enrichedInfo options:0 error:&error];
-    if (!jsonData) {
-        MyLog(@"Error creating JSON data: %@", error);
-        return;
+    // 🛡️ MEMORY PROTECTION: Check content size before JSON serialization
+    NSString *content = enrichedInfo[@"content"];
+    if (content && content.length > 5000) {
+        MyLog(@"⚠️ Content too large for JSON (%lu chars), truncating", (unsigned long)content.length);
+        enrichedInfo[@"content"] = [content substringToIndex:5000];
     }
     
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    std::string* result = new std::string([jsonString UTF8String]);
-    activeWindowChangedCallback.BlockingCall(result, napiCallback);
-    
-    MyLog(@"📤 SENT TO JS: %@ (%@)", enrichedInfo[@"ownerName"], reason);
+    @try {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:enrichedInfo options:0 error:&error];
+        if (!jsonData) {
+            MyLog(@"❌ JSON serialization failed: %@", error);
+            return;
+        }
+        
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        if (!jsonString) {
+            MyLog(@"❌ Failed to create JSON string");
+            return;
+        }
+        
+        std::string* result = new std::string([jsonString UTF8String]);
+        activeWindowChangedCallback.BlockingCall(result, napiCallback);
+        
+        MyLog(@"📤 SENT TO JS: %@ (%@) - %lu chars content", enrichedInfo[@"ownerName"], reason, (unsigned long)[enrichedInfo[@"content"] length]);
+        
+    } @catch (NSException *exception) {
+        MyLog(@"💥 FATAL: sendWindowInfoToJS crashed: %@", [exception reason]);
+    }
 }
 
 - (NSDictionary*)getActiveWindow {
@@ -313,50 +322,87 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
         // --- End Chrome Tab Timer Management ---
         
-// Check for browser windows
-if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
-    MyLog(@"🐛 DEBUG: Chrome window detected - about to process");
-    
-    NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
-    if (chromeInfo) {
-        [windowInfo addEntriesFromDictionary:chromeInfo];
+        // 🆕 NEW: Universal immediate OCR for ALL apps
+        if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
+            MyLog(@"🔍 Chrome window detected - getting URL/title + immediate OCR");
+            
+            NSDictionary *chromeInfo = [BrowserTabUtils getChromeTabInfo];
+            if (chromeInfo) {
+                windowInfo[@"url"] = chromeInfo[@"url"];
+                windowInfo[@"title"] = chromeInfo[@"title"] ?: windowInfo[@"title"];
+                windowInfo[@"type"] = @"browser";
+                windowInfo[@"browser"] = @"chrome";
 
-        if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
-            MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
-            chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
-            chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
-        }
-    }
-    
-    // SYNCHRONOUS OCR - no completion blocks!
-    MyLog(@"🐛 DEBUG: About to perform synchronous OCR");
-    NSString *ocrContent = [self performSynchronousOCR];
-    
-    // Add OCR content directly to windowInfo
-    windowInfo[@"content"] = ocrContent ?: @"";
-    windowInfo[@"contentSource"] = @"ocr";
-    windowInfo[@"type"] = @"browser";
-    windowInfo[@"browser"] = @"chrome";
-    
-    MyLog(@"📤 Returning Chrome data with OCR content (%lu chars)", (unsigned long)[ocrContent length]);
-    return windowInfo; // Return normally like other apps
-} else if ([windowOwnerName isEqualToString:@"Safari"]) {
+                if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
+                    MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
+                    chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
+                    chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
+                }
+            }
+            
+            // 🛡️ PROTECTED OCR
+            @try {
+                NSString *ocrContent = [self captureScreenshotAndPerformOCR:windowId];
+                windowInfo[@"content"] = ocrContent ?: @"";
+                windowInfo[@"contentSource"] = @"ocr";
+                MyLog(@"✅ Chrome OCR completed: %lu characters", (unsigned long)[ocrContent length]);
+            } @catch (NSException *exception) {
+                MyLog(@"💥 Chrome OCR crashed: %@", [exception reason]);
+                windowInfo[@"content"] = @"";
+                windowInfo[@"contentSource"] = @"ocr_failed";
+            }
+            
+        } else if ([windowOwnerName isEqualToString:@"Safari"]) {
+            MyLog(@"🔍 Safari window detected - getting URL/title + immediate OCR");
+            
             NSDictionary *safariInfo = [BrowserTabUtils getSafariTabInfo];
             if (safariInfo) {
-                [windowInfo addEntriesFromDictionary:safariInfo];
+                windowInfo[@"url"] = safariInfo[@"url"];
+                windowInfo[@"title"] = safariInfo[@"title"] ?: windowInfo[@"title"];
+                windowInfo[@"type"] = @"browser";
+                windowInfo[@"browser"] = @"safari";
             }
+            
+            @try {
+                NSString *ocrContent = [self captureScreenshotAndPerformOCR:windowId];
+                windowInfo[@"content"] = ocrContent ?: @"";
+                windowInfo[@"contentSource"] = @"ocr";
+                MyLog(@"✅ Safari OCR completed: %lu characters", (unsigned long)[ocrContent length]);
+            } @catch (NSException *exception) {
+                MyLog(@"💥 Safari OCR crashed: %@", [exception reason]);
+                windowInfo[@"content"] = @"";
+                windowInfo[@"contentSource"] = @"ocr_failed";
+            }
+            
         } else {
-            MyLog(@"   ⚠️  NON-BROWSER APP - Only title available: '%@'", windowTitle);
+            MyLog(@"🔍 Non-browser app: %@ - trying accessibility + OCR fallback", windowOwnerName);
+            
             NSString *extractedText = [ContentExtractor getAppTextContent:windowOwnerName windowId:windowId];
             if (extractedText && extractedText.length > 0) {
                 windowInfo[@"content"] = extractedText;
-                MyLog(@"   ✅ Extracted %lu characters from %@", (unsigned long)[extractedText length], windowOwnerName);
-                MyLog(@"   Content preview: %@", [extractedText length] > 200 ? [extractedText substringToIndex:200] : extractedText);
+                windowInfo[@"contentSource"] = @"accessibility";
+                MyLog(@"✅ Accessibility extraction: %lu characters", (unsigned long)[extractedText length]);
             } else {
-                MyLog(@"   ⚠️  No text content extracted from %@", windowOwnerName);
+                @try {
+                    NSString *ocrContent = [self captureScreenshotAndPerformOCR:windowId];
+                    
+                    // 🛡️ MEMORY PROTECTION: Limit OCR content size
+                    if (ocrContent && ocrContent.length > 3000) {
+                        MyLog(@"⚠️ OCR content too large (%lu chars), truncating to 3000", (unsigned long)ocrContent.length);
+                        ocrContent = [ocrContent substringToIndex:3000];
+                    }
+                    
+                    windowInfo[@"content"] = ocrContent ?: @"";
+                    windowInfo[@"contentSource"] = @"ocr";
+                    MyLog(@"✅ Non-browser OCR completed: %lu characters for %@", (unsigned long)[ocrContent length], windowOwnerName);
+                } @catch (NSException *exception) {
+                    MyLog(@"💥 Non-browser OCR crashed for %@: %@", windowOwnerName, [exception reason]);
+                    windowInfo[@"content"] = @"";
+                    windowInfo[@"contentSource"] = @"ocr_failed";
+                }
             }
         }
-        
+
         return windowInfo;
     }
     return nil;
@@ -374,7 +420,6 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
 - (void)cleanUp {
     [self stopPeriodicBackupTimer];    
     [chromeTabTracking stopChromeTabTimer];
-    [screenshotManager stopPeriodicScreenshotCapture];
     [sleepAndLockObserver stopObserving];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
@@ -390,83 +435,48 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
     [self sendWindowInfoToJS:newTabInfo withReason:@"chrome_tab_switch"];
 }
 
-#pragma mark - ScreenshotManagerDelegate
+#pragma mark - Unified Screenshot + OCR Methods
 
-- (NSDictionary *)getActiveWindowForScreenshotManager:(ScreenshotManager *)manager {
-    return [self getActiveWindow];
-}
-
-- (void)screenshotManager:(ScreenshotManager *)manager didCaptureScreenshot:(NSString *)filePath forWindowInfo:(NSDictionary *)windowInfo {
-    MyLog(@"[Screenshot] Captured screenshot for %@ at path %@", windowInfo[@"ownerName"], filePath);
-
-    NSMutableDictionary *mutableWindowInfo = [windowInfo mutableCopy];
-    mutableWindowInfo[@"localScreenshotPath"] = filePath;
-    mutableWindowInfo[@"screenshotTimestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
-
-    [self sendWindowInfoToJS:mutableWindowInfo withReason:@"screenshot"];
-
-    [mutableWindowInfo release];
-}
-
-// OCR Methods for Chrome content extraction
-- (NSString*)performSynchronousOCR {
-    MyLog(@"🔍 Starting synchronous OCR");
+// 🆕 NEW: Unified screenshot + OCR methods
+- (NSString*)captureScreenshotAndPerformOCR:(CGWindowID)windowId {
+    MyLog(@"🔍 Starting screenshot + OCR for window ID: %u", windowId);
     
     @try {
-        // Capture screenshot
-        CGImageRef screenshot = CGWindowListCreateImage(CGRectInfinite,
-                                                       kCGWindowListOptionOnScreenOnly,
-                                                       kCGNullWindowID,
-                                                       kCGWindowImageDefault);
+        CGImageRef screenshot;
+        
+        if (windowId == 0) {
+            screenshot = CGWindowListCreateImage(CGRectInfinite,
+                                               kCGWindowListOptionOnScreenOnly,
+                                               kCGNullWindowID,
+                                               kCGWindowImageDefault);
+        } else {
+            screenshot = CGWindowListCreateImage(CGRectNull,
+                                               kCGWindowListOptionIncludingWindow,
+                                               windowId,
+                                               kCGWindowImageBoundsIgnoreFraming | kCGWindowImageNominalResolution);
+        }
+        
         if (!screenshot) {
-            MyLog(@"❌ Failed to capture screenshot");
+            MyLog(@"❌ Failed to capture screenshot for window %u", windowId);
             return @"";
         }
         
-        MyLog(@"✅ Screenshot captured successfully");
-        
-        // Create OCR request
+        // Perform OCR using Vision framework
         VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] init];
-        if (!request) {
-            MyLog(@"❌ Failed to create VNRecognizeTextRequest");
-            CFRelease(screenshot);
-            return @"";
-        }
-        
         request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
         request.usesLanguageCorrection = YES;
         
-        MyLog(@"✅ OCR request created and configured");
-        
-        // Create handler and perform synchronously
         VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] 
             initWithCGImage:screenshot options:@{}];
         
-        if (!handler) {
-            MyLog(@"❌ Failed to create VNImageRequestHandler");
-            [request release];
-            CFRelease(screenshot);
-            return @"";
-        }
-        
-        MyLog(@"✅ Image request handler created");
-        
         NSError *error = nil;
-        NSArray *requestArray = @[request];
-        BOOL success = [handler performRequests:requestArray error:&error];
-        
-        MyLog(@"🔍 OCR performRequests completed: success=%d", success);
+        BOOL success = [handler performRequests:@[request] error:&error];
         
         NSString *result = @"";
-        
         if (success && !error) {
-            MyLog(@"✅ OCR successful, processing results");
             NSMutableArray *textSegments = [[NSMutableArray alloc] init];
             
-            NSArray *results = request.results;
-            MyLog(@"📊 OCR found %lu observations", (unsigned long)[results count]);
-            
-            for (VNRecognizedTextObservation *observation in results) {
+            for (VNRecognizedTextObservation *observation in request.results) {
                 VNRecognizedText *topCandidate = [observation topCandidates:1].firstObject;
                 if (topCandidate && topCandidate.confidence > 0.3) {
                     [textSegments addObject:topCandidate.string];
@@ -474,17 +484,12 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
             }
             
             result = [textSegments componentsJoinedByString:@" "];
-            MyLog(@"✅ Synchronous OCR completed: %lu characters extracted", (unsigned long)result.length);
+            MyLog(@"✅ OCR completed: %lu characters for window %u", (unsigned long)result.length, windowId);
             [textSegments release];
         } else {
-            if (error) {
-                MyLog(@"❌ OCR failed with error: %@", [error description]);
-            } else {
-                MyLog(@"❌ OCR failed without error object");
-            }
+            MyLog(@"❌ OCR failed for window %u: %@", windowId, error ? [error description] : @"Unknown error");
         }
         
-        // Clean up
         [request release];
         [handler release];
         CFRelease(screenshot);
@@ -492,9 +497,31 @@ if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
         return result;
         
     } @catch (NSException *exception) {
-        MyLog(@"💥 Exception in performSynchronousOCR: %@", [exception reason]);
+        MyLog(@"💥 Exception in OCR: %@", [exception reason]);
         return @"";
     }
+}
+
+// Method for current window (used by renderer requests)
+- (NSDictionary*)captureScreenshotAndOCRForCurrentWindow {
+    MyLog(@"📱 Renderer requested screenshot + OCR for current window");
+    
+    NSDictionary *windowInfo = [self getActiveWindow];
+    if (!windowInfo) {
+        MyLog(@"❌ No active window found for OCR request");
+        return @{@"success": @NO, @"error": @"No active window"};
+    }
+    
+    CGWindowID windowId = [[windowInfo objectForKey:@"id"] unsignedIntValue];
+    NSString *ocrText = [self captureScreenshotAndPerformOCR:windowId];
+    
+    MyLog(@"✅ OCR request completed: %lu characters extracted", (unsigned long)[ocrText length]);
+    
+    return @{
+        @"success": @YES,
+        @"ocrText": ocrText ?: @"",
+        @"windowInfo": windowInfo
+    };
 }
 
 @end

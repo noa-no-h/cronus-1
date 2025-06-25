@@ -43,27 +43,18 @@
     if (!windowInfo) return;
     
     CGWindowID windowId = [[windowInfo objectForKey:@"id"] unsignedIntValue];
-    NSData *screenshotData = [self captureWindowScreenshot:windowId];
     
-    if (!screenshotData) {
-        MyLog(@"Failed to capture screenshot");
-        return;
-    }
+    // Perform OCR instead of just screenshot
+    NSString *ocrText = [self.delegate captureScreenshotAndPerformOCR:windowId];
     
-    // Save screenshot to a temporary file
-    NSString *tempDir = NSTemporaryDirectory();
-    NSString *fileName = [NSString stringWithFormat:@"%@.jpg", [[NSUUID UUID] UUIDString]];
-    NSString *filePath = [tempDir stringByAppendingPathComponent:fileName];
-    BOOL success = [screenshotData writeToFile:filePath atomically:YES];
-
-    if (!success) {
-        MyLog(@"Failed to save screenshot to temp file: %@", filePath);
-        return;
-    }
+    // Send OCR result
+    NSMutableDictionary *mutableWindowInfo = [windowInfo mutableCopy];
+    mutableWindowInfo[@"content"] = ocrText ?: @"";
+    mutableWindowInfo[@"contentSource"] = @"ocr";
+    mutableWindowInfo[@"captureReason"] = @"periodic_backup";
     
-    MyLog(@"[ScreenshotManager] Screenshot saved to temp file: %@", filePath);
-    
-    [self.delegate screenshotManager:self didCaptureScreenshot:filePath forWindowInfo:windowInfo];
+    [self.delegate screenshotManager:self didPerformOCR:mutableWindowInfo];
+    [mutableWindowInfo release];
 }
 
 - (NSData*)captureWindowScreenshot:(CGWindowID)windowId {
