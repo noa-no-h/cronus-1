@@ -290,13 +290,11 @@ export const authRouter = router({
         };
 
         if (input.isDesktopFlow) {
-          // For the production/desktop flow, a redirect URI is required
           const redirectUri = `${process.env.CLIENT_URL}/electron-callback`;
           console.log('Using redirect URI for desktop flow:', redirectUri);
           tokenOptions.redirect_uri = redirectUri;
         } else {
-          // For the development popup flow, the redirect URI must match the dev server origin
-          const redirectUri = 'http://localhost:5173'; // Your Vite dev server
+          const redirectUri = 'http://localhost:5173';
           console.log('Using redirect URI for dev popup flow:', redirectUri);
           tokenOptions.redirect_uri = redirectUri;
         }
@@ -304,6 +302,10 @@ export const authRouter = router({
         // Exchange code for tokens with Google
         const { tokens } = await googleClient.getToken(tokenOptions);
         console.log('Successfully got tokens from Google');
+
+        // ✅ ADD: Check for calendar scope
+        const hasCalendarScope = tokens.scope?.includes('calendar.readonly') || false;
+        console.log('Calendar scope granted:', hasCalendarScope);
 
         const ticket = await googleClient.verifyIdToken({
           idToken: tokens.id_token!,
@@ -324,6 +326,14 @@ export const authRouter = router({
             picture: payload.picture,
           });
           await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
+        }
+
+        if (hasCalendarScope && tokens.access_token) {
+          user.googleAccessToken = tokens.access_token;
+          user.googleRefreshToken = tokens.refresh_token;
+          user.hasCalendarAccess = true;
+          await user.save();
+          console.log('Stored Google Calendar tokens for user:', user.email);
         }
 
         // Generate tokens (reuse your existing logic)

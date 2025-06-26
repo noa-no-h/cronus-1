@@ -6,6 +6,7 @@ import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { Button } from './ui/button'
+import { CalendarIntegrationSettings } from './CalendarIntegrationSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
@@ -52,6 +53,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
           <GoalInputForm />
           <CategoryManagementSettings />
           <DistractionSoundSettings />
+          <CalendarIntegrationSettings />
           <ThemeSwitcher />
           <PermissionsStatus />
           <OnboardingSection />

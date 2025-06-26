@@ -48,7 +48,7 @@ const TimelineSegmentContent = ({
           <ActivityIcon url={segment.url} appName={segment.name} size={12} />
           {canShowContent && (
             <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
-              {segment.name}
+              {segment.description || segment.name}
             </span>
           )}
         </div>
