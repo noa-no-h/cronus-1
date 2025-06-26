@@ -216,9 +216,9 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     
     // 🛡️ MEMORY PROTECTION: Check content size before JSON serialization
     NSString *content = enrichedInfo[@"content"];
-    if (content && content.length > 5000) {
+    if (content && content.length > 2000) {
         MyLog(@"⚠️ Content too large for JSON (%lu chars), truncating", (unsigned long)content.length);
-        enrichedInfo[@"content"] = [content substringToIndex:5000];
+        enrichedInfo[@"content"] = [content substringToIndex:2000];
     }
     
     @try {
@@ -387,9 +387,9 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                     NSString *ocrContent = [self captureScreenshotAndPerformOCR:windowId];
                     
                     // 🛡️ MEMORY PROTECTION: Limit OCR content size
-                    if (ocrContent && ocrContent.length > 3000) {
+                    if (ocrContent && ocrContent.length > 2000) {
                         MyLog(@"⚠️ OCR content too large (%lu chars), truncating to 3000", (unsigned long)ocrContent.length);
-                        ocrContent = [ocrContent substringToIndex:3000];
+                        ocrContent = [ocrContent substringToIndex:2000];
                     }
                     
                     windowInfo[@"content"] = ocrContent ?: @"";
