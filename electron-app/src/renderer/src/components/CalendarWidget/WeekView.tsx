@@ -189,13 +189,13 @@ const WeekView = ({
                     {totalDayDuration > 0 &&
                       (weekViewMode === 'stacked' ? (
                         <div
-                          className="w-full flex flex-col transition-all duration-500 rounded-lg overflow-hidden"
+                          className="w-full flex flex-col transition-all duration-500 gap-px"
                           style={{ height: `${dayHeightPercentage}%` }}
                         >
                           {/* Productive section */}
                           {totalProductiveDuration > 0 && (
                             <div
-                              className="w-full flex flex-col overflow-hidden"
+                              className="w-full flex flex-col gap-px"
                               style={{ height: `${productivePercentage}%` }}
                             >
                               {productiveCategories.map((cat, catIndex) => {
@@ -239,7 +239,7 @@ const WeekView = ({
                           {/* Unproductive section */}
                           {totalUnproductiveDuration > 0 && (
                             <div
-                              className="w-full flex flex-col rounded-lg overflow-hidden"
+                              className="w-full flex flex-col gap-px"
                               style={{ height: `${unproductivePercentage}%` }}
                             >
                               {unproductiveCategories.map((cat, catIndex) => {
@@ -248,7 +248,7 @@ const WeekView = ({
                                 return (
                                   <div
                                     key={catIndex}
-                                    className="w-full transition-all duration-300 flex items-center justify-center text-center overflow-hidden"
+                                    className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
                                     style={{
                                       height: `${percentage}%`,
                                       backgroundColor: processColor(
