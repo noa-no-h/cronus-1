@@ -9,6 +9,7 @@ export interface TimeBlock {
   categoryColor?: string
   categoryId?: string
   type: 'window' | 'browser' | 'system' | 'manual'
+  originalEvent?: any
 }
 
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
