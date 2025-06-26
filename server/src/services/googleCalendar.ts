@@ -80,10 +80,25 @@ export class GoogleCalendarService {
         },
         location: event.location || undefined,
         description: event.description || undefined,
-        attendees: event.attendees || undefined,
+        attendees:
+          event.attendees?.map((attendee) => ({
+            email: attendee.email || undefined,
+            displayName: attendee.displayName || undefined,
+            responseStatus:
+              (attendee.responseStatus as 'needsAction' | 'declined' | 'tentative' | 'accepted') ||
+              undefined,
+            optional: attendee.optional || undefined,
+            organizer: attendee.organizer || undefined,
+          })) || undefined,
         conferenceData: event.conferenceData || undefined,
         hangoutLink: event.hangoutLink || undefined,
-        organizer: event.organizer || undefined,
+        // Fix: Map organizer properly
+        organizer: event.organizer
+          ? {
+              email: event.organizer.email || undefined,
+              displayName: event.organizer.displayName || undefined,
+            }
+          : undefined,
       }));
     } catch (error) {
       console.error('Google Calendar API error:', error);
