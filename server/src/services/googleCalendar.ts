@@ -7,33 +7,10 @@ export interface CalendarEvent {
   end: { dateTime?: string; date?: string };
   location?: string;
   description?: string;
-  // New fields for Meet info and participants
-  attendees?: Array<{
-    email?: string;
-    displayName?: string;
-    responseStatus?: 'needsAction' | 'declined' | 'tentative' | 'accepted';
-    optional?: boolean;
-    organizer?: boolean;
-  }>;
-  conferenceData?: {
-    entryPoints?: Array<{
-      entryPointType?: 'video' | 'phone' | 'sip' | 'more';
-      uri?: string;
-      label?: string;
-      meetingCode?: string;
-    }>;
-    conferenceSolution?: {
-      name?: string;
-      key?: {
-        type?: string;
-      };
-    };
-  };
+  attendees?: any[];
+  conferenceData?: any;
   hangoutLink?: string;
-  organizer?: {
-    email?: string;
-    displayName?: string;
-  };
+  organizer?: any;
 }
 
 export class GoogleCalendarService {
@@ -63,8 +40,6 @@ export class GoogleCalendarService {
         singleEvents: true,
         orderBy: 'startTime',
         maxResults: 50,
-        fields:
-          'items(id,summary,start,end,location,description,attendees(email,displayName,responseStatus,optional,organizer),conferenceData,hangoutLink,organizer(email,displayName))',
       });
 
       return (response.data.items || []).map((event) => ({
@@ -80,25 +55,10 @@ export class GoogleCalendarService {
         },
         location: event.location || undefined,
         description: event.description || undefined,
-        attendees:
-          event.attendees?.map((attendee) => ({
-            email: attendee.email || undefined,
-            displayName: attendee.displayName || undefined,
-            responseStatus:
-              (attendee.responseStatus as 'needsAction' | 'declined' | 'tentative' | 'accepted') ||
-              undefined,
-            optional: attendee.optional || undefined,
-            organizer: attendee.organizer || undefined,
-          })) || undefined,
+        attendees: event.attendees || undefined,
         conferenceData: event.conferenceData || undefined,
         hangoutLink: event.hangoutLink || undefined,
-        // Fix: Map organizer properly
-        organizer: event.organizer
-          ? {
-              email: event.organizer.email || undefined,
-              displayName: event.organizer.displayName || undefined,
-            }
-          : undefined,
+        organizer: event.organizer || undefined,
       }));
     } catch (error) {
       console.error('Google Calendar API error:', error);
