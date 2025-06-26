@@ -115,10 +115,18 @@ export const TimelineHour = memo(
                 const canInteract = isManual || (selectedHour === null && !isManual)
                 const segmentCursor = isManual ? 'pointer' : 'default'
 
+                // Check if this is a calendar event
+                const isCalendarEvent =
+                  segment.name === 'Google Calendar' || segment.type === 'calendar'
+
+                const positionClasses = isCalendarEvent
+                  ? 'absolute left-1/2 right-1 rounded-md' // Calendar events: right half only
+                  : 'absolute left-1 right-1 rounded-md' // Regular activities: full width
+
                 return (
                   <TimelineSegmentTooltip key={`${hour}-${segment.name}-${idx}`} segment={segment}>
                     <div
-                      className={`absolute left-1 right-1 rounded-md
+                      className={`${positionClasses}
                           ${canInteract ? 'hover:brightness-75' : ''} transition-all
                           flex items-center justify-center overflow-hidden`}
                       style={{

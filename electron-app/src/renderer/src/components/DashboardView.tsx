@@ -19,6 +19,41 @@ export interface ProcessedEventBlock {
   categoryColor?: string
   isProductive?: boolean
   originalEvent: ActiveWindowEvent
+  source?: 'tracked' | 'calendar'
+}
+
+const convertCalendarEventToBlock = (event: any): ProcessedEventBlock | null => {
+  // Only include events with specific times (not all-day events)
+  if (!event.start.dateTime || !event.end.dateTime) {
+    return null
+  }
+
+  const startTime = new Date(event.start.dateTime)
+  const endTime = new Date(event.end.dateTime)
+
+  return {
+    startTime,
+    endTime,
+    durationMs: endTime.getTime() - startTime.getTime(),
+    name: 'Google Calendar', // This will show as the "app" name
+    title: event.summary, // Meeting title
+    url: undefined,
+    categoryId: null, // Not categorized initially
+    categoryName: 'Calendar Events',
+    categoryColor: '#3B82F6', // Blue color for calendar events
+    isProductive: undefined,
+    originalEvent: {
+      _id: event.id,
+      ownerName: 'Google Calendar',
+      title: event.summary,
+      url: undefined,
+      timestamp: startTime.getTime(),
+      categoryId: null,
+      type: 'calendar',
+      ...event
+    } as any,
+    source: 'calendar'
+  }
 }
 
 export function DashboardView({ className }: { className?: string }) {
@@ -35,33 +70,53 @@ export function DashboardView({ className }: { className?: string }) {
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
 
+  useEffect(() => {
+    const calculateDateRange = () => {
+      if (viewMode === 'day') {
+        const startOfDay = new Date(selectedDate)
+        startOfDay.setHours(0, 0, 0, 0)
+        const endOfDay = new Date(selectedDate)
+        endOfDay.setHours(23, 59, 59, 999)
+
+        setStartDateMs(startOfDay.getTime())
+        setEndDateMs(endOfDay.getTime())
+      } else {
+        // Week view - Monday to Sunday
+        const startOfWeek = new Date(selectedDate)
+        const dayOfWeek = startOfWeek.getDay() // Sunday = 0, Monday = 1, etc.
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Monday start
+        startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract)
+        startOfWeek.setHours(0, 0, 0, 0)
+
+        const endOfWeek = new Date(startOfWeek)
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
+        endOfWeek.setHours(23, 59, 59, 999)
+
+        setStartDateMs(startOfWeek.getTime())
+        setEndDateMs(endOfWeek.getTime())
+      }
+    }
+
+    calculateDateRange()
+  }, [selectedDate, viewMode])
+
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
   const categories = categoriesData as Category[] | undefined
 
-  useEffect(() => {
-    const calculateTimestamps = () => {
-      const localSelectedDate = new Date(selectedDate)
-      let startOfPeriod: Date
-      let endOfPeriod: Date
-      if (viewMode === 'day') {
-        startOfPeriod = new Date(localSelectedDate.setHours(0, 0, 0, 0))
-        endOfPeriod = new Date(startOfPeriod)
-        endOfPeriod.setDate(startOfPeriod.getDate() + 1)
-      } else {
-        const dayOfWeek = localSelectedDate.getDay()
-        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-        startOfPeriod = new Date(localSelectedDate)
-        startOfPeriod.setDate(localSelectedDate.getDate() - daysToSubtract)
-        startOfPeriod.setHours(0, 0, 0, 0)
-        endOfPeriod = new Date(startOfPeriod)
-        endOfPeriod.setDate(startOfPeriod.getDate() + 7)
+  const { data: calendarEventsData, isLoading: isLoadingCalendarEvents } =
+    trpc.calendar.getEvents.useQuery(
+      {
+        token: token || '',
+        startDate: startDateMs ? new Date(startDateMs).toISOString() : '',
+        endDate: endDateMs ? new Date(endDateMs).toISOString() : ''
+      },
+      {
+        enabled: !!token && startDateMs !== null && endDateMs !== null,
+        refetchOnWindowFocus: true,
+        refetchInterval: REFRESH_EVENTS_INTERVAL_MS
       }
-      setStartDateMs(startOfPeriod.getTime())
-      setEndDateMs(endOfPeriod.getTime())
-    }
-    calculateTimestamps()
-  }, [selectedDate, viewMode])
+    )
 
   const {
     data: eventsData,
@@ -77,18 +132,57 @@ export function DashboardView({ className }: { className?: string }) {
   )
 
   useEffect(() => {
-    if (isLoadingFetchedEvents || isLoadingCategories) {
+    console.log('🔍 Processing events:', {
+      isLoadingFetchedEvents,
+      isLoadingCategories,
+      isLoadingCalendarEvents,
+      eventsDataLength: eventsData?.length || 0,
+      categoriesLength: categories?.length || 0,
+      calendarEventsLength: calendarEventsData?.length || 0
+    })
+
+    console.log('🐛 Debug - eventsData:', eventsData)
+    console.log('🐛 Debug - startDateMs/endDateMs:', { startDateMs, endDateMs })
+    console.log('🐛 Debug - token:', token)
+
+    if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
       setIsLoadingEvents(true)
       setCalendarProcessedEvents(null)
     } else if (eventsData && categories) {
-      const blocks = generateProcessedEventBlocks(eventsData, categories)
-      setCalendarProcessedEvents(blocks)
+      // Process tracked events (existing logic)
+      const trackedBlocks = generateProcessedEventBlocks(eventsData, categories)
+      console.log('📊 Tracked blocks:', trackedBlocks.length)
+
+      const calendarEvents = calendarEventsData?.data || calendarEventsData || []
+
+      // Process calendar events
+      const calendarBlocks: ProcessedEventBlock[] = calendarEvents.length
+        ? calendarEvents
+            .map(convertCalendarEventToBlock)
+            .filter((block): block is ProcessedEventBlock => block !== null)
+        : []
+      console.log('📅 Calendar blocks:', calendarBlocks.length)
+
+      // Merge tracked and calendar events, sorted by start time
+      const allBlocks = [...trackedBlocks, ...calendarBlocks].sort(
+        (a, b) => a.startTime.getTime() - b.startTime.getTime()
+      )
+      console.log('🔄 Total merged blocks:', allBlocks.length)
+
+      setCalendarProcessedEvents(allBlocks)
       setIsLoadingEvents(false)
     } else {
       setCalendarProcessedEvents(null)
       setIsLoadingEvents(false)
     }
-  }, [eventsData, isLoadingFetchedEvents, categories, isLoadingCategories])
+  }, [
+    eventsData,
+    isLoadingFetchedEvents,
+    categories,
+    isLoadingCategories,
+    calendarEventsData,
+    isLoadingCalendarEvents
+  ])
 
   const activityWidgetProcessedEvents = useMemo(() => {
     if (!calendarProcessedEvents) {

@@ -4,6 +4,7 @@ import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
 import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
 import { ActivityIcon } from '../ActivityList/ActivityIcon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { CalendarEventTooltip } from './CalendarEventTooltip'
 
 interface TimelineSegmentTooltipProps {
   segment: EnrichedTimelineSegment
@@ -11,6 +12,28 @@ interface TimelineSegmentTooltipProps {
 }
 
 export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentTooltipProps) => {
+  // Debug: Let's see what's actually in the segment
+  console.log('TimelineSegmentTooltip segment:', {
+    name: segment.name,
+    description: segment.description,
+    type: segment.type,
+    hasOriginalEvent: !!(segment as any).originalEvent,
+    originalEvent: (segment as any).originalEvent
+  })
+
+  // Check if this is a Google Calendar event
+  const isCalendarEvent = segment.name === 'Google Calendar'
+
+  console.log('isCalendarEvent:', isCalendarEvent)
+
+  // For calendar events, use the CalendarEventTooltip
+  if (isCalendarEvent && (segment as any).originalEvent) {
+    console.log('Using CalendarEventTooltip!')
+    return (
+      <CalendarEventTooltip event={(segment as any).originalEvent}>{children}</CalendarEventTooltip>
+    )
+  }
+
   if (segment.type === 'manual' || Object.keys(segment.allActivities).length === 0) {
     return <>{children}</>
   }

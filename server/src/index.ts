@@ -9,6 +9,7 @@ import Stripe from 'stripe';
 import { User as UserModel } from './models/user';
 import sitemapRouter from './routes/sitemap';
 import { publicProcedure, router } from './trpc';
+import { calendarRouter } from './routers/calendar';
 
 // Export tRPC utilities
 export { publicProcedure, router };
@@ -36,6 +37,7 @@ export const appRouter = router({
   s3: s3Router,
   user: userRouter,
   category: categoryRouter,
+  calendar: calendarRouter,
 });
 
 export type AppRouter = typeof appRouter;

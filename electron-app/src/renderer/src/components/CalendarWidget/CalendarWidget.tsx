@@ -99,7 +99,8 @@ const CalendarWidget = ({
           url: eventBlock.url,
           categoryColor: eventBlock.categoryColor,
           categoryId: eventBlock.categoryId || undefined,
-          type: eventBlock.originalEvent.type
+          type: eventBlock.originalEvent.type,
+          originalEvent: eventBlock.originalEvent
         }
 
         return timeBlock
