@@ -1,6 +1,15 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, EditIcon, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
+import {
+  ArrowLeft,
+  CircleQuestionMark,
+  EditIcon,
+  ExternalLink,
+  Mail,
+  MessageCircle,
+  Settings as SettingsIcon,
+  Youtube
+} from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
@@ -19,6 +28,12 @@ import { trpc } from '../utils/trpc'
 import { ActivityIcon } from './ActivityList/ActivityIcon'
 import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
 import { Button } from './ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from './ui/dropdown-menu'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
@@ -301,13 +316,52 @@ const DistractionStatusBar = ({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
         {!isMiniTimerVisible && (
           <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
             <ExternalLink size={20} />
             {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
+        {/* feedback button that triggers dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" title="Open Feedback">
+              <CircleQuestionMark size={20} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  'mailto:wallawitsch@gmail.com, arne.strickmann@googlemail.com?subject=Cronus%20Feedback'
+                )
+              }
+            >
+              <Mail size={20} />
+              Email Feedback
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open('https://chat.whatsapp.com/Lrge0tDN19THKld1kCjdwB', '_blank')
+              }
+            >
+              <MessageCircle size={20} />
+              WhatsApp Us
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                window.open(
+                  'https://www.loom.com/share/34531aee1ce94343a2c4c7cee04a0dc8?sid=a601c97f-9d16-4a7d-97e3-d8fc3db96679',
+                  '_blank'
+                )
+              }
+            >
+              <Youtube size={20} />
+              1.5m Tutorial Video
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="ghost"
           size={isNarrowView ? 'icon' : 'default'}
