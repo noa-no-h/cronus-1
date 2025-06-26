@@ -1,11 +1,11 @@
 import clsx from 'clsx'
-import { MoreHorizontal, X } from 'lucide-react'
+import { FilterIcon, X } from 'lucide-react'
 import { memo } from 'react'
 
 import { hexToRgba } from '../../lib/colors'
 import { EnrichedTimelineSegment, TimeBlock } from '../../lib/dayTimelineHelpers'
 import { Button } from '../ui/button'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
 import { TimelineSegmentTooltip } from './TimelineSegmentTooltip'
 
@@ -62,33 +62,34 @@ export const TimelineHour = memo(
         )}
         ref={isCurrentHour ? currentHourRef : null}
       >
-        <div className="w-14 py-2 text-xs text-muted-foreground font-medium flex-col sticky left-0 flex items-center justify-between pr-2">
-          <span className="select-none">{hour.toString().padStart(2, '0')}:00</span>
+        <div className="w-14 py-2 text-xs text-muted-foreground font-medium flex-col sticky left-0 flex items-center justify-between pr-2 z-10">
+          <span className={clsx(isSelectedHour && 'text-blue-500')}>
+            {hour.toString().padStart(2, '0')}:00
+          </span>
           {/* only show this below if the hours has entries */}
           {timelineSegments.length > 0 && (
-            <TooltipProvider>
-              <Tooltip delayDuration={150}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 place-self-center opacity-0 group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onHourSelect(isSelectedHour ? null : hour)
-                    }}
-                  >
-                    {isSelectedHour ? <X size={14} /> : <MoreHorizontal size={14} />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right" align="start" sideOffset={10}>
-                  <div className="text-xs select-none">
-                    {isSelectedHour ? 'Unselect this hour' : 'View activities in this hour'}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 place-self-center opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onHourSelect(isSelectedHour ? null : hour)
+                  }}
+                >
+                  {isSelectedHour ? <X size={10} /> : <FilterIcon size={10} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="z-50" side="right" align="start" sideOffset={10}>
+                <div className="text-xs select-none">
+                  {isSelectedHour ? 'Unselect this hour' : 'View activities in this hour'}
+                </div>
+              </TooltipContent>
+            </Tooltip>
           )}
+          <div></div>
         </div>
 
         <div className="flex-1 border-l relative">

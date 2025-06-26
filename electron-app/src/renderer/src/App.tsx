@@ -6,6 +6,7 @@ import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
 import { SettingsPage } from './components/SettingsPage'
 import { Toaster } from './components/ui/toaster'
+import { TooltipProvider } from './components/ui/tooltip'
 import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
 import { toast } from './hooks/use-toast'
@@ -249,58 +250,60 @@ export function MainAppContent() {
   }, [isAuthenticated, showOnboarding])
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Test button for OTA */}
-      {/* <button
-        style={{
-          position: 'fixed',
-          top: 20,
-          right: 20,
-          zIndex: 9999,
-          padding: '8px 16px',
-          background: '#007bff',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer'
-        }}
-        onClick={() => window.api.checkForUpdates()}
-      >
-        Check for Updates
-      </button> */}
-      <div className="custom-title-bar">{APP_NAME}</div>
-      <div className="p-2">
-        <DistractionStatusBar
-          activeWindow={activeWindow}
-          onOpenMiniTimerClick={handleOpenMiniTimer}
-          isMiniTimerVisible={isMiniTimerVisible}
-          onOpenRecategorizeDialog={openRecategorizeDialog}
-          onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          isSettingsOpen={isSettingsOpen}
-        />
-      </div>
-
-      <DashboardView className={isSettingsOpen ? 'hidden' : ''} />
-      {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
-
-      {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
-      <UpdateNotification />
-      <Toaster />
-      {allCategories && recategorizeTarget && (
-        <RecategorizeDialog
-          open={isRecategorizeDialogOpen}
-          onOpenChange={(isOpen) => {
-            if (!isOpen) {
-              setRecategorizeTarget(null)
-            }
-            setIsRecategorizeDialogOpen(isOpen)
+    <TooltipProvider delayDuration={150}>
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Test button for OTA */}
+        {/* <button
+          style={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 9999,
+            padding: '8px 16px',
+            background: '#007bff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer'
           }}
-          activityTarget={recategorizeTarget}
-          allCategories={allCategories}
-          onSave={handleSaveRecategorize}
-          isLoading={updateActivityCategoryMutation.isLoading || isLoadingAllCategories}
-        />
-      )}
-    </div>
+          onClick={() => window.api.checkForUpdates()}
+        >
+          Check for Updates
+        </button> */}
+        <div className="custom-title-bar">{APP_NAME}</div>
+        <div className="p-2">
+          <DistractionStatusBar
+            activeWindow={activeWindow}
+            onOpenMiniTimerClick={handleOpenMiniTimer}
+            isMiniTimerVisible={isMiniTimerVisible}
+            onOpenRecategorizeDialog={openRecategorizeDialog}
+            onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            isSettingsOpen={isSettingsOpen}
+          />
+        </div>
+
+        <DashboardView className={isSettingsOpen ? 'hidden' : ''} />
+        {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
+
+        {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+        <UpdateNotification />
+        <Toaster />
+        {allCategories && recategorizeTarget && (
+          <RecategorizeDialog
+            open={isRecategorizeDialogOpen}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                setRecategorizeTarget(null)
+              }
+              setIsRecategorizeDialogOpen(isOpen)
+            }}
+            activityTarget={recategorizeTarget}
+            allCategories={allCategories}
+            onSave={handleSaveRecategorize}
+            isLoading={updateActivityCategoryMutation.isLoading || isLoadingAllCategories}
+          />
+        )}
+      </div>
+    </TooltipProvider>
   )
 }

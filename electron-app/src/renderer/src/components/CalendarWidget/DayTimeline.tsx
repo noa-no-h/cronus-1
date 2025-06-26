@@ -7,7 +7,6 @@ import {
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
-import { TooltipProvider } from '../ui/tooltip'
 import { CreateEntryModal } from './CreateEntryModal'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
 import { SelectionBox } from './SelectionBox'
@@ -91,7 +90,7 @@ const DayTimeline = ({
     if (isToday && currentHourRef.current && scrollContainerRef.current) {
       currentHourRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-  }, [isToday, timeBlocks, scrollContainerRef])
+  }, [isToday, scrollContainerRef])
 
   // Adjust scroll position on zoom to keep the view centered
   useLayoutEffect(() => {
@@ -230,72 +229,69 @@ const DayTimeline = ({
 
   return (
     <div className="flex-1">
-      <TooltipProvider>
-        <div
-          ref={timelineContainerRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          className="relative"
-        >
-          <SelectionBox
-            isVisible={dragState.isDragging || modalState.isOpen}
-            dragState={dragState}
-            yToTime={yToTime}
-          />
+      <div
+        ref={timelineContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        className="relative"
+      >
+        <SelectionBox
+          isVisible={dragState.isDragging || modalState.isOpen}
+          dragState={dragState}
+          yToTime={yToTime}
+        />
 
-          {Array.from({ length: 24 }).map((_, hour) => {
-            let currentActiveSegment: EnrichedTimelineSegment | null = null
-            const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
-            const showCurrentTime = isToday && hour === currentHour
-            const isCurrentHour = hour === currentHour
-            const isSelectedHour = selectedHour === hour
-            const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
-            const isLastHour = hour === 23
+        {Array.from({ length: 24 }).map((_, hour) => {
+          let currentActiveSegment: EnrichedTimelineSegment | null = null
+          const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
+          const showCurrentTime = isToday && hour === currentHour
+          const isCurrentHour = hour === currentHour
+          const isSelectedHour = selectedHour === hour
+          const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
+          const isLastHour = hour === 23
 
-            const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
+          const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
 
-            // current activity helpers
-            if (showCurrentTime && timelineSegments.length > 0) {
-              const lastSegment = timelineSegments[timelineSegments.length - 1]
-              const currentMinute = currentTime.getMinutes()
-              if (lastSegment.endMinute > currentMinute) {
-                lastSegment.heightPercentage =
-                  ((currentMinute - lastSegment.startMinute) / 60) * 100
-                lastSegment.endMinute = currentMinute
-                currentActiveSegment = lastSegment
-              }
+          // current activity helpers
+          if (showCurrentTime && timelineSegments.length > 0) {
+            const lastSegment = timelineSegments[timelineSegments.length - 1]
+            const currentMinute = currentTime.getMinutes()
+            if (lastSegment.endMinute > currentMinute) {
+              lastSegment.heightPercentage = ((currentMinute - lastSegment.startMinute) / 60) * 100
+              lastSegment.endMinute = currentMinute
+              currentActiveSegment = lastSegment
             }
+          }
 
-            return (
-              <div key={hour} className="relative">
-                <TimelineHour
-                  hour={hour}
-                  timelineSegments={timelineSegments}
-                  isCurrentHour={isCurrentHour}
-                  isSelectedHour={isSelectedHour}
-                  isDarkMode={isDarkMode}
-                  individualSegmentOpacity={individualSegmentOpacity}
-                  currentHourRef={currentHourRef}
-                  onHourSelect={onHourSelect}
-                  onSelectManualEntry={handleSelectManualEntry}
-                  isLastHour={isLastHour}
-                  currentActiveSegment={currentActiveSegment}
-                  hourHeight={hourHeight}
-                  selectedHour={selectedHour}
+          return (
+            <div key={hour} className="relative">
+              <TimelineHour
+                hour={hour}
+                timelineSegments={timelineSegments}
+                isCurrentHour={isCurrentHour}
+                isSelectedHour={isSelectedHour}
+                isDarkMode={isDarkMode}
+                individualSegmentOpacity={individualSegmentOpacity}
+                currentHourRef={currentHourRef}
+                onHourSelect={onHourSelect}
+                onSelectManualEntry={handleSelectManualEntry}
+                isLastHour={isLastHour}
+                currentActiveSegment={currentActiveSegment}
+                hourHeight={hourHeight}
+                selectedHour={selectedHour}
+              />
+              {showCurrentTime && (
+                <CurrentTimeIndicator
+                  minutePercentage={minutePercentage}
+                  currentTime={currentTime}
                 />
-                {showCurrentTime && (
-                  <CurrentTimeIndicator
-                    minutePercentage={minutePercentage}
-                    currentTime={currentTime}
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </TooltipProvider>
+              )}
+            </div>
+          )
+        })}
+      </div>
       {modalState.isOpen && (
         <CreateEntryModal
           isOpen={modalState.isOpen}
