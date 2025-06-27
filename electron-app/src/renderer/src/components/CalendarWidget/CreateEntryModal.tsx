@@ -54,6 +54,12 @@ export const CreateEntryModal = ({
     { enabled: !!token && isOpen }
   )
 
+  const { data: historyData, isLoading: isLoadingHistory } =
+    trpc.activeWindowEvents.getManualEntryHistory.useQuery(
+      { token: token || '' },
+      { enabled: !!token && isOpen }
+    )
+
   const categories = useMemo(() => {
     if (!categoriesData) return []
     return categoriesData.map((cat) => ({
@@ -81,6 +87,7 @@ export const CreateEntryModal = ({
   const {
     searchResults,
     templateResults,
+    historyResults,
     isPopoverOpen,
     setIsPopoverOpen,
     highlightedIndex,
@@ -89,12 +96,12 @@ export const CreateEntryModal = ({
     handleKeyDown
   } = useCategorySelection({
     categories,
+    historyData,
     inputValue,
     selectedCategory
   })
 
   useEffect(() => {
-    // This effect is for resetting the form when it's opened for a new entry
     if (isOpen && !existingEntry) {
       reset()
       setInputValue('')
@@ -104,7 +111,6 @@ export const CreateEntryModal = ({
   }, [isOpen, existingEntry, reset])
 
   useEffect(() => {
-    // This effect handles populating the form when editing an existing entry
     if (isOpen && existingEntry) {
       setInputValue(existingEntry.name)
       if (existingEntry.categoryId && categories) {
@@ -116,9 +122,21 @@ export const CreateEntryModal = ({
     }
   }, [isOpen, existingEntry, categories])
 
+  const handleSelectHistory = (item: { title: string | null; categoryId: string | null }) => {
+    setInputValue(item.title || '')
+    if (item.categoryId) {
+      const category = categories.find((c) => c._id === item.categoryId)
+      if (category) {
+        setSelectedCategory(category)
+      }
+    }
+    setIsPopoverOpen(false)
+    inputRef.current?.focus()
+  }
+
   const handleSelectCategory = (category: Category) => {
     setSelectedCategory(category)
-    setInputValue('') // Clear input to allow typing the title
+    setInputValue('')
     setIsPopoverOpen(false)
     inputRef.current?.focus()
   }
@@ -144,10 +162,8 @@ export const CreateEntryModal = ({
         token
       })) as Category
       utils.category.getCategories.invalidate({ token: token || '' })
-
       setSelectedCategory(newCategory)
-      setInputValue('') // Clear input after creating and selecting category
-
+      setInputValue('')
       if (showCategoryForm) {
         setShowCategoryForm(false)
       }
@@ -215,6 +231,7 @@ export const CreateEntryModal = ({
                       onKeyDown={(e) =>
                         handleKeyDown(
                           e,
+                          handleSelectHistory,
                           handleSelectCategory,
                           (template) => {
                             handleSaveNewCategory(template)
@@ -236,11 +253,13 @@ export const CreateEntryModal = ({
                   )}
                 </div>
                 <CategorySelectionPopover
+                  historyResults={historyResults}
                   searchResults={searchResults}
                   templateResults={templateResults}
                   highlightedIndex={highlightedIndex}
                   showCreateOption={showCreateOption}
                   inputValue={inputValue}
+                  onSelectHistory={handleSelectHistory}
                   onSelectCategory={handleSelectCategory}
                   onSelectTemplate={(template) => {
                     handleSaveNewCategory(template)

@@ -47,7 +47,7 @@ export const activeWindowEventsRouter = router({
     .input(activeWindowEventInputSchema)
     .output(activeWindowEventSchema)
     .mutation(async ({ input }) => {
-      console.log('input in create activeWindowEventsRouter', JSON.stringify(input, null, 2));
+      // console.log('input in create activeWindowEventsRouter', JSON.stringify(input, null, 2));
 
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
@@ -358,6 +358,95 @@ export const activeWindowEventsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update manual window event',
+        });
+      }
+    }),
+
+  getManualEntryHistory: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      console.log('running getManualEntryHistory for user', userId);
+
+      try {
+        const history = await ActiveWindowEventModel.aggregate([
+          // 1. Filter for manual entries for the specific user with a title
+          {
+            $match: {
+              userId, // Use string userId directly
+              type: 'manual',
+              title: { $nin: [null, ''] }, // Ensure title exists and is not empty
+            },
+          },
+          // 2. Group by title and categoryId to get unique pairs
+          {
+            $group: {
+              _id: {
+                titleLower: { $toLower: '$title' },
+                categoryId: '$categoryId',
+              },
+              title: { $first: '$title' }, // Keep the original cased title
+              lastUsed: { $max: '$timestamp' }, // Keep the most recent timestamp for this pair
+            },
+          },
+          // 3. Sort by most recently used
+          {
+            $sort: {
+              lastUsed: -1,
+            },
+          },
+          // 4. Limit to a reasonable number
+          {
+            $limit: 50,
+          },
+          // 5. Add a temporary field for the lookup
+          {
+            $addFields: {
+              categoryIdObjectId: {
+                $cond: {
+                  if: { $ne: ['$_id.categoryId', null] },
+                  then: { $toObjectId: '$_id.categoryId' },
+                  else: null,
+                },
+              },
+            },
+          },
+          // 6. Join with categories collection to get category details
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryIdObjectId',
+              foreignField: '_id',
+              as: 'categoryDetails',
+            },
+          },
+          // 7. Deconstruct the categoryDetails array
+          {
+            $unwind: {
+              path: '$categoryDetails',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          // 8. Final projection to shape the output
+          {
+            $project: {
+              _id: 0,
+              title: '$title',
+              categoryId: '$_id.categoryId',
+              categoryName: '$categoryDetails.name',
+              categoryColor: '$categoryDetails.color',
+            },
+          },
+        ]);
+        console.log('history in getManualEntryHistory', JSON.stringify(history, null, 2));
+        return history;
+      } catch (error) {
+        console.error('Error fetching manual entry history:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch manual entry history',
         });
       }
     }),
