@@ -12,9 +12,11 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { createTrpcClient, trpc } from './utils/trpc'
 
 // Initialize Sentry
-Sentry.init({
-  dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
-})
+if (!import.meta.env.DEV) {
+  Sentry.init({
+    dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
+  })
+}
 
 const Main = () => {
   const [queryClient] = useState(() => new QueryClient())

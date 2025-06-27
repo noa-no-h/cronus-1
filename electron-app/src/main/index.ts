@@ -20,9 +20,11 @@ import { createFloatingWindow, createMainWindow } from './windows'
 dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
 
 // Initialize Sentry
-Sentry.init({
-  dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
-})
+if (!is.dev) {
+  Sentry.init({
+    dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
+  })
+}
 
 let mainWindow: BrowserWindow | null = null
 let floatingWindow: BrowserWindow | null = null

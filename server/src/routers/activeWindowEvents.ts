@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
@@ -7,8 +7,12 @@ import { categorizeActivity } from '../services/categorization/categorizationSer
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 
+const objectIdToStringSchema = z
+  .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))
+  .transform((val) => val.toString());
+
 const activeWindowEventSchema = z.object({
-  _id: z.any().optional(),
+  _id: objectIdToStringSchema.optional(),
   userId: z.string(),
   windowId: z.number().optional(),
   ownerName: z.string(),
@@ -39,51 +43,63 @@ const activeWindowEventInputSchema = z.object({
 });
 
 export const activeWindowEventsRouter = router({
-  create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
-    console.log('input in create activeWindowEventsRouter', JSON.stringify(input, null, 2));
+  create: publicProcedure
+    .input(activeWindowEventInputSchema)
+    .output(activeWindowEventSchema)
+    .mutation(async ({ input }) => {
+      console.log('input in create activeWindowEventsRouter', JSON.stringify(input, null, 2));
 
-    const decodedToken = verifyToken(input.token);
-    const userId = decodedToken.userId;
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
 
-    // Destructure relevant details from input for categorization
-    const { windowId, ownerName, type, browser, title, url, content, timestamp, screenshotS3Url } =
-      input;
-    const activityDetails = { ownerName, type, browser, title, url, content }; // Pass only necessary fields
+      // Destructure relevant details from input for categorization
+      const {
+        windowId,
+        ownerName,
+        type,
+        browser,
+        title,
+        url,
+        content,
+        timestamp,
+        screenshotS3Url,
+      } = input;
+      const activityDetails = { ownerName, type, browser, title, url, content }; // Pass only necessary fields
 
-    const categorizationResult = await categorizeActivity(userId, activityDetails);
-    const categoryId = categorizationResult.categoryId;
+      const categorizationResult = await categorizeActivity(userId, activityDetails);
+      const categoryId = categorizationResult.categoryId;
 
-    const eventToSave: ActiveWindowEvent = {
-      userId,
-      windowId,
-      ownerName,
-      type,
-      browser,
-      title,
-      url,
-      content,
-      timestamp,
-      screenshotS3Url,
-      categoryId, // Add categoryId from categorization service
-    };
+      const eventToSave: ActiveWindowEvent = {
+        userId,
+        windowId,
+        ownerName,
+        type,
+        browser,
+        title,
+        url,
+        content,
+        timestamp,
+        screenshotS3Url,
+        categoryId, // Add categoryId from categorization service
+      };
 
-    try {
-      const newEvent = new ActiveWindowEventModel(eventToSave);
+      try {
+        const newEvent = new ActiveWindowEventModel(eventToSave);
 
-      console.log(
-        `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent: ${newEvent.ownerName || newEvent.title}`
-      );
+        console.log(
+          `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent: ${newEvent.ownerName || newEvent.title}`
+        );
 
-      await newEvent.save();
-      return newEvent.toObject() as ActiveWindowEvent;
-    } catch (error) {
-      console.error('Error saving active window event:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to save active window event',
-      });
-    }
-  }),
+        await newEvent.save();
+        return newEvent.toObject<ActiveWindowEvent>();
+      } catch (error) {
+        console.error('Error saving active window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to save active window event',
+        });
+      }
+    }),
 
   getEventsForDateRange: publicProcedure
     .input(z.object({ token: z.string(), startDateMs: z.number(), endDateMs: z.number() }))
@@ -111,7 +127,7 @@ export const activeWindowEventsRouter = router({
           },
         }).sort({ timestamp: 1 });
 
-        return events.map((event) => event.toObject());
+        return events.map((event) => event.toObject<ActiveWindowEvent>());
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error('Error fetching events for date range:', error);
@@ -124,6 +140,7 @@ export const activeWindowEventsRouter = router({
 
   getLatestEvent: publicProcedure
     .input(z.object({ token: z.string() }))
+    .output(activeWindowEventSchema.nullable())
     .query(async ({ input }) => {
       try {
         const decodedToken = verifyToken(input.token);
@@ -138,7 +155,7 @@ export const activeWindowEventsRouter = router({
         if (!latestEvent) {
           return null; // Or throw a TRPCError if an event is always expected
         }
-        return latestEvent.toObject() as ActiveWindowEvent;
+        return latestEvent.toObject<ActiveWindowEvent>();
       } catch (error) {
         console.error('Error fetching latest event:', error);
         // Handle token verification errors specifically if verifyToken throws them
@@ -260,6 +277,7 @@ export const activeWindowEventsRouter = router({
         endTime: z.number(),
       })
     )
+    .output(activeWindowEventSchema)
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
@@ -289,7 +307,7 @@ export const activeWindowEventsRouter = router({
       try {
         const newEvent = new ActiveWindowEventModel(eventToSave);
         await newEvent.save();
-        return newEvent.toObject() as ActiveWindowEvent;
+        return newEvent.toObject<ActiveWindowEvent>();
       } catch (error) {
         console.error('Error saving manual window event:', error);
         throw new TRPCError({
@@ -310,6 +328,7 @@ export const activeWindowEventsRouter = router({
         durationMs: z.number().optional(),
       })
     )
+    .output(activeWindowEventSchema)
     .mutation(async ({ input }) => {
       const { token, id, name, categoryId, startTime, durationMs } = input;
       verifyToken(token);
@@ -333,7 +352,7 @@ export const activeWindowEventsRouter = router({
         if (!updatedEvent) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
         }
-        return updatedEvent.toObject() as ActiveWindowEvent;
+        return updatedEvent.toObject<ActiveWindowEvent>();
       } catch (error) {
         console.error('Error updating manual window event:', error);
         throw new TRPCError({

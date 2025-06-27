@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
@@ -7,9 +7,13 @@ import { resetCategoriesToDefault } from '../services/category-resetting/categor
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 
+const objectIdToStringSchema = z
+  .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))
+  .transform((val) => val.toString());
+
 const categorySchema = z.object({
-  _id: z.any(),
-  userId: z.string(),
+  _id: objectIdToStringSchema,
+  userId: objectIdToStringSchema,
   name: z.string(),
   description: z.string().optional(),
   color: z.string(),
@@ -146,7 +150,7 @@ export const categoryRouter = router({
       if (!category) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
-      return { success: true, id };
+      return category.toJSON();
     }),
 
   resetToDefault: publicProcedure
@@ -154,7 +158,8 @@ export const categoryRouter = router({
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-      return await resetCategoriesToDefault(userId);
+      await resetCategoriesToDefault(userId);
+      return { success: true };
     }),
 
   getCategoryById: publicProcedure
