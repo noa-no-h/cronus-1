@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { getDarkerColor, getLighterColor } from '../../lib/colors'
 import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
@@ -40,12 +41,22 @@ const TimelineSegmentContent = ({
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-start justify-center overflow-hidden px-2"
+      className={clsx(
+        'w-full h-full flex flex-col items-start justify-start overflow-hidden px-2',
+        canShowContent ? 'pt-2' : 'pt-0.5'
+      )}
       style={{ color: textColor }}
     >
       {canShowIcon && (
         <div className="flex w-full flex-row items-center space-x-2 py-0.5">
-          <ActivityIcon url={segment.url} appName={segment.name} size={12} />
+          {segment.type === 'manual' ? (
+            <div
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: segment.categoryColor }}
+            />
+          ) : (
+            <ActivityIcon url={segment.url} appName={segment.name} size={12} />
+          )}
           {canShowContent && (
             <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
               {segment.description || segment.name}
