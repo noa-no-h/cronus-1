@@ -7,6 +7,20 @@ import { resetCategoriesToDefault } from '../services/category-resetting/categor
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 
+const categorySchema = z.object({
+  _id: z.any(),
+  userId: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  color: z.string(),
+  isProductive: z.boolean(),
+  isDefault: z.boolean().default(false),
+  isArchived: z.boolean().optional().default(false),
+  isLikelyToBeOffline: z.boolean().optional().default(false),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export const categoryRouter = router({
   createCategory: publicProcedure
     .input(
@@ -53,12 +67,15 @@ export const categoryRouter = router({
       return category.toJSON();
     }),
 
-  getCategories: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const decodedToken = verifyToken(input.token);
-    const userId = decodedToken.userId;
-    const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
-    return categories.map((cat) => cat.toJSON());
-  }),
+  getCategories: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .output(z.array(categorySchema))
+    .query(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+      const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+      return categories.map((cat) => cat.toJSON());
+    }),
 
   updateCategory: publicProcedure
     .input(

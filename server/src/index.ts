@@ -66,12 +66,15 @@ app.use(
   })
 );
 
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
+
 // Use JSON parser for all non-webhook routes
 app.use((req, res, next) => {
   if (req.originalUrl === '/api/webhooks/stripe') {
     next();
   } else {
-    express.json()(req, res, next);
+    express.json({ limit: '5mb' })(req, res, next);
   }
 });
 
@@ -143,6 +146,26 @@ app.use(
     },
   })
 );
+
+// Custom error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(`[Express Error] Unhandled error on ${req.method} ${req.originalUrl}:`, err); // Log the error with context
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode = err.status || (err.type === 'entity.too.large' ? 413 : 500);
+
+  // For this private side project, send detailed errors to the client for easier debugging.
+  res.status(statusCode).send({
+    error: {
+      message: err.message,
+      stack: err.stack,
+      ...err,
+    },
+  });
+});
 
 // MongoDB connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whatdidyougetdonetoday';

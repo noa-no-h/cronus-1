@@ -7,6 +7,23 @@ import { categorizeActivity } from '../services/categorization/categorizationSer
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 
+const activeWindowEventSchema = z.object({
+  _id: z.any().optional(),
+  userId: z.string(),
+  windowId: z.number().optional(),
+  ownerName: z.string(),
+  type: z.enum(['window', 'browser', 'system', 'manual']),
+  browser: z.enum(['chrome', 'safari']).nullable().optional(),
+  title: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  timestamp: z.number(),
+  screenshotS3Url: z.string().nullable().optional(),
+  durationMs: z.number().optional(),
+  categoryId: z.string().nullable().optional(),
+  categoryReasoning: z.string().nullable().optional(),
+});
+
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
   token: z.string(),
@@ -70,6 +87,7 @@ export const activeWindowEventsRouter = router({
 
   getEventsForDateRange: publicProcedure
     .input(z.object({ token: z.string(), startDateMs: z.number(), endDateMs: z.number() }))
+    .output(z.array(activeWindowEventSchema))
     .query(async ({ input }) => {
       try {
         const decodedToken = verifyToken(input.token);
@@ -93,7 +111,7 @@ export const activeWindowEventsRouter = router({
           },
         }).sort({ timestamp: 1 });
 
-        return events.map((event) => event.toObject() as ActiveWindowEvent);
+        return events.map((event) => event.toObject());
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error('Error fetching events for date range:', error);
