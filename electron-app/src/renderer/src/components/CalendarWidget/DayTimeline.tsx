@@ -136,8 +136,6 @@ const DayTimeline = ({
     const minuteFraction = adjustedYWithinHour / effectiveHourHeight
     const minute = Math.floor(minuteFraction * 60)
 
-    console.log('minute', minute)
-
     // Snap to 5-minute intervals - use floor to snap to the start of the interval
     let snappedMinute = Math.floor(minute / 5) * 5
     let finalHour = hour

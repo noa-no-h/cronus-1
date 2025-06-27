@@ -7,6 +7,7 @@ import { Label } from '../ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { IsProductiveTooltip } from './IsProductiveTooltip'
 
 export const notionStyleCategoryColors = [
@@ -68,7 +69,7 @@ function CategoryColorPicker({
 
 // Basic Form for Create/Edit
 interface CategoryFormProps {
-  initialData?: Category
+  initialData?: Partial<Category>
   onSave: (data: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>) => void
   onCancel: () => void
   isSaving: boolean
@@ -89,6 +90,9 @@ export function CategoryForm({
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
+  const [isLikelyToBeOffline, setIsLikelyToBeOffline] = useState(
+    initialData?.isLikelyToBeOffline || false
+  )
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,7 +102,14 @@ export function CategoryForm({
       return
     }
     setError('')
-    onSave({ name, description, color, isProductive, isDefault: initialData?.isDefault ?? false })
+    onSave({
+      name,
+      description,
+      color,
+      isProductive,
+      isLikelyToBeOffline,
+      isDefault: initialData?.isDefault ?? false
+    })
   }
 
   return (
@@ -134,25 +145,59 @@ export function CategoryForm({
         />
       </div>
 
-      {/* Container for Type and Color, arranged side-by-side on medium screens and up */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <IsProductiveTooltip>
-          <div className="flex items-center space-x-2 mt-1 cursor-help">
-            <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
-            <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
-              {isProductive ? 'Productive' : 'Unproductive'}
-            </Label>
-          </div>
-        </IsProductiveTooltip>
-
+        <div className="space-y-2">
+          <Label>Type</Label>
+          <IsProductiveTooltip>
+            <div className="flex items-center space-x-2 mt-1 cursor-help">
+              <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
+              <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
+                {isProductive ? 'Productive' : 'Unproductive'}
+              </Label>
+            </div>
+          </IsProductiveTooltip>
+        </div>
         <div>
+          <Label>Color</Label>
           <div className="flex items-start space-x-2 mt-1">
             <CategoryColorPicker selectedColor={color} onColorChange={setColor} />
             <span className="text-red-500">*</span>
           </div>
         </div>
+      </div>
 
-        {error && <p className="text-sm text-destructive-foreground">{error}</p>}
+      <div>
+        <Label>Behavior</Label>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center space-x-2 mt-1 cursor-help">
+                <Switch
+                  id="isLikelyToBeOffline"
+                  checked={isLikelyToBeOffline}
+                  onCheckedChange={setIsLikelyToBeOffline}
+                />
+                <Label
+                  htmlFor="isLikelyToBeOffline"
+                  className="text-foreground text-sm font-medium"
+                >
+                  Likely Offline
+                </Label>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                Enable this for a category that is likely to be offline, such as commuting or
+                exercising.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+      {error && <p className="text-sm text-destructive-foreground">{error}</p>}
+
+      <div className="flex justify-end space-x-4">
         <Button type="button" variant="secondary" onClick={onCancel} disabled={isSaving}>
           Cancel
         </Button>

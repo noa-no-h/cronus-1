@@ -132,18 +132,18 @@ export function DashboardView({ className }: { className?: string }) {
   )
 
   useEffect(() => {
-    console.log('🔍 Processing events:', {
-      isLoadingFetchedEvents,
-      isLoadingCategories,
-      isLoadingCalendarEvents,
-      eventsDataLength: eventsData?.length || 0,
-      categoriesLength: categories?.length || 0,
-      calendarEventsLength: calendarEventsData?.length || 0
-    })
+    // console.log('🔍 Processing events:', {
+    //   isLoadingFetchedEvents,
+    //   isLoadingCategories,
+    //   isLoadingCalendarEvents,
+    //   eventsDataLength: eventsData?.length || 0,
+    //   categoriesLength: categories?.length || 0,
+    //   calendarEventsLength: calendarEventsData?.length || 0
+    // })
 
-    console.log('🐛 Debug - eventsData:', eventsData)
-    console.log('🐛 Debug - startDateMs/endDateMs:', { startDateMs, endDateMs })
-    console.log('🐛 Debug - token:', token)
+    // console.log('🐛 Debug - eventsData:', eventsData)
+    // console.log('🐛 Debug - startDateMs/endDateMs:', { startDateMs, endDateMs })
+    // console.log('🐛 Debug - token:', token)
 
     if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
       setIsLoadingEvents(true)
@@ -151,9 +151,9 @@ export function DashboardView({ className }: { className?: string }) {
     } else if (eventsData && categories) {
       // Process tracked events (existing logic)
       const trackedBlocks = generateProcessedEventBlocks(eventsData, categories)
-      console.log('📊 Tracked blocks:', trackedBlocks.length)
+      // console.log('📊 Tracked blocks:', trackedBlocks.length)
 
-      const calendarEvents = calendarEventsData?.data || calendarEventsData || []
+      const calendarEvents = calendarEventsData || []
 
       // Process calendar events
       const calendarBlocks: ProcessedEventBlock[] = calendarEvents.length
@@ -161,13 +161,13 @@ export function DashboardView({ className }: { className?: string }) {
             .map(convertCalendarEventToBlock)
             .filter((block): block is ProcessedEventBlock => block !== null)
         : []
-      console.log('📅 Calendar blocks:', calendarBlocks.length)
+      // console.log('📅 Calendar blocks:', calendarBlocks.length)
 
       // Merge tracked and calendar events, sorted by start time
       const allBlocks = [...trackedBlocks, ...calendarBlocks].sort(
         (a, b) => a.startTime.getTime() - b.startTime.getTime()
       )
-      console.log('🔄 Total merged blocks:', allBlocks.length)
+      // console.log('🔄 Total merged blocks:', allBlocks.length)
 
       setCalendarProcessedEvents(allBlocks)
       setIsLoadingEvents(false)

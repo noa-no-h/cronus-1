@@ -17,12 +17,20 @@ export const categoryRouter = router({
         color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format (e.g., #FF5733)'),
         isProductive: z.boolean(),
         isDefault: z.boolean().optional(),
+        isLikelyToBeOffline: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-      const { name, description, color, isProductive, isDefault = false } = input;
+      const {
+        name,
+        description,
+        color,
+        isProductive,
+        isDefault = false,
+        isLikelyToBeOffline = false,
+      } = input;
 
       const existingCategory = await CategoryModel.findOne({ userId, name });
       if (existingCategory) {
@@ -39,6 +47,7 @@ export const categoryRouter = router({
         color,
         isProductive,
         isDefault,
+        isLikelyToBeOffline,
       });
       await category.save();
       return category.toJSON();
@@ -66,6 +75,7 @@ export const categoryRouter = router({
           .optional(),
         isProductive: z.boolean().optional(),
         isArchived: z.boolean().optional(),
+        isLikelyToBeOffline: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {

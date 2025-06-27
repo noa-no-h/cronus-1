@@ -13,22 +13,22 @@ interface TimelineSegmentTooltipProps {
 
 export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentTooltipProps) => {
   // Debug: Let's see what's actually in the segment
-  console.log('TimelineSegmentTooltip segment:', {
-    name: segment.name,
-    description: segment.description,
-    type: segment.type,
-    hasOriginalEvent: !!(segment as any).originalEvent,
-    originalEvent: (segment as any).originalEvent
-  })
+  // console.log('TimelineSegmentTooltip segment:', {
+  //   name: segment.name,
+  //   description: segment.description,
+  //   type: segment.type,
+  //   hasOriginalEvent: !!(segment as any).originalEvent,
+  //   originalEvent: (segment as any).originalEvent
+  // })
 
   // Check if this is a Google Calendar event
   const isCalendarEvent = segment.name === 'Google Calendar'
 
-  console.log('isCalendarEvent:', isCalendarEvent)
+  // console.log('isCalendarEvent:', isCalendarEvent)
 
   // For calendar events, use the CalendarEventTooltip
   if (isCalendarEvent && (segment as any).originalEvent) {
-    console.log('Using CalendarEventTooltip!')
+    // console.log('Using CalendarEventTooltip!')
     return (
       <CalendarEventTooltip event={(segment as any).originalEvent}>{children}</CalendarEventTooltip>
     )
