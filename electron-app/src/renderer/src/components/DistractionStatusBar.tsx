@@ -197,7 +197,11 @@ const DistractionStatusBar = ({
 
     const { dailyProductiveMs, dailyUnproductiveMs } = calculateProductivityMetrics(
       todayEvents as ActiveWindowEvent[],
-      userCategories as Category[]
+      (userCategories?.map((c) => ({
+        ...c,
+        createdAt: new Date(c.createdAt),
+        updatedAt: new Date(c.updatedAt)
+      })) as Category[]) || []
     )
 
     const itemType = displayWindowInfo.url ? 'website' : 'app'

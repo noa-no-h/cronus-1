@@ -81,8 +81,10 @@ const DayTimeline = ({
     handleMouseLeave,
     resetDragState
   } = useTimeSelection(
+    timelineContainerRef as React.RefObject<HTMLDivElement>,
     (y: number) => {
       if (!timelineContainerRef.current) return null
+      // y is already relative to the timeline container, so we pass it directly
       return convertYToTime(y, timelineContainerRef.current, hourHeight)
     },
     (startTime, endTime) => {
@@ -103,7 +105,6 @@ const DayTimeline = ({
 
   const SEGMENT_TOP_OFFSET_PX = 1
   const SEGMENT_SPACING_PX = 1 // Gap between segments
-  const SEGMENT_LEFT_OFFSET_PX = 67
   const totalSegmentVerticalSpacing = SEGMENT_TOP_OFFSET_PX + SEGMENT_SPACING_PX
 
   const handleResizeStart = (
@@ -125,23 +126,30 @@ const DayTimeline = ({
 
   const handleMouseMoveWithResize = (e: React.MouseEvent<HTMLDivElement>) => {
     if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
-      const { entry, startY } = resizingState
+      const { entry, startY, direction } = resizingState
       const deltaY = e.clientY - startY
 
-      let newTop = entry.top + deltaY
-      let newHeight = entry.height
+      // Snap to nearest 5 minutes
+      const minutesPerPixel = (24 * 60) / timelineHeight
+      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+      const pixelsPerMinute = timelineHeight / (24 * 60)
+      const snappedDeltaY = deltaMinutes * pixelsPerMinute
 
-      if (resizingState.direction === 'top') {
-        newHeight = entry.height - deltaY
+      let newTop: number
+      let newHeight: number
+
+      if (direction === 'top') {
+        newTop = entry.top + snappedDeltaY
+        newHeight = entry.height - snappedDeltaY
       } else {
         // 'bottom'
         newTop = entry.top
-        newHeight = entry.height + deltaY
+        newHeight = entry.height + snappedDeltaY
       }
 
       // Clamp resize
       newHeight = Math.max(5, newHeight) // Min height 5px
-      if (resizingState.direction === 'top') {
+      if (direction === 'top') {
         newTop = Math.min(newTop, entry.top + entry.height - 5)
       }
 
@@ -312,19 +320,33 @@ const DayTimeline = ({
                   {isManual && (
                     <>
                       <div
-                        className="absolute top-0 left-0 right-0 h-2 cursor-row-resize z-10"
+                        className="absolute top-0 left-0 right-0 h-4 -translate-y-1/2 cursor-row-resize z-30 group"
                         onMouseDown={(e) => {
                           e.stopPropagation()
                           handleResizeStart(segment, 'top', e)
                         }}
-                      />
+                      >
+                        <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="w-3 h-1.5 flex flex-col justify-between">
+                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
+                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
                       <div
-                        className="absolute bottom-0 left-0 right-0 h-2 cursor-row-resize z-10"
+                        className="absolute bottom-0 left-0 right-0 h-4 translate-y-1/2 cursor-row-resize z-30 group"
                         onMouseDown={(e) => {
                           e.stopPropagation()
                           handleResizeStart(segment, 'bottom', e)
                         }}
-                      />
+                      >
+                        <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="w-3 h-1.5 flex flex-col justify-between">
+                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
+                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
+                          </div>
+                        </div>
+                      </div>
                     </>
                   )}
                   <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />

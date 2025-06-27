@@ -21,10 +21,10 @@ export const SelectionBox: React.FC<SelectionBoxProps> = ({ isVisible, dragState
 
   return (
     <div
-      className="absolute left-[68px] mr-1 my-1 right-0 bg-blue-500/30 border-2 border-blue-500 rounded-md z-10 pointer-events-none transition-all duration-0 ease-out"
+      className="absolute left-[67px] right-1 bg-blue-500/30 border-2 border-blue-500 rounded-md z-10 pointer-events-none"
       style={{
-        top: `${top}px`,
-        height: `${height}px`
+        top: `${top + 1}px`,
+        height: `${Math.max(0, height - 2)}px`
       }}
     />
   )

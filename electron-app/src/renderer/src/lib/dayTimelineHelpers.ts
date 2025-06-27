@@ -287,30 +287,23 @@ export const convertYToTime = (
   timelineContainer: HTMLDivElement,
   hourHeight: number
 ) => {
-  const containerRect = timelineContainer.getBoundingClientRect()
-  const relativeY = y - containerRect.top
+  const rect = timelineContainer.getBoundingClientRect()
+  const relativeY = y // y is already relative
 
-  const hourHeightInRem = hourHeight
+  const totalMinutesInDay = 24 * 60
+  const timelineHeight = timelineContainer.offsetHeight
+
   const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
-  const hourHeightInPx = hourHeightInRem * rootFontSize
 
-  // Account for the pt-1.5 (6px) padding at the top of each hour
-  const paddingTopPx = 6
-  const effectiveHourHeight = hourHeightInPx - paddingTopPx
-  const totalHeight = 24 * hourHeightInPx
+  // Clamp y to be within the timeline bounds
+  const clampedY = Math.max(0, Math.min(relativeY, timelineHeight))
 
-  const clampedY = Math.max(0, Math.min(relativeY, totalHeight))
+  const minutesFromTop = (clampedY / timelineHeight) * totalMinutesInDay
+  const hour = Math.floor(minutesFromTop / 60)
+  const minute = Math.floor(minutesFromTop % 60)
 
-  const hour = Math.floor(clampedY / hourHeightInPx)
-
-  // Adjust for the padding within the hour
-  const yWithinHour = clampedY % hourHeightInPx
-  const adjustedYWithinHour = Math.max(0, yWithinHour - paddingTopPx)
-  const minuteFraction = adjustedYWithinHour / effectiveHourHeight
-  const minute = Math.floor(minuteFraction * 60)
-
-  // Snap to 5-minute intervals - use floor to snap to the start of the interval
-  let snappedMinute = Math.floor(minute / 5) * 5
+  // Snap to the nearest 5-minute interval
+  let snappedMinute = Math.round(minute / 5) * 5
   let finalHour = hour
 
   if (snappedMinute === 60) {
@@ -319,8 +312,8 @@ export const convertYToTime = (
   }
 
   // Recalculate the y position based on the snapped time for visual snapping
-  const snappedYPosition =
-    finalHour * hourHeightInPx + paddingTopPx + (snappedMinute / 60) * effectiveHourHeight
+  const snappedMinutesFromTop = finalHour * 60 + snappedMinute
+  const snappedYPosition = (snappedMinutesFromTop / totalMinutesInDay) * timelineHeight
 
   return { hour: finalHour, minute: snappedMinute, y: snappedYPosition }
 }

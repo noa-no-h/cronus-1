@@ -13,14 +13,13 @@ export const CurrentTimeIndicator = memo(
 
     return (
       <div
-        className="absolute w-full z-10 pointer-events-none"
+        className="absolute left-[55px] w-full z-10 pointer-events-none"
         style={{
           top: `${topPosition}px`
         }}
       >
         <div className="relative h-px bg-red-500">
-          <div className="absolute -top-1 left-0 h-2 w-2 rounded-full bg-red-500"></div>
-          <div className="absolute -top-1 -right-px h-2 w-2 rounded-full bg-red-500"></div>
+          <div className="absolute -top-[5px] left-0 h-3 w-3 rounded-full bg-red-500"></div>
         </div>
       </div>
     )
