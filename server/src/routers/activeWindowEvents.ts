@@ -286,13 +286,27 @@ export const activeWindowEventsRouter = router({
       z.object({
         token: z.string(),
         id: z.string(),
-        name: z.string(),
+        name: z.string().optional(),
         categoryId: z.string().optional(),
+        startTime: z.number().optional(),
+        durationMs: z.number().optional(),
       })
     )
     .mutation(async ({ input }) => {
-      const { token, id, ...updateData } = input;
+      const { token, id, name, categoryId, startTime, durationMs } = input;
       verifyToken(token);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateData: any = {};
+      if (name) {
+        updateData.name = name;
+        // Also update ownerName and title for consistency if they exist on the model
+        updateData.ownerName = name;
+        updateData.title = name;
+      }
+      if (categoryId) updateData.categoryId = categoryId;
+      if (startTime) updateData.timestamp = startTime;
+      if (durationMs) updateData.durationMs = durationMs;
 
       try {
         const updatedEvent = await ActiveWindowEventModel.findByIdAndUpdate(id, updateData, {

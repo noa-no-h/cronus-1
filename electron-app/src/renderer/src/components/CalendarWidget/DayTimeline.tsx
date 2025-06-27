@@ -1,16 +1,20 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 import { useManualEntry } from '../../hooks/useManualEntry'
 import { useTimeSelection } from '../../hooks/useTimeSelection'
+import { hexToRgba } from '../../lib/colors'
 import {
   convertYToTime,
-  getTimelineSegmentsForHour,
-  type EnrichedTimelineSegment,
+  getTimelineSegmentsForDay,
+  type DaySegment,
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
 import { CreateEntryModal } from './CreateEntryModal'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
 import { SelectionBox } from './SelectionBox'
 import { TimelineHour } from './TimelineHour'
+import TimelineSegmentContent from './TimelineSegmentContent'
+import { TimelineSegmentTooltip } from './TimelineSegmentTooltip'
 
 export type { TimeBlock }
 
@@ -38,6 +42,24 @@ const DayTimeline = ({
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
+  const { token } = useAuth()
+  const [resizingState, setResizingState] = useState<{
+    isResizing: boolean
+    entry: DaySegment | null
+    direction: 'top' | 'bottom' | null
+    startY: number | null
+  }>({
+    isResizing: false,
+    entry: null,
+    direction: null,
+    startY: null
+  })
+
+  const [resizePreview, setResizePreview] = useState<{
+    top: number
+    height: number
+    backgroundColor: string
+  } | null>(null)
 
   const {
     modalState,
@@ -45,7 +67,8 @@ const DayTimeline = ({
     handleModalSubmit,
     handleModalDelete,
     handleSelectManualEntry,
-    openNewEntryModal
+    openNewEntryModal,
+    updateManualEntry
   } = useManualEntry({ currentTime, onModalClose: () => resetDragState() })
 
   const {
@@ -63,8 +86,72 @@ const DayTimeline = ({
     (startTime, endTime) => {
       openNewEntryModal(startTime, endTime)
     },
-    !modalState.isOpen
+    !modalState.isOpen && !resizingState.isResizing
   )
+
+  const timelineHeight = useMemo(() => {
+    const rootFontSize = 16 // Assuming default 16px
+    return 24 * hourHeight * rootFontSize
+  }, [hourHeight])
+
+  const daySegments = useMemo(
+    () => getTimelineSegmentsForDay(timeBlocks, timelineHeight),
+    [timeBlocks, timelineHeight]
+  )
+
+  const SEGMENT_TOP_OFFSET_PX = 1
+  const SEGMENT_SPACING_PX = 1 // Gap between segments
+  const SEGMENT_LEFT_OFFSET_PX = 67
+  const totalSegmentVerticalSpacing = SEGMENT_TOP_OFFSET_PX + SEGMENT_SPACING_PX
+
+  const handleResizeStart = (
+    entry: DaySegment,
+    direction: 'top' | 'bottom',
+    e: React.MouseEvent
+  ) => {
+    if (modalState.isOpen || dragState.isDragging) return
+    resetDragState() // Prevent new entry drag
+    e.stopPropagation()
+
+    setResizingState({
+      isResizing: true,
+      entry,
+      direction,
+      startY: e.clientY
+    })
+  }
+
+  const handleMouseMoveWithResize = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
+      const { entry, startY } = resizingState
+      const deltaY = e.clientY - startY
+
+      let newTop = entry.top + deltaY
+      let newHeight = entry.height
+
+      if (resizingState.direction === 'top') {
+        newHeight = entry.height - deltaY
+      } else {
+        // 'bottom'
+        newTop = entry.top
+        newHeight = entry.height + deltaY
+      }
+
+      // Clamp resize
+      newHeight = Math.max(5, newHeight) // Min height 5px
+      if (resizingState.direction === 'top') {
+        newTop = Math.min(newTop, entry.top + entry.height - 5)
+      }
+
+      setResizePreview({
+        top: newTop,
+        height: newHeight,
+        backgroundColor: segmentBackgroundColor(entry)
+      })
+    } else {
+      handleMouseMove(e)
+    }
+  }
 
   // Scroll to current hour when viewing today
   useEffect(() => {
@@ -92,6 +179,51 @@ const DayTimeline = ({
     prevHourHeightRef.current = hourHeight
   }, [hourHeight, scrollContainerRef])
 
+  const handleMouseUpWithResize = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
+      const { entry, direction, startY } = resizingState
+
+      const deltaY = e.clientY - startY
+      const minutesPerPixel = (24 * 60) / timelineHeight
+      // Snap to nearest 5 minutes
+      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+
+      let newStartTime = new Date(entry.startTime)
+      let newEndTime = new Date(entry.endTime)
+
+      if (direction === 'top') {
+        newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
+      } else {
+        // 'bottom'
+        newEndTime.setMinutes(newEndTime.getMinutes() + deltaMinutes)
+      }
+
+      // Basic validation
+      if (newEndTime <= newStartTime) {
+        if (direction === 'top') {
+          newStartTime = new Date(newEndTime.getTime() - 60000) // 1 min duration
+        } else {
+          newEndTime = new Date(newStartTime.getTime() + 60000) // 1 min duration
+        }
+      }
+
+      const durationMs = newEndTime.getTime() - newStartTime.getTime()
+
+      if (entry._id && durationMs > 0 && token) {
+        updateManualEntry.mutate({
+          token,
+          id: entry._id,
+          startTime: newStartTime.getTime(),
+          durationMs
+        })
+      }
+    }
+    // Reset state regardless of what happened
+    setResizingState({ isResizing: false, entry: null, direction: null, startY: null })
+    setResizePreview(null)
+    handleMouseUp(e)
+  }
+
   const yToTime = (y: number) => {
     if (!timelineContainerRef.current) return null
     return convertYToTime(y, timelineContainerRef.current, hourHeight)
@@ -100,75 +232,122 @@ const DayTimeline = ({
   // Calculate current time position
   const getCurrentTimePosition = () => {
     const hours = currentTime.getHours()
-    const minutes = currentTime.getMinutes()
-    const minutePercentage = (minutes / 60) * 100
-    return { hours, minutePercentage }
+    return { hours }
   }
+
+  const { hours: currentHour } = getCurrentTimePosition()
+  const showCurrentTime = isToday
+  const segmentBackgroundColor = (segment: DaySegment) =>
+    segment.categoryColor
+      ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
+      : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2)
 
   return (
     <div className="flex-1">
       <div
         ref={timelineContainerRef}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMoveWithResize}
+        onMouseUp={handleMouseUpWithResize}
         onMouseLeave={handleMouseLeave}
         className="relative"
+        style={{ height: timelineHeight }}
       >
+        {/* Background Grid */}
+        {Array.from({ length: 24 }).map((_, hour) => (
+          <TimelineHour
+            key={hour}
+            hour={hour}
+            isCurrentHour={hour === currentHour}
+            isSelectedHour={selectedHour === hour}
+            currentHourRef={hour === currentHour ? currentHourRef : null}
+            isLastHour={hour === 23}
+            hourHeight={hourHeight}
+          />
+        ))}
+
+        {/* Event Segments */}
+        <div className="absolute inset-0">
+          {daySegments.map((segment) => {
+            const isManual = segment.type === 'manual'
+            const canInteract = isManual || (selectedHour === null && !isManual)
+            const segmentCursor = isManual ? 'pointer' : 'default'
+            // TODO: Calendar event styling
+            const isCalendarEvent = segment.name === 'Google Calendar'
+
+            const positionClasses = isCalendarEvent
+              ? 'absolute left-1/2 right-1 rounded-md' // Calendar events: right half only
+              : `absolute left-[67px] right-1 rounded-md` // Regular activities: full width
+
+            return (
+              <TimelineSegmentTooltip
+                key={segment._id || `${segment.name}-${segment.startTime}`}
+                segment={segment}
+              >
+                <div
+                  className={`group ${positionClasses}
+                          ${canInteract ? 'hover:brightness-75' : ''} transition-all
+                          overflow-hidden`}
+                  style={{
+                    cursor: segmentCursor,
+                    backgroundColor: segmentBackgroundColor(segment),
+                    top: `${segment.top + SEGMENT_TOP_OFFSET_PX}px`,
+                    height: `max(1px, ${segment.height - totalSegmentVerticalSpacing}px)`,
+                    opacity:
+                      selectedHour !== null && Math.floor(segment.startMinute / 60) !== selectedHour
+                        ? 0.5
+                        : 1
+                  }}
+                  onClick={() => {
+                    if (isManual) {
+                      handleSelectManualEntry(segment)
+                    }
+                  }}
+                >
+                  {isManual && (
+                    <>
+                      <div
+                        className="absolute top-0 left-0 right-0 h-2 cursor-row-resize z-10"
+                        onMouseDown={(e) => {
+                          e.stopPropagation()
+                          handleResizeStart(segment, 'top', e)
+                        }}
+                      />
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-2 cursor-row-resize z-10"
+                        onMouseDown={(e) => {
+                          e.stopPropagation()
+                          handleResizeStart(segment, 'bottom', e)
+                        }}
+                      />
+                    </>
+                  )}
+                  <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
+                </div>
+              </TimelineSegmentTooltip>
+            )
+          })}
+        </div>
+
+        {resizePreview && (
+          <div
+            className={`absolute left-[67px] right-1 rounded-md z-20 pointer-events-none`}
+            style={{
+              top: `${resizePreview.top}px`,
+              height: `${resizePreview.height}px`,
+              backgroundColor: resizePreview.backgroundColor
+            }}
+          />
+        )}
         <SelectionBox
           isVisible={dragState.isDragging || modalState.isOpen}
           dragState={dragState}
           yToTime={yToTime}
         />
 
-        {Array.from({ length: 24 }).map((_, hour) => {
-          let currentActiveSegment: EnrichedTimelineSegment | null = null
-          const { hours: currentHour, minutePercentage } = getCurrentTimePosition()
-          const showCurrentTime = isToday && hour === currentHour
-          const isCurrentHour = hour === currentHour
-          const isSelectedHour = selectedHour === hour
-          const individualSegmentOpacity = selectedHour !== null && !isSelectedHour ? 0.5 : 1
-          const isLastHour = hour === 23
-
-          const timelineSegments = getTimelineSegmentsForHour(hour, timeBlocks)
-
-          // current activity helpers
-          if (showCurrentTime && timelineSegments.length > 0) {
-            const lastSegment = timelineSegments[timelineSegments.length - 1]
-            const currentMinute = currentTime.getMinutes()
-            if (lastSegment.endMinute > currentMinute) {
-              lastSegment.heightPercentage = ((currentMinute - lastSegment.startMinute) / 60) * 100
-              lastSegment.endMinute = currentMinute
-              currentActiveSegment = lastSegment
-            }
-          }
-
-          return (
-            <div key={hour} className="relative">
-              <TimelineHour
-                hour={hour}
-                timelineSegments={timelineSegments}
-                isCurrentHour={isCurrentHour}
-                isSelectedHour={isSelectedHour}
-                isDarkMode={isDarkMode}
-                individualSegmentOpacity={individualSegmentOpacity}
-                currentHourRef={currentHourRef}
-                onHourSelect={onHourSelect}
-                onSelectManualEntry={handleSelectManualEntry}
-                isLastHour={isLastHour}
-                currentActiveSegment={currentActiveSegment}
-                hourHeight={hourHeight}
-                selectedHour={selectedHour}
-              />
-              {showCurrentTime && (
-                <CurrentTimeIndicator
-                  minutePercentage={minutePercentage}
-                  currentTime={currentTime}
-                />
-              )}
-            </div>
-          )
-        })}
+        {showCurrentTime && (
+          <CurrentTimeIndicator currentTime={currentTime} timelineHeight={timelineHeight} />
+        )}
       </div>
       {modalState.isOpen && (
         <CreateEntryModal
@@ -178,7 +357,7 @@ const DayTimeline = ({
           onDelete={handleModalDelete}
           startTime={modalState.startTime}
           endTime={modalState.endTime}
-          existingEntry={modalState.editingEntry}
+          existingEntry={modalState.editingEntry as TimeBlock | null}
         />
       )}
     </div>

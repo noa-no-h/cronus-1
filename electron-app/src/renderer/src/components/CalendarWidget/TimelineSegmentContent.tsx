@@ -13,13 +13,16 @@ const TimelineSegmentContent = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [canShowContent, setCanShowContent] = useState(false)
-  const [canShowIcon, setCanShowIcon] = useState(false)
+  const [isLarge, setIsLarge] = useState(false)
 
   useLayoutEffect(() => {
     const checkSize = () => {
       if (containerRef.current) {
-        setCanShowIcon(containerRef.current.offsetHeight > 10)
-        setCanShowContent(containerRef.current.offsetHeight > 20)
+        const height = containerRef.current.offsetHeight
+        // Show content when height is sufficient for a line of text.
+        setCanShowContent(height > 18)
+        // Consider it "large" if it's taller than 50px.
+        setIsLarge(height > 30)
       }
     }
     checkSize()
@@ -42,27 +45,30 @@ const TimelineSegmentContent = ({
     <div
       ref={containerRef}
       className={clsx(
-        'w-full h-full flex flex-col items-start justify-start overflow-hidden px-2',
-        canShowContent ? 'pt-2' : 'pt-0.5'
+        'w-full h-full flex flex-row justify-start space-x-2 overflow-hidden px-2 flex-grow',
+        isLarge ? 'items-start pt-2' : 'items-center'
       )}
       style={{ color: textColor }}
     >
-      {canShowIcon && (
-        <div className="flex w-full flex-row items-center space-x-2 py-0.5">
+      {canShowContent && (
+        <>
           {segment.type === 'manual' ? (
             <div
-              className="h-3 w-3 rounded-full"
+              className="h-3 w-3 flex-shrink-0 rounded-full"
               style={{ backgroundColor: segment.categoryColor }}
             />
           ) : (
-            <ActivityIcon url={segment.url} appName={segment.name} size={12} />
+            <ActivityIcon
+              url={segment.url}
+              appName={segment.name}
+              size={12}
+              className="flex-shrink-0"
+            />
           )}
-          {canShowContent && (
-            <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
-              {segment.description || segment.name}
-            </span>
-          )}
-        </div>
+          <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
+            {segment.description || segment.name}
+          </span>
+        </>
       )}
     </div>
   )

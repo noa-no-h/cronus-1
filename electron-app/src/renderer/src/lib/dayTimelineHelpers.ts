@@ -31,6 +31,11 @@ export interface EnrichedTimelineSegment extends TimeBlock {
   type: 'window' | 'browser' | 'system' | 'manual'
 }
 
+export interface DaySegment extends EnrichedTimelineSegment {
+  top: number
+  height: number
+}
+
 const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', 'Arc']
 
 function createTimelineSlots(timeBlocks: TimeBlock[], hourStart: Date): TimelineSlot[] {
@@ -116,6 +121,125 @@ function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { duratio
   }
   mergedSlots.push(currentMergedSlot)
   return mergedSlots
+}
+
+export function getTimelineSegmentsForDay(
+  timeBlocks: TimeBlock[],
+  timelineHeight: number
+): DaySegment[] {
+  if (timeBlocks.length === 0 || timelineHeight === 0) {
+    return []
+  }
+
+  const totalMinutesInDay = 24 * 60
+
+  // We need to process manual entries separately to ensure they render as single blocks
+  const manualEntries: DaySegment[] = []
+  const otherBlocks: TimeBlock[] = []
+
+  timeBlocks.forEach((block) => {
+    if (block.type === 'manual') {
+      const startOfDay = new Date(block.startTime)
+      startOfDay.setHours(0, 0, 0, 0)
+      const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
+      const durationMinutes = block.durationMs / (1000 * 60)
+      const top = (startMinutes / totalMinutesInDay) * timelineHeight
+      const height = (durationMinutes / totalMinutesInDay) * timelineHeight
+
+      manualEntries.push({
+        ...block,
+        startMinute: startMinutes,
+        endMinute: startMinutes + durationMinutes,
+        topPercentage: (startMinutes / totalMinutesInDay) * 100,
+        heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
+        allActivities: { [block.name]: { duration: block.durationMs, block } },
+        top,
+        height
+      })
+    } else {
+      otherBlocks.push(block)
+    }
+  })
+
+  if (otherBlocks.length === 0) {
+    return manualEntries
+  }
+
+  // Step 1: Create slots for the entire day for non-manual blocks
+  const slots: TimelineSlot[] = []
+  const slotsInDay = 24 * (60 / SLOT_DURATION_MINUTES)
+  const referenceDate = new Date(otherBlocks[0].startTime)
+  const dayStart = new Date(referenceDate)
+  dayStart.setHours(0, 0, 0, 0)
+
+  for (let i = 0; i < slotsInDay; i++) {
+    const slotStart = new Date(dayStart.getTime() + i * SLOT_DURATION_MINUTES * 60 * 1000)
+    const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MINUTES * 60 * 1000)
+    const activitiesInSlot: Record<string, { duration: number; block: TimeBlock }> = {}
+
+    otherBlocks.forEach((block) => {
+      const blockStart = block.startTime
+      const blockEnd = block.endTime
+
+      const overlapStart = new Date(Math.max(blockStart.getTime(), slotStart.getTime()))
+      const overlapEnd = new Date(Math.min(blockEnd.getTime(), slotEnd.getTime()))
+      const duration = overlapEnd.getTime() - overlapStart.getTime()
+
+      if (duration > 0) {
+        const groupingKey =
+          BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
+        if (!activitiesInSlot[groupingKey]) {
+          activitiesInSlot[groupingKey] = { duration: 0, block }
+        }
+        activitiesInSlot[groupingKey].duration += duration
+      }
+    })
+
+    const [mainActivityKey, mainActivityData] = Object.entries(activitiesInSlot).reduce(
+      (max, current) => (current[1].duration > max[1].duration ? current : max),
+      ['', { duration: 0, block: null as TimeBlock | null }]
+    )
+
+    const displayBlock = mainActivityData.block
+      ? { ...mainActivityData.block, name: mainActivityKey }
+      : null
+
+    slots.push({
+      startMinute: i * SLOT_DURATION_MINUTES,
+      endMinute: (i + 1) * SLOT_DURATION_MINUTES,
+      mainActivity: displayBlock,
+      allActivities: activitiesInSlot
+    })
+  }
+
+  // Step 2: Merge consecutive slots
+  const mergedSlots = mergeConsecutiveSlots(slots)
+
+  // Step 3: Convert merged slots to day segments
+  const aggregatedSegments: DaySegment[] = mergedSlots
+    .filter((slot) => slot.mainActivity)
+    .map((slot) => {
+      const block = slot.mainActivity!
+      const startMinutes = slot.startMinute
+      const durationMinutes = slot.endMinute - slot.startMinute
+
+      const top = (startMinutes / totalMinutesInDay) * timelineHeight
+      const height = (durationMinutes / totalMinutesInDay) * timelineHeight
+
+      return {
+        ...block,
+        startMinute: slot.startMinute,
+        endMinute: slot.endMinute,
+        heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
+        topPercentage: (startMinutes / totalMinutesInDay) * 100,
+        allActivities: slot.allActivities,
+        top,
+        height,
+        durationMs: durationMinutes * 60 * 1000
+      }
+    })
+
+  return [...aggregatedSegments, ...manualEntries].sort((a, b) => a.top - b.top)
 }
 
 function convertSlotsToSegments(

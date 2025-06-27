@@ -116,6 +116,7 @@ export const useManualEntry = ({ currentTime, onModalClose }: UseManualEntryProp
     handleModalSubmit,
     handleModalDelete,
     handleSelectManualEntry,
-    openNewEntryModal
+    openNewEntryModal,
+    updateManualEntry
   }
 }
