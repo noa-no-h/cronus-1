@@ -21,6 +21,7 @@ export type { TimeBlock }
 interface DayTimelineProps {
   timeBlocks: TimeBlock[]
   currentTime: Date
+  dayForEntries: Date
   isToday: boolean
   isDarkMode: boolean
   selectedHour: number | null
@@ -32,6 +33,7 @@ interface DayTimelineProps {
 const DayTimeline = ({
   timeBlocks,
   currentTime,
+  dayForEntries,
   isToday,
   isDarkMode,
   selectedHour,
@@ -69,7 +71,7 @@ const DayTimeline = ({
     handleSelectManualEntry,
     openNewEntryModal,
     updateManualEntry
-  } = useManualEntry({ currentTime, onModalClose: () => resetDragState() })
+  } = useManualEntry({ baseDate: dayForEntries, onModalClose: () => resetDragState() })
 
   const {
     dragState,
@@ -287,6 +289,7 @@ const DayTimeline = ({
                 segment={segment}
               >
                 <div
+                  data-is-segment="true"
                   className={`group ${positionClasses} ${zIndexClass}
                           ${canInteract ? 'hover:brightness-75' : ''} transition-all
                           overflow-hidden`}

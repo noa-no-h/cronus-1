@@ -205,6 +205,7 @@ const CalendarWidget = ({
             onHourSelect={onHourSelect}
             selectedHour={selectedHour}
             currentTime={currentTime}
+            dayForEntries={selectedDate}
             isToday={isToday}
             isDarkMode={isDarkMode}
             hourHeight={hourHeight}

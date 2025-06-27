@@ -4,11 +4,11 @@ import type { TimeBlock } from '../lib/dayTimelineHelpers'
 import { trpc } from '../utils/trpc'
 
 interface UseManualEntryProps {
-  currentTime: Date
+  baseDate: Date
   onModalClose?: () => void
 }
 
-export const useManualEntry = ({ currentTime, onModalClose }: UseManualEntryProps) => {
+export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) => {
   const { token } = useAuth()
   const utils = trpc.useUtils()
 
@@ -70,7 +70,7 @@ export const useManualEntry = ({ currentTime, onModalClose }: UseManualEntryProp
       })
     } else if (modalState.startTime && modalState.endTime && token) {
       const getAbsTime = (time: { hour: number; minute: number }) => {
-        const date = new Date(currentTime)
+        const date = new Date(baseDate)
         date.setHours(time.hour, time.minute, 0, 0)
         return date.getTime()
       }

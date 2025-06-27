@@ -24,19 +24,22 @@ export const useTimeSelection = (
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isEnabled) return
-    // Prevent starting a drag on an existing element, only on the timeline grid
-    const target = e.target as HTMLElement
-    if (target.closest('.group')) {
-      const startPos = yToTime(e.clientY)
-      if (!startPos) return
 
-      setDragState({
-        isSelecting: true,
-        isDragging: false,
-        startPos: { y: e.clientY },
-        currentPos: { y: e.clientY }
-      })
+    // Do not start a drag if clicking on an existing segment or its children
+    const target = e.target as HTMLElement
+    if (target.closest('[data-is-segment="true"]')) {
+      return
     }
+
+    const startPos = yToTime(e.clientY)
+    if (!startPos) return
+
+    setDragState({
+      isSelecting: true,
+      isDragging: false,
+      startPos: { y: e.clientY },
+      currentPos: { y: e.clientY }
+    })
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

@@ -15,7 +15,10 @@ export function generateProcessedEventBlocks(
 
   for (let i = 0; i < chronologicallySortedEvents.length; i++) {
     const event = chronologicallySortedEvents[i]
-    if (SYSTEM_EVENT_NAMES.includes(event.ownerName) || !event.categoryId) {
+    if (
+      SYSTEM_EVENT_NAMES.includes(event.ownerName) ||
+      (!event.categoryId && event.type !== 'manual')
+    ) {
       continue
     }
 
