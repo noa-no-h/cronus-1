@@ -272,12 +272,14 @@ const DayTimeline = ({
             const isManual = segment.type === 'manual'
             const canInteract = isManual || (selectedHour === null && !isManual)
             const segmentCursor = isManual ? 'pointer' : 'default'
-            // TODO: Calendar event styling
             const isCalendarEvent = segment.name === 'Google Calendar'
 
             const positionClasses = isCalendarEvent
               ? 'absolute left-1/2 right-1 rounded-md' // Calendar events: right half only
               : `absolute left-[67px] right-1 rounded-md` // Regular activities: full width
+
+            // calendar events appear in front of regular events so they're not hidden
+            const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
 
             return (
               <TimelineSegmentTooltip
@@ -285,7 +287,7 @@ const DayTimeline = ({
                 segment={segment}
               >
                 <div
-                  className={`group ${positionClasses}
+                  className={`group ${positionClasses} ${zIndexClass}
                           ${canInteract ? 'hover:brightness-75' : ''} transition-all
                           overflow-hidden`}
                   style={{
