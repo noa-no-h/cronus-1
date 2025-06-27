@@ -63,7 +63,8 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     authUrl.searchParams.set('response_type', 'code')
     authUrl.searchParams.set(
       'scope',
-      'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+      // 'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+      'openid profile email'
     )
     authUrl.searchParams.set('access_type', 'offline')
     authUrl.searchParams.set('prompt', 'consent') // Important to get a refresh token every time
@@ -89,7 +90,8 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     onSuccess: handleGoogleCodeSuccess,
     onError: (error) => console.error('DEV LOGIN (CODE): useGoogleLogin hook onError:', error),
     flow: 'auth-code',
-    scope: 'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+    //     scope: 'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+    scope: 'openid profile email'
   })
 
   const renderLoginButton = () => {

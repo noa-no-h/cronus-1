@@ -7,33 +7,10 @@ export interface CalendarEvent {
   end: { dateTime?: string; date?: string };
   location?: string;
   description?: string;
-  // New fields for Meet info and participants
-  attendees?: Array<{
-    email?: string;
-    displayName?: string;
-    responseStatus?: 'needsAction' | 'declined' | 'tentative' | 'accepted';
-    optional?: boolean;
-    organizer?: boolean;
-  }>;
-  conferenceData?: {
-    entryPoints?: Array<{
-      entryPointType?: 'video' | 'phone' | 'sip' | 'more';
-      uri?: string;
-      label?: string;
-      meetingCode?: string;
-    }>;
-    conferenceSolution?: {
-      name?: string;
-      key?: {
-        type?: string;
-      };
-    };
-  };
+  attendees?: any[];
+  conferenceData?: any;
   hangoutLink?: string;
-  organizer?: {
-    email?: string;
-    displayName?: string;
-  };
+  organizer?: any;
 }
 
 export class GoogleCalendarService {
@@ -63,8 +40,6 @@ export class GoogleCalendarService {
         singleEvents: true,
         orderBy: 'startTime',
         maxResults: 50,
-        fields:
-          'items(id,summary,start,end,location,description,attendees(email,displayName,responseStatus,optional,organizer),conferenceData,hangoutLink,organizer(email,displayName))',
       });
 
       return (response.data.items || []).map((event) => ({
