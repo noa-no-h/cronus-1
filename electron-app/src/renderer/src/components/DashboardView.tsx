@@ -188,15 +188,19 @@ export function DashboardView({ className }: { className?: string }) {
     if (!calendarProcessedEvents) {
       return null
     }
+
+    // Filter out calendar events from the activity widget
+    const nonCalendarEvents = calendarProcessedEvents.filter((block) => block.source !== 'calendar')
+
     if (selectedHour !== null) {
-      return calendarProcessedEvents.filter((block) => block.startTime.getHours() === selectedHour)
+      return nonCalendarEvents.filter((block) => block.startTime.getHours() === selectedHour)
     }
     if (viewMode === 'week' && selectedDay) {
-      return calendarProcessedEvents.filter(
+      return nonCalendarEvents.filter(
         (block) => block.startTime.toDateString() === selectedDay.toDateString()
       )
     }
-    return calendarProcessedEvents
+    return nonCalendarEvents
   }, [calendarProcessedEvents, selectedHour, selectedDay, viewMode])
 
   const handleDateChange = (newDate: Date) => {
