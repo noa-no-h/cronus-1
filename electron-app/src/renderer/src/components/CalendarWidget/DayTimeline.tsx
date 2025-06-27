@@ -1,12 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useManualEntry } from '../../hooks/useManualEntry'
 import { useTimeSelection } from '../../hooks/useTimeSelection'
 import {
+  convertYToTime,
   getTimelineSegmentsForHour,
   type EnrichedTimelineSegment,
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
-import { trpc } from '../../utils/trpc'
 import { CreateEntryModal } from './CreateEntryModal'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
 import { SelectionBox } from './SelectionBox'
@@ -38,52 +38,33 @@ const DayTimeline = ({
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
-  const { token } = useAuth()
-  const utils = trpc.useUtils()
 
-  const createManualEntry = trpc.activeWindowEvents.createManual.useMutation({
-    onSuccess: () => {
-      // After a successful mutation, invalidate the query for the current day
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+  const {
+    modalState,
+    handleModalClose,
+    handleModalSubmit,
+    handleModalDelete,
+    handleSelectManualEntry,
+    openNewEntryModal
+  } = useManualEntry({ currentTime, onModalClose: () => resetDragState() })
+
+  const {
+    dragState,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    resetDragState
+  } = useTimeSelection(
+    (y: number) => {
+      if (!timelineContainerRef.current) return null
+      return convertYToTime(y, timelineContainerRef.current, hourHeight)
     },
-    onError: (error) => {
-      // Basic error handling
-      console.error('Failed to create manual entry:', error)
-      alert('Error: Could not create the entry. Please try again.')
-    }
-  })
-
-  const updateManualEntry = trpc.activeWindowEvents.updateManual.useMutation({
-    onSuccess: () => {
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    (startTime, endTime) => {
+      openNewEntryModal(startTime, endTime)
     },
-    onError: (error) => {
-      console.error('Failed to update manual entry:', error)
-      alert('Error: Could not update the entry. Please try again.')
-    }
-  })
-
-  const deleteManualEntry = trpc.activeWindowEvents.deleteManual.useMutation({
-    onSuccess: () => {
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
-    },
-    onError: (error) => {
-      console.error('Failed to delete manual entry:', error)
-      alert('Error: Could not delete the entry. Please try again.')
-    }
-  })
-
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean
-    startTime: { hour: number; minute: number } | null
-    endTime: { hour: number; minute: number } | null
-    editingEntry: TimeBlock | null
-  }>({
-    isOpen: false,
-    startTime: null,
-    endTime: null,
-    editingEntry: null
-  })
+    !modalState.isOpen
+  )
 
   // Scroll to current hour when viewing today
   useEffect(() => {
@@ -113,108 +94,7 @@ const DayTimeline = ({
 
   const yToTime = (y: number) => {
     if (!timelineContainerRef.current) return null
-
-    const containerRect = timelineContainerRef.current.getBoundingClientRect()
-    const relativeY = y - containerRect.top
-
-    const hourHeightInRem = hourHeight
-    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
-    const hourHeightInPx = hourHeightInRem * rootFontSize
-
-    // Account for the pt-1.5 (6px) padding at the top of each hour
-    const paddingTopPx = 6
-    const effectiveHourHeight = hourHeightInPx - paddingTopPx
-    const totalHeight = 24 * hourHeightInPx
-
-    const clampedY = Math.max(0, Math.min(relativeY, totalHeight))
-
-    const hour = Math.floor(clampedY / hourHeightInPx)
-
-    // Adjust for the padding within the hour
-    const yWithinHour = clampedY % hourHeightInPx
-    const adjustedYWithinHour = Math.max(0, yWithinHour - paddingTopPx)
-    const minuteFraction = adjustedYWithinHour / effectiveHourHeight
-    const minute = Math.floor(minuteFraction * 60)
-
-    // Snap to 5-minute intervals - use floor to snap to the start of the interval
-    let snappedMinute = Math.floor(minute / 5) * 5
-    let finalHour = hour
-
-    if (snappedMinute === 60) {
-      finalHour += 1
-      snappedMinute = 0
-    }
-
-    // Recalculate the y position based on the snapped time for visual snapping
-    const snappedYPosition =
-      finalHour * hourHeightInPx + paddingTopPx + (snappedMinute / 60) * effectiveHourHeight
-
-    return { hour: finalHour, minute: snappedMinute, y: snappedYPosition }
-  }
-
-  const handleSelectionEnd = (
-    startTime: { hour: number; minute: number },
-    endTime: { hour: number; minute: number }
-  ) => {
-    setModalState({ isOpen: true, startTime, endTime, editingEntry: null })
-  }
-
-  const {
-    dragState,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    handleMouseLeave,
-    resetDragState
-  } = useTimeSelection(yToTime, handleSelectionEnd, !modalState.isOpen)
-
-  const handleModalClose = () => {
-    setModalState({ isOpen: false, startTime: null, endTime: null, editingEntry: null })
-    resetDragState()
-  }
-
-  const handleModalSubmit = (data: { name: string; categoryId?: string }) => {
-    if (modalState.editingEntry) {
-      if (!token || !modalState.editingEntry._id) return
-      updateManualEntry.mutate({
-        token,
-        id: modalState.editingEntry._id,
-        name: data.name,
-        categoryId: data.categoryId
-      })
-    } else if (modalState.startTime && modalState.endTime && token) {
-      const getAbsTime = (time: { hour: number; minute: number }) => {
-        const date = new Date(currentTime)
-        date.setHours(time.hour, time.minute, 0, 0)
-        return date.getTime()
-      }
-
-      createManualEntry.mutate({
-        token,
-        name: data.name,
-        categoryId: data.categoryId,
-        startTime: getAbsTime(modalState.startTime),
-        endTime: getAbsTime(modalState.endTime)
-      })
-    }
-    handleModalClose()
-  }
-
-  const handleModalDelete = (entryId: string) => {
-    if (!token) return
-    if (window.confirm('Are you sure you want to delete this entry?')) {
-      deleteManualEntry.mutate({ token, id: entryId })
-      handleModalClose()
-    }
-  }
-
-  const handleSelectManualEntry = (entry: TimeBlock) => {
-    setModalState({
-      isOpen: true,
-      startTime: null,
-      endTime: null,
-      editingEntry: entry
-    })
+    return convertYToTime(y, timelineContainerRef.current, hourHeight)
   }
 
   // Calculate current time position

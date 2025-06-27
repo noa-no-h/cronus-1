@@ -157,3 +157,46 @@ export const getTimelineSegmentsForHour = (
 
   return segments
 }
+
+export const convertYToTime = (
+  y: number,
+  timelineContainer: HTMLDivElement,
+  hourHeight: number
+) => {
+  const containerRect = timelineContainer.getBoundingClientRect()
+  const relativeY = y - containerRect.top
+
+  const hourHeightInRem = hourHeight
+  const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  const hourHeightInPx = hourHeightInRem * rootFontSize
+
+  // Account for the pt-1.5 (6px) padding at the top of each hour
+  const paddingTopPx = 6
+  const effectiveHourHeight = hourHeightInPx - paddingTopPx
+  const totalHeight = 24 * hourHeightInPx
+
+  const clampedY = Math.max(0, Math.min(relativeY, totalHeight))
+
+  const hour = Math.floor(clampedY / hourHeightInPx)
+
+  // Adjust for the padding within the hour
+  const yWithinHour = clampedY % hourHeightInPx
+  const adjustedYWithinHour = Math.max(0, yWithinHour - paddingTopPx)
+  const minuteFraction = adjustedYWithinHour / effectiveHourHeight
+  const minute = Math.floor(minuteFraction * 60)
+
+  // Snap to 5-minute intervals - use floor to snap to the start of the interval
+  let snappedMinute = Math.floor(minute / 5) * 5
+  let finalHour = hour
+
+  if (snappedMinute === 60) {
+    finalHour += 1
+    snappedMinute = 0
+  }
+
+  // Recalculate the y position based on the snapped time for visual snapping
+  const snappedYPosition =
+    finalHour * hourHeightInPx + paddingTopPx + (snappedMinute / 60) * effectiveHourHeight
+
+  return { hour: finalHour, minute: snappedMinute, y: snappedYPosition }
+}

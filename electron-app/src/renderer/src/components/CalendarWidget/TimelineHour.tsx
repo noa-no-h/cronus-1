@@ -116,8 +116,8 @@ export const TimelineHour = memo(
                 const segmentCursor = isManual ? 'pointer' : 'default'
 
                 // Check if this is a calendar event
-                const isCalendarEvent =
-                  segment.name === 'Google Calendar' || segment.type === 'calendar'
+                // TODO: also check if "calendar"? Not sure why but that was the previous code that was causing a TS error.
+                const isCalendarEvent = segment.name === 'Google Calendar'
 
                 const positionClasses = isCalendarEvent
                   ? 'absolute left-1/2 right-1 rounded-md' // Calendar events: right half only
