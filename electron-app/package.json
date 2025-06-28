@@ -47,7 +47,7 @@
     "------ UTILITIES ---------": "echo '------ UTILITIES ---------'",
     "clean:cronus-installation": "bash clean_cronus_installation.sh",
     "clean-and-build": "bun run clean:cronus-installation && bun run build:for-publish:arm64 && open dist/Cronus-*-arm64.dmg",
-    "clean-and-quick-build": "bun run clean:cronus-installation && NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg"
+    "clean-and-quick-build": "bun run clean:cronus-installation && NODE_ENV=production bun run build && CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg"
   },
   "build": {
     "appId": "com.cronus.app",
