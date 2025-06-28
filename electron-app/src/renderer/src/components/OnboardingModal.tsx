@@ -1,10 +1,11 @@
-import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
+import { CheckCircle, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import icon from './../assets/icon.png'
+import GoalInputForm from './Settings/GoalInputForm'
+import { PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import GoalInputForm from './Settings/GoalInputForm'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -41,7 +42,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const checkPermissionStatus = async () => {
     try {
-      const status = await window.api.getPermissionStatus(0) // 0 = PermissionType.Accessibility
+      const status = await window.api.getPermissionStatus(PermissionType.Accessibility) // 0 = PermissionType.Accessibility
       setPermissionStatus(status)
     } catch (error) {
       console.error('Failed to check permission status:', error)
@@ -50,7 +51,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const checkScreenRecordingStatus = async () => {
     try {
-      const status = await window.api.getPermissionStatus(2) // 2 = PermissionType.ScreenRecording
+      const status = await window.api.getPermissionStatus(PermissionType.ScreenRecording) // 2 = PermissionType.ScreenRecording
       setScreenRecordingStatus(status)
     } catch (error) {
       console.error('Failed to check screen recording status:', error)
@@ -235,7 +236,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setIsRequestingPermission(true)
     try {
       // Request accessibility permission
-      await window.api.requestPermission(0) // 0 = PermissionType.Accessibility
+      await window.api.requestPermission(PermissionType.Accessibility) // 0 = PermissionType.Accessibility
       setHasRequestedPermission(true)
 
       // Check permission status after a short delay
@@ -254,7 +255,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setIsRequestingScreenRecording(true)
     try {
       // Request screen recording permission
-      await window.api.requestPermission(2) // 2 = PermissionType.ScreenRecording
+      await window.api.requestPermission(PermissionType.ScreenRecording) // 2 = PermissionType.ScreenRecording
       setHasRequestedScreenRecording(true)
 
       // Check permission status after a short delay

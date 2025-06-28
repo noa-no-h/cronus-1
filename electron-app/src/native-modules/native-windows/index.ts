@@ -2,6 +2,7 @@ import { app } from 'electron'
 import path from 'path'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 
+// TODO: duplicated in renderer/src/components/Settings/PermissionsStatus.tsx
 // Permission types enum to match native layer
 export enum PermissionType {
   Accessibility = 0,

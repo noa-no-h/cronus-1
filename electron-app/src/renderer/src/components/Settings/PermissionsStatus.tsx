@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 
 // Import types from preload - use proper enum imports
 // Define enums locally to match preload definitions
-enum PermissionType {
+
+export enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
-enum PermissionStatus {
+export enum PermissionStatus {
   Denied = 0,
   Granted = 1,
   Pending = 2
@@ -48,7 +50,7 @@ export function PermissionsStatus() {
       required: false
     },
     {
-      type: 2, // PermissionType.ScreenRecording
+      type: PermissionType.ScreenRecording,
       name: 'Screen Recording',
       description:
         'Allows capturing screenshots to help categorize your activity. Enhances productivity insights.',

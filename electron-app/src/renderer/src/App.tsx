@@ -4,6 +4,7 @@ import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
+import { PermissionStatus, PermissionType } from './components/Settings/PermissionsStatus'
 import { SettingsPage } from './components/SettingsPage'
 import { Toaster } from './components/ui/toaster'
 import { TooltipProvider } from './components/ui/tooltip'
@@ -34,6 +35,8 @@ export function MainAppContent() {
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [permissionsChecked, setPermissionsChecked] = useState(false)
+  const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
 
   const trpcUtils = trpc.useContext()
 
@@ -172,15 +175,41 @@ export function MainAppContent() {
     }
   })
 
-  // Show onboarding only if user hasn't completed it before
   useEffect(() => {
+    const checkPermissions = async () => {
+      if (token) {
+        try {
+          const accessibilityStatus = await window.api.getPermissionStatus(
+            PermissionType.Accessibility
+          )
+          setMissingAccessibilityPermissions(accessibilityStatus !== PermissionStatus.Granted)
+        } catch (error) {
+          console.error('Failed to check permissions:', error)
+          setMissingAccessibilityPermissions(true)
+        } finally {
+          setPermissionsChecked(true)
+        }
+      }
+    }
+    checkPermissions()
+  }, [token])
+
+  // Show onboarding only if user hasn't completed it before or permissions are missing
+  useEffect(() => {
+    if (!permissionsChecked) {
+      return // Wait for permission check to complete
+    }
+
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
 
-    if (justLoggedIn && !hasCompletedOnboarding) {
+    // Show onboarding if it's never been completed, OR if essential permissions are missing.
+    if (!hasCompletedOnboarding || missingAccessibilityPermissions) {
       setShowOnboarding(true)
-      resetJustLoggedIn() // Reset the flag immediately
+      if (justLoggedIn) {
+        resetJustLoggedIn() // Reset the flag if it was set
+      }
     }
-  }, [justLoggedIn, resetJustLoggedIn])
+  }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn])
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false)
