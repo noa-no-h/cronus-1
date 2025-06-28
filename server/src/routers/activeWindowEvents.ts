@@ -328,46 +328,6 @@ export const activeWindowEventsRouter = router({
       }
     }),
 
-  // OCR back check:
-  needsOCR: publicProcedure
-    .input(
-      z.object({
-        token: z.string(),
-        url: z.string().optional().nullable(),
-        ownerName: z.string(),
-        title: z.string().optional(),
-      })
-    )
-    .query(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
-      const userId = decodedToken.userId;
-
-      // Check if we have recent categorization history for this URL/app
-      const cutoffTime = Date.now() - 7 * 24 * 60 * 60 * 1000; // 7 days ago
-
-      const query: any = {
-        userId: userId,
-        timestamp: { $gte: cutoffTime },
-      };
-
-      // If it's a browser event with URL, check for that URL
-      if (input.url) {
-        query.url = { $regex: input.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
-      } else {
-        // For apps, check ownerName
-        query.ownerName = input.ownerName;
-      }
-
-      const recentEvent = await ActiveWindowEventModel.findOne(query)
-        .sort({ timestamp: -1 })
-        .limit(1);
-
-      // If we have recent history with high confidence, return false (no OCR needed)
-      const needsOCR = !recentEvent || !recentEvent.categoryId;
-
-      return { needsOCR };
-    }),
-
   updateEventsCategoryInDateRange: publicProcedure
     .input(
       z.object({
