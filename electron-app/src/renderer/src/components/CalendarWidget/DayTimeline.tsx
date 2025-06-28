@@ -44,7 +44,7 @@ const DayTimeline = ({
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
-  const justResizedRef = useRef(false)
+  const justModifiedRef = useRef(false)
   const { token } = useAuth()
   const [resizingState, setResizingState] = useState<{
     isResizing: boolean
@@ -58,7 +58,19 @@ const DayTimeline = ({
     startY: null
   })
 
-  const [resizePreview, setResizePreview] = useState<{
+  const [movingState, setMovingState] = useState<{
+    isMoving: boolean
+    entry: DaySegment | null
+    startY: number | null
+    initialTop: number | null
+  }>({
+    isMoving: false,
+    entry: null,
+    startY: null,
+    initialTop: null
+  })
+
+  const [previewState, setPreviewState] = useState<{
     top: number
     height: number
     backgroundColor: string
@@ -91,7 +103,7 @@ const DayTimeline = ({
     (startTime, endTime) => {
       openNewEntryModal(startTime, endTime)
     },
-    !modalState.isOpen && !resizingState.isResizing
+    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving
   )
 
   const timelineHeight = useMemo(() => {
@@ -113,7 +125,7 @@ const DayTimeline = ({
     direction: 'top' | 'bottom',
     e: React.MouseEvent
   ) => {
-    if (modalState.isOpen || dragState.isDragging) return
+    if (modalState.isOpen || dragState.isDragging || movingState.isMoving) return
     resetDragState() // Prevent new entry drag
     e.stopPropagation()
 
@@ -125,7 +137,20 @@ const DayTimeline = ({
     })
   }
 
-  const handleMouseMoveWithResize = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMoveStart = (entry: DaySegment, e: React.MouseEvent) => {
+    if (modalState.isOpen || resizingState.isResizing || dragState.isDragging) return
+    resetDragState() // Prevent new entry drag
+    e.stopPropagation()
+
+    setMovingState({
+      isMoving: true,
+      entry,
+      startY: e.clientY,
+      initialTop: entry.top
+    })
+  }
+
+  const handleTimelineMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
       const { entry, startY, direction } = resizingState
       const deltaY = e.clientY - startY
@@ -154,9 +179,29 @@ const DayTimeline = ({
         newTop = Math.min(newTop, entry.top + entry.height - 5)
       }
 
-      setResizePreview({
+      setPreviewState({
         top: newTop,
         height: newHeight,
+        backgroundColor: segmentBackgroundColor(entry)
+      })
+    } else if (
+      movingState.isMoving &&
+      movingState.entry &&
+      movingState.startY &&
+      movingState.initialTop !== null
+    ) {
+      const { entry, startY, initialTop } = movingState
+      const deltaY = e.clientY - startY
+
+      const minutesPerPixel = (24 * 60) / timelineHeight
+      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+      const pixelsPerMinute = timelineHeight / (24 * 60)
+      const snappedDeltaY = deltaMinutes * pixelsPerMinute
+      const newTop = initialTop + snappedDeltaY
+
+      setPreviewState({
+        top: newTop,
+        height: entry.height,
         backgroundColor: segmentBackgroundColor(entry)
       })
     } else {
@@ -190,9 +235,11 @@ const DayTimeline = ({
     prevHourHeightRef.current = hourHeight
   }, [hourHeight, scrollContainerRef])
 
-  const handleMouseUpWithResize = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleTimelineMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    let actionTaken = false
     if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
       const { entry, direction, startY } = resizingState
+      actionTaken = true
 
       const deltaY = e.clientY - startY
       const minutesPerPixel = (24 * 60) / timelineHeight
@@ -228,12 +275,37 @@ const DayTimeline = ({
           durationMs
         })
       }
-      // A resize has just finished. Set the ref to true.
-      justResizedRef.current = true
+    } else if (movingState.isMoving && movingState.entry && movingState.startY) {
+      const { entry, startY } = movingState
+      actionTaken = true
+
+      const deltaY = e.clientY - startY
+      const minutesPerPixel = (24 * 60) / timelineHeight
+      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+
+      const newStartTime = new Date(entry.startTime)
+      newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
+
+      const durationMs = new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime()
+
+      if (entry._id && token) {
+        updateManualEntry.mutate({
+          token,
+          id: entry._id,
+          startTime: newStartTime.getTime(),
+          durationMs
+        })
+      }
     }
+
+    if (actionTaken) {
+      justModifiedRef.current = true
+    }
+
     // Reset state regardless of what happened
     setResizingState({ isResizing: false, entry: null, direction: null, startY: null })
-    setResizePreview(null)
+    setMovingState({ isMoving: false, entry: null, startY: null, initialTop: null })
+    setPreviewState(null)
     handleMouseUp(e)
   }
 
@@ -260,8 +332,8 @@ const DayTimeline = ({
       <div
         ref={timelineContainerRef}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMoveWithResize}
-        onMouseUp={handleMouseUpWithResize}
+        onMouseMove={handleTimelineMouseMove}
+        onMouseUp={handleTimelineMouseUp}
         onMouseLeave={handleMouseLeave}
         className="relative"
         style={{ height: timelineHeight }}
@@ -314,11 +386,16 @@ const DayTimeline = ({
                         ? 0.5
                         : 1
                   }}
+                  onMouseDown={(e) => {
+                    if (isManual) {
+                      handleMoveStart(segment, e)
+                    }
+                  }}
                   onClick={() => {
-                    // If a resize just happened, prevent the modal from opening
+                    // If a resize or move just happened, prevent the modal from opening
                     // and reset the ref for the next click.
-                    if (justResizedRef.current) {
-                      justResizedRef.current = false
+                    if (justModifiedRef.current) {
+                      justModifiedRef.current = false
                       return
                     }
                     if (isManual) {
@@ -365,13 +442,13 @@ const DayTimeline = ({
           })}
         </div>
 
-        {resizePreview && (
+        {previewState && (
           <div
             className={`absolute left-[67px] right-1 rounded-md z-20 pointer-events-none`}
             style={{
-              top: `${resizePreview.top}px`,
-              height: `${resizePreview.height}px`,
-              backgroundColor: resizePreview.backgroundColor
+              top: `${previewState.top}px`,
+              height: `${previewState.height}px`,
+              backgroundColor: previewState.backgroundColor
             }}
           />
         )}
