@@ -20,12 +20,17 @@ export function UpdateNotification() {
       }
 
       if (status.status === 'downloading') {
+        const progressNumber = parseFloat(status.progress) || 0
+        const isComplete = progressNumber >= 100
+        const progressDisplay = progressNumber.toFixed(0)
+
         toast({
           title: 'Downloading Update',
-          description: `Progress: ${status.progress?.toFixed?.(0) ?? status.progress}%`
+          description: isComplete
+            ? `Progress: ${progressDisplay}% ✅`
+            : `Progress: ${progressDisplay}%`
         })
       }
-
       if (status.status === 'downloaded') {
         // Only show restart prompt
         toast({
@@ -33,12 +38,7 @@ export function UpdateNotification() {
           description: 'Update downloaded successfully. Restart to apply the update.',
           action: (
             <ToastAction asChild altText="Restart Now">
-              <Button
-                variant="default"
-                size="sm"
-                className="text-white"
-                onClick={() => window.api.installUpdate()}
-              >
+              <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
                 Restart Now
               </Button>
             </ToastAction>

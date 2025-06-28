@@ -81,9 +81,8 @@
         
     } @catch (NSException *exception) {
         MyLog(@"❌ Exception in CGWindowList approach: %@", exception.reason);
+        return nil;
     }
-    
-    return nil;
 }
 
 + (NSString*)extractTitleUsingAppleScript:(NSString*)appName {

@@ -45,7 +45,7 @@ const useActivitySelection = (
         setSelectedActivities((prev) => {
           const newSelected = new Set(prev)
           rangeKeys.forEach((key) => newSelected.add(key))
-          console.log('Selected activities:', Array.from(newSelected))
+          // console.log('Selected activities:', Array.from(newSelected))
           return newSelected
         })
       }
@@ -57,7 +57,7 @@ const useActivitySelection = (
         } else {
           newSelected.add(activityKey)
         }
-        console.log('Selected activities:', Array.from(newSelected))
+        // console.log('Selected activities:', Array.from(newSelected))
         return newSelected
       })
       setLastSelectedActivityKey(activityKey)

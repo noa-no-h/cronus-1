@@ -5,6 +5,8 @@ import type { AppRouter } from '../../../../../server/src/index'
 import { SYSTEM_EVENT_NAMES } from './constants'
 import { deleteLocalFile, readFileFromMain, uploadToS3 } from './s3Uploader'
 
+const CONTENT_CHAR_CUTOFF = 2000
+
 // Create a tRPC client for use outside of React components
 const trpcClient = createTRPCProxyClient<AppRouter>({
   links: [
@@ -30,9 +32,9 @@ interface EventData {
   token: string
   windowId?: number
   ownerName: string
-  type: 'window' | 'browser' | 'system'
+  type: 'window' | 'browser' | 'system' | 'manual'
   browser?: 'chrome' | 'safari' | null
-  title: string
+  title?: string | null
   url?: string | null
   content?: string | null
   timestamp: number
@@ -41,7 +43,7 @@ interface EventData {
 
 export const uploadActiveWindowEvent = async (
   token: string,
-  windowDetails: ActiveWindowDetails,
+  windowDetails: ActiveWindowDetails & { localScreenshotPath?: string },
   mutateEvent: MutateAsyncFunction
 ): Promise<void> => {
   // Don't upload browser events that are missing a URL.
@@ -72,7 +74,7 @@ export const uploadActiveWindowEvent = async (
     browser: windowDetails.browser,
     title: windowDetails.title,
     url: windowDetails.url,
-    content: windowDetails.content, // Content already provided by native code
+    content: windowDetails.content?.substring(0, CONTENT_CHAR_CUTOFF),
     timestamp: windowDetails.timestamp || Date.now(),
     screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
   }

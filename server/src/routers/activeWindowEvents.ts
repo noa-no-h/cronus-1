@@ -1,11 +1,32 @@
 import { TRPCError } from '@trpc/server';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { categorizeActivity } from '../services/categorization/categorizationService';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
+
+const objectIdToStringSchema = z
+  .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))
+  .transform((val) => val.toString());
+
+const activeWindowEventSchema = z.object({
+  _id: objectIdToStringSchema.optional(),
+  userId: z.string(),
+  windowId: z.number().optional(),
+  ownerName: z.string(),
+  type: z.enum(['window', 'browser', 'system', 'manual']),
+  browser: z.enum(['chrome', 'safari']).nullable().optional(),
+  title: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  timestamp: z.number(),
+  screenshotS3Url: z.string().nullable().optional(),
+  durationMs: z.number().optional(),
+  categoryId: z.string().nullable().optional(),
+  categoryReasoning: z.string().nullable().optional(),
+});
 
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
@@ -61,7 +82,7 @@ export const activeWindowEventsRouter = router({
       );
 
       await newEvent.save();
-      return newEvent.toObject() as ActiveWindowEvent;
+      return newEvent.toObject<ActiveWindowEvent>();
     } catch (error) {
       console.error('Error saving active window event:', error);
       throw new TRPCError({
@@ -73,6 +94,7 @@ export const activeWindowEventsRouter = router({
 
   getEventsForDateRange: publicProcedure
     .input(z.object({ token: z.string(), startDateMs: z.number(), endDateMs: z.number() }))
+    .output(z.array(activeWindowEventSchema))
     .query(async ({ input }) => {
       try {
         const decodedToken = verifyToken(input.token);
@@ -96,7 +118,7 @@ export const activeWindowEventsRouter = router({
           },
         }).sort({ timestamp: 1 });
 
-        return events.map((event) => event.toObject() as ActiveWindowEvent);
+        return events.map((event) => event.toObject<ActiveWindowEvent>());
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error('Error fetching events for date range:', error);
@@ -109,6 +131,7 @@ export const activeWindowEventsRouter = router({
 
   getLatestEvent: publicProcedure
     .input(z.object({ token: z.string() }))
+    .output(activeWindowEventSchema.nullable())
     .query(async ({ input }) => {
       try {
         const decodedToken = verifyToken(input.token);
@@ -123,7 +146,7 @@ export const activeWindowEventsRouter = router({
         if (!latestEvent) {
           return null; // Or throw a TRPCError if an event is always expected
         }
-        return latestEvent.toObject() as ActiveWindowEvent;
+        return latestEvent.toObject<ActiveWindowEvent>();
       } catch (error) {
         console.error('Error fetching latest event:', error);
         // Handle token verification errors specifically if verifyToken throws them
@@ -271,6 +294,211 @@ export const activeWindowEventsRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to update event categories in date range.',
+        });
+      }
+    }),
+
+  createManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        name: z.string(),
+        categoryId: z.string().optional(),
+        startTime: z.number(),
+        endTime: z.number(),
+      })
+    )
+    .output(activeWindowEventSchema)
+    .mutation(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      const { name, categoryId, startTime, endTime } = input;
+
+      const eventToSave: ActiveWindowEvent = {
+        userId,
+        ownerName: name,
+        title: name,
+        type: 'manual',
+        timestamp: startTime,
+        // Manual entries won't have these, but the schema expects them
+        windowId: 0,
+        browser: null,
+        url: '',
+        content: '',
+        screenshotS3Url: '',
+        // These fields are crucial
+        categoryId,
+        // We can store the duration if needed, or calculate it on the fly
+        durationMs: endTime - startTime,
+      };
+
+      console.log('eventToSave in createManual', JSON.stringify(eventToSave, null, 2));
+
+      try {
+        const newEvent = new ActiveWindowEventModel(eventToSave);
+        await newEvent.save();
+        return newEvent.toObject<ActiveWindowEvent>();
+      } catch (error) {
+        console.error('Error saving manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to save manual window event',
+        });
+      }
+    }),
+
+  updateManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        id: z.string(),
+        name: z.string().optional(),
+        categoryId: z.string().optional(),
+        startTime: z.number().optional(),
+        durationMs: z.number().optional(),
+      })
+    )
+    .output(activeWindowEventSchema)
+    .mutation(async ({ input }) => {
+      const { token, id, name, categoryId, startTime, durationMs } = input;
+      verifyToken(token);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updateData: any = {};
+      if (name) {
+        updateData.name = name;
+        // Also update ownerName and title for consistency if they exist on the model
+        updateData.ownerName = name;
+        updateData.title = name;
+      }
+      if (categoryId) updateData.categoryId = categoryId;
+      if (startTime) updateData.timestamp = startTime;
+      if (durationMs) updateData.durationMs = durationMs;
+
+      try {
+        const updatedEvent = await ActiveWindowEventModel.findByIdAndUpdate(id, updateData, {
+          new: true,
+        });
+        if (!updatedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return updatedEvent.toObject<ActiveWindowEvent>();
+      } catch (error) {
+        console.error('Error updating manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update manual window event',
+        });
+      }
+    }),
+
+  getManualEntryHistory: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      console.log('running getManualEntryHistory for user', userId);
+
+      try {
+        const history = await ActiveWindowEventModel.aggregate([
+          // 1. Filter for manual entries for the specific user with a title
+          {
+            $match: {
+              userId, // Use string userId directly
+              type: 'manual',
+              title: { $nin: [null, ''] }, // Ensure title exists and is not empty
+            },
+          },
+          // 2. Group by title and categoryId to get unique pairs
+          {
+            $group: {
+              _id: {
+                titleLower: { $toLower: '$title' },
+                categoryId: '$categoryId',
+              },
+              title: { $first: '$title' }, // Keep the original cased title
+              lastUsed: { $max: '$timestamp' }, // Keep the most recent timestamp for this pair
+            },
+          },
+          // 3. Sort by most recently used
+          {
+            $sort: {
+              lastUsed: -1,
+            },
+          },
+          // 4. Limit to a reasonable number
+          {
+            $limit: 50,
+          },
+          // 5. Add a temporary field for the lookup
+          {
+            $addFields: {
+              categoryIdObjectId: {
+                $cond: {
+                  if: { $ne: ['$_id.categoryId', null] },
+                  then: { $toObjectId: '$_id.categoryId' },
+                  else: null,
+                },
+              },
+            },
+          },
+          // 6. Join with categories collection to get category details
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryIdObjectId',
+              foreignField: '_id',
+              as: 'categoryDetails',
+            },
+          },
+          // 7. Deconstruct the categoryDetails array
+          {
+            $unwind: {
+              path: '$categoryDetails',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          // 8. Final projection to shape the output
+          {
+            $project: {
+              _id: 0,
+              title: '$title',
+              categoryId: '$_id.categoryId',
+              categoryName: '$categoryDetails.name',
+              categoryColor: '$categoryDetails.color',
+            },
+          },
+        ]);
+        console.log('history in getManualEntryHistory', JSON.stringify(history, null, 2));
+        return history;
+      } catch (error) {
+        console.error('Error fetching manual entry history:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch manual entry history',
+        });
+      }
+    }),
+
+  deleteManual: publicProcedure
+    .input(z.object({ token: z.string(), id: z.string() }))
+    .mutation(async ({ input }) => {
+      const { token, id } = input;
+      verifyToken(token);
+
+      try {
+        const deletedEvent = await ActiveWindowEventModel.findByIdAndDelete(id);
+        if (!deletedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return { success: true };
+      } catch (error) {
+        console.error('Error deleting manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete manual window event',
         });
       }
     }),

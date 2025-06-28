@@ -15,7 +15,10 @@ export function generateProcessedEventBlocks(
 
   for (let i = 0; i < chronologicallySortedEvents.length; i++) {
     const event = chronologicallySortedEvents[i]
-    if (SYSTEM_EVENT_NAMES.includes(event.ownerName) || !event.categoryId) {
+    if (
+      SYSTEM_EVENT_NAMES.includes(event.ownerName) ||
+      (!event.categoryId && event.type !== 'manual')
+    ) {
       continue
     }
 
@@ -23,7 +26,21 @@ export function generateProcessedEventBlocks(
     let eventEndTime: Date
     let eventDurationMs: number
 
-    if (i < chronologicallySortedEvents.length - 1) {
+    if (event.type === 'manual' && event.durationMs) {
+      eventDurationMs = event.durationMs
+      eventEndTime = new Date(eventStartTime.getTime() + eventDurationMs)
+
+      // Debug logging for manual entries
+      if (event.ownerName === 'Commuting' || event.ownerName.includes('test long event')) {
+        console.log('Processing manual entry in eventProcessing.ts:', {
+          name: event.ownerName,
+          originalDurationMs: event.durationMs,
+          calculatedDurationMs: eventDurationMs,
+          startTime: eventStartTime,
+          endTime: eventEndTime
+        })
+      }
+    } else if (i < chronologicallySortedEvents.length - 1) {
       const nextEventTime = new Date(
         chronologicallySortedEvents[i + 1].timestamp as number
       ).getTime()
@@ -45,7 +62,7 @@ export function generateProcessedEventBlocks(
       endTime: eventEndTime,
       durationMs: eventDurationMs,
       name: event.ownerName,
-      title: event.title,
+      title: event.title || undefined,
       url: event.url || undefined,
       categoryId: event.categoryId,
       categoryName: category?.name,
