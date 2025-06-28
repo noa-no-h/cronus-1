@@ -47,11 +47,21 @@ export function MainAppContent() {
   const updateActivityCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
       onSuccess: (_data, variables) => {
+        console.log('🔄 RE-CATEGORIZATION SUCCESS:', variables)
         toast({
           title: 'Activity Re-categorized',
           description: `${variables.activityIdentifier} has been moved.`
         })
+
         trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
+        trpcUtils.activeWindowEvents.getLatestEvent.invalidate()
+
+        trpcUtils.category.getCategoryById.invalidate({
+          categoryId: variables.newCategoryId
+        })
+
+        trpcUtils.category.invalidate()
+
         setIsRecategorizeDialogOpen(false)
         setRecategorizeTarget(null)
       },
@@ -209,7 +219,11 @@ export function MainAppContent() {
     const cleanup = window.api.onActiveWindowChanged((details) => {
       setActiveWindow(details)
       if (details && isAuthenticated && token) {
-        uploadActiveWindowEvent(token, details, eventCreationMutation.mutateAsync)
+        uploadActiveWindowEvent(
+          token,
+          details as ActiveWindowDetails & { localScreenshotPath?: string | undefined },
+          eventCreationMutation.mutateAsync
+        )
       }
     })
     return cleanup

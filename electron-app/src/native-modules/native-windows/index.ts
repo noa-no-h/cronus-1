@@ -25,6 +25,7 @@ interface Addon {
   hasPermissionsForTitleExtraction: () => boolean
   hasPermissionsForContentExtraction: () => boolean
   requestPermission: (permissionType: number) => void
+  captureScreenshotAndOCRForCurrentWindow: () => any
 }
 
 const isDevelopment = !app.isPackaged

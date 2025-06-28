@@ -150,8 +150,8 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
       })
       return result
     } catch (error) {
-      logMainToFile('Error capturing screenshot + OCR', error)
-      return { success: false, error: error.message }
+      logMainToFile('Error capturing screenshot + OCR', { error: String(error) })
+      return { success: false, error: String(error) }
     }
   })
 

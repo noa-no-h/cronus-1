@@ -74,7 +74,6 @@ export const uploadActiveWindowEvent = async (
     browser: windowDetails.browser,
     title: windowDetails.title,
     url: windowDetails.url,
-    content: windowDetails.content, // Content already provided by native code
     content: windowDetails.content?.substring(0, CONTENT_CHAR_CUTOFF),
     timestamp: windowDetails.timestamp || Date.now(),
     screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
