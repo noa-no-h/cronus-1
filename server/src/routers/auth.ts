@@ -218,7 +218,7 @@ export const authRouter = router({
     .input(z.object({ refreshToken: z.string() }))
     .mutation(async ({ input }) => {
       try {
-        console.log('auth.ts 🔑 Verifying refresh token:', input.refreshToken);
+        //console.log('auth.ts 🔑 Verifying refresh token:', input.refreshToken);
 
         const decoded = jwt.verify(
           input.refreshToken,
