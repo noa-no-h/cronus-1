@@ -44,6 +44,7 @@ const DayTimeline = ({
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
+  const justResizedRef = useRef(false)
   const { token } = useAuth()
   const [resizingState, setResizingState] = useState<{
     isResizing: boolean
@@ -227,6 +228,8 @@ const DayTimeline = ({
           durationMs
         })
       }
+      // A resize has just finished. Set the ref to true.
+      justResizedRef.current = true
     }
     // Reset state regardless of what happened
     setResizingState({ isResizing: false, entry: null, direction: null, startY: null })
@@ -312,6 +315,12 @@ const DayTimeline = ({
                         : 1
                   }}
                   onClick={() => {
+                    // If a resize just happened, prevent the modal from opening
+                    // and reset the ref for the next click.
+                    if (justResizedRef.current) {
+                      justResizedRef.current = false
+                      return
+                    }
                     if (isManual) {
                       handleSelectManualEntry(segment)
                     }
