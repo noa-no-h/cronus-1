@@ -143,6 +143,191 @@ export const activeWindowEventsRouter = router({
       }
     }),
 
+  createManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        name: z.string(),
+        categoryId: z.string().optional(),
+        startTime: z.number(),
+        endTime: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      const { name, categoryId, startTime, endTime } = input;
+
+      const eventToSave: ActiveWindowEvent = {
+        userId,
+        ownerName: name,
+        title: name,
+        type: 'manual',
+        timestamp: startTime,
+        windowId: 0,
+        browser: null,
+        url: '',
+        content: '',
+        screenshotS3Url: '',
+        categoryId,
+        durationMs: endTime - startTime,
+      };
+
+      try {
+        const newEvent = new ActiveWindowEventModel(eventToSave);
+        await newEvent.save();
+        return newEvent.toObject() as ActiveWindowEvent;
+      } catch (error) {
+        console.error('Error saving manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to save manual window event',
+        });
+      }
+    }),
+
+  updateManual: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        id: z.string(),
+        name: z.string().optional(),
+        categoryId: z.string().optional(),
+        startTime: z.number().optional(),
+        durationMs: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { token, id, name, categoryId, startTime, durationMs } = input;
+      verifyToken(token);
+
+      const updateData: any = {};
+      if (name) {
+        updateData.name = name;
+        updateData.ownerName = name;
+        updateData.title = name;
+      }
+      if (categoryId) updateData.categoryId = categoryId;
+      if (startTime) updateData.timestamp = startTime;
+      if (durationMs) updateData.durationMs = durationMs;
+
+      try {
+        const updatedEvent = await ActiveWindowEventModel.findByIdAndUpdate(id, updateData, {
+          new: true,
+        });
+        if (!updatedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return updatedEvent.toObject() as ActiveWindowEvent;
+      } catch (error) {
+        console.error('Error updating manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to update manual window event',
+        });
+      }
+    }),
+
+  getManualEntryHistory: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      try {
+        const history = await ActiveWindowEventModel.aggregate([
+          {
+            $match: {
+              userId,
+              type: 'manual',
+              title: { $nin: [null, ''] },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                titleLower: { $toLower: '$title' },
+                categoryId: '$categoryId',
+              },
+              title: { $first: '$title' },
+              lastUsed: { $max: '$timestamp' },
+            },
+          },
+          {
+            $sort: {
+              lastUsed: -1,
+            },
+          },
+          {
+            $limit: 50,
+          },
+          {
+            $addFields: {
+              categoryIdObjectId: {
+                $cond: {
+                  if: { $ne: ['$_id.categoryId', null] },
+                  then: { $toObjectId: '$_id.categoryId' },
+                  else: null,
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryIdObjectId',
+              foreignField: '_id',
+              as: 'categoryDetails',
+            },
+          },
+          {
+            $unwind: {
+              path: '$categoryDetails',
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              title: '$title',
+              categoryId: '$_id.categoryId',
+              categoryName: '$categoryDetails.name',
+              categoryColor: '$categoryDetails.color',
+            },
+          },
+        ]);
+        return history;
+      } catch (error) {
+        console.error('Error fetching manual entry history:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch manual entry history',
+        });
+      }
+    }),
+
+  deleteManual: publicProcedure
+    .input(z.object({ token: z.string(), id: z.string() }))
+    .mutation(async ({ input }) => {
+      const { token, id } = input;
+      verifyToken(token);
+
+      try {
+        const deletedEvent = await ActiveWindowEventModel.findByIdAndDelete(id);
+        if (!deletedEvent) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
+        }
+        return { success: true };
+      } catch (error) {
+        console.error('Error deleting manual window event:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete manual window event',
+        });
+      }
+    }),
+
   // OCR back check:
   needsOCR: publicProcedure
     .input(

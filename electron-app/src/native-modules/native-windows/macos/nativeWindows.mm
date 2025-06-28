@@ -15,7 +15,7 @@ void StopActiveWindowObserverMethod(const Napi::CallbackInfo& info) {
   stopActiveWindowObserver(env);
 }
 
-void SetShouldRequestPermissionsMethod(const Napi::CallbackInfo& info) {
+void SetPermissionDialogsEnabledMethod(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   
   if (info.Length() < 1 || !info[0].IsBoolean()) {
@@ -27,7 +27,7 @@ void SetShouldRequestPermissionsMethod(const Napi::CallbackInfo& info) {
   [PermissionManager setShouldRequestPermissions:shouldRequest];
 }
 
-Napi::Value GetShouldRequestPermissionsMethod(const Napi::CallbackInfo& info) {
+Napi::Value GetPermissionDialogsEnabledMethod(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   BOOL shouldRequest = [PermissionManager shouldRequestPermissions];
   return Napi::Boolean::New(env, shouldRequest);
@@ -78,10 +78,10 @@ Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {
               Napi::Function::New(env, StartActiveWindowObserverMethod));
   exports.Set(Napi::String::New(env, "stopActiveWindowObserver"),
               Napi::Function::New(env, StopActiveWindowObserverMethod));
-  exports.Set(Napi::String::New(env, "setShouldRequestPermissions"),
-              Napi::Function::New(env, SetShouldRequestPermissionsMethod));
-  exports.Set(Napi::String::New(env, "getShouldRequestPermissions"),
-              Napi::Function::New(env, GetShouldRequestPermissionsMethod));
+  exports.Set(Napi::String::New(env, "setPermissionDialogsEnabled"),
+              Napi::Function::New(env, SetPermissionDialogsEnabledMethod));
+  exports.Set(Napi::String::New(env, "getPermissionDialogsEnabled"),
+              Napi::Function::New(env, GetPermissionDialogsEnabledMethod));
   exports.Set(Napi::String::New(env, "getPermissionStatus"),
               Napi::Function::New(env, GetPermissionStatusMethod));
   exports.Set(Napi::String::New(env, "hasPermissionsForTitleExtraction"),

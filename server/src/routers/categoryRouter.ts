@@ -1,11 +1,29 @@
 import { TRPCError } from '@trpc/server';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
+
+const objectIdToStringSchema = z
+  .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))
+  .transform((val) => val.toString());
+
+const categorySchema = z.object({
+  _id: objectIdToStringSchema,
+  userId: objectIdToStringSchema,
+  name: z.string(),
+  description: z.string().optional(),
+  color: z.string(),
+  isProductive: z.boolean(),
+  isDefault: z.boolean().default(false),
+  isArchived: z.boolean().optional().default(false),
+  isLikelyToBeOffline: z.boolean().optional().default(false),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
 export const categoryRouter = router({
   createCategory: publicProcedure
@@ -17,12 +35,20 @@ export const categoryRouter = router({
         color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format (e.g., #FF5733)'),
         isProductive: z.boolean(),
         isDefault: z.boolean().optional(),
+        isLikelyToBeOffline: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-      const { name, description, color, isProductive, isDefault = false } = input;
+      const {
+        name,
+        description,
+        color,
+        isProductive,
+        isDefault = false,
+        isLikelyToBeOffline = false,
+      } = input;
 
       const existingCategory = await CategoryModel.findOne({ userId, name });
       if (existingCategory) {
@@ -39,17 +65,21 @@ export const categoryRouter = router({
         color,
         isProductive,
         isDefault,
+        isLikelyToBeOffline,
       });
       await category.save();
       return category.toJSON();
     }),
 
-  getCategories: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const decodedToken = verifyToken(input.token);
-    const userId = decodedToken.userId;
-    const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
-    return categories.map((cat) => cat.toJSON());
-  }),
+  getCategories: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .output(z.array(categorySchema))
+    .query(async ({ input }) => {
+      const decodedToken = verifyToken(input.token);
+      const userId = decodedToken.userId;
+      const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+      return categories.map((cat) => cat.toJSON());
+    }),
 
   updateCategory: publicProcedure
     .input(
@@ -65,6 +95,8 @@ export const categoryRouter = router({
           .regex(/^#[0-9A-F]{6}$/i, 'Invalid color format')
           .optional(),
         isProductive: z.boolean().optional(),
+        isArchived: z.boolean().optional(),
+        isLikelyToBeOffline: z.boolean().optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -118,7 +150,7 @@ export const categoryRouter = router({
       if (!category) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
-      return { success: true, id };
+      return category.toJSON();
     }),
 
   resetToDefault: publicProcedure
@@ -126,7 +158,8 @@ export const categoryRouter = router({
     .mutation(async ({ input }) => {
       const decodedToken = verifyToken(input.token);
       const userId = decodedToken.userId;
-      return await resetCategoriesToDefault(userId);
+      await resetCategoriesToDefault(userId);
+      return { success: true };
     }),
 
   getCategoryById: publicProcedure

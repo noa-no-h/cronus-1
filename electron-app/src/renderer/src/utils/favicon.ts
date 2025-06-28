@@ -16,7 +16,9 @@ const specialFavicons: Record<string, string | { light: string; dark: string }> 
     'https://www.gstatic.com/marketing-cms/assets/images/e8/4f/69d708b2455397d7b88b0312f7c5/google-drive.webp=s96-fcrop64=1,00000000ffffffff-rw',
   'mail.google.com':
     'https://www.gstatic.com/marketing-cms/assets/images/66/ac/14b165e647fd85c824bfbe5d6bc5/gmail.webp=s96-fcrop64=1,00000000ffffffff-rw',
-  'claude.ai': 'https://claude.ai/images/claude_app_icon.png'
+  'claude.ai': 'https://claude.ai/images/claude_app_icon.png',
+  'web.whatsapp.com': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg',
+  'wa.me': 'https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg'
 }
 
 function getCurrentTheme(): 'light' | 'dark' {

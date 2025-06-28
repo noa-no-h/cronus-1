@@ -2,9 +2,9 @@ import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import icon from './../assets/icon.png'
-import GoalInputForm from './GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import GoalInputForm from './Settings/GoalInputForm'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -275,8 +275,16 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleComplete = async () => {
     setIsCompleting(true)
-    // No need to call markOnboardingComplete mutation anymore
-    // Just complete the onboarding process
+
+    // Start window tracking now that onboarding is complete
+    try {
+      await window.api.enablePermissionRequests()
+      await window.api.startWindowTracking()
+    } catch (error) {
+      console.error('Failed to start window tracking:', error)
+    }
+
+    // Complete the onboarding process
     setTimeout(() => {
       onComplete()
     }, 500)

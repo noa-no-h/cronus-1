@@ -63,39 +63,123 @@ electron-app/
 ├── tsconfig.web.json # TypeScript config for renderer
 └── README.md
 
+## Building the Electron App
+
+The primary method for creating local builds is through `electron-builder`, which ensures that all packaging, code signing, and entitlements are handled correctly and consistently.
+
+### Local Production Build (for Testing)
+
+To create a full, signed production-ready build on your local machine (including a `.dmg` installer) without publishing it, run:
+
+```bash
+bun run build:mac:electron-builder
+```
+
+This command is the recommended way to create a local build for testing and verification. It builds, signs, and packages the application, producing a `.dmg` file in the `dist/` directory.
+
+### Development Utility Scripts
+
+**Full Installation Cleanup**
+
+If you need to reset your local environment, you can use the cleanup script. This is useful when debugging permissions or first-launch issues.
+
+```bash
+bun run clean:cronus-installation
+```
+
+This script will:
+
+- Delete `Cronus.app` from your `/Applications` folder.
+- Reset macOS permissions (TCC) for Apple Events and Accessibility for the app.
+
+### Environment Variables
+
+The Electron app uses different environment variables for development and production builds. These are managed via `.env` files in the `electron-app` directory:
+
+- **`.env.development`**: Used when running the app locally with `bun run dev`.
+- **`.env.production`**: Used for packaged builds created with `electron-builder`.
+
+These files are loaded at runtime by the main process (`src/main/index.ts`). Create these files from the example below and populate them with the necessary service keys.
+
+### .env.example
+
+```
+# Example environment variables
+GOOGLE_CLIENT_ID="your-google-client-id"
+CLIENT_URL="your-client-url"
+...
+```
+
 ## Over-the-air (OTA) updates via S3
 
-Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `eu-central-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks **Settings → Check for Updates**.
+Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `us-east-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks _Settings → Check for Updates_.
 
-### 1 – Prerequisites
+### 1 – AWS Credentials Setup (Prerequisites)
 
-Create a local **.env** (never commit it) with a key that can upload to the bucket:
+Publishing the application to S3 requires valid AWS credentials with permission to upload to the `cronusnewupdates` bucket.
 
-```bash
-AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxxxxxx
-AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-AWS_REGION=eu-central-1
-```
+**Important:** `electron-builder` reliably uses the shared AWS credentials file (`~/.aws/credentials`) and ignores credentials set via environment variables (Bug?). Therefore, the only supported method is to configure your global AWS credentials file.
 
-Load it in each terminal before building:
+1.  **Locate or Create the Credentials File:**
+    The file is located at `~/.aws/credentials` on both macOS and Linux. If it doesn't exist, you'll need to create it.
 
-```bash
-set -a && source .env && set +a
-```
+2.  **Add a `[default]` Profile:**
+    Open the file and add your AWS Access Key ID and Secret Access Key under a profile named `[default]`. It should look exactly like this:
+
+    ```ini
+    [default]
+    aws_access_key_id = YOUR_ACCESS_KEY_HERE
+    aws_secret_access_key = YOUR_SECRET_KEY_HERE
+    ```
+
+3.  **Configure the AWS Region (Recommended):**
+    You can also set a default region in `~/.aws/config`. If the file doesn't exist, create it at `~/.aws/config`:
+
+    ```ini
+    [default]
+    region = us-east-1
+    ```
+
+`electron-builder` will automatically detect and use these credentials during the publish step.
 
 ### 2 – Release workflow
 
-1. **Bump the version** in `electron-app/package.json` (e.g. `"1.0.8" → "1.0.9"`).
-2. **Build _and_ publish** the release:
-   ```bash
-   cd electron-app
-   npx electron-builder --mac --arm64 --publish always
-   ```
-   The command creates `latest-mac.yml`, the DMG/ZIP and uploads them to S3.
+1.  **Bump the version** in `electron-app/package.json` (e.g. `"1.0.8" → "1.0.9"`).
+2.  **Build, publish, and update download links:**
+    Run the all-in-one script from within the `electron-app` directory. You can publish for a specific architecture (`arm64` or `x64`) or for both.
 
-If you just need a local installer use `--publish never` instead; nothing will be uploaded.
+    ```bash
+    # To publish for Apple Silicon (arm64)
+    bun run publish:with-links:arm64
 
-### 3 – Troubleshooting quick reference
+    # To publish for Intel (x64)
+    bun run publish:with-links:x64
+
+    # To publish for both architectures
+    bun run publish:with-links:all
+    ```
+
+    This single command handles the entire release process for the specified architecture(s):
+
+    - Builds the application.
+    - Packages the `.dmg` and `.zip` files.
+    - Publishes the new version and its `latest-mac.yml` file to S3.
+    - Updates the `Cronus-latest-[arch].dmg` and `Cronus-latest-[arch].zip` files in S3 to point to the new version.
+
+If you just need to create a local build for testing without uploading, use `bun run build:for-publish:arm64` or `bun run build:for-publish:x64`.
+
+### 3 – Permanent Download Links
+
+The `publish:with-links:*` scripts automatically handle updating the permanent download links. You can find them at:
+
+- **Latest ARM64 DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg`
+- **Latest ARM64 ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.zip`
+- **Latest Intel DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-x64.dmg`
+- **Latest Intel ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-x64.zip`
+
+The website can use these fixed URLs and never needs updating - they will automatically serve the newest build.
+
+### 4 – Troubleshooting quick reference
 
 | Symptom                            | Likely fix                                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -122,13 +206,11 @@ This happens because electron-builder doesn't always properly resolve workspace 
 
 ```bash
 cd electron-app
-# 1. Copy dependencies if needed (see above)
-# 2. Build source code
-bun run build
-# 3. Package and publish
+# Update version in package.json
+# Set environment variables (if needed)
+set -a && source .env.production && set +a
+# Build source code
+NODE_ENV=production bun run build
+# Package and publish
 npx electron-builder --mac --arm64 --publish always
-```
-
-```
-
 ```

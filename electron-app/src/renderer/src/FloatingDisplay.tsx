@@ -145,12 +145,16 @@ const FloatingDisplay: React.FC = () => {
   }
 
   if (!isVisible && latestStatus === null) {
-    return null
+    return (
+      <div className="w-full h-full flex items-center justify-center p-2 rounded-xl bg-background border-2 border-secondary/50">
+        <span className="text-xs text-muted-foreground animate-pulse">Waiting for activity...</span>
+      </div>
+    )
   }
 
   let productiveIsHighlighted = false
   let productiveIsEnlarged = false
-  let productiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'green'
+  const productiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'green'
 
   let unproductiveIsHighlighted = false
   let unproductiveIsEnlarged = false

@@ -1,9 +1,9 @@
 import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
-import { APP_NAME, APP_USP } from '@renderer/App'
-import { cn } from '@renderer/lib/utils'
 import { useCallback, useEffect, useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { APP_NAME, APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
+import { useAuth } from '../contexts/AuthContext'
+import { cn } from '../lib/utils'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
@@ -61,7 +61,11 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     authUrl.searchParams.set('client_id', googleClientId)
     authUrl.searchParams.set('redirect_uri', redirectWebAppSiteUri)
     authUrl.searchParams.set('response_type', 'code')
-    authUrl.searchParams.set('scope', 'openid profile email')
+    authUrl.searchParams.set(
+      'scope',
+      // 'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+      'openid profile email'
+    )
     authUrl.searchParams.set('access_type', 'offline')
     authUrl.searchParams.set('prompt', 'consent') // Important to get a refresh token every time
 
@@ -85,9 +89,10 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleCodeSuccess,
     onError: (error) => console.error('DEV LOGIN (CODE): useGoogleLogin hook onError:', error),
-    flow: 'auth-code'
+    flow: 'auth-code',
+    //     scope: 'openid profile email https://www.googleapis.com/auth/calendar.readonly'
+    scope: 'openid profile email'
   })
-  // --- END NEW DEV FLOW ---
 
   const renderLoginButton = () => {
     if (isDev) {
@@ -95,7 +100,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         <button
           onClick={() => googleLogin()}
           disabled={!googleClientId}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
           <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
           Sign in with Google
@@ -107,7 +112,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       <button
         onClick={handleProdLoginClick}
         disabled={!googleClientId || !clientUrl}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
       >
         <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
         Sign in with Google
@@ -115,12 +120,15 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     )
   }
 
-  // console log isDev
-  console.log('isDev', isDev)
-
   return (
-    <div className={cn('flex flex-col gap-6 items-center w-full p-8 m-auto', className)} {...props}>
-      <div className="w-full max-w-md mx-auto rounded-lg p-8 bg-white">
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center w-full h-screen p-8 draggable-area',
+        className
+      )}
+      {...props}
+    >
+      <div className="w-full max-w-md mx-auto rounded-lg p-8 ">
         <div className="text-center">
           <h1 className="text-2xl text-gray-800 font-semibold">
             Welcome to {APP_NAME} {isDev ? '(Dev Mode)' : ''}

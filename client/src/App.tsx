@@ -6,6 +6,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import BlogPage from './app/blog/BlogPage';
 import BlogPostPage from './app/blog/BlogPostPage';
+import DownloadPage from './components/DownloadPage';
 import ElectronCallbackPage from './components/ElectronCallbackPage';
 import HomePage from './components/HomePage';
 import LandingPage from './components/LandingPage';
@@ -135,6 +136,15 @@ function AppContent() {
                 <div className="container mx-auto px-4 py-8 pt-24">
                   <BlogPostPage />
                 </div>
+              </>
+            }
+          />
+          <Route
+            path="/download"
+            element={
+              <>
+                <Navbar />
+                <DownloadPage />
               </>
             }
           />

@@ -30,6 +30,7 @@ export function createFloatingWindow(
     resizable: false,
     maximizable: false,
     show: false,
+    type: process.platform === 'darwin' ? 'panel' : 'normal',
     webPreferences: {
       preload: join(__dirname, '../preload/floatingPreload.js'),
       sandbox: false,

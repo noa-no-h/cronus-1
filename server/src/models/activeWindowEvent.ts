@@ -1,13 +1,13 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { ActiveWindowEvent } from '../../../shared/types';
 
-export interface IActiveWindowEvent extends ActiveWindowEvent, Document {}
+export interface IActiveWindowEvent extends Omit<ActiveWindowEvent, '_id'>, Document {}
 
 const activeWindowEventSchema = new Schema({
   userId: { type: String, required: true, index: true },
   windowId: { type: Number, required: false }, // Made optional for system events
   ownerName: { type: String, required: true },
-  type: { type: String, required: true, enum: ['window', 'browser', 'system'] }, // Added 'system' type
+  type: { type: String, required: true, enum: ['window', 'browser', 'system', 'manual'] },
   browser: { type: String, enum: ['chrome', 'safari', null] },
   title: { type: String, required: false },
   url: { type: String },
@@ -16,6 +16,7 @@ const activeWindowEventSchema = new Schema({
   categoryReasoning: { type: String },
   timestamp: { type: Number, required: true, default: Date.now, index: true },
   screenshotS3Url: { type: String },
+  durationMs: { type: Number, required: false },
   captureReason: {
     type: String,
     enum: ['app_switch', 'periodic_backup', 'system_sleep', 'system_wake', null],

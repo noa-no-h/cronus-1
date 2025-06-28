@@ -26,6 +26,8 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
   const iconMap: { [key: string]: string } = {
     Cursor: cursorIcon,
     'Google Chrome': chromeIcon,
+    'Google Calendar':
+      'https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg',
     Safari: safariIcon,
     Electron: electronIcon,
     Spotify: spotifyIcon,
@@ -70,6 +72,7 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     const colors = {
       Cursor: 'from-blue-500 to-purple-500',
       'Google Chrome': 'from-yellow-400 to-red-500',
+      'Google Calendar': 'from-blue-500 to-indigo-600',
       Safari: 'from-blue-400 to-blue-600',
       Electron: 'from-teal-400 to-cyan-500',
       Terminal: 'from-gray-700 to-gray-900',

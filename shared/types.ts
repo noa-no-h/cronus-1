@@ -21,20 +21,21 @@ export interface User {
 export interface ActiveWindowDetails {
   windowId?: number;
   ownerName: string;
-  type: 'window' | 'browser' | 'system';
+  type: 'window' | 'browser' | 'system' | 'manual';
   browser?: 'chrome' | 'safari' | null;
-  title: string;
+  title?: string | null;
   url?: string | null;
   content?: string | null;
+  timestamp: number;
   contentSource?: 'ocr' | 'accessibility' | null;
   timestamp?: number;
   localScreenshotPath?: string | null;
   screenshotS3Url?: string | null;
-  captureReason?: 'app_switch' | 'periodic_backup' | null;
-  categoryReasoning?: string | null;
+  durationMs?: number;
 }
 
 export interface ActiveWindowEvent extends ActiveWindowDetails {
+  _id?: string;
   userId: string;
   categoryId?: string | null;
   categoryReasoning?: string | null;
@@ -48,6 +49,8 @@ export interface Category {
   color: string; // Hex color code, e.g., "#FF5733"
   isProductive: boolean;
   isDefault: boolean; // Whether this is a default category
+  isArchived?: boolean;
+  isLikelyToBeOffline?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
