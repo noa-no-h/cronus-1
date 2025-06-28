@@ -144,7 +144,7 @@ Publishing the application to S3 requires valid AWS credentials with permission 
 
 ### 2 – Release workflow
 
-1.  **Bump the version** in `electron-app/package.json` (e.g. `"1.0.8" → "1.0.9"`).
+1.  **Bump the version** in [electron-app/package.json](./package.json) (e.g. `"1.0.8" → "1.0.9"`).
 2.  **Build, publish, and update download links:**
     Run the all-in-one script from within the `electron-app` directory. You can publish for a specific architecture (`arm64` or `x64`) or for both.
 
@@ -160,7 +160,6 @@ Publishing the application to S3 requires valid AWS credentials with permission 
     ```
 
     This single command handles the entire release process for the specified architecture(s):
-
     - Builds the application.
     - Packages the `.dmg` and `.zip` files.
     - Publishes the new version and its `latest-mac.yml` file to S3.
