@@ -5,7 +5,8 @@ import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
 // Permission types and status enums (match the native layer)
 export enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
 export enum PermissionStatus {
@@ -81,7 +82,8 @@ const api = {
     const listener = (_event: Electron.IpcRendererEvent, status: any) => callback(status)
     ipcRenderer.on('update-status', listener)
     return () => ipcRenderer.removeListener('update-status', listener)
-  }
+  },
+  captureScreenshotAndOCR: () => ipcRenderer.invoke('capture-screenshot-and-ocr')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

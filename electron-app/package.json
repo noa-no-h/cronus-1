@@ -24,6 +24,7 @@
     "build": "electron-vite build",
     "build:with-typecheck": "bun run typecheck && electron-vite build",
     "build:unpack": "bun run build && electron-builder --dir",
+    "build:local": "bun run build && electron-builder --mac --dir --config.mac.notarize=false",
     "build:win": "bun run build && electron-builder --win",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac:electron-builder": "NODE_ENV=production bun run build && npx electron-builder --mac --arm64 --publish never",
@@ -126,7 +127,6 @@
     "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
-    "js-yaml": "^4.1.0",
     "jsonfile": "^6.1.0",
     "lucide-react": "^0.523.0",
     "node-addon-api": "^4.3.0",
@@ -134,7 +134,8 @@
     "react-router-dom": "^7.6.1",
     "shared": "workspace:*",
     "tailwind-merge": "^3.3.1",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

@@ -5,7 +5,8 @@ import { ActiveWindowDetails } from 'shared/dist/types.js'
 // Permission types enum to match native layer
 export enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
 // Permission status enum to match native layer
@@ -115,6 +116,13 @@ class NativeWindows {
    */
   public hasPermissionsForContentExtraction(): boolean {
     return addon.hasPermissionsForContentExtraction()
+  }
+
+  /**
+   * Captures screenshot and performs ocr for current window
+   */
+  public captureScreenshotAndOCRForCurrentWindow(): any {
+    return addon.captureScreenshotAndOCRForCurrentWindow()
   }
 
   /**

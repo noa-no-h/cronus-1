@@ -74,6 +74,26 @@ static NSMutableArray *_pendingRequests = nil;
             // Default to unknown/pending since we can't definitively check without triggering dialogs
             return PermissionStatusPending;
         }
+        case PermissionTypeScreenRecording: {
+            // Check if screen recording permission is granted
+            // On macOS 10.15+, we can check by attempting to create a screen capture
+            if (@available(macOS 10.15, *)) {
+                // Try to capture a small portion of the screen to test permission
+                CGImageRef testImage = CGWindowListCreateImage(CGRectMake(0, 0, 1, 1), 
+                                                             kCGWindowListOptionOnScreenOnly, 
+                                                             kCGNullWindowID, 
+                                                             kCGWindowImageDefault);
+                if (testImage) {
+                    CFRelease(testImage);
+                    return PermissionStatusGranted;
+                } else {
+                    return PermissionStatusDenied;
+                }
+            } else {
+                // On older macOS versions, screen recording doesn't require explicit permission
+                return PermissionStatusGranted;
+            }
+        }
     }
     return PermissionStatusDenied;
 }
@@ -154,6 +174,45 @@ static NSMutableArray *_pendingRequests = nil;
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                 [self processPendingRequests];
             });
+            break;
+        }
+        case PermissionTypeScreenRecording: {
+            MyLog(@"📺 Requesting Screen Recording permissions...");
+            
+            if (@available(macOS 10.15, *)) {
+                // Trigger screen recording permission request by attempting to capture
+                CGImageRef testImage = CGWindowListCreateImage(CGRectMake(0, 0, 1, 1), 
+                                                             kCGWindowListOptionOnScreenOnly, 
+                                                             kCGNullWindowID, 
+                                                             kCGWindowImageDefault);
+                
+                PermissionStatus status;
+                if (testImage) {
+                    CFRelease(testImage);
+                    status = PermissionStatusGranted;
+                    MyLog(@"📋 Screen Recording permission result: ✅ Granted");
+                } else {
+                    status = PermissionStatusPending;
+                    MyLog(@"📋 Screen Recording permission result: ⏳ Pending (dialog shown)");
+                }
+                
+                _isRequestingPermission = NO;
+                if (completion) completion(status);
+                
+                // Process next request after a delay to allow dialog to be handled
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self processPendingRequests];
+                });
+            } else {
+                // On older macOS versions, no permission needed
+                MyLog(@"📋 Screen Recording permission: ✅ Not required on this macOS version");
+                _isRequestingPermission = NO;
+                if (completion) completion(PermissionStatusGranted);
+                
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self processPendingRequests];
+                });
+            }
             break;
         }
     }

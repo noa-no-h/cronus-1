@@ -47,7 +47,6 @@ export const uploadActiveWindowEvent = async (
   mutateEvent: MutateAsyncFunction
 ): Promise<void> => {
   // Don't upload browser events that are missing a URL.
-  // This is a workaround for a race condition on macOS where audio-playing tabs report a title change before the URL is available via AppleScript.
   if (
     (windowDetails.browser === 'chrome' || windowDetails.browser === 'safari') &&
     !windowDetails.url
@@ -75,52 +74,54 @@ export const uploadActiveWindowEvent = async (
     browser: windowDetails.browser,
     title: windowDetails.title,
     url: windowDetails.url,
-    content: windowDetails.content?.substring(0, CONTENT_CHAR_CUTOFF),
+    content: windowDetails.content, // Content already provided by native code
     timestamp: windowDetails.timestamp || Date.now(),
     screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
   }
 
   try {
     if (!isSystemEvent) {
-      // Only handle screenshots for non-system events
-      // dont burden s3 with too many image if 99% likelyhood of it being productive
+      // Handle screenshot upload logic (unchanged)
       if (isVeryLikelyProductive(windowDetails)) {
         if (windowDetails.localScreenshotPath) {
+          console.log(
+            `[ActivityUploader] Productive app detected (${windowDetails.ownerName}), deleting screenshot.`
+          )
           await deleteLocalFile(windowDetails.localScreenshotPath)
         }
       } else {
-        // If we have a local screenshot, upload it to S3 first
         if (windowDetails.localScreenshotPath) {
           try {
-            // Get pre-signed URL from server
+            console.log(
+              `[ActivityUploader] Non-productive app, attempting screenshot upload for: ${windowDetails.title}`
+            )
             const { uploadUrl, publicUrl } = await trpcClient.s3.getUploadUrl.mutate({
               fileType: 'image/jpeg',
               token: localStorage.getItem('accessToken') || ''
             })
 
-            // Read the local file from the main process (no checksum)
             const fileBuffer = await readFileFromMain(windowDetails.localScreenshotPath)
-
-            // Upload to S3 with content type
             await uploadToS3(uploadUrl, fileBuffer, 'image/jpeg')
 
-            // Add the S3 URL to the event data
             eventData.screenshotS3Url = publicUrl
-
-            // Clean up the local file
+            console.log('[ActivityUploader] Screenshot uploaded, event data being sent:', eventData)
             await deleteLocalFile(windowDetails.localScreenshotPath)
           } catch (error) {
             console.error('Error handling screenshot upload:', error)
-            // Continue with event upload even if screenshot upload fails
           }
+        } else {
+          console.log(
+            `[ActivityUploader] No screenshot available for non-productive app: ${windowDetails.ownerName}`
+          )
         }
       }
     }
 
-    // Upload the event data
+    console.log(
+      `[ActivityUploader] Uploading event for ${windowDetails.ownerName} with ${windowDetails.content?.length || 0} chars content`
+    )
     await mutateEvent(eventData)
   } catch (error) {
-    console.error('Error uploading active window event:', error)
-    // Handle error appropriately, e.g., retry logic, user notification
+    console.error('Error in uploadActiveWindowEvent:', error)
   }
 }

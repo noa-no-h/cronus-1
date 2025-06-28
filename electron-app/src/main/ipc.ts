@@ -141,6 +141,20 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
     }
   })
 
+  ipcMain.handle('capture-screenshot-and-ocr', async () => {
+    try {
+      const result = nativeWindows.captureScreenshotAndOCRForCurrentWindow()
+      logMainToFile('Screenshot + OCR captured', {
+        success: result.success,
+        textLength: result.ocrText?.length || 0
+      })
+      return result
+    } catch (error) {
+      logMainToFile('Error capturing screenshot + OCR', error)
+      return { success: false, error: error.message }
+    }
+  })
+
   ipcMain.on(
     'update-floating-window-status',
     (

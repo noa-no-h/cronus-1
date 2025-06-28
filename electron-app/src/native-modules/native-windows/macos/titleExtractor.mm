@@ -47,7 +47,8 @@
         MyLog(@"📊 Using CGWindowList approach for app: %@", appName);
         
         // Get window information directly from Core Graphics
-        CFArrayRef windowList = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+        // Use __bridge_transfer to move ownership to ARC
+        NSArray *windowList = (__bridge_transfer NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
         if (!windowList) {
             MyLog(@"❌ Failed to get window list from CGWindowListCopyWindowInfo");
             return nil;

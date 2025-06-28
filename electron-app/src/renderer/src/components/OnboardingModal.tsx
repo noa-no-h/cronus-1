@@ -1,8 +1,7 @@
-import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
+import { CheckCircle, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
+import { useAuth } from '../contexts/AuthContext'
 import icon from './../assets/icon.png'
-import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
 import GoalInputForm from './Settings/GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
@@ -10,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 // Define enums locally to match preload definitions
 enum PermissionType {
   Accessibility = 0,
-  AppleEvents = 1
+  AppleEvents = 1,
+  ScreenRecording = 2
 }
 
 enum PermissionStatus {
@@ -29,10 +29,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingPermission, setIsRequestingPermission] = useState(false)
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false)
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus | null>(null)
-  const [isUsingSafari, setIsUsingSafari] = useState(false)
-  const [showBrowserConfirmation, setShowBrowserConfirmation] = useState(false)
+  const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
+  const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
+  const [screenRecordingStatus, setScreenRecordingStatus] = useState<PermissionStatus | null>(null)
+  const { token } = useAuth()
 
-  // Check permission status when on accessibility step
+  // Check permission status when on permission steps
   useEffect(() => {
     if (currentStep === 2) {
       // Accessibility step
@@ -40,8 +42,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       // Poll permission status every 2 seconds
       const interval = setInterval(checkPermissionStatus, 2000)
       return () => clearInterval(interval)
+    } else if (currentStep === 3) {
+      // Screen recording step
+      checkScreenRecordingStatus()
+      // Poll screen recording status every 2 seconds
+      const interval = setInterval(checkScreenRecordingStatus, 2000)
+      return () => clearInterval(interval)
     }
-    return () => {} // Return empty cleanup function when not on accessibility step
+    return () => {} // Return empty cleanup function when not on permission steps
   }, [currentStep])
 
   const checkPermissionStatus = async () => {
@@ -50,6 +58,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       setPermissionStatus(status)
     } catch (error) {
       console.error('Failed to check permission status:', error)
+    }
+  }
+
+  const checkScreenRecordingStatus = async () => {
+    try {
+      const status = await window.api.getPermissionStatus(PermissionType.ScreenRecording)
+      setScreenRecordingStatus(status)
+    } catch (error) {
+      console.error('Failed to check screen recording status:', error)
     }
   }
 
@@ -104,11 +121,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 <br />
                 1. Go to System Preferences → Security & Privacy → Privacy
                 <br />
-                2. Click "Accessibility" on the left
+                2. Click &quot;Accessibility&quot; on the left
                 <br />
-                3. Check the box next to "Cronus" to enable access
+                3. Check the box next to &quot;Cronus&quot; to enable access
                 <br />
-                4. Come back here and click "Next" when done
+                4. Come back here and click &quot;Next&quot; when done
               </p>
             </div>
           )}
@@ -124,107 +141,55 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       )
     },
     {
-      title: 'Browser Setup for Better Tracking',
-      content: !showBrowserConfirmation ? (
+      title: 'Enable Screen Recording Permission',
+      content: (
         <div className="text-left space-y-6">
           <div className="flex justify-start mb-4">
-            <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
-              <Chrome className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="bg-purple-100 dark:bg-purple-900 p-4 rounded-full">
+              <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
           <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-            To get the most accurate insights, please enable JavaScript from Apple Events in your
-            browser.
-          </p>
-
-          {/* Safari/Chrome Toggle */}
-          <div className="flex justify-center items-center space-x-4 mb-6">
-            <span
-              className={`text-sm ${!isUsingSafari ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-            >
-              Chrome
-            </span>
-            <button
-              onClick={() => setIsUsingSafari(!isUsingSafari)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isUsingSafari ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  isUsingSafari ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-            <span
-              className={`text-sm ${isUsingSafari ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-            >
-              Safari
-            </span>
-          </div>
-
-          <div className="text-left max-w-md">
-            {isUsingSafari ? (
-              <ol className="list-decimal pl-6 text-base space-y-2">
-                <li>
-                  Open Safari and click <strong>Safari</strong> in the menu bar
-                </li>
-                <li>
-                  Select <strong>Settings</strong> (or <strong>Preferences</strong>)
-                </li>
-                <li>
-                  Go to the <strong>Advanced</strong> tab
-                </li>
-                <li>
-                  Check <strong>Show Develop menu in menu bar</strong>
-                </li>
-                <li>
-                  Click <strong>Develop</strong> in the menu bar
-                </li>
-                <li>
-                  Select <strong>Allow JavaScript from Apple Events</strong>
-                </li>
-              </ol>
-            ) : (
-              <ol className="list-decimal pl-6 text-base space-y-2">
-                <li>
-                  Open Chrome and click the <strong>View</strong> menu at the top of your screen.
-                </li>
-                <li>
-                  Select <strong>Developer</strong>
-                </li>
-                <li>
-                  Select <strong>Allow JavaScript from Apple Events</strong>
-                </li>
-              </ol>
-            )}
-          </div>
-
-          <div className="flex justify-start mt-4">
-            <img
-              src={isUsingSafari ? safariEnableJsScreenshot : chromeAppleEventsScreenshot}
-              alt={`How to enable JavaScript from Apple Events in ${isUsingSafari ? 'Safari' : 'Chrome'}`}
-              className="min-h-[400px] rounded-lg border shadow-lg max-w-full max-h-48 object-contain"
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="text-left space-y-6">
-          <div className="flex justify-start mb-4">
-            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
-              <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold">Confirm Browser Setup</h3>
-          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-            Have you enabled JavaScript from Apple Events in your{' '}
-            {isUsingSafari ? 'Safari' : 'Chrome'} browser?
+            We need screen recording access to understand what you&apos;re doing to help categorize
+            your activity and provide better insights.
           </p>
           <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
             <p className="text-sm text-muted-foreground">
-              This step is optional but recommended for the best tracking experience.
+              <strong>What this enables:</strong>
+              <br />• Visual context for better activity categorization
+              <br />• Enhanced productivity insights
+              <br />• Smarter automatic categorization
             </p>
           </div>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mt-4 border border-yellow-200 dark:border-yellow-800">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <strong>Privacy:</strong> Screenshots are processed locally and only sent to our
+              servers with your explicit consent for analysis.
+            </p>
+          </div>
+          {hasRequestedScreenRecording && screenRecordingStatus !== PermissionStatus.Granted && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mt-4 border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Next steps:</strong>
+                <br />
+                1. Go to System Preferences → Security & Privacy → Privacy
+                <br />
+                2. Click &quot;Screen & System Audio Recording&quot; on the left
+                <br />
+                3. Check the box next to &quot;Cronus&quot; to enable access
+                <br />
+                4. Come back here and click &quot;Next&quot; when done
+              </p>
+            </div>
+          )}
+          {hasRequestedScreenRecording && screenRecordingStatus === PermissionStatus.Granted && (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                <strong>Permission granted! You can now continue.</strong>
+              </p>
+            </div>
+          )}
         </div>
       )
     },
@@ -238,7 +203,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
           </div>
           <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-            Your productivity tracking is now configured. Cronus will start monitoring your activity
+            Your productivity tracking is now configured. We&apos;ll start monitoring your activity
             and help you stay focused on your goals.
           </p>
           <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
@@ -265,15 +230,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // Reset permission-related states when going back from accessibility step
+      // Reset permission-related states when going back from permission steps
       if (currentStep === 2) {
         setHasRequestedPermission(false)
         setPermissionStatus(null)
         setIsRequestingPermission(false)
-      }
-      // Reset browser setup states when going back from browser setup step
-      if (currentStep === 3) {
-        setShowBrowserConfirmation(false)
+      } else if (currentStep === 3) {
+        setHasRequestedScreenRecording(false)
+        setScreenRecordingStatus(null)
+        setIsRequestingScreenRecording(false)
       }
       setCurrentStep(currentStep - 1)
     }
@@ -301,6 +266,25 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }
 
+  const handleRequestScreenRecordingPermission = async () => {
+    setIsRequestingScreenRecording(true)
+    try {
+      // Request screen recording permission
+      await window.api.requestPermission(PermissionType.ScreenRecording)
+      setHasRequestedScreenRecording(true)
+
+      // Check permission status after a short delay
+      setTimeout(() => {
+        checkScreenRecordingStatus()
+        setIsRequestingScreenRecording(false)
+      }, 1000)
+    } catch (error) {
+      console.error('Failed to request screen recording permission:', error)
+      setIsRequestingScreenRecording(false)
+      setHasRequestedScreenRecording(true) // Still mark as requested even if error
+    }
+  }
+
   const handleComplete = async () => {
     setIsCompleting(true)
     // Start window tracking now that onboarding is complete
@@ -318,7 +302,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const currentStepData = steps[currentStep]
   const isGoalStep = currentStep === 1
   const isAccessibilityStep = currentStep === 2
-  const isBrowserSetupStep = currentStep === 3
+  const isScreenRecordingStep = currentStep === 3
   const isLastStep = currentStep === steps.length - 1
 
   return (
@@ -420,15 +404,33 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                       </Button>
                     </div>
                   )
-                ) : isBrowserSetupStep ? (
-                  !showBrowserConfirmation ? (
+                ) : isScreenRecordingStep ? (
+                  screenRecordingStatus === PermissionStatus.Granted ? (
                     <Button
-                      onClick={() => setShowBrowserConfirmation(true)}
+                      onClick={handleNext}
+                      disabled={isCompleting}
                       variant="default"
                       size="default"
                       className="min-w-[140px]"
                     >
-                      Enable
+                      Next
+                    </Button>
+                  ) : !hasRequestedScreenRecording ? (
+                    <Button
+                      onClick={handleRequestScreenRecordingPermission}
+                      disabled={isRequestingScreenRecording}
+                      variant="default"
+                      size="default"
+                      className="min-w-[140px]"
+                    >
+                      {isRequestingScreenRecording ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Requesting...
+                        </div>
+                      ) : (
+                        'Enable Permission'
+                      )}
                     </Button>
                   ) : (
                     <div className="flex gap-3">
@@ -436,17 +438,20 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                         onClick={handleNext}
                         variant="default"
                         size="default"
-                        className="min-w-[120px]"
+                        className="min-w-[140px]"
                       >
-                        Yes, I have enabled it
+                        I&apos;ve Already Enabled This
                       </Button>
                       <Button
-                        onClick={() => setShowBrowserConfirmation(false)}
+                        onClick={() => {
+                          setHasRequestedScreenRecording(false)
+                          setScreenRecordingStatus(null)
+                        }}
                         variant="outline"
                         size="default"
                         className="min-w-[120px]"
                       >
-                        No, go back
+                        Try Again
                       </Button>
                     </div>
                   )

@@ -26,7 +26,9 @@ export interface ActiveWindowDetails {
   title?: string | null;
   url?: string | null;
   content?: string | null;
-  timestamp: number;
+  contentSource?: 'ocr' | 'accessibility' | null;
+  timestamp?: number;
+  localScreenshotPath?: string | null;
   screenshotS3Url?: string | null;
   durationMs?: number;
 }
