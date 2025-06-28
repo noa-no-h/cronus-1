@@ -2,7 +2,7 @@ import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import icon from './../assets/icon.png'
-import GoalInputForm from './GoalInputForm'
+import GoalInputForm from './Settings/GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
@@ -189,24 +189,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               </p>
             </div>
           )}
-        </div>
-      ) : (
-        <div className="text-left space-y-6">
-          <div className="flex justify-start mb-4">
-            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
-              <CheckCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold">Confirm Browser Setup</h3>
-          <p className="text-lg text-muted-foreground max-w-md leading-relaxed">
-            Have you enabled JavaScript from Apple Events in your{' '}
-            {isUsingSafari ? 'Safari' : 'Chrome'} browser?
-          </p>
-          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
-            <p className="text-sm text-muted-foreground">
-              This step is optional but recommended for the best tracking experience.
-            </p>
-          </div>
         </div>
       )
     },

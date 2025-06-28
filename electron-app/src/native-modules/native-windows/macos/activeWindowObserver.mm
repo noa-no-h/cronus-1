@@ -246,93 +246,58 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (NSDictionary*)getActiveWindow {
-    @try {
-        CFArrayRef windowListRef = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
-        if (!windowListRef) {
-            MyLog(@"❌ Failed to get window list from CGWindowListCopyWindowInfo");
+    NSArray *windows = (__bridge NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements, kCGNullWindowID);
+    NSDictionary *frontmostWindow = nil;
+
+    for (NSDictionary *window in windows) {
+        NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
+        if ([windowLayer intValue] == 0) { 
+            // Add a check to ignore tiling manager windows
+            NSString *windowOwnerName = [window objectForKey:(id)kCGWindowOwnerName];
+            NSString *windowTitle = [window objectForKey:(id)kCGWindowName];
+            if ([windowOwnerName isEqualToString:@"WindowManager"] && [windowTitle isEqualToString:@"Tiling Handle Window"]) {
+                MyLog(@"[Filter] Ignoring tiling manager helper window.");
+                continue; // This is the helper window, skip it and check the next one.
+            }
+
+            frontmostWindow = window;
+            break;
+        }
+    }
+
+    if (frontmostWindow) {
+        NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
+        NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
+        NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
+        CGWindowID windowId = [windowNumber unsignedIntValue];
+
+        // filter out specific apps 
+        if (shouldExcludeApp(windowOwnerName, windowTitle)) {
             return nil;
         }
         
-        NSArray *windows = (__bridge_transfer NSArray *)windowListRef;
-        if (!windows || windows.count == 0) {
-            MyLog(@"❌ Empty or invalid window list");
-            return nil;
-        }
+        NSString *iconPath = getAppIconPath(windowOwnerName);
         
-        NSDictionary *frontmostWindow = nil;
+        // Create base window info
+        NSMutableDictionary *windowInfo = [@{
+            @"id": windowNumber,
+            @"ownerName": windowOwnerName ? windowOwnerName : @"Unknown",
+            @"title": windowTitle ? windowTitle : @"",
+            @"type": @"window",
+            @"icon": iconPath ? iconPath : @"",
+            @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+        } mutableCopy];
 
-        for (NSDictionary *window in windows) {
-            if (!window || ![window isKindOfClass:[NSDictionary class]]) {
-                MyLog(@"⚠️  Skipping invalid window object");
-                continue;
-            }
-            
-            NSNumber *windowLayer = [window objectForKey:(id)kCGWindowLayer];
-            if (windowLayer && [windowLayer intValue] == 0) { 
-                // Add a check to ignore tiling manager windows
-                NSString *windowOwnerName = [window objectForKey:(id)kCGWindowOwnerName];
-                NSString *windowTitle = [window objectForKey:(id)kCGWindowName];
-                
-                // Validate owner name
-                if (!windowOwnerName || ![windowOwnerName isKindOfClass:[NSString class]]) {
-                    MyLog(@"⚠️  Skipping window with invalid owner name");
-                    continue;
-                }
-                
-                if ([windowOwnerName isEqualToString:@"WindowManager"] && [windowTitle isEqualToString:@"Tiling Handle Window"]) {
-                    MyLog(@"[Filter] Ignoring tiling manager helper window.");
-                    continue; // This is the helper window, skip it and check the next one.
-                }
-
-                frontmostWindow = window;
-                break;
+        // If we don't have a window title, try to get it using our title extractor
+        if (!windowTitle || windowTitle.length == 0) {
+            NSString *extractedTitle = [TitleExtractor extractWindowTitleForApp:windowOwnerName];
+            if (extractedTitle && extractedTitle.length > 0) {
+                windowInfo[@"title"] = extractedTitle;
+                MyLog(@"   ✅ Title extracted successfully: '%@'", extractedTitle);
+            } else {
+                MyLog(@"   ⚠️  Could not extract title for app: %@", windowOwnerName);
             }
         }
-
-        if (frontmostWindow) {
-            NSNumber *windowNumber = [frontmostWindow objectForKey:(id)kCGWindowNumber];
-            NSString *windowOwnerName = [frontmostWindow objectForKey:(id)kCGWindowOwnerName];
-            NSString *windowTitle = [frontmostWindow objectForKey:(id)kCGWindowName];
-            
-            // Validate required properties
-            if (!windowOwnerName || ![windowOwnerName isKindOfClass:[NSString class]]) {
-                MyLog(@"⚠️  Frontmost window has invalid owner name");
-                return nil;
-            }
-            
-            CGWindowID windowId = windowNumber ? [windowNumber unsignedIntValue] : 0;
-
-            // filter out specific apps 
-            if (shouldExcludeApp(windowOwnerName, windowTitle)) {
-                return nil;
-            }
-            
-            NSString *iconPath = getAppIconPath(windowOwnerName);
-            
-            // Create base window info
-            NSMutableDictionary *windowInfo = [@{
-                @"id": windowNumber ? windowNumber : @0,
-                @"ownerName": windowOwnerName,
-                @"title": windowTitle && [windowTitle isKindOfClass:[NSString class]] ? windowTitle : @"",
-                @"type": @"window",
-                @"icon": iconPath ? iconPath : @"",
-                @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
-            } mutableCopy];
-
-            // If we don't have a window title, try to get it using our title extractor
-            if (!windowTitle || windowTitle.length == 0) {
-                @try {
-                    NSString *extractedTitle = [TitleExtractor extractWindowTitleForApp:windowOwnerName];
-                    if (extractedTitle && extractedTitle.length > 0) {
-                        windowInfo[@"title"] = extractedTitle;
-                        MyLog(@"   ✅ Title extracted successfully: '%@'", extractedTitle);
-                    } else {
-                        MyLog(@"   ⚠️  Could not extract title for app: %@", windowOwnerName);
-                    }
-                } @catch (NSException *exception) {
-                    MyLog(@"   ❌ Exception during title extraction for %@: %@", windowOwnerName, exception.reason);
-                }
-            }
 
         MyLog(@"🔍 ACTIVE WINDOW CHANGED:");
         MyLog(@"   Owner: %@", windowOwnerName);

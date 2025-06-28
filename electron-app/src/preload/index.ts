@@ -71,10 +71,8 @@ const api = {
     ipcRenderer.invoke('get-permissions-for-content-extraction'),
   requestPermission: (permissionType: PermissionType): Promise<void> =>
     ipcRenderer.invoke('request-permission', permissionType),
-  enablePermissionRequests: (): Promise<void> => ipcRenderer.invoke('enable-permission-requests'),
   forceEnablePermissionRequests: (): Promise<void> =>
     ipcRenderer.invoke('force-enable-permission-requests'),
-  startWindowTracking: (): Promise<void> => ipcRenderer.invoke('start-window-tracking'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),

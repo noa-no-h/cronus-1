@@ -71,9 +71,7 @@ declare global {
       getPermissionsForTitleExtraction: () => Promise<boolean>
       getPermissionsForContentExtraction: () => Promise<boolean>
       requestPermission: (permissionType: PermissionType) => Promise<void>
-      enablePermissionRequests: () => Promise<void>
       forceEnablePermissionRequests: () => Promise<void>
-      startWindowTracking: () => Promise<void>
       checkForUpdates: () => Promise<void>
       downloadUpdate: () => Promise<void>
       installUpdate: () => Promise<void>

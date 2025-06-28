@@ -19,8 +19,8 @@ export enum PermissionStatus {
 interface Addon {
   startActiveWindowObserver: (callback: (jsonString: string) => void) => void
   stopActiveWindowObserver: () => void
-  setPermissionDialogsEnabled: (shouldRequest: boolean) => void
-  getPermissionDialogsEnabled: () => boolean
+  setShouldRequestPermissions: (shouldRequest: boolean) => void
+  getShouldRequestPermissions: () => boolean
   getPermissionStatus: (permissionType: number) => number
   hasPermissionsForTitleExtraction: () => boolean
   hasPermissionsForContentExtraction: () => boolean
@@ -79,20 +79,18 @@ class NativeWindows {
   }
 
   /**
-   * Controls whether explicit permission dialogs should be shown to users
-   * Call this with true after onboarding is complete to enable permission requests
-   * This does NOT prevent automatic system dialogs when APIs are first used
+   * Controls whether permission dialogs should be shown to users
+   * Call this with true after onboarding is complete
    */
-  public setPermissionDialogsEnabled(enabled: boolean): void {
-    addon.setPermissionDialogsEnabled(enabled)
+  public setShouldRequestPermissions(shouldRequest: boolean): void {
+    addon.setShouldRequestPermissions(shouldRequest)
   }
 
   /**
-   * Returns whether explicit permission requests are currently enabled
-   * This does NOT indicate whether automatic system dialogs are prevented
+   * Returns whether permission requests are currently enabled
    */
-  public getPermissionDialogsEnabled(): boolean {
-    return addon.getPermissionDialogsEnabled()
+  public getShouldRequestPermissions(): boolean {
+    return addon.getShouldRequestPermissions()
   }
 
   /**

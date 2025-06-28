@@ -1,10 +1,7 @@
 import { is, optimizer } from '@electron-toolkit/utils'
-import * as Sentry from '@sentry/electron/main'
-import dotenv from 'dotenv'
 import { app, BrowserWindow, session } from 'electron'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { nativeWindows } from '../native-modules/native-windows'
-import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
 import { registerIpcHandlers } from './ipc'
 import { initializeLoggers } from './logging'
 import {
@@ -14,20 +11,16 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
+import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
+import dotenv from 'dotenv'
 
-// Explicitly load .env files to ensure production run-time app uses the correct .env file
-// NODE_ENV set in build isn't present in the run-time app
-dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
+dotenv.config({ path: is.dev ? '.env' : '.env.production' })
 
-// Initialize Sentry
-if (!is.dev) {
-  Sentry.init({
-    dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
-  })
-}
+// for testing
+// console.log('GH_TOKEN in main process:', process.env.GH_TOKEN)
 
-let mainWindow: BrowserWindow | null = null
-let floatingWindow: BrowserWindow | null = null
+let mainWindow: BrowserWindow | null
+let floatingWindow: BrowserWindow | null
 
 function App() {
   async function initializeApp() {
@@ -74,19 +67,12 @@ function App() {
     registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow)
     registerAutoUpdaterHandlers()
 
-    // Don't start observing active window changes immediately
-    // This will be started after onboarding is complete via IPC call
-    // Store the callback for later use
-    const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
+    // Start observing active window changes
+    nativeWindows.startActiveWindowObserver((windowInfo: ActiveWindowDetails | null) => {
       if (windowInfo && mainWindow) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }
-    }
-
-    // Make the callback available to IPC handlers
-    ;(global as any).startActiveWindowObserver = () => {
-      nativeWindows.startActiveWindowObserver(windowChangeCallback)
-    }
+    })
 
     // Handle app activation (e.g., clicking the dock icon on macOS)
     app.on('activate', () => {
