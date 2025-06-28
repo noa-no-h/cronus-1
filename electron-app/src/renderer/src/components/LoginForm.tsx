@@ -100,7 +100,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         <button
           onClick={() => googleLogin()}
           disabled={!googleClientId}
-          className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-foreground bg-white hover:bg-gray-50 disabled:opacity-50"
+          className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-black bg-white hover:bg-gray-50 disabled:opacity-50"
         >
           <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
           Sign in with Google
@@ -112,7 +112,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       <button
         onClick={handleProdLoginClick}
         disabled={!googleClientId || !clientUrl}
-        className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md bg-white hover:bg-gray-50 disabled:opacity-50"
+        className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-black bg-white hover:bg-gray-50 disabled:opacity-50"
       >
         <img src={GoogleLogo} alt="Google Logo" className="w-4 h-4" />
         Sign in with Google
@@ -134,7 +134,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
             Welcome to {APP_NAME} {isDev ? '(Dev Mode)' : ''}
           </h1>
           <p className="text-sm text-muted-foreground mb-6">{APP_USP}</p>
-          <p className="text-sm mb-6">Sign in with your Google account</p>
+          <p className="text-sm mb-6 text-muted-foreground">Sign in with your Google account</p>
         </div>
         <div className="flex justify-center">{renderLoginButton()}</div>
       </div>
