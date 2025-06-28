@@ -73,7 +73,7 @@ export const MoveActivityButton = ({
       }}
     >
       <TooltipProvider>
-        <Tooltip delayDuration={100}>
+        <Tooltip delayDuration={250}>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
@@ -102,7 +102,10 @@ export const MoveActivityButton = ({
             }}
             disabled={isMovingActivity}
           >
-            {targetCat.name}
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: targetCat.color }} />
+              {targetCat.name}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
