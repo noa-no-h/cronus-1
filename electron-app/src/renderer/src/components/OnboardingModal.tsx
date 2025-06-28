@@ -1,9 +1,7 @@
 import { CheckCircle, Chrome, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import chromeAppleEventsScreenshot from './../assets/chrome-apple-events-screenshot.png'
 import icon from './../assets/icon.png'
-import safariEnableJsScreenshot from './../assets/safari-enable-js.png'
 import GoalInputForm from './GoalInputForm'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
@@ -21,7 +19,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
-  const [isUsingSafari, setIsUsingSafari] = useState(false)
   const { token } = useAuth()
 
   // Check permission status when on accessibility step
