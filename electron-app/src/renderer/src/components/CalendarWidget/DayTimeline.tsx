@@ -10,11 +10,9 @@ import {
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
 import { CreateEntryModal } from './CreateEntryModal'
-import { CurrentTimeIndicator } from './CurrentTimeIndicator'
-import { SelectionBox } from './SelectionBox'
-import { TimelineHour } from './TimelineHour'
-import TimelineSegmentContent from './TimelineSegmentContent'
-import { TimelineSegmentTooltip } from './TimelineSegmentTooltip'
+import { EventSegments } from './EventSegments'
+import { TimelineGrid } from './TimelineGrid'
+import { TimelineOverlays } from './TimelineOverlays'
 
 export type { TimeBlock }
 
@@ -63,11 +61,13 @@ const DayTimeline = ({
     entry: DaySegment | null
     startY: number | null
     initialTop: number | null
+    hasMoved: boolean
   }>({
     isMoving: false,
     entry: null,
     startY: null,
-    initialTop: null
+    initialTop: null,
+    hasMoved: false
   })
 
   const [previewState, setPreviewState] = useState<{
@@ -146,7 +146,8 @@ const DayTimeline = ({
       isMoving: true,
       entry,
       startY: e.clientY,
-      initialTop: entry.top
+      initialTop: entry.top,
+      hasMoved: false
     })
   }
 
@@ -193,17 +194,24 @@ const DayTimeline = ({
       const { entry, startY, initialTop } = movingState
       const deltaY = e.clientY - startY
 
-      const minutesPerPixel = (24 * 60) / timelineHeight
-      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
-      const pixelsPerMinute = timelineHeight / (24 * 60)
-      const snappedDeltaY = deltaMinutes * pixelsPerMinute
-      const newTop = initialTop + snappedDeltaY
+      // Check for movement threshold to differentiate click from drag
+      if (!movingState.hasMoved && Math.abs(deltaY) > 5) {
+        setMovingState((s) => ({ ...s, hasMoved: true }))
+      }
 
-      setPreviewState({
-        top: newTop,
-        height: entry.height,
-        backgroundColor: segmentBackgroundColor(entry)
-      })
+      if (movingState.hasMoved) {
+        const minutesPerPixel = (24 * 60) / timelineHeight
+        const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+        const pixelsPerMinute = timelineHeight / (24 * 60)
+        const snappedDeltaY = deltaMinutes * pixelsPerMinute
+        const newTop = initialTop + snappedDeltaY
+
+        setPreviewState({
+          top: newTop,
+          height: entry.height,
+          backgroundColor: segmentBackgroundColor(entry)
+        })
+      }
     } else {
       handleMouseMove(e)
     }
@@ -276,25 +284,28 @@ const DayTimeline = ({
         })
       }
     } else if (movingState.isMoving && movingState.entry && movingState.startY) {
-      const { entry, startY } = movingState
-      actionTaken = true
+      // Only complete the move if the mouse has actually dragged
+      if (movingState.hasMoved) {
+        const { entry, startY } = movingState
+        actionTaken = true
 
-      const deltaY = e.clientY - startY
-      const minutesPerPixel = (24 * 60) / timelineHeight
-      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+        const deltaY = e.clientY - startY
+        const minutesPerPixel = (24 * 60) / timelineHeight
+        const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
 
-      const newStartTime = new Date(entry.startTime)
-      newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
+        const newStartTime = new Date(entry.startTime)
+        newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
 
-      const durationMs = new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime()
+        const durationMs = new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime()
 
-      if (entry._id && token) {
-        updateManualEntry.mutate({
-          token,
-          id: entry._id,
-          startTime: newStartTime.getTime(),
-          durationMs
-        })
+        if (entry._id && token) {
+          updateManualEntry.mutate({
+            token,
+            id: entry._id,
+            startTime: newStartTime.getTime(),
+            durationMs
+          })
+        }
       }
     }
 
@@ -304,7 +315,13 @@ const DayTimeline = ({
 
     // Reset state regardless of what happened
     setResizingState({ isResizing: false, entry: null, direction: null, startY: null })
-    setMovingState({ isMoving: false, entry: null, startY: null, initialTop: null })
+    setMovingState({
+      isMoving: false,
+      entry: null,
+      startY: null,
+      initialTop: null,
+      hasMoved: false
+    })
     setPreviewState(null)
     handleMouseUp(e)
   }
@@ -320,8 +337,17 @@ const DayTimeline = ({
     return { hours }
   }
 
+  const handleSegmentClick = (segment: DaySegment) => {
+    if (justModifiedRef.current) {
+      justModifiedRef.current = false
+      return
+    }
+    if (segment.type === 'manual') {
+      handleSelectManualEntry(segment)
+    }
+  }
+
   const { hours: currentHour } = getCurrentTimePosition()
-  const showCurrentTime = isToday
   const segmentBackgroundColor = (segment: DaySegment) =>
     segment.categoryColor
       ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
@@ -338,129 +364,35 @@ const DayTimeline = ({
         className="relative"
         style={{ height: timelineHeight }}
       >
-        {/* Background Grid */}
-        {Array.from({ length: 24 }).map((_, hour) => (
-          <TimelineHour
-            key={hour}
-            hour={hour}
-            isCurrentHour={hour === currentHour}
-            isSelectedHour={selectedHour === hour}
-            currentHourRef={hour === currentHour ? currentHourRef : null}
-            isLastHour={hour === 23}
-            hourHeight={hourHeight}
-          />
-        ))}
-
-        {/* Event Segments */}
-        <div className="absolute inset-0">
-          {daySegments.map((segment) => {
-            const isManual = segment.type === 'manual'
-            const canInteract = isManual || (selectedHour === null && !isManual)
-            const segmentCursor = isManual ? 'pointer' : 'default'
-            const isCalendarEvent = segment.name === 'Google Calendar'
-
-            const positionClasses = isCalendarEvent
-              ? 'absolute left-1/2 right-1 rounded-md' // Calendar events: right half only
-              : `absolute left-[67px] right-1 rounded-md` // Regular activities: full width
-
-            // calendar events appear in front of regular events so they're not hidden
-            const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
-
-            return (
-              <TimelineSegmentTooltip
-                key={segment._id || `${segment.name}-${segment.startTime}`}
-                segment={segment}
-              >
-                <div
-                  data-is-segment="true"
-                  className={`group ${positionClasses} ${zIndexClass}
-                          ${canInteract ? 'hover:brightness-75' : ''} transition-all
-                          overflow-hidden`}
-                  style={{
-                    cursor: segmentCursor,
-                    backgroundColor: segmentBackgroundColor(segment),
-                    top: `${segment.top + SEGMENT_TOP_OFFSET_PX}px`,
-                    height: `max(1px, ${segment.height - totalSegmentVerticalSpacing}px)`,
-                    opacity:
-                      selectedHour !== null && Math.floor(segment.startMinute / 60) !== selectedHour
-                        ? 0.5
-                        : 1
-                  }}
-                  onMouseDown={(e) => {
-                    if (isManual) {
-                      handleMoveStart(segment, e)
-                    }
-                  }}
-                  onClick={() => {
-                    // If a resize or move just happened, prevent the modal from opening
-                    // and reset the ref for the next click.
-                    if (justModifiedRef.current) {
-                      justModifiedRef.current = false
-                      return
-                    }
-                    if (isManual) {
-                      handleSelectManualEntry(segment)
-                    }
-                  }}
-                >
-                  {isManual && (
-                    <>
-                      <div
-                        className="absolute top-0 left-0 right-0 h-4 -translate-y-1/2 cursor-row-resize z-30 group"
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                          handleResizeStart(segment, 'top', e)
-                        }}
-                      >
-                        <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <div className="w-3 h-1.5 flex flex-col justify-between">
-                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
-                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        className="absolute bottom-0 left-0 right-0 h-4 translate-y-1/2 cursor-row-resize z-30 group"
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                          handleResizeStart(segment, 'bottom', e)
-                        }}
-                      >
-                        <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <div className="w-3 h-1.5 flex flex-col justify-between">
-                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
-                            <div className="w-full h-[1px] bg-gray-400 dark:bg-gray-500 rounded-full" />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
-                </div>
-              </TimelineSegmentTooltip>
-            )
-          })}
-        </div>
-
-        {previewState && (
-          <div
-            className={`absolute left-[67px] right-1 rounded-md z-20 pointer-events-none`}
-            style={{
-              top: `${previewState.top}px`,
-              height: `${previewState.height}px`,
-              backgroundColor: previewState.backgroundColor
-            }}
-          />
-        )}
-        <SelectionBox
-          isVisible={dragState.isDragging || modalState.isOpen}
-          dragState={dragState}
-          yToTime={yToTime}
+        <TimelineGrid
+          currentHour={currentHour}
+          selectedHour={selectedHour}
+          currentHourRef={currentHourRef}
+          hourHeight={hourHeight}
         />
 
-        {showCurrentTime && (
-          <CurrentTimeIndicator currentTime={currentTime} timelineHeight={timelineHeight} />
-        )}
+        <EventSegments
+          daySegments={daySegments}
+          selectedHour={selectedHour}
+          isDarkMode={isDarkMode}
+          segmentBackgroundColor={segmentBackgroundColor}
+          onSegmentClick={handleSegmentClick}
+          onResizeStart={handleResizeStart}
+          onMoveStart={handleMoveStart}
+          SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
+          totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+        />
+
+        <TimelineOverlays
+          previewState={previewState}
+          dragState={dragState}
+          yToTime={yToTime}
+          isToday={isToday}
+          currentTime={currentTime}
+          timelineHeight={timelineHeight}
+          isDragging={dragState.isDragging}
+          isModalOpen={modalState.isOpen}
+        />
       </div>
       {modalState.isOpen && (
         <CreateEntryModal
