@@ -1,5 +1,6 @@
 #import "permissionManager.h"
 #import <ApplicationServices/ApplicationServices.h>
+#import <UserNotifications/UserNotifications.h>
 
 // Logging macro
 #define MyLog(format, ...) NSLog(@"[PermissionManager] " format, ##__VA_ARGS__)
@@ -93,6 +94,32 @@ static NSMutableArray *_pendingRequests = nil;
                 // On older macOS versions, screen recording doesn't require explicit permission
                 return PermissionStatusGranted;
             }
+        }
+        case PermissionTypeNotifications: {
+            __block PermissionStatus status = PermissionStatusDenied; // Default to denied
+            dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+
+            if (@available(macOS 10.14, *)) {
+                [[UNUserNotificationCenter currentNotificationCenter] getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+                    switch (settings.authorizationStatus) {
+                        case UNAuthorizationStatusAuthorized:
+                        case UNAuthorizationStatusProvisional:
+                            status = PermissionStatusGranted;
+                            break;
+                        case UNAuthorizationStatusDenied:
+                            status = PermissionStatusDenied;
+                            break;
+                        case UNAuthorizationStatusNotDetermined:
+                            status = PermissionStatusPending;
+                            break;
+                    }
+                    dispatch_semaphore_signal(sema);
+                }];
+                dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+            } else {
+                status = PermissionStatusGranted;
+            }
+            return status;
         }
     }
     return PermissionStatusDenied;
@@ -210,6 +237,40 @@ static NSMutableArray *_pendingRequests = nil;
                 if (completion) completion(PermissionStatusGranted);
                 
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    [self processPendingRequests];
+                });
+            }
+            break;
+        }
+        case PermissionTypeNotifications: {
+            MyLog(@"🔔 Requesting Notifications permissions...");
+            if (@available(macOS 10.14, *)) {
+                UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+                [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge)
+                                      completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                    PermissionStatus status;
+                    if (error) {
+                        MyLog(@"🚨 Error requesting notification permission: %@", error.localizedDescription);
+                        status = PermissionStatusDenied;
+                    } else {
+                        status = granted ? PermissionStatusGranted : PermissionStatusDenied;
+                        MyLog(@"📋 Notification permission result: %@", granted ? @"✅ Granted" : @"❌ Denied");
+                    }
+
+                    // Must be on main thread to update UI / call completion
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                         _isRequestingPermission = NO;
+                         if (completion) completion(status);
+                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                            [self processPendingRequests];
+                        });
+                    });
+                }];
+            } else {
+                MyLog(@"📋 Notification permission: ✅ Not required on this macOS version");
+                 _isRequestingPermission = NO;
+                 if (completion) completion(PermissionStatusGranted);
+                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
                     [self processPendingRequests];
                 });
             }

@@ -9,7 +9,8 @@ type BaseElectronAPI = ElectronAPI
 export enum PermissionType {
   Accessibility = 0,
   AppleEvents = 1,
-  ScreenRecording = 2
+  ScreenRecording = 2,
+  Notifications = 3
 }
 
 export enum PermissionStatus {

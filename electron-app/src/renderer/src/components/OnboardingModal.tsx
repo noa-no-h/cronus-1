@@ -1,4 +1,4 @@
-import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
+import { CheckCircle, Loader2, MessageSquareWarning, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
@@ -20,6 +20,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
+  const [isRequestingNotifications, setIsRequestingNotifications] = useState(false)
+  const [hasRequestedNotifications, setHasRequestedNotifications] = useState(false)
+  const [notificationStatus, setNotificationStatus] = useState<number | null>(null)
   const { token } = useAuth()
 
   useEffect(() => {
@@ -62,6 +65,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
         console.log('🛑 Stopped polling for Screen Recording.')
         clearInterval(interval)
       }
+    } else if (activeStepDefinition.id === 'notifications') {
+      console.log('👀 Polling for Notification permission status.')
+      checkNotificationStatus()
+      const interval = setInterval(checkNotificationStatus, 2000)
+      return () => {
+        console.log('🛑 Stopped polling for Notifications.')
+        clearInterval(interval)
+      }
     }
     return () => {} // Return empty cleanup function when not on permission steps
   }, [currentStep])
@@ -88,6 +99,17 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }
 
+  const checkNotificationStatus = async () => {
+    try {
+      const status = await window.api.getPermissionStatus(PermissionType.Notifications)
+      console.log('📦 Raw notification status from main:', status)
+      console.log(`🔔 Notification permission is: ${PermissionStatus[status]}`)
+      setNotificationStatus(status)
+    } catch (error) {
+      console.error('Failed to check notification status:', error)
+    }
+  }
+
   const baseSteps = [
     {
       id: 'welcome',
@@ -95,7 +117,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       content: (
         <div className="text-center space-y-6">
           <img src={icon} alt="Cronus" className="w-24 h-24 mx-auto" />
-          <div className="text-7xl mb-6">Cronus</div>
+          <div className="text-3xl font-semibold mb-6">Cronus</div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.
           </p>
@@ -245,6 +267,53 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       )
     },
     {
+      id: 'notifications',
+      title: 'Enable Notifications',
+      content: (
+        <div className="text-center space-y-4 flex flex-col items-center">
+          <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+            <MessageSquareWarning className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+          </div>
+
+          <div className="bg-muted/30 rounded-lg p-4 border border-border/50 max-w-md w-full">
+            <h3 className="font-semibold mb-4 text-left text-lg">Why We Need This Permission</h3>
+            <ul className="space-y-4 text-left text-muted-foreground">
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>
+                  To send you alerts when you&apos;ve been on a distracting site for too long.
+                </span>
+              </li>
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>This helps you stay on track with your goals and maintain focus.</span>
+              </li>
+            </ul>
+          </div>
+
+          {hasRequestedNotifications && notificationStatus !== 1 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-left text-blue-800 dark:text-blue-200">
+                <div className="font-semibold pb-1">Next steps:</div>
+                <br />
+                1. A system dialog should appear.
+                <br />
+                2. Click &quot;Allow&quot; to grant permission for notifications.
+              </p>
+            </div>
+          )}
+          {hasRequestedNotifications && notificationStatus === 1 && (
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
+              <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 mr-2" />
+                <strong>Permission granted! You can now continue.</strong>
+              </p>
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       id: 'complete',
       title: "You're All Set!",
       content: (
@@ -299,6 +368,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
         setHasRequestedScreenRecording(false)
         setScreenRecordingStatus(null)
         setIsRequestingScreenRecording(false)
+      } else if (currentStepId === 'notifications') {
+        setHasRequestedNotifications(false)
+        setNotificationStatus(null)
+        setIsRequestingNotifications(false)
       }
       setCurrentStep(currentStep - 1)
     }
@@ -346,6 +419,25 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }
 
+  const handleRequestNotificationPermission = async () => {
+    setIsRequestingNotifications(true)
+    console.log('👉 Requesting Notification permission from user...')
+    try {
+      await window.api.requestPermission(PermissionType.Notifications)
+      setHasRequestedNotifications(true)
+      console.log('✅ OS dialog for Notification permission should be visible.')
+
+      setTimeout(() => {
+        checkNotificationStatus()
+        setIsRequestingNotifications(false)
+      }, 1000)
+    } catch (error) {
+      console.error('Failed to request notification permission:', error)
+      setIsRequestingNotifications(false)
+      setHasRequestedNotifications(true) // Still mark as requested even if error
+    }
+  }
+
   const handleSkip = () => {
     handleComplete()
   }
@@ -379,6 +471,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const isGoalStep = currentStepData?.id === 'goals'
   const isAccessibilityStep = currentStepData?.id === 'accessibility'
   const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
+  const isNotificationStep = currentStepData?.id === 'notifications'
   const isLastStep = currentStep === steps.length - 1
 
   return (
@@ -451,6 +544,23 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                     className="min-w-[140px]"
                   >
                     {isRequestingScreenRecording ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Requesting...
+                      </div>
+                    ) : (
+                      'Grant Permission'
+                    )}
+                  </Button>
+                ) : isNotificationStep && !hasRequestedNotifications ? (
+                  <Button
+                    onClick={handleRequestNotificationPermission}
+                    disabled={isRequestingNotifications}
+                    variant="default"
+                    size="default"
+                    className="min-w-[140px]"
+                  >
+                    {isRequestingNotifications ? (
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Requesting...

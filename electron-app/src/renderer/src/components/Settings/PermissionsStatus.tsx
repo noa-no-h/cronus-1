@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 export enum PermissionType {
   Accessibility = 0,
   AppleEvents = 1,
-  ScreenRecording = 2
+  ScreenRecording = 2,
+  Notifications = 3
 }
 
 export enum PermissionStatus {
@@ -54,6 +55,12 @@ export function PermissionsStatus() {
       name: 'Screen Recording',
       description:
         'Allows capturing screenshots to help categorize your activity. Enhances productivity insights.',
+      required: false
+    },
+    {
+      type: PermissionType.Notifications,
+      name: 'Notifications',
+      description: 'Sends alerts when you are on a distracting site to help you stay focused.',
       required: false
     }
   ]
