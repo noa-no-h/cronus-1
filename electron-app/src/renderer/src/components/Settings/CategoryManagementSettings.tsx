@@ -232,13 +232,13 @@ export function CategoryManagementSettings(): JSX.Element {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={handleAddNew}>
-                  <PlusCircle size={18} className="mr-2" />
-                  New Category
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleOpenTemplateView}>
                   <Rows size={18} className="mr-2" />
                   From Templates
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleAddNew}>
+                  <PlusCircle size={18} className="mr-2" />
+                  New Category
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
