@@ -134,6 +134,7 @@ const DistractionSoundSettings = () => {
               <SelectValue placeholder="Select interval" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="5">Every 5 seconds</SelectItem>
               <SelectItem value="30">Every 30 seconds</SelectItem>
               <SelectItem value="60">Every 1 minute</SelectItem>
               <SelectItem value="120">Every 2 minutes</SelectItem>

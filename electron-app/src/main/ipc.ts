@@ -113,11 +113,24 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
 
   ipcMain.handle('get-audio-data-url', async () => {
     try {
-      const audioFilePath = join(app.getAppPath(), 'public', 'sounds', 'distraction.mp3')
+      let audioFilePath: string
+      if (is.dev) {
+        // In development, the 'public' directory is at the root of the electron-app workspace
+        audioFilePath = join(__dirname, '..', '..', 'public', 'sounds', 'distraction.mp3')
+      } else {
+        // In production, files in 'public' are copied to the resources directory's root
+        audioFilePath = join(process.resourcesPath, 'sounds', 'distraction.mp3')
+      }
+
+      console.log(`[get-audio-data-url] Attempting to read audio file from: ${audioFilePath}`)
       const buffer = await fs.readFile(audioFilePath)
       const base64 = buffer.toString('base64')
       return `data:audio/mp3;base64,${base64}`
     } catch (error) {
+      console.error('[get-audio-data-url] Error reading audio file', {
+        error: String(error),
+        stack: (error as Error).stack
+      })
       console.error('Error reading audio file for data URL:', error)
       return null
     }
@@ -192,7 +205,7 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
   })
 
   ipcMain.on('open-main-app-window', () => {
-    if (windows.mainWindow) {
+    if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.show()
       windows.mainWindow.focus()
     }
@@ -210,7 +223,7 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
 
       notification.on('click', () => {
         logMainToFile('Notification clicked. Focusing main window.')
-        if (windows.mainWindow) {
+        if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
           if (windows.mainWindow.isMinimized()) windows.mainWindow.restore()
           windows.mainWindow.focus()
         }
@@ -220,7 +233,7 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
         logMainToFile(`Notification action clicked, index: ${index}`)
         if (index === 0) {
           // Corresponds to the 'Edit' button
-          if (windows.mainWindow) {
+          if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
             if (windows.mainWindow.isMinimized()) windows.mainWindow.restore()
             windows.mainWindow.focus()
           }

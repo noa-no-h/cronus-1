@@ -29,10 +29,12 @@ export function useDistractionSound(categoryDetails: Category | null | undefined
   useEffect(() => {
     if (!distractionAudio || !electronSettings) return
 
+    console.log('[useDistractionSound] Settings updated:', electronSettings)
     const { playDistractionSound, distractionSoundInterval } = electronSettings
     const DISTRACTION_SOUND_INTERVAL_MS = distractionSoundInterval * 1000
 
     if (!playDistractionSound) {
+      console.log('[useDistractionSound] Sound is disabled. Stopping playback.')
       distractionAudio.pause()
       distractionAudio.currentTime = 0
       lastPlayedRef.current = null
@@ -40,14 +42,18 @@ export function useDistractionSound(categoryDetails: Category | null | undefined
     }
 
     let isDistracting = false
+    console.log('[useDistractionSound] categoryDetails:', categoryDetails)
+
     if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
       const fullCategoryDetails = categoryDetails as Category
       if (fullCategoryDetails.isProductive === false) {
         isDistracting = true
       }
     }
+    console.log(`[useDistractionSound] isDistracting: ${isDistracting}`)
 
     if (!isDistracting) {
+      console.log('[useDistractionSound] No longer distracting. Stopping sound.')
       distractionAudio.pause()
       distractionAudio.currentTime = 0 // Reset audio to the beginning for the next play
       // Reset last played time when no longer distracting
@@ -59,7 +65,7 @@ export function useDistractionSound(categoryDetails: Category | null | undefined
       const now = Date.now()
       // If sound has never been played, or if it has been longer than the interval, play it.
       if (!lastPlayedRef.current || now - lastPlayedRef.current > DISTRACTION_SOUND_INTERVAL_MS) {
-        console.log('Playing distraction sound')
+        console.log('[useDistractionSound] Playing distraction sound')
         distractionAudio.play().catch((e) => console.error('Error playing distraction sound:', e))
         lastPlayedRef.current = now
       }
