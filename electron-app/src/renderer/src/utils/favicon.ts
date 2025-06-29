@@ -1,7 +1,13 @@
+import renderFavicon from '../assets/render-inverted.png'
+
 const specialFavicons: Record<string, string | { light: string; dark: string }> = {
   'github.com': {
     light: 'https://github.githubassets.com/favicons/favicon.svg',
     dark: 'https://github.githubassets.com/favicons/favicon-dark.svg'
+  },
+  'render.com': {
+    dark: renderFavicon,
+    light: 'https://www.google.com/s2/favicons?domain=render.com&sz=64'
   },
   'docs.google.com': 'https://i.imgur.com/AMyUwdr.png',
   'sheets.google.com':

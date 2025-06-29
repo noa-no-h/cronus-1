@@ -133,12 +133,10 @@ const CalendarWidget = ({
   }
 
   const handleZoomIn = () => {
-    console.log('handleZoomIn: ', hourHeight)
     setHourHeight((prev) => Math.min(prev * 1.2, 32)) // max h-128
   }
 
   const handleZoomOut = () => {
-    console.log('handleZoomOut: ', hourHeight)
     setHourHeight((prev) => Math.max(prev / 1.2, 2)) // min h-8
   }
 
