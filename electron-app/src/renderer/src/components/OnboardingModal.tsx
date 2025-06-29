@@ -148,16 +148,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           )}
           {hasRequestedPermission && permissionStatus !== 1 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Next steps:</strong>
+              <p className="text-sm text-left text-blue-800 dark:text-blue-200">
+                <div className="font-semibold pb-1">Next steps:</div>
                 <br />
                 1. Go to System Preferences → Security & Privacy → Privacy
                 <br />
                 2. Click &quot;Accessibility&quot; on the left
                 <br />
                 3. Check the box next to &quot;Cronus&quot; to enable access
-                <br />
-                4. Come back here and click &quot;Next&quot; when done
               </p>
             </div>
           )}
@@ -186,11 +184,23 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <ul className="space-y-4 text-left text-muted-foreground">
               <li className="flex items-baseline">
                 <span className="text-blue-500 mr-3">&#x2022;</span>
-                <span>We do NOT record or take screenshots of your screen</span>
+                <span>
+                  To automatically categorize your activity, we periodically take a screenshot of
+                  your active window.
+                </span>
               </li>
               <li className="flex items-baseline">
                 <span className="text-blue-500 mr-3">&#x2022;</span>
-                <span>Track application usage based on window titles</span>
+                <span>
+                  We then use Optical Character Recognition (OCR) to understand what you are working
+                  on.
+                </span>
+              </li>
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>
+                  All screenshots are deleted from your device immediately after being processed.
+                </span>
               </li>
             </ul>
           </div>
@@ -212,16 +222,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
           {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Next steps:</strong>
+              <p className="text-sm text-left text-blue-800 dark:text-blue-200">
+                <div className="font-semibold pb-1">Next steps:</div>
                 <br />
                 1. Go to System Preferences → Security & Privacy → Privacy
                 <br />
                 2. Click &quot;Screen & System Audio Recording&quot; on the left
                 <br />
                 3. Check the box next to &quot;Cronus&quot; to enable access
-                <br />
-                4. Come back here and click &quot;Next&quot; when done
               </p>
             </div>
           )}
