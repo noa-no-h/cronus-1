@@ -44,9 +44,10 @@ export function MainAppContent() {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
     if (isAuthenticated && hasCompletedOnboarding) {
       console.log(
-        'App is loaded, user is authenticated and has completed onboarding. Enabling permission requests.'
+        'App is loaded, user is authenticated and has completed onboarding. Enabling permission requests and starting window tracking.'
       )
-      window.electron.ipcRenderer.invoke('enable-permission-requests')
+      window.api.enablePermissionRequests()
+      window.api.startWindowTracking()
     }
   }, [isAuthenticated])
 
