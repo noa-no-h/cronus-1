@@ -1,4 +1,4 @@
-import { CheckCircle, Loader2, Shield } from 'lucide-react'
+import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
@@ -6,7 +6,6 @@ import icon from './../assets/icon.png'
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -112,32 +111,43 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'accessibility',
       title: 'Enable Accessibility Permission',
       content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
-            <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
-              <Shield className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-            </div>
+        <div className="text-center space-y-4 flex flex-col items-center">
+          <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+            <Shield className="w-12 h-12 text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            To track your productivity accurately, we need permission to read window titles and
-            content from other applications.
-          </p>
-          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
-            <p className="text-sm text-muted-foreground">
-              <strong>What this enables:</strong>
-              <br />• Automatic app and website tracking
-              <br />• Smart categorization of your activities
-              <br />• Detailed productivity insights
+          <div className="bg-muted/30 rounded-lg p-4 border border-border/50 max-w-md w-full">
+            <h3 className="font-semibold mb-4 text-left text-lg">Why We Need This Permission</h3>
+            <ul className="space-y-4 text-left text-muted-foreground">
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>
+                  Automatically track application and website usage to categorize your activities.
+                </span>
+              </li>
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>Provide detailed insights into your productivity.</span>
+              </li>
+            </ul>
+          </div>
+          {permissionStatus !== 1 && (
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              All data is processed locally on your device. For more information, please refer to
+              our{' '}
+              <a
+                // TODO: add privacy policy link
+                href="https://cronushq.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Privacy Policy
+              </a>
+              .
             </p>
-          </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mt-4 border border-yellow-200 dark:border-yellow-800">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>Privacy:</strong> All data stays on your device and is only sent to our
-              servers with your explicit consent for analysis.
-            </p>
-          </div>
+          )}
           {hasRequestedPermission && permissionStatus !== 1 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mt-4 border border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Next steps:</strong>
                 <br />
@@ -166,32 +176,42 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'screen-recording',
       title: 'Enable Screen Recording Permission',
       content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
-            <div className="bg-purple-100 dark:bg-purple-900 p-4 rounded-full">
-              <Shield className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-            </div>
+        <div className="text-center space-y-4 flex flex-col items-center">
+          <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
+            <ShieldCheck className="w-12 h-12 text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            We need screen recording access to understand what you&apos;re doing to help categorize
-            your activity and provide better insights.
-          </p>
-          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
-            <p className="text-sm text-muted-foreground">
-              <strong>What this enables:</strong>
-              <br />• Visual context for better activity categorization
-              <br />• Enhanced productivity insights
-              <br />• Smarter automatic categorization
+
+          <div className="bg-muted/30 rounded-lg p-4 border border-border/50 max-w-md w-full">
+            <h3 className="font-semibold mb-4 text-left text-lg">Why We Need This Permission</h3>
+            <ul className="space-y-4 text-left text-muted-foreground">
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>We do NOT record or take screenshots of your screen</span>
+              </li>
+              <li className="flex items-baseline">
+                <span className="text-blue-500 mr-3">&#x2022;</span>
+                <span>Track application usage based on window titles</span>
+              </li>
+            </ul>
+          </div>
+
+          {screenRecordingStatus !== 1 && (
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              For more information on how we handle your data, please refer to our{' '}
+              <a
+                href="https://getcronus.app/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Privacy Policy
+              </a>
+              .
             </p>
-          </div>
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mt-4 border border-yellow-200 dark:border-yellow-800">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              <strong>Privacy:</strong> Screenshots are processed locally and only sent to our
-              servers with your explicit consent for analysis.
-            </p>
-          </div>
+          )}
+
           {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mt-4 border border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Next steps:</strong>
                 <br />
@@ -220,17 +240,16 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'complete',
       title: "You're All Set!",
       content: (
-        <div className="text-center space-y-6">
-          <div className="flex justify-center mb-4">
+        <div className="text-center space-y-4 flex flex-col items-center">
+          <div className="flex justify-center">
             <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Your productivity tracking is now configured. We&apos;ll start monitoring your activity
-            and help you stay focused on your goals.
+            You&apos;re all set up. Cronus will now track your activity to help you stay focused.
           </p>
-          <div className="bg-muted/30 rounded-lg p-4 mt-8 border border-border/50">
+          <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
             <p className="text-sm text-muted-foreground">
               💡 <strong>Tip:</strong> You can always update your goals and permissions in Settings.
             </p>
@@ -359,19 +378,17 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       <div className="fixed inset-0 bg-background z-50" onClick={handleSkip} />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-auto bg-card/95 shadow-2xl border-border/50">
-          <CardHeader className="text-center pb-4">
+        <div className="w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col p-6">
+          <div className="text-center pb-4">
             <div className="flex items-center justify-center mb-4">
               <div className="text-sm text-muted-foreground font-medium">
                 Step {currentStep + 1} of {steps.length}
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-card-foreground">
-              {currentStepData?.title}
-            </CardTitle>
-          </CardHeader>
+            <h2 className="text-2xl font-bold text-card-foreground">{currentStepData?.title}</h2>
+          </div>
 
-          <CardContent className="space-y-6">
+          <div className="space-y-6">
             <div className="w-full bg-muted/60 rounded-full h-2 ">
               <div
                 className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
@@ -383,7 +400,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
 
             {!isGoalStep && (
-              <div className="flex justify-between items-center pt-6 border-t border-border/50">
+              <div className="flex justify-center gap-4 items-center">
                 {/* Back button - only show if not on first slide */}
                 {currentStep > 0 ? (
                   <Button
@@ -414,7 +431,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                         Requesting...
                       </div>
                     ) : (
-                      'Enable Permission'
+                      'Grant Permission'
                     )}
                   </Button>
                 ) : isScreenRecordingStep && !hasRequestedScreenRecording ? (
@@ -431,7 +448,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                         Requesting...
                       </div>
                     ) : (
-                      'Enable Permission'
+                      'Grant Permission'
                     )}
                   </Button>
                 ) : (
@@ -456,8 +473,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </>
   )
