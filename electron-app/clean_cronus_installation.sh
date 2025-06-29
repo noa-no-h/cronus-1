@@ -20,6 +20,7 @@ rm -rf "$HOME/Applications/Cronus.app" || true
 rm -rf "./dist/mac-arm64/Cronus.app" || true
 rm -rf "./dist/mac/Cronus.app" || true
 rm -rf "./dist/Cronus.app" || true
+rm -rf "./dist" || true
 echo "✅ Cronus.app removed."
 
 
@@ -37,6 +38,7 @@ echo "✅ Cached data cleared."
 echo "🔐 Resetting AppleEvents and Accessibility permissions for com.cronus.app..."
 tccutil reset AppleEvents com.cronus.app || true
 tccutil reset Accessibility com.cronus.app || true
+tccutil reset ScreenCapture com.cronus.app || true
 echo "✅ Permissions reset."
 
 echo "✨ Cleanup complete!" 

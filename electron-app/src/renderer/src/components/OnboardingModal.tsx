@@ -1,9 +1,10 @@
 import { CheckCircle, Loader2, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { trpc } from '../utils/trpc'
 import icon from './../assets/icon.png'
 import GoalInputForm from './Settings/GoalInputForm'
-import { PermissionType } from './Settings/PermissionsStatus'
+import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
@@ -22,20 +23,46 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
   const { token } = useAuth()
 
+  useEffect(() => {
+    console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
+    if (window.electron?.ipcRenderer) {
+      window.electron.ipcRenderer.invoke('enable-permission-requests')
+    }
+  }, [])
+
+  const { data: userGoals, isLoading: isLoadingGoals } = trpc.user.getUserGoals.useQuery(
+    { token: token || '' },
+    { enabled: !!token }
+  )
+
+  const hasExistingGoals =
+    userGoals && (userGoals.dailyGoal || userGoals.weeklyGoal || userGoals.lifeGoal)
+
   // Check permission status when on accessibility step
   useEffect(() => {
-    if (currentStep === 2) {
+    const activeStepDefinition = steps[currentStep]
+    if (!activeStepDefinition) return
+
+    if (activeStepDefinition.id === 'accessibility') {
+      console.log('👀 Polling for Accessibility permission status.')
       // Accessibility step
       checkPermissionStatus()
       // Poll permission status every 2 seconds
       const interval = setInterval(checkPermissionStatus, 2000)
-      return () => clearInterval(interval)
-    } else if (currentStep === 3) {
+      return () => {
+        console.log('🛑 Stopped polling for Accessibility.')
+        clearInterval(interval)
+      }
+    } else if (activeStepDefinition.id === 'screen-recording') {
+      console.log('👀 Polling for Screen Recording permission status.')
       // Screen recording step
       checkScreenRecordingStatus()
       // Poll screen recording status every 2 seconds
       const interval = setInterval(checkScreenRecordingStatus, 2000)
-      return () => clearInterval(interval)
+      return () => {
+        console.log('🛑 Stopped polling for Screen Recording.')
+        clearInterval(interval)
+      }
     }
     return () => {} // Return empty cleanup function when not on permission steps
   }, [currentStep])
@@ -43,6 +70,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const checkPermissionStatus = async () => {
     try {
       const status = await window.api.getPermissionStatus(PermissionType.Accessibility) // 0 = PermissionType.Accessibility
+      console.log('📦 Raw accessibility status from main:', status)
+      console.log(`♿️ Accessibility permission is: ${PermissionStatus[status]}`)
       setPermissionStatus(status)
     } catch (error) {
       console.error('Failed to check permission status:', error)
@@ -52,14 +81,17 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const checkScreenRecordingStatus = async () => {
     try {
       const status = await window.api.getPermissionStatus(PermissionType.ScreenRecording) // 2 = PermissionType.ScreenRecording
+      console.log('📦 Raw screen recording status from main:', status)
+      console.log(`🖥️ Screen Recording permission is: ${PermissionStatus[status]}`)
       setScreenRecordingStatus(status)
     } catch (error) {
       console.error('Failed to check screen recording status:', error)
     }
   }
 
-  const steps = [
+  const baseSteps = [
     {
+      id: 'welcome',
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
@@ -72,10 +104,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       )
     },
     {
+      id: 'goals',
       title: '',
       content: <GoalInputForm onboardingMode={true} onComplete={handleGoalsComplete} />
     },
     {
+      id: 'accessibility',
       title: 'Enable Accessibility Permission',
       content: (
         <div className="text-center space-y-6">
@@ -129,6 +163,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       )
     },
     {
+      id: 'screen-recording',
       title: 'Enable Screen Recording Permission',
       content: (
         <div className="text-center space-y-6">
@@ -182,6 +217,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       )
     },
     {
+      id: 'complete',
       title: "You're All Set!",
       content: (
         <div className="text-center space-y-6">
@@ -204,11 +240,19 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   ]
 
+  const steps = baseSteps.filter((step) => {
+    if (step.id === 'goals' && hasExistingGoals) {
+      return false
+    }
+    return true
+  })
+
   function handleGoalsComplete() {
-    setCurrentStep(2) // Move to accessibility permission step
+    setCurrentStep((prev) => prev + 1) // Move to the next step
   }
 
   const handleNext = () => {
+    console.log('🚀 User clicked Next. Proceeding to next step, currentStep:', currentStep)
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     } else {
@@ -218,12 +262,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleBack = () => {
     if (currentStep > 0) {
+      const currentStepId = steps[currentStep]?.id
       // Reset permission-related states when going back from permission steps
-      if (currentStep === 2) {
+      if (currentStepId === 'accessibility') {
         setHasRequestedPermission(false)
         setPermissionStatus(null)
         setIsRequestingPermission(false)
-      } else if (currentStep === 3) {
+      } else if (currentStepId === 'screen-recording') {
         setHasRequestedScreenRecording(false)
         setScreenRecordingStatus(null)
         setIsRequestingScreenRecording(false)
@@ -234,10 +279,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleRequestAccessibilityPermission = async () => {
     setIsRequestingPermission(true)
+    console.log('👉 Requesting Accessibility permission from user...')
     try {
       // Request accessibility permission
       await window.api.requestPermission(PermissionType.Accessibility) // 0 = PermissionType.Accessibility
       setHasRequestedPermission(true)
+      console.log('✅ OS dialog for Accessibility permission should be visible.')
 
       // Check permission status after a short delay
       setTimeout(() => {
@@ -253,10 +300,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleRequestScreenRecordingPermission = async () => {
     setIsRequestingScreenRecording(true)
+    console.log('👉 Requesting Screen Recording permission from user...')
     try {
       // Request screen recording permission
       await window.api.requestPermission(PermissionType.ScreenRecording) // 2 = PermissionType.ScreenRecording
       setHasRequestedScreenRecording(true)
+      console.log('✅ OS dialog for Screen Recording permission should be visible.')
 
       // Check permission status after a short delay
       setTimeout(() => {
@@ -291,10 +340,18 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }, 500)
   }
 
+  if (isLoadingGoals) {
+    return (
+      <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  }
+
   const currentStepData = steps[currentStep]
-  const isGoalStep = currentStep === 1
-  const isAccessibilityStep = currentStep === 2
-  const isScreenRecordingStep = currentStep === 3
+  const isGoalStep = currentStepData?.id === 'goals'
+  const isAccessibilityStep = currentStepData?.id === 'accessibility'
+  const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
   const isLastStep = currentStep === steps.length - 1
 
   return (
@@ -309,22 +366,20 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 Step {currentStep + 1} of {steps.length}
               </div>
             </div>
+            <CardTitle className="text-2xl font-bold text-card-foreground">
+              {currentStepData?.title}
+            </CardTitle>
+          </CardHeader>
 
+          <CardContent className="space-y-6">
             <div className="w-full bg-muted/60 rounded-full h-2 ">
               <div
                 className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               />
             </div>
-
-            <CardTitle className="text-2xl mt-8 font-bold text-card-foreground">
-              {currentStepData.title}
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
             <div className="min-h-[320px] flex items-center justify-center py-4">
-              {currentStepData.content}
+              {currentStepData?.content}
             </div>
 
             {!isGoalStep && (
