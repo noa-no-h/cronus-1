@@ -4,6 +4,7 @@ import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Textarea } from '../ui/textarea'
+import { toast } from '../../hooks/use-toast'
 
 interface GoalInputFormProps {
   onboardingMode?: boolean
@@ -31,6 +32,13 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
     onSuccess: (data) => {
       setGoals(data.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' })
       setIsEditing(false)
+
+      if (!onboardingMode) {
+        toast({
+          title: 'Goals Updated!',
+          description: 'Your goals have been successfully updated.'
+        })
+      }
 
       // Call onComplete if in onboarding mode
       if (onboardingMode && onComplete) {
