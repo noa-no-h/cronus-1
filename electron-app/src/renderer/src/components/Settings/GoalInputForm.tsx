@@ -35,7 +35,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
 
       if (!onboardingMode) {
         toast({
-          title: '✅ Goals Updated!',
+          title: 'Goals Updated!',
           description: 'Your goals have been successfully updated.'
         })
       }
