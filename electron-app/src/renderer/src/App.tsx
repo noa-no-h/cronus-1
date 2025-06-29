@@ -40,6 +40,16 @@ export function MainAppContent() {
 
   const trpcUtils = trpc.useContext()
 
+  useEffect(() => {
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+    if (isAuthenticated && hasCompletedOnboarding) {
+      console.log(
+        'App is loaded, user is authenticated and has completed onboarding. Enabling permission requests.'
+      )
+      window.electron.ipcRenderer.invoke('enable-permission-requests')
+    }
+  }, [isAuthenticated])
+
   const [isRecategorizeDialogOpen, setIsRecategorizeDialogOpen] = useState(false)
   const [recategorizeTarget, setRecategorizeTarget] = useState<ActivityToRecategorize | null>(null)
 
