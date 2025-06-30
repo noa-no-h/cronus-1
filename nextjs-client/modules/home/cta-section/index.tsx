@@ -21,9 +21,11 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <CircleSvg className="absolute w-[1440px] pointer-events-none" />
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
-          <TextLogo className="w-[150px]" />
+          <TextLogo className="w-[150px] text-black" />
         </div>
-        <p className="text-xl tracking-[-3%] mt-[15px]">The smartest way to stay focused.</p>
+        <p className="text-xl tracking-[-3%] mt-[15px] text-black">
+          The smartest way to stay focused.
+        </p>
         <button className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white mt-[30px]">
           <Link href="/">Try cronus Beta</Link>
         </button>
