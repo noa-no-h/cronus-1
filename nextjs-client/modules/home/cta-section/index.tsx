@@ -31,7 +31,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         )}
         {...props}
       >
-        <CircleSvg className="absolute inset-0 w-full top-[-48px] h-[540px]" />
+        <CircleSvg className="absolute w-full max-w-[1440px]" />
         <Image src={hourglass} width={232} alt="cronus" />
         <TextLogo className="w-[150px] mx-auto mt-[-136px]" />
         <p className="text-xl tracking-[-3%] mt-[15px]">The smartest way to stay focused.</p>
