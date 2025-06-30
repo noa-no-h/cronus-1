@@ -8,12 +8,19 @@ import smartNudgesPng from './smart-nudges.png';
 
 export function FeaturesSection({ className, ...props }: ComponentProps<'section'>) {
   return (
-    <section className={cn('bg-white text-[#242437] py-[160px]', className)} {...props}>
+    <section
+      className={cn('bg-white text-[#242437] py-[160px]', 'flex flex-col items-center', className)}
+      {...props}
+    >
       <h3 className="font-semibold text-[32px] tracking-[-3%] text-center">Other features</h3>
 
       <ul className="grid grid-cols-[repeat(2,528px)] gap-6 mt-20">
         <li
-          className={cn('pt-[54px]', 'bg-[#FAFAFA] rounded-2xl', 'border-[0.5px] border-[#dfdfdf]')}
+          className={cn(
+            'pt-[54px]',
+            'bg-[#FAFAFA] rounded-2xl overflow-hidden',
+            'border-[0.5px] border-[#dfdfdf]'
+          )}
         >
           <div className="mx-8">
             <h4 className="tracking-[-3%] font-semibold text-2xl">
@@ -29,7 +36,11 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         </li>
 
         <li
-          className={cn('pt-[54px]', 'bg-[#FAFAFA] rounded-2xl', 'border-[0.5px] border-[#dfdfdf]')}
+          className={cn(
+            'pt-[54px]',
+            'bg-[#FAFAFA] rounded-2xl overflow-hidden',
+            'border-[0.5px] border-[#dfdfdf]'
+          )}
         >
           <div className="mx-8">
             <h4 className="tracking-[-3%] font-semibold text-2xl">Smart nudges</h4>
@@ -42,7 +53,11 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         </li>
 
         <li
-          className={cn('pt-[54px]', 'bg-[#FAFAFA] rounded-2xl', 'border-[0.5px] border-[#dfdfdf]')}
+          className={cn(
+            'pt-[54px]',
+            'bg-[#FAFAFA] rounded-2xl overflow-hidden',
+            'border-[0.5px] border-[#dfdfdf]'
+          )}
         >
           <div className="mx-8">
             <h4 className="tracking-[-3%] font-semibold text-2xl">Mobile tracking</h4>
@@ -55,7 +70,11 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         </li>
 
         <li
-          className={cn('pt-[54px]', 'bg-[#FAFAFA] rounded-2xl', 'border-[0.5px] border-[#dfdfdf]')}
+          className={cn(
+            'pt-[54px]',
+            'bg-[#FAFAFA] rounded-2xl overflow-hidden',
+            'border-[0.5px] border-[#dfdfdf]'
+          )}
         >
           <div className="mx-8">
             <h4 className="tracking-[-3%] font-semibold text-2xl">Doom scroll prevention</h4>
