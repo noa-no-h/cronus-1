@@ -255,20 +255,9 @@ export function getTimelineSegmentsForDay(
       // If the last segment from slots extends beyond the current time, truncate it.
       // This prevents the "current activity" block from showing as longer than it is.
       if (lastSegment.startMinute < currentMinutes && lastSegment.endMinute > currentMinutes) {
-        const originalHeight = lastSegment.height
-        const originalEndMinute = lastSegment.endMinute
-
         lastSegment.endMinute = currentMinutes
         const durationMinutes = lastSegment.endMinute - lastSegment.startMinute
         lastSegment.height = (durationMinutes / totalMinutesInDay) * timelineHeight
-
-        // console.log('ADJUSTED SEGMENT', {
-        //   name: lastSegment.name,
-        //   originalEndMinute,
-        //   newEndMinute: lastSegment.endMinute,
-        //   originalHeight,
-        //   newHeight: lastSegment.height
-        // })
       }
     }
   }
