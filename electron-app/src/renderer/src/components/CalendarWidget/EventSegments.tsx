@@ -1,5 +1,5 @@
 import React from 'react'
-import { type DaySegment, TimeBlock } from '../../lib/dayTimelineHelpers'
+import { type DaySegment } from '../../lib/dayTimelineHelpers'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
 import { TimelineSegmentTooltip } from './TimelineSegmentTooltip'
@@ -9,7 +9,7 @@ interface EventSegmentsProps {
   selectedHour: number | null
   isDarkMode: boolean
   segmentBackgroundColor: (segment: DaySegment) => string
-  onSegmentClick: (entry: TimeBlock) => void
+  onSegmentClick: (entry: DaySegment) => void
   onResizeStart: (entry: DaySegment, direction: 'top' | 'bottom', e: React.MouseEvent) => void
   onMoveStart: (entry: DaySegment, e: React.MouseEvent) => void
   SEGMENT_TOP_OFFSET_PX: number

@@ -114,8 +114,8 @@ const DayTimeline = ({
   }, [hourHeight])
 
   const trackedDaySegments = useMemo(
-    () => getTimelineSegmentsForDay(trackedTimeBlocks, timelineHeight),
-    [trackedTimeBlocks, timelineHeight]
+    () => getTimelineSegmentsForDay(trackedTimeBlocks, timelineHeight, isToday, currentTime),
+    [trackedTimeBlocks, timelineHeight, isToday, currentTime]
   )
 
   const googleCalendarDaySegments = useMemo(

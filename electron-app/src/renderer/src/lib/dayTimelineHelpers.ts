@@ -125,7 +125,9 @@ function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { duratio
 
 export function getTimelineSegmentsForDay(
   timeBlocks: TimeBlock[],
-  timelineHeight: number
+  timelineHeight: number,
+  isToday = false,
+  currentTime: Date | null = null
 ): DaySegment[] {
   if (timeBlocks.length === 0 || timelineHeight === 0) {
     return []
@@ -239,7 +241,39 @@ export function getTimelineSegmentsForDay(
       }
     })
 
-  return [...aggregatedSegments, ...manualEntries].sort((a, b) => a.top - b.top)
+  const finalSegments = [...aggregatedSegments, ...manualEntries].sort((a, b) => a.top - b.top)
+
+  if (isToday && currentTime && finalSegments.length > 0) {
+    const lastSegment = finalSegments[finalSegments.length - 1]
+
+    // Only adjust non-manual entries, as they are not slotted and should have correct end times.
+    if (lastSegment.type !== 'manual') {
+      const totalMinutesInDay = 24 * 60
+      const currentMinutes =
+        currentTime.getHours() * 60 + currentTime.getMinutes() + currentTime.getSeconds() / 60
+
+      // If the last segment from slots extends beyond the current time, truncate it.
+      // This prevents the "current activity" block from showing as longer than it is.
+      if (lastSegment.startMinute < currentMinutes && lastSegment.endMinute > currentMinutes) {
+        const originalHeight = lastSegment.height
+        const originalEndMinute = lastSegment.endMinute
+
+        lastSegment.endMinute = currentMinutes
+        const durationMinutes = lastSegment.endMinute - lastSegment.startMinute
+        lastSegment.height = (durationMinutes / totalMinutesInDay) * timelineHeight
+
+        // console.log('ADJUSTED SEGMENT', {
+        //   name: lastSegment.name,
+        //   originalEndMinute,
+        //   newEndMinute: lastSegment.endMinute,
+        //   originalHeight,
+        //   newHeight: lastSegment.height
+        // })
+      }
+    }
+  }
+
+  return finalSegments
 }
 
 function convertSlotsToSegments(
