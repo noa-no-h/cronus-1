@@ -67,7 +67,7 @@ export const userRouter = router({
       }
 
       const defaultSettings = {
-        calendarZoomLevel: 60,
+        calendarZoomLevel: 64,
         theme: 'system',
         playDistractionSound: true,
         distractionSoundInterval: 30,
