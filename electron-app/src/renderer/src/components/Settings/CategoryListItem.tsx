@@ -2,11 +2,9 @@ import {
   Archive,
   ArchiveRestore,
   Edit3,
-  Loader2,
   MoreHorizontal,
   ToggleLeft,
-  ToggleRight,
-  Trash2
+  ToggleRight
 } from 'lucide-react'
 import { JSX } from 'react'
 import { Category } from 'shared/types'
@@ -15,7 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
 
@@ -104,7 +101,7 @@ export function CategoryListItem({
                 )}
                 <span>{category.isArchived ? 'Unarchive' : 'Archive'}</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   alert(
@@ -120,7 +117,7 @@ export function CategoryListItem({
                   <Trash2 size={18} className="mr-2" />
                 )}
                 <span>Delete</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
