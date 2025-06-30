@@ -1,4 +1,8 @@
 import type { ComponentProps } from 'react';
+import { Device } from '~/components/icons/device';
+import { Goal } from '~/components/icons/goal';
+import { List } from '~/components/icons/list';
+import { Pencil } from '~/components/icons/pencil';
 import { Logo, TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
 
@@ -41,10 +45,22 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               '[&>li:last-child]:pb-0'
             )}
           >
-            <li>Goal-aware distraction nudging</li>
-            <li>Passive + contextual</li>
-            <li>Cross-device analysis</li>
-            <li>Clean, proactive design</li>
+            <li className="flex items-center gap-6">
+              <Goal className="size-6" />
+              Goal-aware distraction nudging
+            </li>
+            <li className="flex items-center gap-6">
+              <List className="size-6" />
+              Passive + contextual
+            </li>
+            <li className="flex items-center gap-6">
+              <Device className="size-6" />
+              Cross-device analysis
+            </li>
+            <li className="flex items-center gap-6">
+              <Pencil className="size-6" />
+              Clean, proactive design
+            </li>
           </ul>
         </div>
         <div className="w-[464px] py-9 px-[56px]">

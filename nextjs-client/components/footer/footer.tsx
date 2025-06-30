@@ -5,7 +5,7 @@ import { Discord } from '../icons/discord';
 import { GitHub } from '../icons/github';
 import { XformerlyTwitter } from '../icons/x';
 import { YouTube } from '../icons/youtube';
-import { TextLogo } from '../logo';
+import { Logo, TextLogo } from '../logo';
 
 export function Footer({ className, ...props }: ComponentProps<'footer'>) {
   return (
@@ -19,7 +19,8 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
       {...props}
     >
       <div className="w-120">
-        <div>
+        <div className="flex items-center gap-2">
+          <Logo className="w-[29px]" />
           <TextLogo className="w-[114px] text-[#36168D]" />
         </div>
         <p className="text-[#242437CC] text-sm mt-3">AI-Powered, Efficiency Revolution</p>
