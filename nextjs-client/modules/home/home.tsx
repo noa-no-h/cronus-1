@@ -13,8 +13,8 @@ export function Home() {
       <Header className="h-[90px] bg-[#ebebeb]" />
       <HeroSection className="pt-[90px]" />
       <MarqueeSection className="h-[140px]" />
-      <ShowcaseSection className="" />
-      <TestimonialsSection className="" />
+      <ShowcaseSection />
+      <TestimonialsSection />
       <FeaturesSection />
       <ComparisonSection />
       <CTASection />
