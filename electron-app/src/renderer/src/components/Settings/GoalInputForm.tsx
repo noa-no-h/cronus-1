@@ -21,6 +21,10 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
+  // at least one goal is set
+  const hasAtLeastOneGoal =
+    goals.dailyGoal.trim() || goals.weeklyGoal.trim() || goals.lifeGoal.trim()
+
   // Fetch user goals
   const { data: userGoals, isLoading } = trpc.user.getUserGoals.useQuery(
     { token: token || '' },
@@ -80,12 +84,9 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
 
   const handleCancel = () => {
     if (onboardingMode) {
-      // Skip goals in onboarding
-      if (onComplete) {
-        onComplete()
-      }
+      return
     } else {
-      // Reset to original values
+      // Reset to original values in settings mode
       if (userGoals) {
         setGoals(userGoals)
       }
@@ -214,10 +215,16 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
 
         {isEditing && (
           <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
-              {onboardingMode ? 'Skip for Now' : 'Cancel'}
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={isSaving}>
+            {!onboardingMode && (
+              <Button variant="outline" size="sm" onClick={handleCancel} disabled={isSaving}>
+                Cancel
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={isSaving || (onboardingMode && !hasAtLeastOneGoal)}
+            >
               {isSaving ? 'Saving...' : onboardingMode ? 'Save & Continue' : 'Save Goals'}
             </Button>
           </div>
