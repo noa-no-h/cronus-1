@@ -66,3 +66,5 @@ server/server.log
 build-assets/
 
 .next
+*.tsbuildinfo
+next-env.d.ts
