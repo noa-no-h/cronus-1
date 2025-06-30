@@ -9,19 +9,6 @@ import hourglass from './hourglass.png';
 export function CTASection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <>
-      <svg
-        width="100%"
-        height="24"
-        viewBox="0 0 1440 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M720 -6.29444e-05C338 -9.63399e-05 -2.09816e-06 24 -2.09816e-06 24L1440 24.0001C1440 24.0001 1102 -2.95489e-05 720 -6.29444e-05Z"
-          fill="#F4F4F4"
-        />
-      </svg>
-
       <section
         className={cn(
           'relative bg-[#f4f4f4]',
@@ -31,7 +18,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         )}
         {...props}
       >
-        <CircleSvg className="absolute w-full max-w-[1440px] pointer-events-none" />
+        <CircleSvg className="absolute w-[1440px] pointer-events-none" />
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
           <TextLogo className="w-[150px]" />
