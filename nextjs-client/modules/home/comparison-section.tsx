@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react';
-import { TextLogo } from '~/components/logo';
+import { Logo, TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
 
 export function ComparisonSection({ className, ...props }: ComponentProps<'section'>) {
@@ -29,7 +29,8 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             'border-r-[0.5px] border-[#DFDFDF]'
           )}
         >
-          <h5>
+          <h5 className="flex items-center gap-2">
+            <Logo className="w-[28px]" />
             <TextLogo className="w-[108px]" />
           </h5>
           <ul
