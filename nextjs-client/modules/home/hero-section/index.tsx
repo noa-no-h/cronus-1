@@ -15,8 +15,8 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
       </div>
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px]">
-        <TextLogo className="w-[200px]" />
-        <p className="font-medium text-2xl tracking-[-3%] text-center">
+        <TextLogo className="w-[200px] text-black" />
+        <p className="font-medium text-2xl tracking-[-3%] text-center text-black">
           Understand where your time went and <br /> reduce distractions.
         </p>
         <button className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white">
