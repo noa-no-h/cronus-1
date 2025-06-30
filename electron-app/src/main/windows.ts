@@ -45,10 +45,16 @@ export function createFloatingWindow(
   }
 
   floatingWindow.on('show', () => {
-    getMainWindow()?.webContents.send('floating-window-visibility-changed', true)
+    const main = getMainWindow()
+    if (main && !main.isDestroyed()) {
+      main.webContents.send('floating-window-visibility-changed', true)
+    }
   })
   floatingWindow.on('hide', () => {
-    getMainWindow()?.webContents.send('floating-window-visibility-changed', false)
+    const main = getMainWindow()
+    if (main && !main.isDestroyed()) {
+      main.webContents.send('floating-window-visibility-changed', false)
+    }
   })
 
   if (process.platform === 'darwin') {

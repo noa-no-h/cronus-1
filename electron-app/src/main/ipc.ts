@@ -12,7 +12,11 @@ interface Windows {
   floatingWindow: BrowserWindow | null
 }
 
-export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: () => void): void {
+export function registerIpcHandlers(
+  windows: Windows,
+  recreateFloatingWindow: () => void,
+  recreateMainWindow: () => BrowserWindow
+): void {
   ipcMain.on('move-floating-window', (_event, { deltaX, deltaY }) => {
     if (windows.floatingWindow) {
       const currentPosition = windows.floatingWindow.getPosition()
@@ -180,27 +184,35 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
         categoryDetails?: Category
       }
     ) => {
-      if (windows.floatingWindow) {
+      if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
         windows.floatingWindow.webContents.send('floating-window-status-updated', data)
       } else {
-        console.warn('Main process: Received status update, but floatingWindow is null.')
+        console.warn(
+          'Main process: Received status update, but floatingWindow is null or destroyed.'
+        )
       }
     }
   )
 
   ipcMain.on('request-recategorize-view', (_event, categoryDetails?: Category) => {
-    if (windows.mainWindow) {
+    if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.show()
       windows.mainWindow.focus()
-
       if (windows.mainWindow.isMinimized()) {
         windows.mainWindow.restore()
       }
       windows.mainWindow.webContents.send('display-recategorize-page', categoryDetails)
     } else {
-      console.error(
-        'Main Process: ERROR: mainWindow is not available when "request-recategorize-view" was received.'
-      )
+      // Main window is closed - recreate it
+      console.log('Main window closed, recreating for recategorization...')
+      windows.mainWindow = recreateMainWindow()
+
+      // Wait for window to load, then send recategorize request
+      windows.mainWindow.webContents.once('did-finish-load', () => {
+        if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
+          windows.mainWindow.webContents.send('display-recategorize-page', categoryDetails)
+        }
+      })
     }
   })
 
@@ -208,6 +220,10 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.show()
       windows.mainWindow.focus()
+    } else {
+      console.error(
+        'Main Process: ERROR: mainWindow is not available or destroyed when "open-main-app-window" was received.'
+      )
     }
   })
 
@@ -226,6 +242,8 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
         if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
           if (windows.mainWindow.isMinimized()) windows.mainWindow.restore()
           windows.mainWindow.focus()
+        } else {
+          console.warn('Main window not available when notification clicked')
         }
       })
 
@@ -236,6 +254,8 @@ export function registerIpcHandlers(windows: Windows, recreateFloatingWindow: ()
           if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
             if (windows.mainWindow.isMinimized()) windows.mainWindow.restore()
             windows.mainWindow.focus()
+          } else {
+            console.warn('Main window not available when notification action clicked')
           }
         }
       })

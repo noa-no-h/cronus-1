@@ -65,20 +65,27 @@ function App() {
       })
     }
 
+    const recreateMainWindow = (): BrowserWindow => {
+      mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
+        handleAppUrl(url, window)
+      )
+      return mainWindow
+    }
+
     const recreateFloatingWindow = (): void => {
       if (!floatingWindow) {
         floatingWindow = createFloatingWindow(() => mainWindow)
       }
     }
 
-    registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow)
+    registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow, recreateMainWindow)
     registerAutoUpdaterHandlers()
 
     // Don't start observing active window changes immediately
     // This will be started after onboarding is complete via IPC call
     // Store the callback for later use
     const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
-      if (windowInfo && mainWindow) {
+      if (windowInfo && mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }
     }
