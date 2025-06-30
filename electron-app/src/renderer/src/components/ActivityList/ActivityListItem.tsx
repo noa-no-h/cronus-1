@@ -52,13 +52,15 @@ export const ActivityListItem = ({
   startDateMs,
   endDateMs
 }: ActivityListItemProps) => {
-  const activityKey = `${activity.identifier}-${activity.name}`
+  const selectionKey = `${activity.identifier}-${activity.name}`
+  const uniqueKey = `${currentCategory.id}-${activity.identifier}-${activity.name}`
+
   const otherCategories =
     currentCategory.id === 'uncategorized'
       ? allUserCategories || []
       : allUserCategories?.filter((cat) => cat._id !== currentCategory.id) || []
   const showMoveUI =
-    (hoveredActivityKey === activityKey || openDropdownActivityKey === activityKey) &&
+    (hoveredActivityKey === uniqueKey || openDropdownActivityKey === uniqueKey) &&
     otherCategories.length > 0 &&
     !isSelected
 
@@ -75,16 +77,16 @@ export const ActivityListItem = ({
 
   return (
     <div
-      key={activityKey}
+      key={uniqueKey}
       className={`group flex w-full select-none items-center cursor-pointer justify-between px-1 py-0.5 ${borderRadiusClass} ${
         isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-muted'
       }`}
-      onMouseEnter={() => setHoveredActivityKey(activityKey)}
+      onMouseEnter={() => setHoveredActivityKey(uniqueKey)}
       onMouseLeave={() => setHoveredActivityKey(null)}
     >
       <div
         className="flex flex-1 items-center min-w-0"
-        onClick={(e) => onSelectActivity(activityKey, e)}
+        onClick={(e) => onSelectActivity(selectionKey, e)}
       >
         <ActivityIcon
           itemType={
@@ -156,7 +158,7 @@ export const ActivityListItem = ({
             endDateMs={endDateMs}
             openDropdownActivityKey={openDropdownActivityKey}
             setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-            activityKey={activityKey}
+            activityKey={uniqueKey}
             setHoveredActivityKey={setHoveredActivityKey}
           />
         ) : (

@@ -41,8 +41,8 @@ export const EventSegments = ({
           layout === 'full'
             ? `absolute left-[67px] right-1 rounded-md` // Full width
             : isCalendarEvent
-              ? 'absolute left-1/2 right-1 rounded-md' // Split, right half
-              : `absolute left-[67px] right-1/2 mr-1 rounded-md` // Split, left half
+              ? 'absolute left-2/3 right-1 rounded-md' // Split, right half
+              : `absolute left-[67px] right-1/3 mr-2 rounded-md` // Split, left half
 
         // If an hour is selected, only show segments that are part of that hour
         const segmentHeight = segment.height - totalSegmentVerticalSpacing
