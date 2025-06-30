@@ -24,14 +24,16 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         </button>
       </div>
 
-      <div className="mt-[80px] relative top-[32px] inline-flex justify-center items-start gap-2 ">
-        <Image className="w-[452px]" src={leftFrame} alt="cronus example" />
-        <Image className="w-[419px]" src={rightFrame} alt="cronus example" />
-        <Image
-          className="w-[520px] absolute top-[184px] right-[-90px]"
-          src={clockFrame}
-          alt="cronus example"
-        />
+      <div className="mt-[80px] flex justify-center">
+        <div className="relative top-[32px] inline-flex justify-center items-start gap-2 ">
+          <Image className="w-[452px]" src={leftFrame} alt="cronus example" />
+          <Image className="w-[419px]" src={rightFrame} alt="cronus example" />
+          <Image
+            className="w-[520px] absolute top-[184px] right-[-90px]"
+            src={clockFrame}
+            alt="cronus example"
+          />
+        </div>
       </div>
     </section>
   );
