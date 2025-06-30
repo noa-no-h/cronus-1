@@ -6,13 +6,14 @@ import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
+import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {
   startTime: Date
   endTime: Date
   durationMs: number
-  name: string // event.ownerName
-  title?: string // event.title
+  name: string
+  title?: string
   url?: string
   categoryId?: string | null
   categoryName?: string
@@ -69,6 +70,18 @@ export function DashboardView({ className }: { className?: string }) {
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  useEffect(() => {
+    // Check if user has seen the tutorial
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    // Show tutorial if they've completed onboarding but haven't seen tutorial
+    if (hasCompletedOnboarding && !hasSeenTutorial) {
+      setShowTutorial(true)
+    }
+  }, [])
 
   useEffect(() => {
     const calculateDateRange = () => {
@@ -209,6 +222,11 @@ export function DashboardView({ className }: { className?: string }) {
     setSelectedDay(null)
   }
 
+  const handleTutorialClose = () => {
+    localStorage.setItem('hasSeenTutorial', 'true')
+    setShowTutorial(false)
+  }
+
   const handleViewModeChange = (newMode: 'day' | 'week') => {
     setViewMode(newMode)
     setSelectedHour(null)
@@ -260,6 +278,7 @@ export function DashboardView({ className }: { className?: string }) {
           onDaySelect={handleDaySelect}
         />
       </div>
+      <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
     </div>
   )
 }
