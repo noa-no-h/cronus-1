@@ -5,7 +5,11 @@ import { cn } from '~/lib/cn';
 export function ComparisonSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
-      className={cn('bg-white text-[#242437] pt-40', 'flex flex-col items-center', className)}
+      className={cn(
+        'bg-white text-[#242437] pt-40 pb-[136px]',
+        'flex flex-col items-center',
+        className
+      )}
       {...props}
     >
       <h3 className="font-semibold text-[32px] tracking-[-3%] text-center">Cronus vs others</h3>
