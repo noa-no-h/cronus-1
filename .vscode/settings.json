@@ -10,8 +10,5 @@
     "nextjs-client/app/globals.css": "nextjs-client/**",
     "electron-app/tailwind.config.js": "electron-app/**",
     "client/tailwind.config.js": "client/**"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
