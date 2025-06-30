@@ -5,5 +5,10 @@
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.wordWrap": "on",
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "tailwindCSS.experimental.configFile": {
+    "nextjs-client/app/globals.css": "nextjs-client/**",
+    "electron-app/tailwind.config.js": "electron-app/**",
+    "client/tailwind.config.js": "client/**"
+  }
 }
