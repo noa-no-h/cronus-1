@@ -13,7 +13,7 @@ export const CurrentTimeIndicator = memo(
 
     return (
       <div
-        className="absolute left-[55px] w-full z-10 pointer-events-none"
+        className="absolute left-[55px] w-[calc(100%-55px)] z-10 pointer-events-none"
         style={{
           top: `${topPosition}px`
         }}
