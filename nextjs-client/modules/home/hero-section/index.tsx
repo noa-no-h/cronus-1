@@ -1,11 +1,15 @@
+import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
 import { Circle } from './circle';
+import clockFrame from './clock-frame.png';
+import leftFrame from './left-frame.png';
+import rightFrame from './right-frame.png';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
-    <section className={cn('bg-[#ebebeb] relative', className)} {...props}>
+    <section className={cn('bg-[#ebebeb] relative overflow-hidden', className)} {...props}>
       <div className=" absolute inset-x-0">
         <Circle className="w-full max-w-[1172px] mx-auto" />
       </div>
@@ -20,7 +24,15 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         </button>
       </div>
 
-      <div className="h-[410px] w-[880px] mx-auto bg-zinc-300 mt-[104px]"></div>
+      <div className="mt-[80px] relative top-[32px] flex justify-center items-start gap-2 ">
+        <Image className="w-[452px]" src={leftFrame} alt="cronus example" />
+        <Image className="w-[452px]" src={rightFrame} alt="cronus example" />
+        <Image
+          className="w-[460px] absolute top-[184px] right-[-8px]"
+          src={clockFrame}
+          alt="cronus example"
+        />
+      </div>
     </section>
   );
 }
