@@ -3,7 +3,7 @@ import { Header } from '~/components/header';
 import { ComparisonSection } from './comparison-section';
 import { CTASection } from './cta-section';
 import { FeaturesSection } from './features-section';
-import { HeroSection } from './hero-section';
+import { HeroSection } from './home-section';
 import { MarqueeSection } from './marquee-section';
 import { ShowcaseSection } from './showcase-section';
 import { TestimonialsSection } from './testimonials-section';

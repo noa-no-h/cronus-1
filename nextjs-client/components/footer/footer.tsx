@@ -32,7 +32,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
             <YouTube className="size-5" />
           </Link>
           <Link href={'#'}>
-            <XformerlyTwitter className="size-5" />
+            <XformerlyTwitter className="size-4" />
           </Link>
           <Link href={'#'}>
             <Discord className="size-5" />
