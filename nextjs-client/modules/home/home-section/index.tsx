@@ -6,8 +6,8 @@ import { Circle } from './circle';
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section className={cn('bg-[#ebebeb] relative', className)} {...props}>
-      <div className=" absolute inset-x-0 flex items-center">
-        <Circle className="w-full max-w-[1172px]" />
+      <div className=" absolute inset-x-0">
+        <Circle className="w-full max-w-[1172px] mx-auto" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px]">
