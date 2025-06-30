@@ -3,6 +3,7 @@ import {
   ArchiveRestore,
   Edit3,
   Loader2,
+  MoreHorizontal,
   ToggleLeft,
   ToggleRight,
   Trash2
@@ -10,7 +11,13 @@ import {
 import { JSX } from 'react'
 import { Category } from 'shared/types'
 import { Button } from '../ui/button'
-import { IsProductiveTooltip } from './IsProductiveTooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '../ui/dropdown-menu'
 
 interface CategoryListItemProps {
   category: Category
@@ -33,49 +40,20 @@ export function CategoryListItem({
 }: CategoryListItemProps): JSX.Element {
   return (
     <li className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between gap-x-4">
+        <div className="flex items-center flex-1 min-w-0">
           <span
             style={{ backgroundColor: category.color }}
             className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
           ></span>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-md font-medium text-foreground truncate">{category.name}</p>
             {category.description && (
-              <p className="text-sm text-muted-foreground truncate max-w-xs">
-                {category.description}
-              </p>
+              <p className="text-sm text-muted-foreground truncate">{category.description}</p>
             )}
           </div>
         </div>
-        <div className="ml-2 flex-shrink-0 flex items-center space-x-2 sm:space-x-3">
-          <IsProductiveTooltip>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onToggleProductive(category)}
-              className={`p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background ${
-                category.isProductive
-                  ? 'text-green-500 hover:bg-green-500/20 focus:ring-green-500'
-                  : 'text-red-500 hover:bg-red-500/20 focus:ring-red-500'
-              }`}
-              disabled={isUpdating}
-            >
-              {category.isProductive ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
-            </Button>
-          </IsProductiveTooltip>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onToggleArchive(category)}
-            title={category.isArchived ? 'Unarchive' : 'Archive'}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
-            disabled={isUpdating}
-          >
-            {category.isArchived ? <ArchiveRestore size={18} /> : <Archive size={18} />}
-          </Button>
-
+        <div className="flex-shrink-0 flex items-center space-x-1 sm:space-x-2">
           <Button
             variant="ghost"
             size="icon"
@@ -87,28 +65,64 @@ export function CategoryListItem({
             <Edit3 size={18} />
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              alert(
-                'Deleting categories is not implemented yet. We are planning to add this and a smart activity-recategorization feature next :)'
-              )
-
-              // if (window.confirm('Are you sure you want to delete this category?')) {
-              //   onDelete(category._id)
-              // }
-            }}
-            disabled={isDeleting}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-destructive disabled:opacity-50"
-            title="Delete category"
-          >
-            {isDeleting ? (
-              <Loader2 className="animate-spin h-4 w-4 text-muted-foreground" />
-            ) : (
-              <Trash2 size={18} />
-            )}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="p-1.5 rounded-full text-muted-foreground data-[state=open]:bg-primary/20 data-[state=open]:text-primary"
+                disabled={isUpdating || isDeleting}
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal size={18} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => onToggleProductive(category)}
+                disabled={isUpdating}
+                className="flex items-center cursor-pointer"
+              >
+                {category.isProductive ? (
+                  <ToggleRight size={18} className="mr-2 text-green-500" />
+                ) : (
+                  <ToggleLeft size={18} className="mr-2 text-red-500" />
+                )}
+                <span>
+                  {category.isProductive ? 'Mark as non-productive' : 'Mark as productive'}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onToggleArchive(category)}
+                disabled={isUpdating}
+                className="flex items-center cursor-pointer"
+              >
+                {category.isArchived ? (
+                  <ArchiveRestore size={18} className="mr-2" />
+                ) : (
+                  <Archive size={18} className="mr-2" />
+                )}
+                <span>{category.isArchived ? 'Unarchive' : 'Archive'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  alert(
+                    'Deleting categories is not implemented yet. We are planning to add this and a smart activity-recategorization feature next :)'
+                  )
+                }}
+                disabled={isDeleting}
+                className="flex items-center text-destructive focus:text-destructive cursor-pointer"
+              >
+                {isDeleting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 size={18} className="mr-2" />
+                )}
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </li>
