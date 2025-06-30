@@ -6,13 +6,15 @@ interface TimelineGridProps {
   selectedHour: number | null
   currentHourRef: React.RefObject<HTMLDivElement | null>
   hourHeight: number
+  onHourSelect: (hour: number | null) => void
 }
 
 export const TimelineGrid: React.FC<TimelineGridProps> = ({
   currentHour,
   selectedHour,
   currentHourRef,
-  hourHeight
+  hourHeight,
+  onHourSelect
 }) => {
   return (
     <>
@@ -26,6 +28,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           currentHourRef={hour === currentHour ? currentHourRef : null}
           isLastHour={hour === 23}
           hourHeight={hourHeight}
+          onHourSelect={onHourSelect}
         />
       ))}
     </>

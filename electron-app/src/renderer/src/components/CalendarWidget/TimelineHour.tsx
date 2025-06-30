@@ -1,5 +1,7 @@
 import clsx from 'clsx'
+import { Filter } from 'lucide-react'
 import { memo } from 'react'
+import { Button } from '../ui/button'
 
 interface TimelineHourProps {
   hour: number
@@ -8,6 +10,7 @@ interface TimelineHourProps {
   currentHourRef: React.RefObject<HTMLDivElement | null> | null
   isLastHour: boolean
   hourHeight: number
+  onHourSelect: (hour: number | null) => void
 }
 
 export const TimelineHour = memo(
@@ -17,8 +20,18 @@ export const TimelineHour = memo(
     isSelectedHour,
     currentHourRef,
     isLastHour,
-    hourHeight
+    hourHeight,
+    onHourSelect
   }: TimelineHourProps) => {
+    const handleFilterClick = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      if (isSelectedHour) {
+        onHourSelect(null) // Deselect if already selected
+      } else {
+        onHourSelect(hour)
+      }
+    }
+
     return (
       <div
         key={hour}
@@ -29,12 +42,23 @@ export const TimelineHour = memo(
         )}
         ref={isCurrentHour ? currentHourRef : null}
         style={{ height: `${hourHeight}rem` }}
+        onClick={() => (isSelectedHour ? onHourSelect(null) : onHourSelect(hour))}
       >
         <div className="w-14 py-2 text-xs text-muted-foreground font-medium flex-col sticky left-0 flex items-center justify-between pr-2 z-10">
           <span className={clsx(isSelectedHour && 'text-blue-500')}>
             {hour.toString().padStart(2, '0')}:00
           </span>
-          <div></div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={clsx(
+              'h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity',
+              isSelectedHour && 'opacity-100'
+            )}
+            onClick={handleFilterClick}
+          >
+            <Filter size={12} />
+          </Button>
         </div>
 
         <div className="flex-1 border-l relative">

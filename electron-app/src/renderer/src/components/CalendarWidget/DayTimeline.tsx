@@ -369,6 +369,7 @@ const DayTimeline = ({
           selectedHour={selectedHour}
           currentHourRef={currentHourRef}
           hourHeight={hourHeight}
+          onHourSelect={onHourSelect}
         />
 
         <EventSegments

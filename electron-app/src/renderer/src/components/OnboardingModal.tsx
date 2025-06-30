@@ -388,11 +388,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col p-6">
           <div className="text-center pb-4">
-            <div className="flex items-center justify-center mb-4">
-              <div className="text-sm text-muted-foreground font-medium">
-                Step {currentStep + 1} of {steps.length}
-              </div>
-            </div>
             <h2 className="text-2xl font-bold text-card-foreground">{currentStepData?.title}</h2>
           </div>
 
