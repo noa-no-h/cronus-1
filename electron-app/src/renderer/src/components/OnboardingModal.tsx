@@ -385,8 +385,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     <>
       <div className="fixed inset-0 bg-background z-50" onClick={handleSkip} />
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col">
           <div className="text-center pb-4">
             <h2 className="text-2xl font-bold text-card-foreground">{currentStepData?.title}</h2>
           </div>

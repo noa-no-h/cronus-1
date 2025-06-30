@@ -17,7 +17,8 @@ import { TimelineOverlays } from './TimelineOverlays'
 export type { TimeBlock }
 
 interface DayTimelineProps {
-  timeBlocks: TimeBlock[]
+  trackedTimeBlocks: TimeBlock[]
+  googleCalendarTimeBlocks: TimeBlock[]
   currentTime: Date
   dayForEntries: Date
   isToday: boolean
@@ -29,7 +30,8 @@ interface DayTimelineProps {
 }
 
 const DayTimeline = ({
-  timeBlocks,
+  trackedTimeBlocks,
+  googleCalendarTimeBlocks,
   currentTime,
   dayForEntries,
   isToday,
@@ -111,10 +113,17 @@ const DayTimeline = ({
     return 24 * hourHeight * rootFontSize
   }, [hourHeight])
 
-  const daySegments = useMemo(
-    () => getTimelineSegmentsForDay(timeBlocks, timelineHeight),
-    [timeBlocks, timelineHeight]
+  const trackedDaySegments = useMemo(
+    () => getTimelineSegmentsForDay(trackedTimeBlocks, timelineHeight),
+    [trackedTimeBlocks, timelineHeight]
   )
+
+  const googleCalendarDaySegments = useMemo(
+    () => getTimelineSegmentsForDay(googleCalendarTimeBlocks, timelineHeight),
+    [googleCalendarTimeBlocks, timelineHeight]
+  )
+
+  const hasGoogleCalendarEvents = googleCalendarDaySegments.length > 0
 
   const SEGMENT_TOP_OFFSET_PX = 1
   const SEGMENT_SPACING_PX = 1 // Gap between segments
@@ -373,7 +382,7 @@ const DayTimeline = ({
         />
 
         <EventSegments
-          daySegments={daySegments}
+          daySegments={trackedDaySegments}
           selectedHour={selectedHour}
           isDarkMode={isDarkMode}
           segmentBackgroundColor={segmentBackgroundColor}
@@ -382,7 +391,25 @@ const DayTimeline = ({
           onMoveStart={handleMoveStart}
           SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
           totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+          type="activity"
+          layout={hasGoogleCalendarEvents ? 'split' : 'full'}
         />
+
+        {hasGoogleCalendarEvents && (
+          <EventSegments
+            daySegments={googleCalendarDaySegments}
+            selectedHour={selectedHour}
+            isDarkMode={isDarkMode}
+            segmentBackgroundColor={segmentBackgroundColor}
+            onSegmentClick={handleSegmentClick}
+            onResizeStart={handleResizeStart}
+            onMoveStart={handleMoveStart}
+            SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
+            totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+            type="calendar"
+            layout="split"
+          />
+        )}
 
         <TimelineOverlays
           previewState={previewState}

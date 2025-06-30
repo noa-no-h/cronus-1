@@ -44,6 +44,17 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
     return attendees.filter((attendee: any) => attendee.responseStatus === 'accepted').length
   }
 
+  const handleDescriptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement
+    if (target.tagName === 'A' && target.hasAttribute('href')) {
+      e.preventDefault()
+      const url = target.getAttribute('href')
+      if (url) {
+        window.api?.openExternalUrl(url)
+      }
+    }
+  }
+
   const attendees = getAttendees()
   const meetingLink = getMeetingLink()
   const meetingCode = getMeetingCode()
@@ -59,7 +70,7 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
     <Tooltip delayDuration={200}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent side="right" align="start" sideOffset={10}>
-        <div className="p-4 space-y-3 max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+        <div>
           {/* Header with Google Calendar icon and title */}
           <div className="flex items-start gap-3">
             <img
@@ -107,9 +118,11 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
           {/* Description */}
           {event.description && (
             <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-              <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed max-h-20 overflow-y-auto">
-                {event.description}
-              </p>
+              <div
+                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert prose-sm"
+                dangerouslySetInnerHTML={{ __html: event.description }}
+                onClick={handleDescriptionClick}
+              />
             </div>
           )}
 

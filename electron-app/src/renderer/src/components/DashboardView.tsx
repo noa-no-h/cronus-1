@@ -62,7 +62,10 @@ export function DashboardView({ className }: { className?: string }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
-  const [calendarProcessedEvents, setCalendarProcessedEvents] = useState<
+  const [googleCalendarProcessedEvents, setGoogleCalendarProcessedEvents] = useState<
+    ProcessedEventBlock[] | null
+  >(null)
+  const [trackedProcessedEvents, setTrackedProcessedEvents] = useState<
     ProcessedEventBlock[] | null
   >(null)
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
@@ -160,7 +163,8 @@ export function DashboardView({ className }: { className?: string }) {
 
     if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
       setIsLoadingEvents(true)
-      setCalendarProcessedEvents(null)
+      setGoogleCalendarProcessedEvents(null)
+      setTrackedProcessedEvents(null)
     } else if (eventsData && categories) {
       // Process tracked events (existing logic)
       const trackedBlocks = generateProcessedEventBlocks(eventsData, categories)
@@ -169,23 +173,19 @@ export function DashboardView({ className }: { className?: string }) {
       const calendarEvents = calendarEventsData || []
 
       // Process calendar events
-      const calendarBlocks: ProcessedEventBlock[] = calendarEvents.length
+      const googleCalendarBlocks: ProcessedEventBlock[] = calendarEvents.length
         ? calendarEvents
             .map(convertCalendarEventToBlock)
             .filter((block): block is ProcessedEventBlock => block !== null)
         : []
       // console.log('📅 Calendar blocks:', calendarBlocks.length)
 
-      // Merge tracked and calendar events, sorted by start time
-      const allBlocks = [...trackedBlocks, ...calendarBlocks].sort(
-        (a, b) => a.startTime.getTime() - b.startTime.getTime()
-      )
-      // console.log('🔄 Total merged blocks:', allBlocks.length)
-
-      setCalendarProcessedEvents(allBlocks)
+      setTrackedProcessedEvents(trackedBlocks)
+      setGoogleCalendarProcessedEvents(googleCalendarBlocks)
       setIsLoadingEvents(false)
     } else {
-      setCalendarProcessedEvents(null)
+      setTrackedProcessedEvents(null)
+      setGoogleCalendarProcessedEvents(null)
       setIsLoadingEvents(false)
     }
   }, [
@@ -198,23 +198,20 @@ export function DashboardView({ className }: { className?: string }) {
   ])
 
   const activityWidgetProcessedEvents = useMemo(() => {
-    if (!calendarProcessedEvents) {
+    if (!trackedProcessedEvents) {
       return null
     }
 
-    // Filter out calendar events from the activity widget
-    const nonCalendarEvents = calendarProcessedEvents.filter((block) => block.source !== 'calendar')
-
     if (selectedHour !== null) {
-      return nonCalendarEvents.filter((block) => block.startTime.getHours() === selectedHour)
+      return trackedProcessedEvents.filter((block) => block.startTime.getHours() === selectedHour)
     }
     if (viewMode === 'week' && selectedDay) {
-      return nonCalendarEvents.filter(
+      return trackedProcessedEvents.filter(
         (block) => block.startTime.toDateString() === selectedDay.toDateString()
       )
     }
-    return nonCalendarEvents
-  }, [calendarProcessedEvents, selectedHour, selectedDay, viewMode])
+    return trackedProcessedEvents
+  }, [trackedProcessedEvents, selectedHour, selectedDay, viewMode])
 
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate)
@@ -267,7 +264,8 @@ export function DashboardView({ className }: { className?: string }) {
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget
           selectedDate={selectedDate}
-          processedEvents={calendarProcessedEvents}
+          trackedEvents={trackedProcessedEvents}
+          googleCalendarEvents={googleCalendarProcessedEvents}
           isLoadingEvents={isLoadingEvents}
           viewMode={viewMode}
           onDateChange={handleDateChange}

@@ -11,11 +11,12 @@ import WeekView from './WeekView'
 
 interface CalendarWidgetProps {
   selectedDate: Date
-  onDateChange: (newDate: Date) => void
-  viewMode: 'day' | 'week'
-  onViewModeChange: (newMode: 'day' | 'week') => void
-  processedEvents: ProcessedEventBlock[] | null
+  trackedEvents: ProcessedEventBlock[] | null
+  googleCalendarEvents: ProcessedEventBlock[] | null
   isLoadingEvents: boolean
+  viewMode: 'day' | 'week'
+  onDateChange: (newDate: Date) => void
+  onViewModeChange: (newMode: 'day' | 'week') => void
   selectedHour: number | null
   onHourSelect: (hour: number | null) => void
   selectedDay: Date | null
@@ -24,10 +25,11 @@ interface CalendarWidgetProps {
 
 const CalendarWidget = ({
   selectedDate,
-  onDateChange,
-  processedEvents,
+  trackedEvents,
+  googleCalendarEvents,
   isLoadingEvents,
   viewMode,
+  onDateChange,
   onViewModeChange,
   selectedHour,
   onHourSelect,
@@ -39,7 +41,7 @@ const CalendarWidget = ({
   const isDarkMode = useDarkMode()
   const [wasSetToToday, setWasSetToToday] = useState(false)
   const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped')
-  const [hourHeight, setHourHeight] = useState(8) // Default height in rem (h-32)
+  const [hourHeight, setHourHeight] = useState(60) // Default hour height
   const width = useWindowWidth()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -79,35 +81,41 @@ const CalendarWidget = ({
     return tomorrow <= today
   }
 
-  // Process events into time blocks
-  useEffect(() => {
-    if (isLoadingEvents || !processedEvents) {
-      setTimeBlocks([])
-      return
+  const convertProcessedToTimeBlocks = (
+    events: ProcessedEventBlock[] | null,
+    filterSystemEvents = true
+  ): TimeBlock[] => {
+    if (!events) {
+      return []
     }
 
-    const blocks: TimeBlock[] = processedEvents
-      .filter((event) => !SYSTEM_EVENT_NAMES.includes(event.name))
-      .map((eventBlock) => {
-        const timeBlock = {
-          _id: eventBlock.originalEvent._id,
-          startTime: eventBlock.startTime,
-          endTime: eventBlock.endTime,
-          durationMs: eventBlock.durationMs,
-          name: eventBlock.name,
-          description: eventBlock.title || '',
-          url: eventBlock.url,
-          categoryColor: eventBlock.categoryColor,
-          categoryId: eventBlock.categoryId || undefined,
-          type: eventBlock.originalEvent.type,
-          originalEvent: eventBlock.originalEvent
-        }
+    const filteredEvents = filterSystemEvents
+      ? events.filter((event) => !SYSTEM_EVENT_NAMES.includes(event.name))
+      : events
 
-        return timeBlock
-      })
+    return filteredEvents.map((eventBlock) => ({
+      _id: eventBlock.originalEvent._id,
+      startTime: eventBlock.startTime,
+      endTime: eventBlock.endTime,
+      durationMs: eventBlock.durationMs,
+      name: eventBlock.name,
+      description: eventBlock.title || '',
+      url: eventBlock.url,
+      categoryColor: eventBlock.categoryColor,
+      categoryId: eventBlock.categoryId || undefined,
+      type: eventBlock.originalEvent.type,
+      originalEvent: eventBlock.originalEvent
+    }))
+  }
 
-    setTimeBlocks(blocks)
-  }, [processedEvents, isLoadingEvents])
+  const trackedTimeBlocks = useMemo(
+    () => convertProcessedToTimeBlocks(trackedEvents, true),
+    [trackedEvents]
+  )
+  const googleCalendarTimeBlocks = useMemo(
+    () => convertProcessedToTimeBlocks(googleCalendarEvents, false),
+    [googleCalendarEvents]
+  )
 
   const handlePrev = () => {
     const newDate = new Date(selectedDate)
@@ -190,7 +198,7 @@ const CalendarWidget = ({
       <div className="flex-grow overflow-auto" ref={scrollContainerRef}>
         {viewMode === 'week' ? (
           <WeekView
-            processedEvents={processedEvents || []}
+            processedEvents={trackedEvents || []}
             selectedDay={selectedDay}
             onDaySelect={onDaySelect}
             selectedDate={selectedDate}
@@ -199,7 +207,8 @@ const CalendarWidget = ({
           />
         ) : (
           <DayTimeline
-            timeBlocks={timeBlocks}
+            trackedTimeBlocks={trackedTimeBlocks}
+            googleCalendarTimeBlocks={googleCalendarTimeBlocks}
             onHourSelect={onHourSelect}
             selectedHour={selectedHour}
             currentTime={currentTime}
