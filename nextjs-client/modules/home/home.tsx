@@ -1,3 +1,4 @@
+import { Footer } from '~/components/footer';
 import { Header } from '~/components/header';
 import { ComparisonSection } from './comparison-section';
 import { CTASection } from './cta-section';
@@ -18,6 +19,7 @@ export function Home() {
       <FeaturesSection />
       <ComparisonSection />
       <CTASection />
+      <Footer />
     </main>
   );
 }
