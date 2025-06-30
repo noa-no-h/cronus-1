@@ -221,9 +221,8 @@ export function registerIpcHandlers(
       windows.mainWindow.show()
       windows.mainWindow.focus()
     } else {
-      console.error(
-        'Main Process: ERROR: mainWindow is not available or destroyed when "open-main-app-window" was received.'
-      )
+      logMainToFile('Main window not available, recreating it.')
+      windows.mainWindow = recreateMainWindow()
     }
   })
 
