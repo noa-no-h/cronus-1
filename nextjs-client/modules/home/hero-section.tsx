@@ -14,6 +14,8 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
           Try cronus Beta
         </button>
       </div>
+
+      <div className="h-[410px] w-[880px] mx-auto bg-zinc-300 mt-[104px]"></div>
     </section>
   );
 }
