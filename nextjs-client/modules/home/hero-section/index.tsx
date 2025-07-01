@@ -31,7 +31,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
 
       <div className="mt-[68px] tablet:mt-[71px] flex justify-center">
         <div className={cn("relative inline-flex px-4","tablet:top-[34px] tablet:px-0 tablet:justify-center tablet:items-start tablet:gap-2","desktop:top-[32px] ")}>
-          <LeftFrame className={cn("w-full tablet:w-[354px] desktop:w-[452px]")} />
+          <LeftFrame className={cn("w-[358px] tablet:w-[354px] desktop:w-[452px]")} />
           <RightFrame className={cn("absolute w-[312px] bottom-[-170px] right-[-36px]","tablet:static tablet:w-[354px] desktop:w-[419px]")} />
           <ClockFrame
             className={cn(

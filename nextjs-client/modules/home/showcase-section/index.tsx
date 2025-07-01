@@ -44,7 +44,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             categorization).
           </p>
         </div>
-        <div className="relative tablet:w-full tablet:mt-12 desktop:w-[540px]">
+        <div className="relative mt-8 tablet:w-full tablet:mt-12 desktop:w-[540px]">
           <TimeFrame className="w-full" />
           <AppsFrame
             className={cn(
@@ -84,7 +84,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           <Tracker
             className={cn(
               'absolute',
-              'w-[370px] top-[38px] left-[4px]',
+              'w-[370px] top-[36px] right-[-20px]',
               'tablet:w-[760px] tablet:top-[60px] tablet:right-[-80px]',
               "desktop:w-[480px] desktop:left-[114px]"
             )}

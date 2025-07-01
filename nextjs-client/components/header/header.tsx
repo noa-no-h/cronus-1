@@ -20,7 +20,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
       )}
       {...props}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between w-full tablet:w-auto">
         <div className="flex items-center gap-2">
           <Logo className="w-[29px]" />
           <TextLogo className="w-[114px] text-[#36168D]" />
