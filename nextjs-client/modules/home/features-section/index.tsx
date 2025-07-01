@@ -19,7 +19,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
       className={cn('bg-white text-[#242437]', 'flex flex-col items-center', 'px-4 py-16 tablet:py-[160px]', className)}
       {...props}
     >
-      <h3 className="font-semibold text-[32px] tracking-[-3%] text-center">Other features</h3>
+      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-3%] text-center">Other features</h3>
 
       <ul className={cn("mt-12 tablet:mt-20", "grid gap-6","tablet:grid-cols-1 tablet:px-16", "desktop:grid-cols-[repeat(2,528px)]",)}>
         <li

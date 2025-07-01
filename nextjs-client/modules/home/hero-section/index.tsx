@@ -32,10 +32,10 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
       <div className="mt-[68px] tablet:mt-[80px] flex justify-center">
         <div className={cn("relative inline-flex w-full px-4","tablet:top-[54px] tablet:px-0 tablet:justify-center tablet:items-start tablet:gap-2","desktop:top-[32px] ")}>
           <LeftFrame className={cn("w-full tablet:w-[354px] desktop:w-[452px]")} />
-          <RightFrame className={cn("absolute w-[312px] left-[101px] top-[194px]","tablet:static tablet:w-[354px] tablet:mt-[12px] desktop:w-[419px]")} />
+          <RightFrame className={cn("absolute w-[312px] bottom-[-170px] right-[-36px]","tablet:static tablet:w-[354px] tablet:mt-[12px] desktop:w-[419px]")} />
           <ClockFrame
             className={cn(
-              'absolute w-[344px] top-[139px] left-[74px]',
+              'absolute w-[324px] bottom-[94px] right-[-24px]',
               'tablet:w-[460px] tablet:top-[220px] tablet:right-[-44px]',
               'desktop:w-[520px] desktop:top-[184px] desktop:right-[-90px]'
             )}
