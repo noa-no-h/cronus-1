@@ -28,8 +28,8 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
     >
       <div className="flex items-center justify-between w-full tablet:w-auto">
         <div className="flex items-center gap-2">
-          <Logo className="w-[29px]" />
-          <TextLogo className="w-[114px]" />
+          <Logo className="w-[29px] text-black" />
+          <TextLogo className="w-[114px] text-black" />
         </div>
         <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <Close /> : <Menu />}
