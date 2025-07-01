@@ -4,16 +4,16 @@ import { ComparisonSection } from './comparison-section';
 import { CTASection } from './cta-section';
 import { FeaturesSection } from './features-section';
 import { HeroSection } from './hero-section';
-import { MarqueeSection } from './marquee-section';
+// import { MarqueeSection } from './marquee-section';
 import { ShowcaseSection } from './showcase-section';
 import { TestimonialsSection } from './testimonials-section';
 
 export function Home() {
   return (
-    <main className='overflow-hidden'>
+    <main className="overflow-hidden">
       <Header className=" bg-[#ebebeb]" />
       <HeroSection />
-      <MarqueeSection />
+      {/* <MarqueeSection /> */}
       <ShowcaseSection />
       <TestimonialsSection />
       <FeaturesSection />
