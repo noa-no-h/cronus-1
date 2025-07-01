@@ -69,7 +69,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
                 onClick={() => handleDownload(downloadUrls.armUrl)}
                 className="flex-1 px-4 py-3 bg-[#242437] text-white rounded-lg hover:bg-[#1a1a2e] text-center font-semibold transition-all hover:scale-105"
               >
-                Download for Apple Silicon (M1/M2/M3/M4)
+                Download for Apple Silicon (M1-M4)
               </button>
               <button
                 onClick={() => handleDownload(downloadUrls.intelUrl)}

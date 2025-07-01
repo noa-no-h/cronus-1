@@ -48,12 +48,13 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>
-                  <strong>OpenAI:</strong> We use OpenAI's services to process and analyze your
+                  <strong>OpenAI:</strong> We use OpenAI&apos;s services to process and analyze your
                   activity data to provide AI-powered insights and categorization
                 </li>
                 <li>
-                  <strong>Google OAuth:</strong> We use Google's authentication service for secure
-                  login and calendar integration (calendar integration is currently in development)
+                  <strong>Google OAuth:</strong> We use Google&apos;s authentication service for
+                  secure login and calendar integration (calendar integration is currently in
+                  development)
                 </li>
                 <li>
                   <strong>MongoDB:</strong> We use MongoDB as our database service to store your
@@ -120,8 +121,8 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-[#242437]">Changes to This Policy</h2>
               <p>
                 We may update this Privacy Policy from time to time. We will notify you of any
-                changes by posting the new Privacy Policy on this page and updating the "Last
-                updated" date.
+                changes by posting the new Privacy Policy on this page and updating the &quot;Last
+                updated&quot; date.
               </p>
             </section>
           </div>

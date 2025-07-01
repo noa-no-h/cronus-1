@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '~/lib/cn';
 import DownloadModal from './download-modal';
@@ -50,7 +50,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
           className
         )}
       >
-        <Image src="/apple.png" alt="Apple" width={16} height={16} />
+        <Download size={16} />
         {children}
       </button>
 
