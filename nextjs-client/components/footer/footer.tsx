@@ -77,8 +77,8 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
 
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">COMPANY</h5>
-          {/* <Link href={'/about'}>About us</Link> */}
-          {/* <Link href={'/privacy'}>Privacy Policy</Link> */}
+          <Link href={'/about'}>About us</Link>
+          <Link href={'/privacy'}>Privacy Policy</Link>
           {/* <Link href={'/contact'}>Contact us</Link> */}
           <Link href={'/blog'}>Blog</Link>
         </div>
