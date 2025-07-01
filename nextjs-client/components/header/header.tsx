@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 import { Navbar } from '../navbar/navbar';
+import Link from 'next/link';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   return (
@@ -20,9 +21,13 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
       </div>
       <div className="flex items-center gap-4">
         <Navbar />
-        <button className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white">
-          Try cronus
-        </button>
+        <Link
+          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
+          target="_blank"
+          className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
+        >
+          Download Cronus
+        </Link>
       </div>
     </header>
   );

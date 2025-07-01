@@ -26,9 +26,13 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <p className="text-xl tracking-[-3%] mt-[15px] text-black">
           The smartest way to stay focused.
         </p>
-        <button className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white mt-[30px]">
-          <Link href="/">Try cronus Beta</Link>
-        </button>
+        <Link
+          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
+          target="_blank"
+          className="py-2.5 px-6 bg-[#242437] rounded-md mt-4 font-semibold text-sm text-white"
+        >
+          Download Cronus
+        </Link>
       </section>
     </>
   );
