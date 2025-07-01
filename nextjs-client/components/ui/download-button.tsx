@@ -1,0 +1,62 @@
+'use client';
+
+import Image from 'next/image';
+import { useState } from 'react';
+import { cn } from '~/lib/cn';
+import DownloadModal from './download-modal';
+
+interface DownloadButtonProps {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary';
+  children?: React.ReactNode;
+}
+
+const DownloadButton: React.FC<DownloadButtonProps> = ({
+  className,
+  size = 'md',
+  variant = 'primary',
+  children = 'Download Cronus',
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const sizeClasses = {
+    sm: 'py-2 px-4 text-xs',
+    md: 'py-2.5 px-6 text-sm',
+    lg: 'py-3 px-8 text-base',
+  };
+
+  const variantClasses = {
+    primary: 'bg-[#242437] hover:bg-[#1a1a2e] text-white',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900',
+  };
+
+  return (
+    <>
+      <button
+        onClick={handleOpenModal}
+        className={cn(
+          'inline-flex items-center gap-2 rounded-md font-semibold transition-colors',
+          sizeClasses[size],
+          variantClasses[variant],
+          className
+        )}
+      >
+        <Image src="/apple.png" alt="Apple" width={16} height={16} />
+        {children}
+      </button>
+
+      <DownloadModal isOpen={isModalOpen} onClose={handleCloseModal} />
+    </>
+  );
+};
+
+export default DownloadButton;

@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
+import DownloadButton from '~/components/ui/download-button';
 import { cn } from '~/lib/cn';
 import { Circle } from './circle';
 
@@ -11,11 +11,6 @@ import { LeftFrame } from './left-frame';
 import { RightFrame } from './right-frame';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
-  const handleDownload = () => {
-    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
-    window.location.href = '/get-started';
-  };
-
   return (
     <section
       className={cn(
@@ -39,13 +34,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         >
           Understand where your time went and reduce distractions.
         </p>
-        <button
-          onClick={handleDownload}
-          className="inline-flex items-center gap-2 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
-        >
-          <Image src="/apple.png" alt="Apple" width={16} height={16} />
-          Download Cronus
-        </button>
+        <DownloadButton />
       </div>
 
       <div className="mt-[68px] tablet:mt-[71px] flex justify-center">

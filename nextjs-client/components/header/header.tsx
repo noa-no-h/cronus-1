@@ -3,17 +3,12 @@ import { useState, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 // import { Navbar } from '../navbar/navbar';
-import { Menu } from '../icons/menu';
 import { Close } from '../icons/close';
-import Image from 'next/image';
+import { Menu } from '../icons/menu';
+import DownloadButton from '../ui/download-button';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleDownload = () => {
-    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
-    window.location.href = '/get-started';
-  };
 
   return (
     <header
@@ -48,13 +43,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
             'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
         /> */}
-        <button
-          onClick={handleDownload}
-          className="hidden tablet:flex items-center gap-2 shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
-        >
-          <Image src="/apple.png" alt="Apple" width={16} height={16} />
-          Download Cronus
-        </button>
+        <DownloadButton className="hidden tablet:flex shrink-0" />
       </div>
     </header>
   );
