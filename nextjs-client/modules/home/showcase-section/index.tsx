@@ -1,17 +1,19 @@
 import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
-import timerPng from './timer.png';
-import trackingPng from './tracking.png';
+import macosPng from './macos.png';
+
+import { TimeFrame } from './time-frame';
+import { AppsFrame } from './apps-frame';
+import { Tracker } from './tracker';
 
 export function ShowcaseSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
       className={cn(
-        'bg-[#f4f4f4] space-y-[120px]',
+        'bg-[#f4f4f4] space-y-[120px] overflow-hidden',
         'flex flex-col items-center',
         'tablet:px-16 desktop:px-0',
-
         className
       )}
       {...props}
@@ -23,12 +25,12 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           'tablet:flex-col-reverse desktop:ml-[-200px] desktop:flex-row'
         )}
       >
-        <Image
-          className="tablet:w-full desktop:w-[600px]"
-          src={trackingPng}
-          width={600}
-          alt="AI Time and distraction tracking"
-        />
+        <div className="relative tablet:w-full desktop:w-[600px]">
+          <TimeFrame />
+          <AppsFrame
+            className={cn('absolute', 'tablet:w-[440px] tablet:top-[116px] tablet:left-[-84px] ')}
+          />
+        </div>
         <div className={cn('text-[#242437] space-y-6', 'tablet:w-[682px] desktop:w-[480px]')}>
           <h3 className="font-semibold text-[32px] tracking-[-3%] whitespace-nowrap">
             AI Time and distraction tracking
@@ -48,7 +50,13 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           'tablet:flex-col desktop:flex-row'
         )}
       >
-        <div className={cn('text-[#242437] space-y-6', 'desktop:w-[480px] desktop:pl-8', 'table:w-full')}>
+        <div
+          className={cn(
+            'text-[#242437] space-y-6',
+            'desktop:w-[480px] desktop:pl-8',
+            'table:w-full'
+          )}
+        >
           <h3 className="font-semibold text-[32px] tracking-[-3%]">
             Gamified productivity with Mini-Timer
           </h3>
@@ -58,7 +66,10 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             categorizes your work accordingly.
           </p>
         </div>
-        <Image src={timerPng} alt="Gamified productivity with Mini-Timer" width={600} />
+        <div className={cn('relative', 'tablet:w-[682px] desktop:w-[540px]')}>
+          <Image src={macosPng} alt="Gamified productivity with Mini-Timer" />
+          <Tracker className={cn("absolute block","tablet:w-[660px] top-[60px] right-[-80px]")} />
+        </div>
       </div>
     </section>
   );
