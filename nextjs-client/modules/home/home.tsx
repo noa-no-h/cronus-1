@@ -13,7 +13,7 @@ export function Home() {
     <main className='overflow-hidden'>
       <Header className=" bg-[#ebebeb]" />
       <HeroSection />
-      <MarqueeSection className="h-[140px]" />
+      <MarqueeSection />
       <ShowcaseSection />
       <TestimonialsSection />
       <FeaturesSection />
