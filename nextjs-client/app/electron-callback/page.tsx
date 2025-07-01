@@ -1,10 +1,10 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Logo } from '~/components/logo';
 
-const ElectronCallbackPage: React.FC = () => {
+const ElectronCallbackComponent: React.FC = () => {
   const [status, setStatus] = useState('Processing login...');
   const searchParams = useSearchParams();
 
@@ -38,6 +38,14 @@ const ElectronCallbackPage: React.FC = () => {
         </p>
       </div>
     </div>
+  );
+};
+
+const ElectronCallbackPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ElectronCallbackComponent />
+    </Suspense>
   );
 };
 
