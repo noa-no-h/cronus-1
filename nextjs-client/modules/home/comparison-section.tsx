@@ -44,9 +44,9 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             <ul
               className={cn(
                 'text-xl',
-                'mt-[13px] tablet:mt-5',
+                'mt-[13px] tablet:mt-4',
                 '[&>li]:py-[13px]',
-                'tablet:[&>li]:py-5 [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                'tablet:[&>li]:py-4 [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
                 '[&>li:last-child]:pb-0'
               )}
             >
@@ -110,7 +110,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                 'text-xl',
                 'mt-[13px] tablet:mt-5',
                 '[&>li]:py-4',
-                'tablet:[&>li]:py-5 [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                'tablet:[&>li]:py-[21px] [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
                 '[&>li:last-child]:pb-0'
               )}
             >
