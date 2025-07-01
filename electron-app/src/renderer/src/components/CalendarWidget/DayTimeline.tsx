@@ -1,4 +1,6 @@
+import { endOfDay, startOfDay } from 'date-fns'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { ActivityEventSuggestion } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
 import { useManualEntry } from '../../hooks/useManualEntry'
 import { useTimeSelection } from '../../hooks/useTimeSelection'
@@ -9,13 +11,11 @@ import {
   type DaySegment,
   type TimeBlock
 } from '../../lib/dayTimelineHelpers'
+import { trpc } from '../../utils/trpc'
 import { CreateEntryModal } from './CreateEntryModal'
 import { EventSegments } from './EventSegments'
 import { TimelineGrid } from './TimelineGrid'
 import { TimelineOverlays } from './TimelineOverlays'
-
-export type { TimeBlock }
-
 interface DayTimelineProps {
   trackedTimeBlocks: TimeBlock[]
   googleCalendarTimeBlocks: TimeBlock[]
@@ -108,6 +108,31 @@ const DayTimeline = ({
     !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving
   )
 
+  const { data: suggestions, refetch: refetchSuggestions } = trpc.suggestions.list.useQuery(
+    {
+      token: token || '',
+      startTime: startOfDay(dayForEntries).getTime(),
+      endTime: endOfDay(dayForEntries).getTime()
+    },
+    { enabled: !!token }
+  )
+
+  const utils = trpc.useUtils()
+
+  const acceptSuggestion = trpc.suggestions.accept.useMutation({
+    onSuccess: () => {
+      // Refetch activities and suggestions
+      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+      refetchSuggestions()
+    }
+  })
+
+  const rejectSuggestion = trpc.suggestions.reject.useMutation({
+    onSuccess: () => {
+      refetchSuggestions()
+    }
+  })
+
   const timelineHeight = useMemo(() => {
     const rootFontSize = 16 // Assuming default 16px
     return 24 * hourHeight * rootFontSize
@@ -118,10 +143,72 @@ const DayTimeline = ({
     [trackedTimeBlocks, timelineHeight, isToday, currentTime]
   )
 
+  const suggestionDaySegments = useMemo(() => {
+    if (!suggestions) return []
+
+    const suggestionTimeBlocks: TimeBlock[] = (suggestions as ActivityEventSuggestion[]).map(
+      (s: ActivityEventSuggestion) => ({
+        _id: s._id.toString(),
+        type: 'manual',
+        name: s.name,
+        startTime: new Date(s.startTime),
+        endTime: new Date(s.endTime),
+        durationMs: new Date(s.endTime).getTime() - new Date(s.startTime).getTime(),
+        description: '',
+        categoryColor: s.categoryColor,
+        categoryName: s.categoryName,
+        isSuggestion: true,
+        onAccept: (e: React.MouseEvent) => {
+          e.stopPropagation()
+          if (!token) return
+          acceptSuggestion.mutate({ token, suggestionId: s._id })
+        },
+        onReject: (e: React.MouseEvent) => {
+          e.stopPropagation()
+          if (!token) return
+          rejectSuggestion.mutate({ token, suggestionId: s._id })
+        }
+      })
+    )
+    return getTimelineSegmentsForDay(suggestionTimeBlocks, timelineHeight)
+  }, [suggestions, timelineHeight, token, acceptSuggestion, rejectSuggestion])
+
   const googleCalendarDaySegments = useMemo(
     () => getTimelineSegmentsForDay(googleCalendarTimeBlocks, timelineHeight),
     [googleCalendarTimeBlocks, timelineHeight]
   )
+
+  const hourlyActivity = useMemo(() => {
+    const activity = new Array(24).fill(false)
+    const allSegments = [...trackedDaySegments]
+
+    if (allSegments.length === 0) return activity
+    const currentHour = new Date().getHours()
+
+    for (let hour = 0; hour < 24; hour++) {
+      if (isToday && hour === currentHour && trackedTimeBlocks.length > 0) {
+        activity[hour] = true
+        continue
+      }
+      const hourStart = new Date(dayForEntries)
+      hourStart.setHours(hour, 0, 0, 0)
+
+      const hourEnd = new Date(hourStart)
+      hourEnd.setHours(hour + 1)
+
+      for (const segment of allSegments) {
+        const segmentStart = new Date(segment.startTime)
+        const segmentEnd = new Date(segment.endTime)
+
+        // Check for overlap
+        if (segmentStart < hourEnd && segmentEnd > hourStart) {
+          activity[hour] = true
+          break
+        }
+      }
+    }
+    return activity
+  }, [trackedDaySegments, dayForEntries, isToday, trackedTimeBlocks])
 
   const hasGoogleCalendarEvents = googleCalendarDaySegments.length > 0
 
@@ -379,6 +466,7 @@ const DayTimeline = ({
           currentHourRef={currentHourRef}
           hourHeight={hourHeight}
           onHourSelect={onHourSelect}
+          hourlyActivity={hourlyActivity}
         />
 
         <EventSegments
@@ -389,6 +477,20 @@ const DayTimeline = ({
           onSegmentClick={handleSegmentClick}
           onResizeStart={handleResizeStart}
           onMoveStart={handleMoveStart}
+          SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
+          totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+          type="activity"
+          layout={hasGoogleCalendarEvents ? 'split' : 'full'}
+        />
+
+        <EventSegments
+          daySegments={suggestionDaySegments}
+          selectedHour={selectedHour}
+          isDarkMode={isDarkMode}
+          segmentBackgroundColor={segmentBackgroundColor}
+          onSegmentClick={() => {}}
+          onResizeStart={() => {}}
+          onMoveStart={() => {}}
           SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
           totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
           type="activity"

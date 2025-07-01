@@ -8,8 +8,12 @@ export interface TimeBlock {
   url?: string
   categoryColor?: string
   categoryId?: string
-  type: 'window' | 'browser' | 'system' | 'manual'
+  categoryName?: string
+  type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
   originalEvent?: any
+  isSuggestion?: boolean
+  onAccept?: (e: React.MouseEvent) => void
+  onReject?: (e: React.MouseEvent) => void
 }
 
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
@@ -28,12 +32,14 @@ export interface EnrichedTimelineSegment extends TimeBlock {
   heightPercentage: number
   topPercentage: number
   allActivities: Record<string, { duration: number; block: TimeBlock }>
-  type: 'window' | 'browser' | 'system' | 'manual'
+  type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
 }
 
 export interface DaySegment extends EnrichedTimelineSegment {
   top: number
   height: number
+  categoryName?: string
+  isSuggestion?: boolean
 }
 
 const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', 'Arc']
@@ -140,7 +146,7 @@ export function getTimelineSegmentsForDay(
   const otherBlocks: TimeBlock[] = []
 
   timeBlocks.forEach((block) => {
-    if (block.type === 'manual') {
+    if (block.type === 'manual' || block.type === 'calendar') {
       const startOfDay = new Date(block.startTime)
       startOfDay.setHours(0, 0, 0, 0)
       const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
@@ -156,7 +162,8 @@ export function getTimelineSegmentsForDay(
         heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
         allActivities: { [block.name]: { duration: block.durationMs, block } },
         top,
-        height
+        height,
+        isSuggestion: block.isSuggestion
       })
     } else {
       otherBlocks.push(block)
@@ -237,7 +244,8 @@ export function getTimelineSegmentsForDay(
         allActivities: slot.allActivities,
         top,
         height,
-        durationMs: durationMinutes * 60 * 1000
+        durationMs: durationMinutes * 60 * 1000,
+        isSuggestion: block.isSuggestion
       }
     })
 

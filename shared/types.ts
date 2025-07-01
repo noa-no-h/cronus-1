@@ -28,7 +28,6 @@ export interface ActiveWindowDetails {
   content?: string | null;
   timestamp: number;
   contentSource?: 'ocr' | 'accessibility' | null;
-  timestamp?: number;
   localScreenshotPath?: string | null;
   screenshotS3Url?: string | null;
   durationMs?: number;
@@ -53,4 +52,19 @@ export interface Category {
   isLikelyToBeOffline?: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ActivityEventSuggestion {
+  _id: string;
+  userId: string;
+  googleCalendarEventId: string;
+  startTime: string; // Is a string after JSON serialization
+  endTime: string;
+  name: string;
+  suggestedCategoryId?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  reasoning?: string;
+  // Fields added by the router populate
+  categoryColor?: string;
+  categoryName?: string;
 }

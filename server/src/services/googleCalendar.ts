@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { User as UserModel } from '../models/user';
 
 export interface CalendarEvent {
   id: string;
@@ -65,4 +66,23 @@ export class GoogleCalendarService {
       return [];
     }
   }
+}
+
+export async function getCalendarEvents(userId: string, startDate: Date, endDate: Date) {
+  const user = await UserModel.findById(userId)
+    .select('googleAccessToken googleRefreshToken')
+    .lean();
+
+  if (!user || !user.googleAccessToken || !user.googleRefreshToken) {
+    console.error(`User ${userId} does not have Google tokens.`);
+    return [];
+  }
+
+  const calendarService = new GoogleCalendarService();
+  return calendarService.getCalendarEvents(
+    user.googleAccessToken,
+    user.googleRefreshToken,
+    startDate,
+    endDate
+  );
 }

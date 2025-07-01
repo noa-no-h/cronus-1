@@ -11,6 +11,7 @@ interface TimelineHourProps {
   isLastHour: boolean
   hourHeight: number
   onHourSelect: (hour: number | null) => void
+  hasActivity: boolean
 }
 
 export const TimelineHour = memo(
@@ -21,7 +22,8 @@ export const TimelineHour = memo(
     currentHourRef,
     isLastHour,
     hourHeight,
-    onHourSelect
+    onHourSelect,
+    hasActivity
   }: TimelineHourProps) => {
     const handleFilterClick = (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -48,17 +50,19 @@ export const TimelineHour = memo(
           <span className={clsx(isSelectedHour && 'text-blue-500')}>
             {hour.toString().padStart(2, '0')}:00
           </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={clsx(
-              'h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity',
-              isSelectedHour && 'opacity-100'
-            )}
-            onClick={handleFilterClick}
-          >
-            <Filter size={12} />
-          </Button>
+          {hasActivity && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className={clsx(
+                'h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity',
+                isSelectedHour && 'opacity-100'
+              )}
+              onClick={handleFilterClick}
+            >
+              <Filter size={12} />
+            </Button>
+          )}
         </div>
 
         <div className="flex-1 border-l relative">

@@ -7,9 +7,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Stripe from 'stripe';
 import { User as UserModel } from './models/user';
-import sitemapRouter from './routes/sitemap';
-import { publicProcedure, router } from './trpc';
 import { calendarRouter } from './routers/calendar';
+import sitemapRouter from './routes/sitemap';
+import { startSuggestionCronJob } from './services/cron/suggestionScheduler';
+import { publicProcedure, router } from './trpc';
 
 // Export tRPC utilities
 export { publicProcedure, router };
@@ -24,6 +25,7 @@ import { authRouter } from './routers/auth';
 import { categoryRouter } from './routers/categoryRouter';
 import { paymentsRouter } from './routers/payments';
 import { s3Router } from './routers/s3Router';
+import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 
 // Export types used in router signatures
@@ -38,6 +40,7 @@ export const appRouter = router({
   user: userRouter,
   category: categoryRouter,
   calendar: calendarRouter,
+  suggestions: suggestionsRouter,
 });
 
 export type AppRouter = typeof appRouter;
@@ -123,8 +126,8 @@ app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), asyn
   }
 });
 
-// Add the sitemap router before the tRPC middleware
-app.use('/', sitemapRouter);
+// Use the sitemap router
+app.use(sitemapRouter);
 
 // tRPC middleware
 app.use(
@@ -180,3 +183,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+startSuggestionCronJob();

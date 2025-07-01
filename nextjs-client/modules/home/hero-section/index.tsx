@@ -19,8 +19,16 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         <p className="font-medium text-2xl tracking-[-3%] text-center text-black">
           Understand where your time went and <br /> reduce distractions.
         </p>
-        <button className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white">
-          Try cronus Beta
+        <button
+          onClick={() => {
+            window.open(
+              'https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg',
+              '_blank'
+            );
+          }}
+          className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
+        >
+          Download Cronus
         </button>
       </div>
 

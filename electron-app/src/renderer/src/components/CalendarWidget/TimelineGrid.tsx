@@ -7,6 +7,7 @@ interface TimelineGridProps {
   currentHourRef: React.RefObject<HTMLDivElement | null>
   hourHeight: number
   onHourSelect: (hour: number | null) => void
+  hourlyActivity: boolean[]
 }
 
 export const TimelineGrid: React.FC<TimelineGridProps> = ({
@@ -14,7 +15,8 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   selectedHour,
   currentHourRef,
   hourHeight,
-  onHourSelect
+  onHourSelect,
+  hourlyActivity
 }) => {
   return (
     <>
@@ -29,6 +31,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           isLastHour={hour === 23}
           hourHeight={hourHeight}
           onHourSelect={onHourSelect}
+          hasActivity={hourlyActivity[hour]}
         />
       ))}
     </>

@@ -1,4 +1,6 @@
+import clsx from 'clsx'
 import React from 'react'
+import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { type DaySegment } from '../../lib/dayTimelineHelpers'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
@@ -36,6 +38,15 @@ export const EventSegments = ({
       {daySegments.map((segment) => {
         const isManual = segment.type === 'manual'
         const isCalendarEvent = type === 'calendar'
+        const isSuggestion = segment.isSuggestion
+
+        const textColor = segment.categoryColor
+          ? isDarkMode
+            ? getLighterColor(segment.categoryColor, 0.8)
+            : getDarkerColor(segment.categoryColor, 0.6)
+          : undefined
+
+        const suggestionBorderColor = textColor || (isDarkMode ? '#4b5563' : '#d1d5db') // gray-600 or gray-300
 
         const positionClasses =
           layout === 'full'
@@ -50,20 +61,29 @@ export const EventSegments = ({
           return null // Don't render segments that are too small to be visible
         }
 
-        const canInteract = isManual
-        const segmentCursor = isManual ? 'pointer' : 'default'
+        const canInteract = isManual && !isSuggestion
+        const segmentCursor = canInteract ? 'pointer' : 'default'
         const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
 
         const content = (
           <div
             key={segment._id || `${segment.startTime}-${segment.name}`}
             data-is-segment="true"
-            className={`group ${positionClasses} ${zIndexClass}
-                          ${canInteract ? 'hover:brightness-75' : ''} transition-all
-                          overflow-hidden`}
+            className={clsx(
+              'group transition-all overflow-hidden',
+              positionClasses,
+              zIndexClass,
+              canInteract && 'hover:brightness-75',
+              isSuggestion && 'border-[1px] border-dotted border-gray-400 dark:border-gray-500'
+            )}
             style={{
               cursor: segmentCursor,
-              backgroundColor: segmentBackgroundColor(segment),
+              backgroundColor: isSuggestion
+                ? segment.categoryColor
+                  ? hexToRgba(segment.categoryColor, 0.1)
+                  : 'transparent'
+                : segmentBackgroundColor(segment),
+              borderColor: isSuggestion ? suggestionBorderColor : undefined,
               top: `${segment.top + SEGMENT_TOP_OFFSET_PX}px`,
               height: `max(1px, ${segment.height - totalSegmentVerticalSpacing}px)`,
               opacity:
@@ -72,19 +92,19 @@ export const EventSegments = ({
                   : 1
             }}
             onMouseDown={(e) => {
-              if (isManual) {
+              if (canInteract) {
                 onMoveStart(segment, e)
               }
             }}
             onClick={(e) => {
               e.stopPropagation()
-              if (isManual) {
+              if (canInteract) {
                 onSegmentClick(segment)
               }
             }}
           >
             <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
-            {isManual && (
+            {canInteract && (
               <>
                 <div
                   className="absolute top-0 left-0 right-0 h-4 -translate-y-1/2 cursor-row-resize z-30 group"
