@@ -29,7 +29,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         <div>
           <div className="flex items-center gap-2">
             <Logo className="w-[29px]" />
-            <TextLogo className="w-[114px] text-[#36168D]" />
+            <TextLogo className="w-[114px] text-black" />
           </div>
           <p className="text-[#242437CC] text-sm mt-3">AI-Powered, Efficiency Revolution</p>
         </div>
