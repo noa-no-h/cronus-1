@@ -21,7 +21,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       <div
         className={cn(
           'mt-20',
-          'inline-flex items-center',
+          'inline-flex tablet:item-start desktop:items-center',
           'rounded-2xl overflow-hidden',
           'border-[0.5px] border-[#dfdfdf] tracking-[-2%]',
           'bg-[#fafafa]'
@@ -29,9 +29,10 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       >
         <div
           className={cn(
-            'bg-[#faf8ff] py-9 px-[56px] text-[#36168D]',
+            'bg-[#faf8ff] text-[#36168D]',
+            'tablet:p-8 desktop:py-9 desktop:px-[56px]',
             'border-r-[0.5px] border-[#DFDFDF]',
-            'w-[357px] xl:w-[464px]'
+            'tablet:w-[357px] desktop:w-[464px]'
           )}
         >
           <h5 className="flex items-center gap-2">
@@ -46,26 +47,26 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               '[&>li:last-child]:pb-0'
             )}
           >
-            <li className="flex items-center gap-6">
+            <li className="flex items-center tablet:gap-4 desktop:gap-6">
               <Goal className="size-6" />
               Goal-aware distraction nudging
             </li>
-            <li className="flex items-center gap-6">
+            <li className="flex items-center tablet:gap-4 desktop:gap-6">
               <List className="size-6" />
               Passive + contextual
             </li>
-            <li className="flex items-center gap-6">
+            <li className="flex items-center tablet:gap-4 desktop:gap-6">
               <Device className="size-6" />
               Cross-device analysis
             </li>
-            <li className="flex items-center gap-6">
+            <li className="flex items-center tablet:gap-4 desktop:gap-6 whitespace-nowrap">
               <Pencil className="size-6" />
               Clean, proactive design
             </li>
           </ul>
         </div>
-        <div className={cn('py-9 px-[56px]', 'w-[357px] xl:w-[464px]')}>
-          <h5 className="font-semibold text-2xl tracking-[-3%]  leading-[32px]">
+        <div className={cn('tablet:p-8 desktop:py-9 desktop:px-[56px]', 'tablet:w-[357px] desktop:w-[464px]')}>
+          <h5 className="font-semibold text-2xl tracking-[-3%]  leading-[32px] whitespace-nowrap">
             Traditional Time Trackers
           </h5>
           <ul
