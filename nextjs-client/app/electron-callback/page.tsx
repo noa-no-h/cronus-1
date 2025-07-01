@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation';
 import React, { Suspense, useEffect, useState } from 'react';
 import { Logo } from '~/components/logo';
 
+export const dynamic = 'force-dynamic';
+
 const ElectronCallbackComponent: React.FC = () => {
   const [status, setStatus] = useState('Processing login...');
   const searchParams = useSearchParams();
