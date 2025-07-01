@@ -12,7 +12,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
     <section
       className={cn(
         'bg-[#f4f4f4] overflow-hidden',
-        'py-16',
+        'py-16 tablet:py-30',
         "space-y-20 tablet:space-y-[120px]",
         'flex flex-col items-center',
         'px-4 tablet:px-16 desktop:px-0',
@@ -22,9 +22,6 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
     >
       <div
         className={cn(
-          'space-y-8',
-          'tablet:flex tablet:items-center',
-          'tablet:gap-8 desktop:gap-20',
           'desktop:ml-[-200px]'
         )}
       >
@@ -39,7 +36,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             categorization).
           </p>
         </div>
-        <div className="relative tablet:w-full desktop:w-[600px]">
+        <div className="relative tablet:w-full tablet:mt-12 desktop:w-[600px]">
           <TimeFrame className='w-full' />
           <AppsFrame
             className={cn('absolute','w-[320px] top-[60px] left-[-54px]', 'tablet:w-[440px] tablet:top-[116px] tablet:left-[-84px] ')}
@@ -49,8 +46,6 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
 
       <div
         className={cn(
-          'tablet:flex tablet:items-center',
-          'tablet:gap-8 desktop:gap-20',
           "space-y-8"
         )}
       >
@@ -72,7 +67,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
         </div>
         <div className={cn('relative', 'tablet:w-[682px] desktop:w-[540px]')}>
           <Image src={macosPng} alt="Gamified productivity with Mini-Timer" />
-          <Tracker className={cn("absolute","w-[370px] top-[38px] left-[4px]","tablet:w-[660px] tablet:top-[60px] tablet:right-[-80px]")} />
+          <Tracker className={cn("absolute","w-[370px] top-[38px] left-[4px]","tablet:w-[760px] tablet:top-[60px] tablet:right-[-80px]")} />
         </div>
       </div>
     </section>
