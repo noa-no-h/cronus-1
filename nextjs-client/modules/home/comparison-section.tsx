@@ -27,11 +27,12 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             'inline-flex tablet:item-start desktop:items-center',
             'rounded-2xl overflow-hidden',
             'border-[0.5px] border-[#dfdfdf] tracking-[-2%]',
+            'bg-[#faf8ff]'
           )}
         >
           <li
             className={cn(
-              'bg-[#faf8ff] text-[#36168D]',
+              'text-[#36168D]',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'border-r-[0.5px] border-[#DFDFDF]',
               'tablet:w-[357px] desktop:w-[464px]'
@@ -46,7 +47,8 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                 'text-xl',
                 'mt-[13px] tablet:mt-4',
                 '[&>li]:py-[13px]',
-                'tablet:[&>li]:py-4 [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                '[&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                'tablet:[&>li]:py-4 desktop:[&>li]:py-5',
                 '[&>li:last-child]:pb-0'
               )}
             >

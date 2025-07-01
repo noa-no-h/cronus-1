@@ -16,7 +16,7 @@ const cardClassnames = cn(
 export function FeaturesSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
-      className={cn('bg-white text-[#242437]', 'flex flex-col items-center', 'px-4 py-16 tablet:py-[160px]', className)}
+      className={cn('bg-white text-[#242437]', 'flex flex-col items-center', 'px-4 py-16 tablet:py-[160px] tablet:px-0', className)}
       {...props}
     >
       <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-3%] text-center">Other features</h3>
