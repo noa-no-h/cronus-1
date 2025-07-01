@@ -3,7 +3,6 @@ import { useState, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 import { Navbar } from '../navbar/navbar';
-import Link from 'next/link';
 import { Menu } from '../icons/menu';
 import { Close } from '../icons/close';
 import Image from 'next/image';
