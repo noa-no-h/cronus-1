@@ -18,8 +18,8 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         )}
         {...props}
       >
-        <div className='absolute inset-x-0 top-0'>
-        <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2" />
+        <div className="absolute inset-x-0 top-0">
+          <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2" />
         </div>
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
@@ -31,8 +31,14 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <Link
           href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
           target="_blank"
-          className={cn("mt-[30px] tablet:mt-4 desktop:mt-7","py-2.5 px-6", "rounded-md bg-[#242437]","font-semibold text-sm text-white")}
+          className={cn(
+            'mt-[30px] tablet:mt-4 desktop:mt-7',
+            'inline-flex items-center gap-2 py-2.5 px-6',
+            'rounded-md bg-[#242437]',
+            'font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors'
+          )}
         >
+          <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
         </Link>
       </section>

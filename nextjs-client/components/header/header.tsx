@@ -6,6 +6,7 @@ import { Navbar } from '../navbar/navbar';
 import Link from 'next/link';
 import { Menu } from '../icons/menu';
 import { Close } from '../icons/close';
+import Image from 'next/image';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,12 +38,17 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
           'tablet:static tablet:bg-transparent tablet:flex items-center gap-4'
         )}
       >
-        <Navbar className={cn('bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0')} />
+        <Navbar
+          className={cn(
+            'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
+          )}
+        />
         <Link
           href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
           target="_blank"
-          className="hidden tablet:block shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
+          className="hidden tablet:flex items-center gap-2 shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
         >
+          <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
         </Link>
       </div>
