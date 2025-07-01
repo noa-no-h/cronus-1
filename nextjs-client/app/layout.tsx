@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import type { Viewport } from 'next'
+ 
 
 const inter = Inter({
   variable: '--font-inter',
@@ -10,8 +12,14 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Cronus',
   description: '',
-  viewport: 'width=device-width, initial-scale=1.0',
 };
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
 
 export default function RootLayout({
   children,
