@@ -1,12 +1,12 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
 import { Circle } from './circle';
-import clockFrame from './clock-frame.png';
-import leftFrame from './left-frame.png';
-import rightFrame from './right-frame.png';
+
+import { ClockFrame } from './clock-frame';
+import { LeftFrame } from './left-frame';
+import { RightFrame } from './right-frame';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
@@ -31,13 +31,9 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
 
       <div className="mt-[80px] flex justify-center">
         <div className="relative top-[32px] inline-flex justify-center items-start gap-2 ">
-          <Image className="w-[452px]" src={leftFrame} alt="cronus example" />
-          <Image className="w-[419px]" src={rightFrame} alt="cronus example" />
-          <Image
-            className="w-[520px] absolute top-[184px] right-[-90px]"
-            src={clockFrame}
-            alt="cronus example"
-          />
+          <LeftFrame className="w-[452px]" />
+          <RightFrame className="w-[419px]" />
+          <ClockFrame className="w-[520px] absolute top-[184px] right-[-90px]" />
         </div>
       </div>
     </section>
