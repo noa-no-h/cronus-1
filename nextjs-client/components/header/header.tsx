@@ -34,14 +34,14 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
         className={cn(
           'hidden fixed inset-0 top-16 bg-black/25',
           isOpen && 'block',
-          'tablet:flex items-center gap-4'
+          'tablet:static tablet:bg-transparent tablet:flex items-center gap-4'
         )}
       >
-        <Navbar className={cn('bg-[#ebebeb] flex-col px-6')} />
+        <Navbar className={cn('bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0')} />
         <Link
           href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
           target="_blank"
-          className="hidden tablet:block py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
+          className="hidden tablet:block shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
         >
           Download Cronus
         </Link>
