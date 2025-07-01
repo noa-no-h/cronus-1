@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import type { TimeBlock } from '../lib/dayTimelineHelpers'
 import { trpc } from '../utils/trpc'
+import { toast } from './use-toast'
 
 interface UseManualEntryProps {
   baseDate: Date
@@ -88,10 +89,12 @@ export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) 
 
   const handleModalDelete = (entryId: string) => {
     if (!token) return
-    if (window.confirm('Are you sure you want to delete this entry?')) {
-      deleteManualEntry.mutate({ token, id: entryId })
-      handleModalClose()
-    }
+    deleteManualEntry.mutate({ token, id: entryId })
+    handleModalClose()
+    toast({
+      title: 'Entry deleted successfully',
+      description: 'The entry has been deleted successfully'
+    })
   }
 
   const handleSelectManualEntry = (entry: TimeBlock) => {

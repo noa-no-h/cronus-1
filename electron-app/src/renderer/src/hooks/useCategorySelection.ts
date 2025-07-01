@@ -105,6 +105,7 @@ export const useCategorySelection = ({
         setHighlightedIndex((prev) => (prev - 1 + itemsCount) % itemsCount)
       } else if (e.key === 'Enter') {
         e.preventDefault()
+        e.stopPropagation()
         if (highlightedIndex >= 0) {
           const historyCount = historyResults?.length || 0
           const userCategoriesCount = searchResults.length
@@ -130,6 +131,7 @@ export const useCategorySelection = ({
     } else {
       if (e.key === 'Enter') {
         e.preventDefault()
+        e.stopPropagation()
         onSubmit()
       }
     }
