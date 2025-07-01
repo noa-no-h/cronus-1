@@ -84,12 +84,13 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
       AutoScroll({
         speed: 1,
         startDelay: 1000,
-        stopOnInteraction: true,
+        stopOnInteraction: false,
         stopOnMouseEnter: true,
         playOnInit: true,
       }),
     ]
   );
+
 
   return (
     <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
