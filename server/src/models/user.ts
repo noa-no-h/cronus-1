@@ -49,8 +49,8 @@ const userSchema = new mongoose.Schema({
     calendarZoomLevel: {
       type: Number,
       default: 60, // Default hour height in pixels
-      min: 40,
-      max: 120,
+      min: 10,
+      max: 200,
     },
     theme: {
       type: String,

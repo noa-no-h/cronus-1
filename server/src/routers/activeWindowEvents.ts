@@ -56,9 +56,11 @@ export const activeWindowEventsRouter = router({
     try {
       const newEvent = new ActiveWindowEventModel(eventToSave);
 
-      console.log(
-        `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent: ${newEvent.ownerName || newEvent.title}`
-      );
+      // console.log(
+      //   `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent ownerName: ${newEvent.ownerName} || newEvent title: ${newEvent.title}`
+      // );
+
+      console.log('newEvent in create activeWindowEventsRouter', newEvent);
 
       await newEvent.save();
       return newEvent.toObject() as ActiveWindowEvent;

@@ -20,7 +20,12 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
       )}
       {...props}
     >
-      <div className={cn("tablet:w-full tablet:flex tablet:justify-between tablet:items-center","desktop:w-120 desktop:flex-col desktop:items-start")}>
+      <div
+        className={cn(
+          'tablet:w-full tablet:flex tablet:justify-between tablet:items-center',
+          'desktop:w-120 desktop:flex-col desktop:items-start'
+        )}
+      >
         <div>
           <div className="flex items-center gap-2">
             <Logo className="w-[29px]" />
@@ -49,27 +54,32 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
       </div>
 
-      <div className={cn("hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm","desktop:justify-end desktop:[&>div]:w-[120px]")}>
+      <div
+        className={cn(
+          'hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm',
+          'desktop:justify-end desktop:[&>div]:w-[120px]'
+        )}
+      >
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">PRODUCT</h5>
-          <Link href={'/pricing'}>Pricing</Link>
-          <Link href={'/docs'}>Docs</Link>
+          {/* <Link href={'/pricing'}>Pricing</Link> */}
+          {/* <Link href={'/docs'}>Docs</Link> */}
         </div>
 
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">RESOURCES</h5>
-          <Link href={'/audit-report'}>Audit Report</Link>
-          <Link href={'/changelog'}>Changelog</Link>
+          {/* <Link href={'/audit-report'}>Audit Report</Link> */}
+          {/* <Link href={'/changelog'}>Changelog</Link> */}
           <Link href={'/blog'}>Blog</Link>
-          <Link href={'/faqs'}>FAQS</Link>
-          <Link href={'/press-kit'}>Press Kit</Link>
+          {/* <Link href={'/faqs'}>FAQS</Link> */}
+          {/* <Link href={'/press-kit'}>Press Kit</Link> */}
         </div>
 
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">COMPANY</h5>
-          <Link href={'/about'}>About us</Link>
-          <Link href={'/privacy'}>Privacy Policy</Link>
-          <Link href={'/contact'}>Contact us</Link>
+          {/* <Link href={'/about'}>About us</Link> */}
+          {/* <Link href={'/privacy'}>Privacy Policy</Link> */}
+          {/* <Link href={'/contact'}>Contact us</Link> */}
           <Link href={'/blog'}>Blog</Link>
         </div>
       </div>
