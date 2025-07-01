@@ -3,8 +3,6 @@ import type { ComponentProps } from "react";
 export function LeftFrame(props: ComponentProps<'svg'>) {
   return (
     <svg
-      width={452}
-      height={407}
       viewBox="0 0 452 407"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

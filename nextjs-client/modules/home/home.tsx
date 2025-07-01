@@ -10,9 +10,9 @@ import { TestimonialsSection } from './testimonials-section';
 
 export function Home() {
   return (
-    <main>
-      <Header className="h-[90px] bg-[#ebebeb]" />
-      <HeroSection className="pt-[90px]" />
+    <main className='overflow-hidden'>
+      <Header className=" bg-[#ebebeb]" />
+      <HeroSection />
       <MarqueeSection className="h-[140px]" />
       <ShowcaseSection />
       <TestimonialsSection />

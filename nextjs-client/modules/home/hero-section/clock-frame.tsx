@@ -1,8 +1,6 @@
 import * as React from "react";
 export const ClockFrame = (props: React.ComponentProps<'svg'>) => (
   <svg
-    width={524}
-    height={140}
     viewBox="0 0 524 140"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

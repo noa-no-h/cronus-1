@@ -3,8 +3,6 @@ import type { ComponentProps } from 'react';
 export function Circle(props: ComponentProps<'svg'>) {
   return (
     <svg
-      width="1172"
-      height="401"
       viewBox="0 0 1172 401"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

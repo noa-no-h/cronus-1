@@ -11,6 +11,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
         'fixed inset-x-0 top-0 z-50 bg-white',
         'flex items-center justify-between',
         'px-12',
+        "h-16 tablet:h-[90px]",
         className
       )}
       {...props}
@@ -19,7 +20,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
         <Logo className="w-[29px]" />
         <TextLogo className="w-[114px] text-[#36168D]" />
       </div>
-      <div className="flex items-center gap-4">
+      <div className="hidden tablet:flex items-center gap-4">
         <Navbar />
         <Link
           href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
