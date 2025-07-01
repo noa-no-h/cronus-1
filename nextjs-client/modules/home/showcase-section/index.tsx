@@ -40,7 +40,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           </p>
         </div>
         <div className="relative tablet:w-full desktop:w-[600px]">
-          <TimeFrame className='w-[358px]' />
+          <TimeFrame className='w-full' />
           <AppsFrame
             className={cn('absolute','w-[320px] top-[60px] left-[-54px]', 'tablet:w-[440px] tablet:top-[116px] tablet:left-[-84px] ')}
           />
