@@ -11,11 +11,11 @@ import { RightFrame } from './right-frame';
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section className={cn('bg-[#ebebeb] relative overflow-hidden',"pt-[62px] tablet:pt-[114px]", className)} {...props}>
-      <div className="absolute inset-x-0 top-[160px] tablet:top-[128px]">
+      <div className="absolute inset-x-0 top-[160px] tablet:top-[128px] desktop:top-[100px]">
         <Circle className="w-[722px] tablet:w-[1172px] absolute left-1/2 -translate-x-1/2" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px]">
+      <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">
         <TextLogo className="w-[150px] tablet:w-[200px] text-black" />
         <p className={cn("w-[358px] tablet:w-[474px]","font-medium text-sm tablet:text-2xl tracking-[-3%] text-center text-black")}>
           Understand where your time went and reduce distractions.
@@ -37,7 +37,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
             className={cn(
               'absolute w-[324px] bottom-[94px] right-[-24px]',
               'tablet:w-[460px] tablet:bottom-[34px] tablet:right-[6px]',
-              'desktop:w-[520px] desktop:top-[184px] desktop:right-[-90px]'
+              'desktop:w-[520px] desktop:bottom-[88px] desktop:right-[184px]'
             )}
           />
         </div>
