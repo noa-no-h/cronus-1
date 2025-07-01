@@ -68,3 +68,6 @@ build-assets/
 .next
 *.tsbuildinfo
 next-env.d.ts
+
+# NextJS client build output
+nextjs-client/out/
