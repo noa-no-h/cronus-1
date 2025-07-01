@@ -12,20 +12,21 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
     <footer
       className={cn(
         'bg-[#f4f4f4] text-[#242437]',
-        'flex justify-center items-center gap-[100px]',
-        'pt-10 pb-20',
+        'tablet:flex justify-center items-center gap-[100px]',
+        'py-14 px-4 tablet:px-0',
+        'tablet:pt-10 tablet:pb-20',
         className
       )}
       {...props}
     >
-      <div className="w-120">
+      <div className="tablet:w-120">
         <div className="flex items-center gap-2">
           <Logo className="w-[29px]" />
           <TextLogo className="w-[114px] text-[#36168D]" />
         </div>
         <p className="text-[#242437CC] text-sm mt-3">AI-Powered, Efficiency Revolution</p>
 
-        <div className="flex gap-6 mt-12 text-[#242437]">
+        <div className="flex gap-6 mt-8 tablet:mt-12 text-[#242437]">
           <Link href={'#'}>
             <GitHub className="size-5" />
           </Link>
@@ -40,10 +41,10 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
           </Link>
         </div>
 
-        <div className="mt-12">Cronus © {new Date().getFullYear()}</div>
+        <div className="mt-5.5 tablet:mt-12">Cronus © {new Date().getFullYear()}</div>
       </div>
 
-      <div className="flex gap-[100px] text-[#242437CC] text-sm">
+      <div className="hidden tablet:flex gap-[100px] text-[#242437CC] text-sm">
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">PRODUCT</h5>
           <Link href={'/pricing'}>Pricing</Link>
