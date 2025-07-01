@@ -7,68 +7,68 @@ import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
   {
-    name: 'Sarah Chen',
-    title: 'Product Manager',
+    name: '@productivemaya',
+    title: 'Content Creator',
     avatar:
-      'https://images.unsplash.com/photo-1494790108755-2616b612b732?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&h=150&fit=crop&crop=center',
     content:
-      'This app transformed my daily productivity. I finally have a clear view of what I accomplish each day and it keeps me motivated.',
+      'This app completely changed how I track content creation! Now I can see exactly what I accomplished each day and share real progress with my audience.',
   },
   {
-    name: 'Alex Rodriguez',
-    title: 'Software Developer',
+    name: 'Alex Chen',
+    title: 'Software Engineer',
     avatar:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     content:
-      'The daily reflection feature is incredible. It helps me celebrate small wins and stay focused on what really matters.',
+      'Perfect for documenting my coding journey. The daily reflection helps me stay motivated during tough debugging sessions.',
   },
   {
-    name: 'Emily Johnson',
-    title: 'Marketing Director',
+    name: '@daily_grind_emily',
+    title: 'Lifestyle Influencer',
     avatar:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1575936123452-b67c3203c357?w=150&h=150&fit=crop&crop=center',
     content:
-      "I love how simple yet powerful this tool is. It's become an essential part of my evening routine to track my progress.",
+      'I love sharing my daily wins with followers! This tool makes it so easy to track everything from workouts to business goals.',
   },
   {
     name: 'David Kim',
     title: 'Freelance Designer',
     avatar:
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=150&h=150&fit=crop&crop=center',
     content:
-      "As a freelancer, this app helps me stay accountable and shows clients exactly what I've accomplished each day.",
+      'Game-changer for client work! I can show exactly what I delivered each day, which has improved my client relationships tremendously.',
   },
   {
-    name: 'Maria Santos',
-    title: 'Project Coordinator',
+    name: '@techreviewsarah',
+    title: 'YouTuber',
     avatar:
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=150&h=150&fit=crop&crop=center',
     content:
-      'The weekly summaries give me such a sense of accomplishment. I can see patterns in my productivity and improve over time.',
+      'Essential for tracking my video production pipeline. From scripting to editing, I can see my progress and plan better content schedules.',
   },
   {
-    name: 'Michael Brown',
+    name: 'Marcus Thompson',
     title: 'Startup Founder',
     avatar:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     content:
-      "This simple tool has become crucial for my team's standups. Everyone knows exactly what they achieved yesterday.",
+      'This simple tool revolutionized our team standups. Everyone comes prepared knowing exactly what they accomplished yesterday.',
   },
   {
-    name: 'Lisa Wang',
-    title: 'UX Researcher',
+    name: '@minimal_lisa',
+    title: 'TikTok Creator',
     avatar:
-      'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=150&h=150&fit=crop&crop=center',
     content:
-      'I was skeptical at first, but tracking daily achievements has genuinely improved my work satisfaction and motivation.',
+      'Perfect for tracking my content creation goals! I can see patterns in my most productive days and optimize my posting schedule.',
   },
   {
-    name: 'James Wilson',
-    title: 'Data Analyst',
+    name: 'Jordan Rivera',
+    title: 'Data Scientist',
     avatar:
-      'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=150&h=150&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1516110833967-0b5716ca1387?w=150&h=150&fit=crop&crop=center',
     content:
-      "The insights from my daily logs help me understand my productivity patterns. It's like having a personal coach.",
+      'The insights from tracking daily achievements are incredible. It feels like having analytics for my personal productivity.',
   },
 ];
 
