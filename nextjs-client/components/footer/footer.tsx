@@ -13,13 +13,14 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
       className={cn(
         'bg-[#f4f4f4] text-[#242437]',
         'tablet:flex tablet:justify-center tablet:items-center tablet:gap-[100px] tablet:flex-col-reverse',
-        'py-14 px-4 tablet:px-12',
+        'desktop:flex-row desktop:items-start',
+        'py-14 px-4 tablet:px-12 desktop:px-[180px]',
         'tablet:pt-10 tablet:pb-20',
         className
       )}
       {...props}
     >
-      <div className="desktop:w-120 tablet:w-full tablet:flex tablet:justify-between tablet:items-center">
+      <div className={cn("tablet:w-full tablet:flex tablet:justify-between tablet:items-center","desktop:w-120 desktop:flex-col desktop:items-start")}>
         <div>
           <div className="flex items-center gap-2">
             <Logo className="w-[29px]" />
@@ -28,7 +29,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
           <p className="text-[#242437CC] text-sm mt-3">AI-Powered, Efficiency Revolution</p>
         </div>
 
-        <div className='tablet:flex tablet:flex-col tablet:items-end'>
+        <div className={cn('tablet:flex tablet:flex-col tablet:items-end desktop:block')}>
           <div className={cn('flex gap-6 mt-8 tablet:mt-0 desktop:mt-12 text-[#242437]')}>
             <Link href={'#'}>
               <GitHub className="size-5" />
@@ -48,7 +49,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
       </div>
 
-      <div className="hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm">
+      <div className={cn("hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm","desktop:justify-end desktop:[&>div]:w-[120px]")}>
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">PRODUCT</h5>
           <Link href={'/pricing'}>Pricing</Link>

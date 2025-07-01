@@ -31,7 +31,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <Link
           href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
           target="_blank"
-          className={cn("mt-[30px] tablet:mt-4","py-2.5 px-6", "rounded-md bg-[#242437]","font-semibold text-sm text-white")}
+          className={cn("mt-[30px] tablet:mt-4 desktop:mt-7","py-2.5 px-6", "rounded-md bg-[#242437]","font-semibold text-sm text-white")}
         >
           Download Cronus
         </Link>
