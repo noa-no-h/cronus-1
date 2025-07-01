@@ -8,7 +8,7 @@ export const userRouter = router({
     .input(
       z.object({
         token: z.string(),
-        calendarZoomLevel: z.number().min(40).max(120).optional(),
+        calendarZoomLevel: z.number().optional(),
         theme: z.enum(['light', 'dark', 'system']).optional(),
         playDistractionSound: z.boolean().optional(),
         distractionSoundInterval: z.number().min(5).max(300).optional(),

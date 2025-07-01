@@ -173,7 +173,7 @@ const CalendarWidget = ({
   }
 
   const handleZoomIn = () => {
-    setHourHeight((prev) => Math.min(prev * 1.2, 7.5)) // max 120px -> 7.5rem
+    setHourHeight((prev) => Math.min(prev * 1.2, 12)) // max 120px -> 7.5rem
   }
 
   const handleZoomOut = () => {
