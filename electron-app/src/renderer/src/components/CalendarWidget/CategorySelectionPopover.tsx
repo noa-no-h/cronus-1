@@ -37,8 +37,6 @@ export const CategorySelectionPopover = ({
   onShowCategoryForm,
   onHighlight
 }: CategorySelectionPopoverProps) => {
-  console.log('historyResults in CategorySelectionPopover', historyResults)
-
   return (
     <PopoverContent
       className="w-[var(--radix-popover-trigger-width)] p-0"

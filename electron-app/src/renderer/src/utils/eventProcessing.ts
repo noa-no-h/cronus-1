@@ -29,17 +29,6 @@ export function generateProcessedEventBlocks(
     if (event.type === 'manual' && event.durationMs) {
       eventDurationMs = event.durationMs
       eventEndTime = new Date(eventStartTime.getTime() + eventDurationMs)
-
-      // Debug logging for manual entries
-      if (event.ownerName === 'Commuting' || event.ownerName.includes('test long event')) {
-        console.log('Processing manual entry in eventProcessing.ts:', {
-          name: event.ownerName,
-          originalDurationMs: event.durationMs,
-          calculatedDurationMs: eventDurationMs,
-          startTime: eventStartTime,
-          endTime: eventEndTime
-        })
-      }
     } else if (i < chronologicallySortedEvents.length - 1) {
       const nextEventTime = new Date(
         chronologicallySortedEvents[i + 1].timestamp as number
