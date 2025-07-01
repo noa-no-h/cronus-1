@@ -92,15 +92,15 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
   );
 
   return (
-    <section className={cn('bg-[#f4f4f4] py-[160px]', className)} {...props}>
-      <h3 className="font-semibold text-[#242437] text-[32px] tracking-[-3%] text-center">
+    <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
+      <h3 className="font-semibold text-[#242437] text-2xl tablet:text-[32px] tracking-[-3%] text-center">
         What our users are saying
       </h3>
 
-      <div className="mt-20 overflow-hidden px-4" ref={emblaRef}>
+      <div className="mt-20 overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="flex-none w-[460px] mr-4">
+            <div key={index} className="flex-none w-80 tablet:w-[460px] mr-4 tablet:mr-6">
               <TestimonialCard
                 name={testimonial.name}
                 title={testimonial.title}

@@ -1,42 +1,74 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
 import { Circle } from './circle';
-import clockFrame from './clock-frame.png';
-import leftFrame from './left-frame.png';
-import rightFrame from './right-frame.png';
+
+import { ClockFrame } from './clock-frame';
+import { LeftFrame } from './left-frame';
+import { RightFrame } from './right-frame';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
+  const handleDownload = () => {
+    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
+    window.location.href = '/get-started';
+  };
+
   return (
-    <section className={cn('bg-[#ebebeb] relative overflow-hidden', className)} {...props}>
-      <div className=" absolute inset-x-0">
-        <Circle className="w-full max-w-[1172px] mx-auto" />
+    <section
+      className={cn(
+        'bg-[#ebebeb] relative overflow-hidden',
+        'pt-[62px] tablet:pt-[114px]',
+        className
+      )}
+      {...props}
+    >
+      <div className="absolute inset-x-0 top-[160px] tablet:top-[128px] desktop:top-[100px]">
+        <Circle className="w-[722px] tablet:w-[1172px] absolute left-1/2 -translate-x-1/2" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px]">
-        <TextLogo className="w-[200px] text-black" />
-        <p className="font-medium text-2xl tracking-[-3%] text-center text-black">
-          Understand where your time went and <br /> reduce distractions.
-        </p>
-        <Link
-          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
-          target="_blank"
-          className="py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white"
+      <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">
+        <TextLogo className="w-[150px] tablet:w-[200px] text-black" />
+        <p
+          className={cn(
+            'w-[358px] tablet:w-[474px]',
+            'font-medium text-sm tablet:text-2xl tracking-[-3%] text-center text-black'
+          )}
         >
+          Understand where your time went and reduce distractions.
+        </p>
+        <button
+          onClick={handleDownload}
+          className="inline-flex items-center gap-2 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
+        >
+          <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
-        </Link>
+        </button>
       </div>
 
-      <div className="mt-[80px] flex justify-center">
-        <div className="relative top-[32px] inline-flex justify-center items-start gap-2 ">
-          <Image className="w-[452px]" src={leftFrame} alt="cronus example" />
-          <Image className="w-[419px]" src={rightFrame} alt="cronus example" />
-          <Image
-            className="w-[520px] absolute top-[184px] right-[-90px]"
-            src={clockFrame}
-            alt="cronus example"
+      <div className="mt-[68px] tablet:mt-[71px] flex justify-center">
+        <div
+          className={cn(
+            'relative inline-flex px-4',
+            'tablet:top-[34px] tablet:px-0 tablet:justify-center tablet:items-start tablet:gap-2',
+            'desktop:top-8'
+          )}
+        >
+          <LeftFrame className={cn('w-[358px] tablet:w-[354px] desktop:w-[452px]')} />
+          <RightFrame
+            className={cn(
+              'absolute w-[312px] bottom-[-170px] right-9',
+              'tablet:static tablet:w-[354px] desktop:w-[419px]'
+            )}
+          />
+          <ClockFrame
+            className={cn(
+              'absolute w-[324px] bottom-[94px] right-6',
+              'tablet:w-[460px] tablet:bottom-[34px] tablet:right-1.5',
+              'desktop:w-[520px] desktop:bottom-[84px] desktop:right-[-92px]'
+            )}
           />
         </div>
       </div>

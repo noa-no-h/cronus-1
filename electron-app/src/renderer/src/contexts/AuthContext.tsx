@@ -2,6 +2,7 @@ import { createContext, JSX, ReactNode, useContext, useEffect, useState } from '
 import { User } from 'shared/dist/types.js'
 import { exchangeGoogleCodeForTokens } from '../lib/auth'
 import { trpc } from '../utils/trpc'
+import { usePostHog } from 'posthog-js/react'
 
 interface AuthContextType {
   user: User | null
@@ -22,7 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken'))
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
-
+  const posthog = usePostHog()
   const {
     data: _fetchedUser,
     error: _userError,
@@ -79,6 +80,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
     if (userData) {
       setUser(userData)
+      posthog?.identify(userData.email, {
+        email: userData.email,
+        name: userData.name,
+        user_id: userData.id,
+        has_subscription: userData.hasSubscription,
+        has_completed_onboarding: userData.hasCompletedOnboarding
+      })
     }
     setJustLoggedIn(true)
     setIsLoading(false)
@@ -91,6 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     setToken(null)
     setUser(null)
     setIsLoading(false)
+
+    posthog?.reset()
+
     if (currentToken) {
       window.dispatchEvent(
         new StorageEvent('storage', {
