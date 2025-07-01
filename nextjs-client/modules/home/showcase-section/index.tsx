@@ -49,9 +49,9 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           <AppsFrame
             className={cn(
               'absolute',
-              'w-[320px] top-[60px] left-[-54px]',
+              'w-80 top-[60px] left-[-54px]',
               'tablet:w-[440px] tablet:top-[116px] tablet:left-[-84px]',
-              'desktop:w-[327px] desktop:top-[80px] desktop:left-[-100px]'
+              'desktop:w-[327px] desktop:top-20 desktop:left-[-100px]'
             )}
           />
         </div>
@@ -84,8 +84,8 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           <Tracker
             className={cn(
               'absolute',
-              'w-[370px] top-[36px] right-[-20px]',
-              'tablet:w-[760px] tablet:top-[60px] tablet:right-[-80px]',
+              'w-[370px] top-9 right-5',
+              'tablet:w-[760px] tablet:top-[60px] tablet:-right-20',
               "desktop:w-[480px] desktop:left-[114px]"
             )}
           />
