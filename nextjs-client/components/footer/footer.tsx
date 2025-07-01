@@ -20,11 +20,16 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
       )}
       {...props}
     >
-      <div className={cn("tablet:w-full tablet:flex tablet:justify-between tablet:items-center","desktop:w-120 desktop:flex-col desktop:items-start")}>
+      <div
+        className={cn(
+          'tablet:w-full tablet:flex tablet:justify-between tablet:items-center',
+          'desktop:w-120 desktop:flex-col desktop:items-start'
+        )}
+      >
         <div>
           <div className="flex items-center gap-2">
             <Logo className="w-[29px]" />
-            <TextLogo className="w-[114px] text-[#36168D]" />
+            <TextLogo className="w-[114px] text-black" />
           </div>
           <p className="text-[#242437CC] text-sm mt-3">AI-Powered, Efficiency Revolution</p>
         </div>
@@ -49,7 +54,12 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
       </div>
 
-      <div className={cn("hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm","desktop:justify-end desktop:[&>div]:w-[120px]")}>
+      <div
+        className={cn(
+          'hidden tablet:w-full tablet:flex tablet:justify-between gap-[100px] text-[#242437CC] text-sm',
+          'desktop:justify-end desktop:[&>div]:w-[120px]'
+        )}
+      >
         <div className="space-y-[15px] flex flex-col">
           <h5 className="text-[#24243766] font-semibold leading-[28px]">PRODUCT</h5>
           <Link href={'/pricing'}>Pricing</Link>
