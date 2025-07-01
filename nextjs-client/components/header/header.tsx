@@ -3,8 +3,6 @@ import { useState, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 // import { Navbar } from '../navbar/navbar';
-import { Close } from '../icons/close';
-import { Menu } from '../icons/menu';
 import DownloadButton from '../ui/download-button';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
@@ -26,9 +24,10 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
           <Logo className="w-[29px] text-black" />
           <TextLogo className="w-[114px] text-black" />
         </div>
-        <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
+        {/* Commented out burger menu until we have navigation content */}
+        {/* <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <Close /> : <Menu />}
-        </div>
+        </div> */}
       </div>
 
       <div
