@@ -17,7 +17,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
       <ul className={cn("mt-20", "grid", "desktop:gap-6 desktop:grid-cols-[repeat(2,528px)]", " tablet:grid-cols-1 tablet:px-16 tablet:gap-6")}>
         <li
           className={cn(
-            'pt-[54px]',
+            'desktop:pt-[54px] tablet:pt-16',
             'bg-[#FAFAFA] rounded-2xl overflow-hidden',
             'border-[0.5px] border-[#dfdfdf]'
           )}
