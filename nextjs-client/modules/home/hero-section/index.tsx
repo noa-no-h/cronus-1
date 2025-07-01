@@ -1,4 +1,5 @@
-import Link from 'next/link';
+'use client';
+
 import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
@@ -10,6 +11,11 @@ import { LeftFrame } from './left-frame';
 import { RightFrame } from './right-frame';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
+  const handleDownload = () => {
+    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
+    window.location.href = '/get-started';
+  };
+
   return (
     <section
       className={cn(
@@ -33,14 +39,13 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         >
           Understand where your time went and reduce distractions.
         </p>
-        <Link
-          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
-          target="_blank"
+        <button
+          onClick={handleDownload}
           className="inline-flex items-center gap-2 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
         >
           <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
-        </Link>
+        </button>
       </div>
 
       <div className="mt-[68px] tablet:mt-[71px] flex justify-center">

@@ -10,6 +10,12 @@ import Image from 'next/image';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleDownload = () => {
+    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
+    window.location.href = '/get-started';
+  };
+
   return (
     <header
       className={cn(
@@ -43,14 +49,13 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
             'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
         />
-        <Link
-          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
-          target="_blank"
+        <button
+          onClick={handleDownload}
           className="hidden tablet:flex items-center gap-2 shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
         >
           <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
-        </Link>
+        </button>
       </div>
     </header>
   );

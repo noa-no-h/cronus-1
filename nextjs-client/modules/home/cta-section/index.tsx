@@ -1,5 +1,6 @@
+'use client';
+
 import Image from 'next/image';
-import Link from 'next/link';
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import { cn } from '~/lib/cn';
@@ -7,6 +8,11 @@ import { Circle } from './circle';
 import hourglass from './hourglass.png';
 
 export function CTASection({ className, ...props }: ComponentProps<'section'>) {
+  const handleDownload = () => {
+    window.open('https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg', '_blank');
+    window.location.href = '/get-started';
+  };
+
   return (
     <>
       <section
@@ -28,9 +34,8 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <p className="text-sm tablet:text-xl tracking-[-3%] mt-[15px] text-black">
           The smartest way to stay focused.
         </p>
-        <Link
-          href="https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg"
-          target="_blank"
+        <button
+          onClick={handleDownload}
           className={cn(
             'mt-[30px] tablet:mt-4 desktop:mt-7',
             'inline-flex items-center gap-2 py-2.5 px-6',
@@ -40,7 +45,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         >
           <Image src="/apple.png" alt="Apple" width={16} height={16} />
           Download Cronus
-        </Link>
+        </button>
       </section>
     </>
   );
