@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import icon from '../assets/icon.png';
 import { APP_NAME } from '../lib/constants';
 
+// NOTE this is the old page which is currently not used. New: /nextjs-client/app/electron-callback/page.tsx
 const ElectronCallbackPage: React.FC = () => {
   const [status, setStatus] = useState('Processing login...');
   const location = useLocation();
