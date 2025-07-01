@@ -32,7 +32,10 @@ export const MoveSelectedActivitiesButton = ({
             onClick={() => handleMove(targetCat._id)}
             disabled={isMoving}
           >
-            {targetCat.name}
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: targetCat.color }} />
+              {targetCat.name}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
