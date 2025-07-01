@@ -2,7 +2,7 @@
 import { useState, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
-import { Navbar } from '../navbar/navbar';
+// import { Navbar } from '../navbar/navbar';
 import { Menu } from '../icons/menu';
 import { Close } from '../icons/close';
 import Image from 'next/image';
@@ -43,11 +43,11 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
           'tablet:static tablet:bg-transparent tablet:flex items-center gap-4'
         )}
       >
-        <Navbar
+        {/* <Navbar
           className={cn(
             'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
-        />
+        /> */}
         <button
           onClick={handleDownload}
           className="hidden tablet:flex items-center gap-2 shrink-0 py-2.5 px-6 bg-[#242437] rounded-md font-semibold text-sm text-white hover:bg-[#1a1a2e] transition-colors"
