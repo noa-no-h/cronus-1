@@ -61,7 +61,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
         <div
           className={cn(
             'text-[#242437] space-y-6',
-            'table:w-full',
+            'tablet:w-[682px]',
             'desktop:w-[480px] desktop:pl-8'
           )}
         >
