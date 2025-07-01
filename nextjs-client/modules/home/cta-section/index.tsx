@@ -18,7 +18,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         )}
         {...props}
       >
-        <CircleSvg className="absolute w-[1440px] pointer-events-none" />
+        <CircleSvg className="absolute w-[1440px] pointer-events-none hidden xl:block" />
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
           <TextLogo className="w-[150px] text-black" />

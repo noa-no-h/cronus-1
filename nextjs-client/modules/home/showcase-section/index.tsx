@@ -10,7 +10,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
       className={cn('bg-[#f4f4f4] space-y-[120px]', 'flex flex-col items-center', className)}
       {...props}
     >
-      <div className="flex items-center gap-20 ml-[-200px]">
+      <div className={cn("flex items-center gap-20", "flex-col-reverse  xl:ml-[-200px] sm:flex-row")}>
         <Image src={trackingPng} alt=" AI Time and distraction tracking" width={600} />
         <div className="text-[#242437] space-y-6 w-[480px]">
           <h3 className="font-semibold text-[32px] tracking-[-3%] whitespace-nowrap">
@@ -24,7 +24,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
         </div>
       </div>
 
-      <div className="flex items-center gap-20">
+      <div className={cn("flex items-center gap-20", "flex-col-reverse sm:flex-row")}>
         <div className="text-[#242437] space-y-6 w-[480px] pl-8">
           <h3 className="font-semibold text-[32px] tracking-[-3%]">
             Gamified productivity with Mini-Timer

@@ -11,7 +11,7 @@ import { RightFrame } from './right-frame';
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section className={cn('bg-[#ebebeb] relative overflow-hidden', className)} {...props}>
-      <div className=" absolute inset-x-0">
+      <div className=" absolute inset-x-0 px-10">
         <Circle className="w-full max-w-[1172px] mx-auto" />
       </div>
 
@@ -31,8 +31,8 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
 
       <div className="mt-[80px] flex justify-center">
         <div className="relative top-[32px] inline-flex justify-center items-start gap-2 ">
-          <LeftFrame className="w-[452px]" />
-          <RightFrame className="w-[419px]" />
+          <LeftFrame className=" md:w-[354px] xl:w-[452px]" />
+          <RightFrame className=" md:w-[354px] xl:w-[419px]" />
           <ClockFrame className="w-[520px] absolute top-[184px] right-[-90px]" />
         </div>
       </div>

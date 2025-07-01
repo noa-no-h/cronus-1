@@ -14,7 +14,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
     >
       <h3 className="font-semibold text-[32px] tracking-[-3%] text-center">Other features</h3>
 
-      <ul className="grid grid-cols-[repeat(2,528px)] gap-6 mt-20">
+      <ul className="grid grid-cols-1 md:grid-cols-[repeat(2,528px)] gap-6 mt-20">
         <li
           className={cn(
             'pt-[54px]',
