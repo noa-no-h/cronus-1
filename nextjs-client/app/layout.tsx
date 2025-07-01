@@ -10,6 +10,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Cronus',
   description: '',
+  viewport: 'width=device-width, initial-scale=1.0',
 };
 
 export default function RootLayout({

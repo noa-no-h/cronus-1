@@ -6,6 +6,11 @@
   --foreground: #171717;
 }
 
+@theme {
+  --breakpoint-tablet: 50.625rem;
+  --breakpoint-desktop: 90rem;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

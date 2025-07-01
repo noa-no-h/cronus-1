@@ -10,5 +10,6 @@
     "nextjs-client/app/globals.css": "nextjs-client/**",
     "electron-app/tailwind.config.js": "electron-app/**",
     "client/tailwind.config.js": "client/**"
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

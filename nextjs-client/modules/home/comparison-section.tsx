@@ -29,8 +29,9 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       >
         <div
           className={cn(
-            'w-[464px] bg-[#faf8ff] py-9 px-[56px] text-[#36168D]',
-            'border-r-[0.5px] border-[#DFDFDF]'
+            'bg-[#faf8ff] py-9 px-[56px] text-[#36168D]',
+            'border-r-[0.5px] border-[#DFDFDF]',
+            'w-[357px] xl:w-[464px]'
           )}
         >
           <h5 className="flex items-center gap-2">
@@ -63,7 +64,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             </li>
           </ul>
         </div>
-        <div className="w-[464px] py-9 px-[56px]">
+        <div className={cn('py-9 px-[56px]', 'w-[357px] xl:w-[464px]')}>
           <h5 className="font-semibold text-2xl tracking-[-3%]  leading-[32px]">
             Traditional Time Trackers
           </h5>
