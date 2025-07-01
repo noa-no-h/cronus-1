@@ -40,6 +40,7 @@ export interface DaySegment extends EnrichedTimelineSegment {
   height: number
   categoryName?: string
   isSuggestion?: boolean
+  groupedEvents?: DaySegment[]
 }
 
 const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', 'Arc']
@@ -129,6 +130,74 @@ function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { duratio
   return mergedSlots
 }
 
+function groupOverlappingCalendarSegments(calendarSegments: DaySegment[]): DaySegment[] {
+  if (calendarSegments.length === 0) {
+    return []
+  }
+
+  // Sort by start time
+  const sortedSegments = [...calendarSegments].sort(
+    (a, b) => a.startTime.getTime() - b.startTime.getTime()
+  )
+
+  const groups: DaySegment[][] = []
+  let currentGroup: DaySegment[] = [sortedSegments[0]]
+
+  for (let i = 1; i < sortedSegments.length; i++) {
+    const lastEventInGroup = currentGroup[currentGroup.length - 1]
+    const currentEvent = sortedSegments[i]
+
+    // Check for overlap with the last event in the group.
+    // Since they are sorted by start time, we only need to check against the last one.
+    if (currentEvent.startTime.getTime() < lastEventInGroup.endTime.getTime()) {
+      currentGroup.push(currentEvent)
+    } else {
+      groups.push(currentGroup)
+      currentGroup = [currentEvent]
+    }
+  }
+  groups.push(currentGroup)
+
+  return groups.map((group) => {
+    if (group.length === 1) {
+      return group[0]
+    }
+
+    const firstEvent = group[0]
+    const lastEvent = group[group.length - 1]
+
+    const groupStartTime = firstEvent.startTime
+    const groupEndTime = new Date(Math.max(...group.map((e) => e.endTime.getTime())))
+
+    const totalMinutesInDay = 24 * 60
+    const startOfDay = new Date(groupStartTime)
+    startOfDay.setHours(0, 0, 0, 0)
+
+    const startMinutes = (groupStartTime.getTime() - startOfDay.getTime()) / (1000 * 60)
+    const durationMinutes = (groupEndTime.getTime() - groupStartTime.getTime()) / (1000 * 60)
+
+    const timelineHeight = firstEvent.top / (firstEvent.topPercentage / 100)
+
+    const top = (startMinutes / totalMinutesInDay) * timelineHeight
+    const height = (durationMinutes / totalMinutesInDay) * timelineHeight
+
+    return {
+      ...firstEvent, // Use first event as a base
+      name: `${group.length} overlapping events`,
+      startTime: groupStartTime,
+      endTime: groupEndTime,
+      durationMs: groupEndTime.getTime() - groupStartTime.getTime(),
+      top,
+      height,
+      startMinute: startMinutes,
+      endMinute: startMinutes + durationMinutes,
+      topPercentage: (startMinutes / totalMinutesInDay) * 100,
+      heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
+      groupedEvents: group
+    }
+  })
+}
+
 export function getTimelineSegmentsForDay(
   timeBlocks: TimeBlock[],
   timelineHeight: number,
@@ -142,11 +211,12 @@ export function getTimelineSegmentsForDay(
   const totalMinutesInDay = 24 * 60
 
   // We need to process manual entries separately to ensure they render as single blocks
-  const manualEntries: DaySegment[] = []
+  const nonAggregatedSegments: DaySegment[] = []
   const otherBlocks: TimeBlock[] = []
+  const calendarBlocks: TimeBlock[] = []
 
   timeBlocks.forEach((block) => {
-    if (block.type === 'manual' || block.type === 'calendar') {
+    if (block.type === 'manual') {
       const startOfDay = new Date(block.startTime)
       startOfDay.setHours(0, 0, 0, 0)
       const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
@@ -154,7 +224,7 @@ export function getTimelineSegmentsForDay(
       const top = (startMinutes / totalMinutesInDay) * timelineHeight
       const height = (durationMinutes / totalMinutesInDay) * timelineHeight
 
-      manualEntries.push({
+      nonAggregatedSegments.push({
         ...block,
         startMinute: startMinutes,
         endMinute: startMinutes + durationMinutes,
@@ -165,13 +235,37 @@ export function getTimelineSegmentsForDay(
         height,
         isSuggestion: block.isSuggestion
       })
+    } else if (block.type === 'calendar') {
+      calendarBlocks.push(block)
     } else {
       otherBlocks.push(block)
     }
   })
 
+  let calendarSegments: DaySegment[] = calendarBlocks.map((block) => {
+    const startOfDay = new Date(block.startTime)
+    startOfDay.setHours(0, 0, 0, 0)
+    const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
+    const durationMinutes = block.durationMs / (1000 * 60)
+    const top = (startMinutes / totalMinutesInDay) * timelineHeight
+    const height = (durationMinutes / totalMinutesInDay) * timelineHeight
+    return {
+      ...block,
+      startMinute: startMinutes,
+      endMinute: startMinutes + durationMinutes,
+      topPercentage: (startMinutes / totalMinutesInDay) * 100,
+      heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
+      allActivities: { [block.name]: { duration: block.durationMs, block } },
+      top,
+      height,
+      isSuggestion: block.isSuggestion
+    }
+  })
+
+  calendarSegments = groupOverlappingCalendarSegments(calendarSegments)
+
   if (otherBlocks.length === 0) {
-    return manualEntries
+    return [...nonAggregatedSegments, ...calendarSegments].sort((a, b) => a.top - b.top)
   }
 
   // Step 1: Create slots for the entire day for non-manual blocks
@@ -249,7 +343,9 @@ export function getTimelineSegmentsForDay(
       }
     })
 
-  const finalSegments = [...aggregatedSegments, ...manualEntries].sort((a, b) => a.top - b.top)
+  const finalSegments = [...aggregatedSegments, ...nonAggregatedSegments, ...calendarSegments].sort(
+    (a, b) => a.top - b.top
+  )
 
   if (isToday && currentTime && finalSegments.length > 0) {
     const lastSegment = finalSegments[finalSegments.length - 1]

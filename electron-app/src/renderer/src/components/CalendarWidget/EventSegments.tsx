@@ -3,6 +3,7 @@ import React from 'react'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { type DaySegment } from '../../lib/dayTimelineHelpers'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
+import { MultiCalendarEventTooltip } from './MultiCalendarEventTooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
 import { TimelineSegmentTooltip } from './TimelineSegmentTooltip'
 
@@ -39,6 +40,8 @@ export const EventSegments = ({
         const isManual = segment.type === 'manual'
         const isCalendarEvent = type === 'calendar'
         const isSuggestion = segment.isSuggestion
+        const isGroupedCalendarEvent =
+          isCalendarEvent && !!segment.groupedEvents && segment.groupedEvents.length > 0
 
         const textColor = segment.categoryColor
           ? isDarkMode
@@ -138,6 +141,14 @@ export const EventSegments = ({
             )}
           </div>
         )
+
+        if (isGroupedCalendarEvent) {
+          return (
+            <MultiCalendarEventTooltip events={segment.groupedEvents!}>
+              {content}
+            </MultiCalendarEventTooltip>
+          )
+        }
 
         if (isCalendarEvent) {
           return (

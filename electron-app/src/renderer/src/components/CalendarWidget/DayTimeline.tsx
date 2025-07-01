@@ -522,6 +522,7 @@ const DayTimeline = ({
           timelineHeight={timelineHeight}
           isDragging={dragState.isDragging}
           isModalOpen={modalState.isOpen}
+          hasGoogleCalendarEvents={hasGoogleCalendarEvents}
         />
       </div>
       {modalState.isOpen && (
