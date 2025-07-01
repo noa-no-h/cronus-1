@@ -306,7 +306,7 @@ const DistractionStatusBar = ({
         </div>
         <div>
           <div
-            className={`text-sm font-semibold ${statusTextColor} whitespace-nowrap flex items-center gap-1 cursor-pointer hover:opacity-80`}
+            className={`text-sm select-none font-semibold ${statusTextColor} whitespace-nowrap flex items-center gap-1 cursor-pointer hover:opacity-80`}
             onClick={handleOpenRecategorize}
             title="Re-categorize this activity"
           >
