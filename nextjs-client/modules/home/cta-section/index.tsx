@@ -21,7 +21,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         {...props}
       >
         <div className="absolute inset-x-0 top-0">
-          <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2" />
+        <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2 pointer-events-none" />
         </div>
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
