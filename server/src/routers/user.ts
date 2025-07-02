@@ -122,4 +122,46 @@ export const userRouter = router({
 
       return user.userProjectsAndGoals || '';
     }),
+
+  getMultiPurposeApps: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decoded = verifyToken(input.token);
+      const userId = decoded.userId;
+
+      const user = await User.findById(userId).select('multiPurposeApps').lean();
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return user.multiPurposeApps || [];
+    }),
+
+  updateMultiPurposeApps: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        apps: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decoded = verifyToken(input.token);
+      const userId = decoded.userId;
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { multiPurposeApps: input.apps } },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+
+      return {
+        success: true,
+        multiPurposeApps: updatedUser.multiPurposeApps,
+      };
+    }),
 });

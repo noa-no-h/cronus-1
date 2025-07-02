@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
 import DistractionSoundSettings from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
+import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { Button } from './ui/button'
@@ -53,6 +54,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
           <GoalInputForm />
           <CategoryManagementSettings />
           <DistractionSoundSettings />
+          <MultiPurposeAppsSettings />
           <ThemeSwitcher />
           <PermissionsStatus />
           <OnboardingSection />

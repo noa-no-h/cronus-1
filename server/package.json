@@ -14,7 +14,8 @@
     "test:history": "bun test src/services/categorization/history.test.ts",
     "script:reset-activity-events": "bun run src/seeder/activity-events-reset.ts",
     "script:reset-activity-events:prod": "NODE_ENV=production bun run src/seeder/activity-events-reset.ts",
-    "test:suggestions": "bun test src/services/suggestions/suggestionGenerationService.test.ts"
+    "test:suggestions": "bun test src/services/suggestions/suggestionGenerationService.test.ts",
+    "test:multi-purpose-apps": "bun test src/services/categorization/multiPurposeApps.test.ts"
   },
   "keywords": [],
   "author": "",

@@ -59,6 +59,7 @@ export const authRouter = router({
             name: payload.name,
             googleId: payload.sub,
             picture: payload.picture,
+            multiPurposeApps: ['Mail', 'Beeper Desktop', 'WhatsApp', 'Notion', 'Slack'],
           });
 
           await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
@@ -324,6 +325,7 @@ export const authRouter = router({
             name: payload.name,
             googleId: payload.sub,
             picture: payload.picture,
+            multiPurposeApps: ['Mail', 'Beeper Desktop', 'WhatsApp', 'Notion', 'Slack'],
           });
           await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
         }
