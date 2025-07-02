@@ -76,24 +76,39 @@ export const CalendarWidgetHeader = ({
             <Button variant="outline" size="xs" onClick={handleNext} disabled={!canGoNext()}>
               <ChevronRight size={20} />
             </Button>
-            {width >= 900 ? (
-              width >= 1000 ? (
+            <div className="flex items-center gap-1 min-w-0">
+              {width >= 1000 ? (
                 <span className="text-sm text-muted-foreground font-medium">{fullDate}</span>
-              ) : (
+              ) : width >= 800 ? (
                 <span
                   className="text-xs text-muted-foreground font-medium px-1 py-0.5"
                   title={fullDate}
                 >
                   {compactDate}
                 </span>
-              )
-            ) : null}
-            {/* is today pill */}
-            {selectedDate.toDateString() === new Date().toDateString() && (
-              <span className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-muted/50 rounded-md">
-                Today
-              </span>
-            )}
+              ) : (
+                <span
+                  className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-muted/30 rounded text-center min-w-[60px]"
+                  title={fullDate}
+                >
+                  {viewMode === 'week'
+                    ? selectedDate.toLocaleDateString(undefined, {
+                        month: 'numeric',
+                        day: 'numeric'
+                      })
+                    : selectedDate.toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                </span>
+              )}
+
+              {selectedDate.toDateString() === new Date().toDateString() && (
+                <span className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md">
+                  Today
+                </span>
+              )}
+            </div>
           </div>
 
           {viewMode === 'day' && (
