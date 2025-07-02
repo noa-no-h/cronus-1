@@ -70,7 +70,6 @@ export const EventSegments = ({
 
         const content = (
           <div
-            key={segment._id || `${segment.startTime}-${segment.name}`}
             data-is-segment="true"
             className={clsx(
               'group transition-all overflow-hidden',
@@ -144,7 +143,10 @@ export const EventSegments = ({
 
         if (isGroupedCalendarEvent) {
           return (
-            <MultiCalendarEventTooltip events={segment.groupedEvents!}>
+            <MultiCalendarEventTooltip
+              key={segment._id || `${segment.startTime}-${segment.name}`}
+              events={segment.groupedEvents!}
+            >
               {content}
             </MultiCalendarEventTooltip>
           )
@@ -152,11 +154,23 @@ export const EventSegments = ({
 
         if (isCalendarEvent) {
           return (
-            <CalendarEventTooltip event={segment.originalEvent}>{content}</CalendarEventTooltip>
+            <CalendarEventTooltip
+              key={segment._id || `${segment.startTime}-${segment.name}`}
+              event={segment.originalEvent}
+            >
+              {content}
+            </CalendarEventTooltip>
           )
         }
 
-        return <TimelineSegmentTooltip segment={segment}>{content}</TimelineSegmentTooltip>
+        return (
+          <TimelineSegmentTooltip
+            key={segment._id || `${segment.startTime}-${segment.name}`}
+            segment={segment}
+          >
+            {content}
+          </TimelineSegmentTooltip>
+        )
       })}
     </>
   )
