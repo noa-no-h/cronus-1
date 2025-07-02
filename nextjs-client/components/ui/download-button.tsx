@@ -44,7 +44,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
       <button
         onClick={handleOpenModal}
         className={cn(
-          'inline-flex items-center gap-2 rounded-md font-semibold transition-colors',
+          'inline-flex cursor-pointer hover:scale-105 transition-all items-center gap-2 rounded-md font-semibold',
           sizeClasses[size],
           variantClasses[variant],
           className
