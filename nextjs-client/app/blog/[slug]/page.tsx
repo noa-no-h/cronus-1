@@ -4,6 +4,7 @@ import { Footer } from '~/components/footer';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getPostBySlug, getAllPosts } from '~/lib/blog';
+import BlogPostClient from './BlogPostClient';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -42,6 +43,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <main>
+      <BlogPostClient slug={slug} title={post.title} />
       <Header className="h-[90px] bg-white" />
 
       <article className="pt-[120px] pb-20 bg-white">
