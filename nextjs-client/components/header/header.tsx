@@ -4,6 +4,7 @@ import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 // import { Navbar } from '../navbar/navbar';
 import DownloadButton from '../ui/download-button';
+import Link from 'next/link';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,10 +21,10 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
       {...props}
     >
       <div className="flex items-center justify-between w-full tablet:w-auto">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Logo className="w-[29px] text-black" />
           <TextLogo className="w-[114px] text-black" />
-        </div>
+        </Link>
         {/* Commented out burger menu until we have navigation content */}
         {/* <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <Close /> : <Menu />}
