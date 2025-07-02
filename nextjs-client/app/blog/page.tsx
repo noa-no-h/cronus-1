@@ -3,6 +3,7 @@ import { Header } from '~/components/header';
 import { Footer } from '~/components/footer';
 import Link from 'next/link';
 import { getAllPosts } from '~/lib/blog';
+import BlogIndexClient from './BlogIndexClient';
 
 export const metadata: Metadata = {
   title: 'Blog | Cronus',
@@ -14,6 +15,7 @@ export default function BlogPage() {
 
   return (
     <main>
+      <BlogIndexClient />
       <Header className="h-[90px] bg-white" />
 
       <section className="pt-[120px] pb-20 bg-white">
