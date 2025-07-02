@@ -58,11 +58,12 @@ const arePropsEqual = (
     p.ownerName === n.ownerName &&
     p.title === n.title &&
     p.url === n.url &&
-    p.content === n.content && // Assuming content changes are also significant for display
+    p.content === n.content &&
     p.type === n.type &&
     p.browser === n.browser &&
     prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
     prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog &&
+    prevProps.onSettingsClick === nextProps.onSettingsClick &&
     prevProps.isSettingsOpen === nextProps.isSettingsOpen
   )
 }
