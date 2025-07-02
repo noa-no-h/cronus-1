@@ -1,6 +1,7 @@
 import { ActiveWindowDetails } from '../../../../shared/types';
 import { ActiveWindowEventModel } from '../../models/activeWindowEvent';
 import { CategoryModel } from '../../models/category';
+import { User as UserModel } from '../../models/user';
 
 const getProjectNameFromTitle = (title: string): string | null => {
   const parts = title.split('—');
@@ -15,8 +16,18 @@ export async function checkActivityHistory(
   activeWindow: Pick<ActiveWindowDetails, 'ownerName' | 'url' | 'type' | 'title'>
 ): Promise<string | null> {
   try {
-    const queryCondition: any = { userId };
     const { ownerName, url, type, title } = activeWindow;
+
+    // First, check if the app is in the user's multi-purpose list.
+    // If so, we want to force a re-categorization by the LLM.
+    if (ownerName) {
+      const user = await UserModel.findById(userId).select('multiPurposeApps').lean();
+      if (user?.multiPurposeApps?.includes(ownerName)) {
+        return null;
+      }
+    }
+
+    const queryCondition: any = { userId };
 
     // Windsurf doesn't put the project name in the title
     const isCodeEditor = (ownerName: string) =>

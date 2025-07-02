@@ -78,6 +78,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  multiPurposeApps: {
+    type: [String],
+    default: [],
+  },
 });
 
 export const User = mongoose.model('User', userSchema);
