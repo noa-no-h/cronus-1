@@ -241,6 +241,7 @@ export function MainAppContent() {
       // Enable permission requests now that onboarding is complete
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
+    trpcUtils.user.getUserProjectsAndGoals.invalidate()
   }
 
   const handleResetOnboarding = () => {
