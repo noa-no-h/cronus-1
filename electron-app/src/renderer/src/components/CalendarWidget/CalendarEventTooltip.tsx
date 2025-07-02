@@ -70,7 +70,7 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
     <Tooltip delayDuration={200}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent side="right" align="start" sideOffset={10}>
-        <div>
+        <div className="max-w-80 max-h-96 overflow-hidden">
           {/* Header with Google Calendar icon and title */}
           <div className="flex items-start gap-3">
             <img
@@ -78,12 +78,12 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
               alt="Google Calendar"
               className="w-5 h-5 mt-0.5 flex-shrink-0"
             />
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-tight break-words">
                 {event.summary || event.title}
               </h3>
               {event.organizer && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
                   by {event.organizer.displayName || event.organizer.email}
                 </p>
               )}
@@ -92,14 +92,14 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
 
           {/* Google Meet section */}
           {isGoogleMeet() && (
-            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+            <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md mt-3">
               <img src={GOOGLE_MEET_ICON} alt="Google Meet" className="w-4 h-4 flex-shrink-0" />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                   Google Meet
                 </span>
                 {meetingCode && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 font-mono">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 font-mono truncate">
                     {meetingCode}
                   </p>
                 )}
@@ -107,7 +107,7 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
               {meetingLink && (
                 <button
                   onClick={() => window.api?.openExternalUrl(meetingLink)}
-                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
+                  className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors flex-shrink-0"
                 >
                   Join
                 </button>
@@ -117,9 +117,9 @@ export const CalendarEventTooltip = ({ children, event }: CalendarEventTooltipPr
 
           {/* Description */}
           {event.description && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
               <div
-                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert prose-sm"
+                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed prose dark:prose-invert prose-sm max-h-32 overflow-y-auto break-words"
                 dangerouslySetInnerHTML={{ __html: event.description }}
                 onClick={handleDescriptionClick}
               />
