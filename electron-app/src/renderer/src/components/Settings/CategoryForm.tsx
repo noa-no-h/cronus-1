@@ -113,7 +113,7 @@ export function CategoryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-card rounded-lg shadow-md space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <Label htmlFor="categoryName" className="block text-sm font-medium text-foreground mb-1">
           Name <span className="text-red-500">*</span>

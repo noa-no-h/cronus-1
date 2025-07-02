@@ -1,9 +1,11 @@
+import { PlusCircle } from 'lucide-react'
 import { Category as SharedCategory } from 'shared'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
 
@@ -11,12 +13,14 @@ interface MoveSelectedActivitiesButtonProps {
   otherCategories: SharedCategory[]
   handleMove: (targetCategoryId: string) => void
   isMoving: boolean
+  onAddNewCategory: () => void
 }
 
 export const MoveSelectedActivitiesButton = ({
   otherCategories,
   handleMove,
-  isMoving
+  isMoving,
+  onAddNewCategory
 }: MoveSelectedActivitiesButtonProps) => {
   return (
     <DropdownMenu>
@@ -38,6 +42,13 @@ export const MoveSelectedActivitiesButton = ({
             </span>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onAddNewCategory}>
+          <span className="flex items-center gap-2">
+            <PlusCircle className="w-4 h-4" />
+            Create new category
+          </span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

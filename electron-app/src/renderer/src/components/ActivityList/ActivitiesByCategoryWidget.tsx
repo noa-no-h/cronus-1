@@ -12,7 +12,9 @@ import {
 import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
+import { CategoryForm } from '../Settings/CategoryForm'
 import { Card, CardContent } from '../ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
 import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
 import { ActivityList } from './ActivityList'
 import { CategorySectionHeader } from './CategorySectionHeader'
@@ -52,10 +54,14 @@ const ActivitiesByCategoryWidget = ({
     showMore
   )
   const [isBulkMoving, setIsBulkMoving] = useState(false)
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false)
 
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
   const categories = categoriesData as SharedCategory[] | undefined
+
+  const utils = trpc.useUtils()
+  const createCategoryMutation = trpc.category.createCategory.useMutation()
 
   const updateCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
@@ -82,6 +88,38 @@ const ActivitiesByCategoryWidget = ({
 
   const bulkUpdateCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation()
+
+  const handleSaveNewCategory = async (
+    data: Omit<SharedCategory, '_id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ) => {
+    if (!token) return
+    try {
+      const newCategory = (await createCategoryMutation.mutateAsync({
+        ...data,
+        token
+      })) as SharedCategory
+      await utils.category.getCategories.invalidate({ token: token || '' })
+      setIsCreateCategoryOpen(false)
+      toast({
+        title: 'Category Created',
+        description: `Category "${data.name}" has been created.`
+      })
+
+      // If there are selected activities, move them to the new category
+      const selectedActivitiesToMove = processedData
+        .flatMap((cat) => cat.activities)
+        .filter((act) => selectedActivities.has(`${act.identifier}-${act.name}`))
+      if (selectedActivitiesToMove.length > 0) {
+        handleMoveMultipleActivities(selectedActivitiesToMove, newCategory._id)
+      }
+    } catch (err) {
+      toast({
+        title: 'Error creating category',
+        description: (err as Error).message,
+        variant: 'destructive'
+      })
+    }
+  }
 
   const handleMoveMultipleActivities = async (
     activitiesToMove: ActivityItem[],
@@ -133,6 +171,11 @@ const ActivitiesByCategoryWidget = ({
     } finally {
       setIsBulkMoving(false)
     }
+  }
+
+  const handleAddNewCategory = () => {
+    setOpenDropdownActivityKey(null) // close any open dropdowns
+    setIsCreateCategoryOpen(true)
   }
 
   useEffect(() => {
@@ -231,6 +274,7 @@ const ActivitiesByCategoryWidget = ({
                   isMovingActivity={isBulkMoving}
                   handleMoveSelected={handleMoveSelected}
                   handleClearSelection={clearSelection}
+                  onAddNewCategory={handleAddNewCategory}
                 />
                 <ActivityList
                   activities={category.activities}
@@ -255,6 +299,7 @@ const ActivitiesByCategoryWidget = ({
                   endDateMs={endDateMs}
                   selectedActivities={selectedActivities}
                   onSelectActivity={handleSelectActivity}
+                  onAddNewCategory={handleAddNewCategory}
                 />
               </div>
             )
@@ -265,67 +310,86 @@ const ActivitiesByCategoryWidget = ({
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-4 px-2 pt-2 pb-3">
-        <TimeRangeSelectionInfo
-          selectedHour={selectedHour}
-          onHourSelect={onHourSelect}
-          selectedDay={selectedDay}
-          onDaySelect={onDaySelect}
-        />
-        {processedData.map((category) => {
-          if (category.totalDurationMs === 0) return null
+    <>
+      <Dialog open={isCreateCategoryOpen} onOpenChange={setIsCreateCategoryOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Category</DialogTitle>
+            <DialogDescription>
+              Create a new category to organize your activities.
+            </DialogDescription>
+          </DialogHeader>
+          <CategoryForm
+            onSave={handleSaveNewCategory}
+            onCancel={() => setIsCreateCategoryOpen(false)}
+            isSaving={createCategoryMutation.isLoading}
+          />
+        </DialogContent>
+      </Dialog>
+      <Card>
+        <CardContent className="space-y-4 px-2 pt-2 pb-3">
+          <TimeRangeSelectionInfo
+            selectedHour={selectedHour}
+            onHourSelect={onHourSelect}
+            selectedDay={selectedDay}
+            onDaySelect={onDaySelect}
+          />
+          {processedData.map((category) => {
+            if (category.totalDurationMs === 0) return null
 
-          const isAnyActivitySelected = category.activities.some((act) =>
-            selectedActivities.has(`${act.identifier}-${act.name}`)
-          )
-          const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
-          const selectedActivitiesInThisCategory = category.activities.filter((act) =>
-            selectedActivities.has(`${act.identifier}-${act.name}`)
-          )
-          const handleMoveSelected = (targetCategoryId: string) => {
-            handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
-          }
+            const isAnyActivitySelected = category.activities.some((act) =>
+              selectedActivities.has(`${act.identifier}-${act.name}`)
+            )
+            const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
+            const selectedActivitiesInThisCategory = category.activities.filter((act) =>
+              selectedActivities.has(`${act.identifier}-${act.name}`)
+            )
+            const handleMoveSelected = (targetCategoryId: string) => {
+              handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
+            }
 
-          return (
-            <div key={category.id}>
-              <CategorySectionHeader
-                category={category}
-                isAnyActivitySelected={isAnyActivitySelected}
-                otherCategories={otherCategories}
-                isMovingActivity={isBulkMoving}
-                handleMoveSelected={handleMoveSelected}
-                handleClearSelection={clearSelection}
-              />
-              <ActivityList
-                activities={category.activities}
-                currentCategory={category}
-                allUserCategories={categories}
-                handleMoveActivity={handleMoveActivity}
-                isMovingActivity={updateCategoryMutation.isLoading}
-                faviconErrors={faviconErrors}
-                handleFaviconError={handleFaviconError}
-                isShowMore={!!showMore[category.id]}
-                onToggleShowMore={() =>
-                  setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
-                }
-                hoveredActivityKey={hoveredActivityKey}
-                setHoveredActivityKey={setHoveredActivityKey}
-                openDropdownActivityKey={openDropdownActivityKey}
-                setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-                selectedHour={selectedHour}
-                selectedDay={selectedDay}
-                viewMode="day"
-                startDateMs={startDateMs}
-                endDateMs={endDateMs}
-                selectedActivities={selectedActivities}
-                onSelectActivity={handleSelectActivity}
-              />
-            </div>
-          )
-        })}
-      </CardContent>
-    </Card>
+            return (
+              <div key={category.id}>
+                <CategorySectionHeader
+                  category={category}
+                  isAnyActivitySelected={isAnyActivitySelected}
+                  otherCategories={otherCategories}
+                  isMovingActivity={isBulkMoving}
+                  handleMoveSelected={handleMoveSelected}
+                  handleClearSelection={clearSelection}
+                  onAddNewCategory={handleAddNewCategory}
+                />
+                <ActivityList
+                  activities={category.activities}
+                  currentCategory={category}
+                  allUserCategories={categories}
+                  handleMoveActivity={handleMoveActivity}
+                  isMovingActivity={updateCategoryMutation.isLoading}
+                  faviconErrors={faviconErrors}
+                  handleFaviconError={handleFaviconError}
+                  isShowMore={!!showMore[category.id]}
+                  onToggleShowMore={() =>
+                    setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
+                  }
+                  hoveredActivityKey={hoveredActivityKey}
+                  setHoveredActivityKey={setHoveredActivityKey}
+                  openDropdownActivityKey={openDropdownActivityKey}
+                  setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+                  selectedHour={selectedHour}
+                  selectedDay={selectedDay}
+                  viewMode="day"
+                  startDateMs={startDateMs}
+                  endDateMs={endDateMs}
+                  selectedActivities={selectedActivities}
+                  onSelectActivity={handleSelectActivity}
+                  onAddNewCategory={handleAddNewCategory}
+                />
+              </div>
+            )
+          })}
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

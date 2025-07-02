@@ -14,6 +14,7 @@ interface CategorySectionHeaderProps {
   isMovingActivity?: boolean
   handleMoveSelected?: (targetCategoryId: string) => void
   handleClearSelection?: () => void
+  onAddNewCategory?: () => void
 }
 
 export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
@@ -23,14 +24,16 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
   otherCategories,
   isMovingActivity,
   handleMoveSelected,
-  handleClearSelection
+  handleClearSelection,
+  onAddNewCategory
 }) => {
   const showMoveButton =
     isAnyActivitySelected &&
     otherCategories &&
     otherCategories.length > 0 &&
     handleMoveSelected &&
-    isMovingActivity !== undefined
+    isMovingActivity !== undefined &&
+    onAddNewCategory
 
   const renderButtons = () => {
     if (!showMoveButton) return null
@@ -40,6 +43,7 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
           otherCategories={otherCategories}
           handleMove={handleMoveSelected}
           isMoving={isMovingActivity}
+          onAddNewCategory={onAddNewCategory}
         />
         <Button
           variant="ghost"

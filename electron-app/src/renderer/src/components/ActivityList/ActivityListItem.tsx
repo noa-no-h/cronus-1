@@ -28,6 +28,7 @@ interface ActivityListItemProps {
   viewMode: 'day' | 'week'
   startDateMs: number | null
   endDateMs: number | null
+  onAddNewCategory: () => void
 }
 
 export const ActivityListItem = ({
@@ -50,7 +51,8 @@ export const ActivityListItem = ({
   selectedDay,
   viewMode,
   startDateMs,
-  endDateMs
+  endDateMs,
+  onAddNewCategory
 }: ActivityListItemProps) => {
   const selectionKey = `${activity.identifier}-${activity.name}`
   const uniqueKey = `${currentCategory.id}-${activity.identifier}-${activity.name}`
@@ -160,6 +162,7 @@ export const ActivityListItem = ({
             setOpenDropdownActivityKey={setOpenDropdownActivityKey}
             activityKey={uniqueKey}
             setHoveredActivityKey={setHoveredActivityKey}
+            onAddNewCategory={onAddNewCategory}
           />
         ) : (
           <span className="text-sm text-muted-foreground">

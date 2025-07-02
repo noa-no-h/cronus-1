@@ -1,3 +1,4 @@
+import { PlusCircle } from 'lucide-react'
 import { Category as SharedCategory } from 'shared'
 import { getTimeRangeDescription } from '../../lib/activityMoving'
 import { ActivityItem } from '../../lib/activityProcessing'
@@ -6,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
@@ -24,6 +26,7 @@ interface MoveActivityButtonProps {
   setOpenDropdownActivityKey: (key: string | null) => void
   activityKey: string
   setHoveredActivityKey: (key: string | null) => void
+  onAddNewCategory: () => void
 }
 
 export const MoveActivityButton = ({
@@ -39,7 +42,8 @@ export const MoveActivityButton = ({
   openDropdownActivityKey,
   setOpenDropdownActivityKey,
   activityKey,
-  setHoveredActivityKey
+  setHoveredActivityKey,
+  onAddNewCategory
 }: MoveActivityButtonProps) => {
   if (otherCategories.length === 1) {
     return (
@@ -108,6 +112,18 @@ export const MoveActivityButton = ({
             </span>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.stopPropagation()
+            onAddNewCategory()
+          }}
+        >
+          <span className="flex items-center gap-2">
+            <PlusCircle className="w-4 h-4" />
+            Create new category
+          </span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

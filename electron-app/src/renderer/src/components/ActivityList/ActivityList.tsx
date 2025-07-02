@@ -26,6 +26,7 @@ interface ActivityListProps {
   endDateMs: number | null
   selectedActivities: Set<string>
   onSelectActivity: (activityKey: string, event: React.MouseEvent) => void
+  onAddNewCategory: () => void
 }
 
 export const ActivityList = ({
@@ -48,7 +49,8 @@ export const ActivityList = ({
   startDateMs,
   endDateMs,
   selectedActivities,
-  onSelectActivity
+  onSelectActivity,
+  onAddNewCategory
 }: ActivityListProps) => {
   const oneMinuteMs = 60 * 1000
   const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
@@ -104,6 +106,7 @@ export const ActivityList = ({
           viewMode={viewMode}
           startDateMs={startDateMs}
           endDateMs={endDateMs}
+          onAddNewCategory={onAddNewCategory}
         />
       )
     })
