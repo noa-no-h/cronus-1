@@ -5,5 +5,6 @@
 
 + (NSDictionary*)getChromeTabInfo;
 + (NSDictionary*)getSafariTabInfo;
++ (NSDictionary*)getArcTabInfo;
 
 @end 

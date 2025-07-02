@@ -23,7 +23,7 @@ export interface ActiveWindowDetails {
   id: number
   ownerName: string
   type: 'window' | 'browser'
-  browser: 'chrome' | 'safari'
+  browser: 'chrome' | 'safari' | 'arc'
   title: string
   url?: string
   content?: string

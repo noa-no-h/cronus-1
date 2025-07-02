@@ -13,7 +13,7 @@ const activeWindowEventInputSchema = z.object({
   windowId: z.number().optional(),
   ownerName: z.string(),
   type: z.enum(['window', 'browser', 'system']),
-  browser: z.enum(['chrome', 'safari']).optional().nullable(),
+  browser: z.enum(['chrome', 'safari', 'arc']).optional().nullable(),
   title: z.string(),
   url: z.string().optional().nullable(),
   content: z.string().optional().nullable(),

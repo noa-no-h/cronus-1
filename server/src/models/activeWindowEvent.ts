@@ -8,7 +8,7 @@ const activeWindowEventSchema = new Schema({
   windowId: { type: Number, required: false }, // Made optional for system events
   ownerName: { type: String, required: true },
   type: { type: String, required: true, enum: ['window', 'browser', 'system', 'manual'] },
-  browser: { type: String, enum: ['chrome', 'safari', null] },
+  browser: { type: String, enum: ['chrome', 'safari', 'arc', null] },
   title: { type: String, required: false },
   url: { type: String },
   content: { type: String },

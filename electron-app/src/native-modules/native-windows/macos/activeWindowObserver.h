@@ -4,12 +4,13 @@
 #include <Cocoa/Cocoa.h>
 #include <napi.h>
 #import "ScreenshotManager.h"
-#import "chromeTabTracking.h"
+#import "browserTabTracking.h"
+#import "sleepAndLockObserver.h"
 
 void initActiveWindowObserver(Napi::Env env, Napi::Function windowCallback);
 void stopActiveWindowObserver(Napi::Env env);
 
-@interface ActiveWindowObserver : NSObject<ScreenshotManagerDelegate, ChromeTabTrackingDelegate>
+@interface ActiveWindowObserver : NSObject <ScreenshotManagerDelegate, BrowserTabTrackingDelegate>
 - (id)init;
 - (NSDictionary*)getActiveWindow;
 - (void)cleanUp;

@@ -240,4 +240,75 @@
     return nil;
 }
 
++ (NSDictionary*)getArcTabInfo {
+    // Check if permission requests are enabled before proceeding
+    if (![PermissionManager shouldRequestPermissions]) {
+        MyLog(@"⚠️  Permission requests disabled - skipping Arc tab info gathering during onboarding");
+        return nil;
+    }
+    
+    // First try to get just the URL and title without JavaScript
+    NSString *basicScript = @"tell application \"Arc\"\n"
+                           "  try\n"
+                           "    set tabTitle to title of active tab of front window\n"
+                           "    set tabUrl to URL of active tab of front window\n"
+                           "    return tabUrl & \"|\" & tabTitle\n"
+                           "  on error errMsg\n"
+                           "    return \"ERROR|\" & errMsg\n"
+                           "  end try\n"
+                           "end tell";
+    
+    NSAppleScript *basicAppleScript = [[NSAppleScript alloc] initWithSource:basicScript];
+    NSDictionary *error = nil;
+    NSAppleEventDescriptor *basicResult = [basicAppleScript executeAndReturnError:&error];
+    
+    if (error) {
+        MyLog(@"Arc basic AppleScript error: %@", error);
+        [basicAppleScript release];
+        
+        // If this is the first time accessing Arc and permissions aren't granted,
+        // request Apple Events permission through our centralized system
+        if ([PermissionManager shouldRequestPermissions]) {
+            MyLog(@"🔑 Requesting Apple Events permission for Arc access");
+            [PermissionManager requestPermission:PermissionTypeAppleEvents completion:^(PermissionStatus status) {
+                MyLog(@"📋 Apple Events permission request completed with status: %ld", (long)status);
+            }];
+        }
+        
+        return nil;
+    }
+    
+    NSString *basicInfo = [basicResult stringValue];
+    if (!basicInfo || [basicInfo hasPrefix:@"ERROR|"]) {
+        MyLog(@"Arc basic script error or no result: %@", basicInfo);
+        [basicAppleScript release];
+        return nil;
+    }
+    
+    NSArray *basicComponents = [basicInfo componentsSeparatedByString:@"|"];
+    if (basicComponents.count < 2) {
+        MyLog(@"Invalid Arc basic info components");
+        [basicAppleScript release];
+        return nil;
+    }
+    
+    [basicAppleScript release];
+
+    // Create base info with URL and title
+    NSMutableDictionary *tabInfo = [@{
+        @"url": basicComponents[0],
+        @"title": basicComponents[1],
+        @"type": @"browser",
+        @"browser": @"arc",
+        @"ownerName": @"Arc",
+        @"timestamp": @([[NSDate date] timeIntervalSince1970] * 1000)
+    } mutableCopy];
+    
+    MyLog(@"🎯 ARC CONTENT CAPTURED:");
+    MyLog(@"   URL: %@", tabInfo[@"url"]);
+    MyLog(@"   Title: %@", tabInfo[@"title"]);
+    
+    return tabInfo;
+}
+
 @end 

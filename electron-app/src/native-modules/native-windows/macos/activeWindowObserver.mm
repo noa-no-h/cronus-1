@@ -1,7 +1,7 @@
 #import "activeWindowObserver.h"
 #import "sleepAndLockObserver.h"
 #import "browserTabUtils.h"
-#import "chromeTabTracking.h"
+#import "browserTabTracking.h"
 #import "contentExtractor.h"
 #import "iconUtils.h"
 #import "appFilter.h"
@@ -63,7 +63,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     NSString *lastTrackedApp;             
     NSTimeInterval lastAppSwitchTime;    
     BOOL isCurrentlyTracking;           
-    ChromeTabTracking *chromeTabTracking;
+    BrowserTabTracking *browserTabTracking;
     SleepAndLockObserver *sleepAndLockObserver;
 }
 
@@ -72,8 +72,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
     if (!self) return nil;
     
     sleepAndLockObserver = [[SleepAndLockObserver alloc] initWithWindowObserver:self];
-    chromeTabTracking = [[ChromeTabTracking alloc] init];
-    chromeTabTracking.delegate = self;
+    browserTabTracking = [[BrowserTabTracking alloc] init];
+    browserTabTracking.delegate = self;
     
     // Get both workspace and distributed notification centers
     NSNotificationCenter *workspaceCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
@@ -90,8 +90,8 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 }
 
 - (void)dealloc {
-    [chromeTabTracking release];
-    chromeTabTracking = nil;
+    [browserTabTracking release];
+    browserTabTracking = nil;
     [sleepAndLockObserver release];
     sleepAndLockObserver = nil;
 
@@ -304,25 +304,34 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         MyLog(@"   Title: %@", windowTitle);
         MyLog(@"   Type: %@", windowInfo[@"type"]);
         
-        // --- Start Chrome Tab Timer Management within getActiveWindow ---
-        if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
-            if (!chromeTabTracking.isChromeActive) { // Chrome just became the active app's window owner
-                MyLog(@"[Chrome Tab] Chrome became active window. Initializing tab tracking.");
-                chromeTabTracking.isChromeActive = YES;
-                [chromeTabTracking startChromeTabTimer];
+        // --- Start Browser Tab Timer Management ---
+        BOOL isChrome = [windowOwnerName isEqualToString:@"Google Chrome"];
+        BOOL isArc = [windowOwnerName isEqualToString:@"Arc"];
+
+        if (isChrome || isArc) {
+            NSString *activeBrowserName = isChrome ? @"Google Chrome" : @"Arc";
+            if (!browserTabTracking.isBrowserActive || ![browserTabTracking.browserName isEqualToString:activeBrowserName]) {
+                MyLog(@"[Browser Tab] %@ became active. Initializing tab tracking.", activeBrowserName);
+                if (browserTabTracking.isBrowserActive) {
+                    [browserTabTracking stopBrowserTabTimer];
+                }
+                browserTabTracking.browserName = activeBrowserName;
+                browserTabTracking.isBrowserActive = YES;
+                [browserTabTracking startBrowserTabTimer];
             }
-        } else { // Active window is not Chrome
-            if (chromeTabTracking.isChromeActive) { // Chrome was active, but no longer is
-                MyLog(@"[Chrome Tab] Chrome no longer active window.");
-                chromeTabTracking.isChromeActive = NO;
-                [chromeTabTracking stopChromeTabTimer];
-                chromeTabTracking.lastKnownChromeURL = nil;
-                chromeTabTracking.lastKnownChromeTitle = nil;
+        } else {
+            if (browserTabTracking.isBrowserActive) {
+                MyLog(@"[Browser Tab] %@ no longer active.", browserTabTracking.browserName);
+                browserTabTracking.isBrowserActive = NO;
+                [browserTabTracking stopBrowserTabTimer];
+                browserTabTracking.lastKnownBrowserURL = nil;
+                browserTabTracking.lastKnownBrowserTitle = nil;
+                browserTabTracking.browserName = nil;
             }
         }
-        // --- End Chrome Tab Timer Management ---
+        // --- End Browser Tab Timer Management ---
         
-        // 🆕 NEW: Universal immediate OCR for ALL apps
+        //  NEW: Universal immediate OCR for ALL apps
         if ([windowOwnerName isEqualToString:@"Google Chrome"]) {
             MyLog(@"🔍 Chrome window detected - getting URL/title + immediate OCR");
             
@@ -333,10 +342,10 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 windowInfo[@"type"] = @"browser";
                 windowInfo[@"browser"] = @"chrome";
 
-                if (chromeTabTracking.isChromeActive && chromeTabTracking.lastKnownChromeURL == nil && chromeInfo[@"url"]) {
-                    MyLog(@"[Chrome Tab] Setting initial known tab: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
-                    chromeTabTracking.lastKnownChromeURL = [chromeInfo[@"url"] copy];
-                    chromeTabTracking.lastKnownChromeTitle = [chromeInfo[@"title"] copy];
+                if (browserTabTracking.isBrowserActive && browserTabTracking.lastKnownBrowserURL == nil && chromeInfo[@"url"]) {
+                    MyLog(@"[Browser Tab] Setting initial known tab for Chrome: URL=%@, Title=%@", chromeInfo[@"url"], chromeInfo[@"title"]);
+                    browserTabTracking.lastKnownBrowserURL = [chromeInfo[@"url"] copy];
+                    browserTabTracking.lastKnownBrowserTitle = [chromeInfo[@"title"] copy];
                 }
             }
             
@@ -348,6 +357,34 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 MyLog(@"✅ Chrome OCR completed: %lu characters", (unsigned long)[ocrContent length]);
             } @catch (NSException *exception) {
                 MyLog(@"💥 Chrome OCR crashed: %@", [exception reason]);
+                windowInfo[@"content"] = @"";
+                windowInfo[@"contentSource"] = @"ocr_failed";
+            }
+            
+        } else if ([windowOwnerName isEqualToString:@"Arc"]) {
+            MyLog(@"🔍 Arc window detected - getting URL/title + immediate OCR");
+            
+            NSDictionary *arcInfo = [BrowserTabUtils getArcTabInfo];
+            if (arcInfo) {
+                windowInfo[@"url"] = arcInfo[@"url"];
+                windowInfo[@"title"] = arcInfo[@"title"] ?: windowInfo[@"title"];
+                windowInfo[@"type"] = @"browser";
+                windowInfo[@"browser"] = @"arc";
+
+                if (browserTabTracking.isBrowserActive && browserTabTracking.lastKnownBrowserURL == nil && arcInfo[@"url"]) {
+                    MyLog(@"[Browser Tab] Setting initial known tab for Arc: URL=%@, Title=%@", arcInfo[@"url"], arcInfo[@"title"]);
+                    browserTabTracking.lastKnownBrowserURL = [arcInfo[@"url"] copy];
+                    browserTabTracking.lastKnownBrowserTitle = [arcInfo[@"title"] copy];
+                }
+            }
+            
+            @try {
+                NSString *ocrContent = [self captureScreenshotAndPerformOCR:windowId];
+                windowInfo[@"content"] = ocrContent ?: @"";
+                windowInfo[@"contentSource"] = @"ocr";
+                MyLog(@"✅ Arc OCR completed: %lu characters", (unsigned long)[ocrContent length]);
+            } @catch (NSException *exception) {
+                MyLog(@"💥 Arc OCR crashed: %@", [exception reason]);
                 windowInfo[@"content"] = @"";
                 windowInfo[@"contentSource"] = @"ocr_failed";
             }
@@ -419,7 +456,7 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 - (void)cleanUp {
     [self stopPeriodicBackupTimer];    
-    [chromeTabTracking stopChromeTabTimer];
+    [browserTabTracking stopBrowserTabTimer];
     [sleepAndLockObserver stopObserving];
     [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
     [self removeWindowObserver];
@@ -427,12 +464,12 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 // App exclusion related - REMOVED, see appFilter.mm
 
-- (void)chromeTabDidSwitch:(NSDictionary *)newTabInfo {
+- (void)browserTabDidSwitch:(NSDictionary *)newTabInfo {
     MyLog(@"   Delegate received tab switch. Sending full details for new tab state (Owner: %@, Title: %@, URL: %@)", 
           newTabInfo[@"ownerName"], 
           newTabInfo[@"title"],
           newTabInfo[@"url"]);
-    [self sendWindowInfoToJS:newTabInfo withReason:@"chrome_tab_switch"];
+    [self sendWindowInfoToJS:newTabInfo withReason:@"browser_tab_switch"];
 }
 
 #pragma mark - Unified Screenshot + OCR Methods

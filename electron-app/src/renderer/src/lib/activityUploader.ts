@@ -32,7 +32,7 @@ interface EventData {
   windowId?: number
   ownerName: string
   type: 'window' | 'browser' | 'system' | 'manual'
-  browser?: 'chrome' | 'safari' | null
+  browser?: 'chrome' | 'safari' | 'arc' | null
   title?: string | null
   url?: string | null
   content?: string | null
@@ -47,7 +47,9 @@ export const uploadActiveWindowEvent = async (
 ): Promise<void> => {
   // Don't upload browser events that are missing a URL.
   if (
-    (windowDetails.browser === 'chrome' || windowDetails.browser === 'safari') &&
+    (windowDetails.browser === 'chrome' ||
+      windowDetails.browser === 'safari' ||
+      windowDetails.browser === 'arc') &&
     !windowDetails.url
   ) {
     console.log('Skipping browser event upload: missing URL.', windowDetails)
