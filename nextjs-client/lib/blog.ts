@@ -45,7 +45,10 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const matterResult = matter(fileContents);
 
-    const processedContent = await remark().use(html).process(matterResult.content);
+    // Enable dangerous HTML to allow iframe embeds
+    const processedContent = await remark()
+      .use(html, { allowDangerousHtml: true })
+      .process(matterResult.content);
     const contentHtml = processedContent.toString();
 
     return {
