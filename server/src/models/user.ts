@@ -74,19 +74,9 @@ const userSchema = new mongoose.Schema({
       default: 60, // in seconds
     },
   },
-  userGoals: {
-    weeklyGoal: {
-      type: String,
-      default: '',
-    },
-    dailyGoal: {
-      type: String,
-      default: '',
-    },
-    lifeGoal: {
-      type: String,
-      default: '',
-    },
+  userProjectsAndGoals: {
+    type: String,
+    default: '',
   },
 });
 

@@ -29,13 +29,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   }, [])
 
-  const { data: userGoals, isLoading: isLoadingGoals } = trpc.user.getUserGoals.useQuery(
-    { token: token || '' },
-    { enabled: !!token }
-  )
+  const { data: userProjectsAndGoals, isLoading: isLoadingGoals } =
+    trpc.user.getUserProjectsAndGoals.useQuery({ token: token || '' }, { enabled: !!token })
 
-  const hasExistingGoals =
-    userGoals && (userGoals.dailyGoal || userGoals.weeklyGoal || userGoals.lifeGoal)
+  const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
 
   // Check permission status when on accessibility step
   useEffect(() => {
@@ -275,7 +272,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   })
 
   function handleGoalsComplete() {
-    setCurrentStep((prev) => prev + 1) // Move to the next step
+    handleNext()
   }
 
   const handleNext = () => {
@@ -383,7 +380,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-background z-50" onClick={handleSkip} />
+      <div
+        className="fixed inset-0 bg-background z-50"
+        onClick={isGoalStep ? undefined : handleSkip}
+      />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="w-full max-w-2xl max-h-[90vh] overflow-auto flex flex-col">

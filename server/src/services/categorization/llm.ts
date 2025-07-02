@@ -15,14 +15,8 @@ const CategoryChoiceSchema = z.object({
     ),
 });
 
-export type UserGoals = {
-  weeklyGoal: string;
-  dailyGoal: string;
-  lifeGoal: string;
-};
-
 function _buildOpenAICategoryChoicePromptInput(
-  userGoals: UserGoals,
+  userProjectsAndGoals: string,
   userCategories: Pick<CategoryType, 'name' | 'description'>[],
   activityDetails: Pick<
     ActiveWindowDetails,
@@ -30,7 +24,6 @@ function _buildOpenAICategoryChoicePromptInput(
   >
 ) {
   const { ownerName, title, url, content, type, browser } = activityDetails;
-  const { weeklyGoal, dailyGoal, lifeGoal } = userGoals;
 
   const categoryListForPrompt = userCategories
     .map((cat) => `- "${cat.name}"${cat.description ? ': ' + cat.description : ''}`)
@@ -76,11 +69,8 @@ ${
     {
       role: 'user' as const,
       content: `
-GOAL ANALYSIS:
-The user wants to achieve:
-- Daily: "${dailyGoal || 'Not set'}"
-- Weekly: "${weeklyGoal || 'Not set'}"
-- Life: "${lifeGoal || 'Not set'}"
+USER'S PROJECTS AND GOALS:
+${userProjectsAndGoals || 'Not set'}
 
 USER'S CATEGORIES:
 ${categoryListForPrompt}
@@ -95,7 +85,7 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 - Activity: Watching random entertainment on YouTube. Goal: "Finish coding new feature". Categories: "Work", "Distraction". Correct Category: "Distraction".
 
 TASK:
-Look at the CURRENT ACTIVITY through the lens of the user's GOALS.
+Look at the CURRENT ACTIVITY through the lens of the user's PROJECTS AND GOALS.
 Which of the USER'S CATEGORIES best supports their stated objectives?
 Respond with the category name and your reasoning.
           `,
@@ -105,7 +95,7 @@ Respond with the category name and your reasoning.
 
 // TODO: could add Retry Logic with Consistency Check
 export async function getOpenAICategoryChoice(
-  userGoals: UserGoals,
+  userProjectsAndGoals: string,
   userCategories: Pick<CategoryType, 'name' | 'description'>[], // Pass only name and description for the prompt
   activityDetails: Pick<
     ActiveWindowDetails,
@@ -114,7 +104,7 @@ export async function getOpenAICategoryChoice(
 ): Promise<z.infer<typeof CategoryChoiceSchema> | null> {
   // Returns the chosen category NAME or null if error/no choice
   const promptInput = _buildOpenAICategoryChoicePromptInput(
-    userGoals,
+    userProjectsAndGoals,
     userCategories,
     activityDetails
   );

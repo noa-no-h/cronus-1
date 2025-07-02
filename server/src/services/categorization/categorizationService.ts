@@ -3,7 +3,7 @@ import { logToFile } from '../../lib/logger';
 import { CategoryModel } from '../../models/category';
 import { User as UserModel } from '../../models/user';
 import { checkActivityHistory } from './history';
-import { getOpenAICategoryChoice, UserGoals } from './llm';
+import { getOpenAICategoryChoice } from './llm';
 
 interface CategorizationResult {
   categoryId: string | null;
@@ -25,8 +25,8 @@ export async function categorizeActivity(
   }
 
   // 2. LLM-based Categorization by choosing from user's list
-  const user = await UserModel.findById(userId).select('userGoals').lean();
-  const userGoals: UserGoals = user?.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' };
+  const user = await UserModel.findById(userId).select('userProjectsAndGoals').lean();
+  const userProjectsAndGoals: string = user?.userProjectsAndGoals || '';
 
   const rawUserCategories = await CategoryModel.find({ userId, isArchived: { $ne: true } }).lean();
   const userCategories: CategoryType[] = rawUserCategories.map((cat) => ({
@@ -49,7 +49,11 @@ export async function categorizeActivity(
 
   // TODO: grab the content (or first x chars of it) to increase precision
   // TODO-maybe: could add "unclear" here and then check the screenshot etc
-  const choice = await getOpenAICategoryChoice(userGoals, categoryNamesForLLM, activeWindow);
+  const choice = await getOpenAICategoryChoice(
+    userProjectsAndGoals,
+    categoryNamesForLLM,
+    activeWindow
+  );
 
   let determinedCategoryId: string | null = null;
   let categoryReasoning: string | null = null;

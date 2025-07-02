@@ -81,31 +81,22 @@ export const userRouter = router({
       };
     }),
 
-  updateUserGoals: publicProcedure
+  updateUserProjectsAndGoals: publicProcedure
     .input(
       z.object({
         token: z.string(),
-        weeklyGoal: z.string().optional(),
-        dailyGoal: z.string().optional(),
-        lifeGoal: z.string().optional(),
+        userProjectsAndGoals: z.string(),
       })
     )
     .mutation(async ({ input }) => {
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const updateData: any = {};
-      if (input.weeklyGoal !== undefined) {
-        updateData['userGoals.weeklyGoal'] = input.weeklyGoal;
-      }
-      if (input.dailyGoal !== undefined) {
-        updateData['userGoals.dailyGoal'] = input.dailyGoal;
-      }
-      if (input.lifeGoal !== undefined) {
-        updateData['userGoals.lifeGoal'] = input.lifeGoal;
-      }
-
-      const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { userProjectsAndGoals: input.userProjectsAndGoals } },
+        { new: true }
+      );
 
       if (!updatedUser) {
         throw new Error('User not found');
@@ -113,20 +104,22 @@ export const userRouter = router({
 
       return {
         success: true,
-        userGoals: updatedUser.userGoals,
+        userProjectsAndGoals: updatedUser.userProjectsAndGoals,
       };
     }),
 
-  getUserGoals: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const decoded = verifyToken(input.token);
-    const userId = decoded.userId;
+  getUserProjectsAndGoals: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decoded = verifyToken(input.token);
+      const userId = decoded.userId;
 
-    const user = await User.findById(userId).select('userGoals');
+      const user = await User.findById(userId).select('userProjectsAndGoals');
 
-    if (!user) {
-      throw new Error('User not found');
-    }
+      if (!user) {
+        throw new Error('User not found');
+      }
 
-    return user.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' };
-  }),
+      return user.userProjectsAndGoals || '';
+    }),
 });

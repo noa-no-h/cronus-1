@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { toast } from '../../hooks/use-toast'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Textarea } from '../ui/textarea'
-import { toast } from '../../hooks/use-toast'
 
 interface GoalInputFormProps {
   onboardingMode?: boolean
@@ -13,28 +13,24 @@ interface GoalInputFormProps {
 
 const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProps) => {
   const { token } = useAuth()
-  const [goals, setGoals] = useState({
-    weeklyGoal: '',
-    dailyGoal: '',
-    lifeGoal: ''
-  })
+  const [userProjectsAndGoals, setUserProjectsAndGoals] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // at least one goal is set
-  const hasAtLeastOneGoal =
-    goals.dailyGoal.trim() || goals.weeklyGoal.trim() || goals.lifeGoal.trim()
+  const hasContent = userProjectsAndGoals.trim().length > 0
 
   // Fetch user goals
-  const { data: userGoals, isLoading } = trpc.user.getUserGoals.useQuery(
+  const { data: initialProjectsAndGoals, isLoading } = trpc.user.getUserProjectsAndGoals.useQuery(
     { token: token || '' },
     { enabled: !!token }
   )
 
   // Update goals mutation
-  const updateGoalsMutation = trpc.user.updateUserGoals.useMutation({
+  const updateGoalsMutation = trpc.user.updateUserProjectsAndGoals.useMutation({
     onSuccess: (data) => {
-      setGoals(data.userGoals || { weeklyGoal: '', dailyGoal: '', lifeGoal: '' })
+      if (data.userProjectsAndGoals && typeof data.userProjectsAndGoals === 'string') {
+        setUserProjectsAndGoals(data.userProjectsAndGoals)
+      }
       setIsEditing(false)
 
       if (!onboardingMode) {
@@ -60,10 +56,10 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
 
   // Load goals when data is fetched
   useEffect(() => {
-    if (userGoals) {
-      setGoals(userGoals)
+    if (initialProjectsAndGoals) {
+      setUserProjectsAndGoals(initialProjectsAndGoals)
     }
-  }, [userGoals])
+  }, [initialProjectsAndGoals])
 
   // Auto-edit mode for onboarding
   useEffect(() => {
@@ -78,7 +74,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
     setIsSaving(true)
     updateGoalsMutation.mutate({
       token,
-      ...goals
+      userProjectsAndGoals
     })
   }
 
@@ -87,18 +83,11 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
       return
     } else {
       // Reset to original values in settings mode
-      if (userGoals) {
-        setGoals(userGoals)
+      if (initialProjectsAndGoals) {
+        setUserProjectsAndGoals(initialProjectsAndGoals)
       }
       setIsEditing(false)
     }
-  }
-
-  const handleInputChange = (field: keyof typeof goals, value: string) => {
-    setGoals((prev) => ({
-      ...prev,
-      [field]: value
-    }))
   }
 
   if (isLoading) {
@@ -108,9 +97,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
           <div className="animate-pulse">
             <div className="h-4 bg-muted rounded w-1/4 mb-4"></div>
             <div className="space-y-3">
-              <div className="h-10 bg-muted rounded"></div>
-              <div className="h-10 bg-muted rounded"></div>
-              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-24 bg-muted rounded"></div>
             </div>
           </div>
         </CardContent>
@@ -135,79 +122,27 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
       aria-label={!onboardingMode && !isEditing ? 'Click to edit your goals' : undefined}
     >
       <CardHeader>
-        <CardTitle className="text-card-foreground">
-          {onboardingMode ? 'What are your goals?' : 'Your Goals'}
-        </CardTitle>
+        <CardTitle className="text-card-foreground">Explain your current work & goals</CardTitle>
         <CardDescription>
-          {onboardingMode
-            ? 'Help us understand what productivity means to you.'
-            : 'Adding your goals helps our AI categorize your activity.'}
+          Describe projects you are working on. What's your job? What are you doing? Provide as much
+          context as possible to help our ai differentiate between your activities.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <label htmlFor="lifeGoal" className="block text-sm font-medium text-foreground mb-1">
-            Life Goal (5 Year Vision)
-          </label>
           {isEditing ? (
             <Textarea
-              id="lifeGoal"
-              value={goals.lifeGoal}
-              onChange={(e) => handleInputChange('lifeGoal', e.target.value)}
+              id="userProjectsAndGoals"
+              value={userProjectsAndGoals}
+              onChange={(e) => setUserProjectsAndGoals(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
-              rows={2}
-              placeholder="What do you want to achieve in the next 5 years?"
+              rows={3}
+              placeholder="I'm working on Cronus - The ai time/distraction tracker software. I'm working on improving the app and getting the first few 1000 users. I'll have to post on reddit and other forums etc."
             />
           ) : (
-            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
-              {goals.lifeGoal || (
-                <span className="text-muted-foreground italic">No life goal set</span>
-              )}
-            </p>
-          )}
-        </div>
-
-        {/* Weekly Goal */}
-        <div>
-          <label htmlFor="weeklyGoal" className="block text-sm font-medium text-foreground mb-1">
-            Goal for This Week
-          </label>
-          {isEditing ? (
-            <Textarea
-              id="weeklyGoal"
-              value={goals.weeklyGoal}
-              onChange={(e) => handleInputChange('weeklyGoal', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
-              rows={2}
-              placeholder="What do you want to accomplish this week?"
-            />
-          ) : (
-            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
-              {goals.weeklyGoal || (
-                <span className="text-muted-foreground italic">No weekly goal set</span>
-              )}
-            </p>
-          )}
-        </div>
-
-        {/* Daily Goal */}
-        <div>
-          <label htmlFor="dailyGoal" className="block text-sm font-medium text-foreground mb-1">
-            Goal for Today
-          </label>
-          {isEditing ? (
-            <Textarea
-              id="dailyGoal"
-              value={goals.dailyGoal}
-              onChange={(e) => handleInputChange('dailyGoal', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none bg-input text-foreground placeholder-muted-foreground"
-              rows={2}
-              placeholder="What's your main focus for today?"
-            />
-          ) : (
-            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-[2.5rem]">
-              {goals.dailyGoal || (
-                <span className="text-muted-foreground italic">No daily goal set</span>
+            <p className="px-3 py-2 bg-input/50 rounded-md text-foreground min-h-12 whitespace-pre-wrap">
+              {userProjectsAndGoals || (
+                <span className="text-muted-foreground italic">No projects or goals set yet.</span>
               )}
             </p>
           )}
@@ -223,7 +158,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={isSaving || (onboardingMode && !hasAtLeastOneGoal)}
+              disabled={isSaving || (onboardingMode && !hasContent)}
             >
               {isSaving ? 'Saving...' : onboardingMode ? 'Save & Continue' : 'Save Goals'}
             </Button>

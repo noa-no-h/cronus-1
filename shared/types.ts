@@ -11,11 +11,7 @@ export interface User {
   electronAppSettings?: {
     calendarZoomLevel?: number;
   };
-  userGoals?: {
-    weeklyGoal: string;
-    dailyGoal: string;
-    lifeGoal: string;
-  };
+  userProjectsAndGoals?: string;
 }
 
 export interface ActiveWindowDetails {
