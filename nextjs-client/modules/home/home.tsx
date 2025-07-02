@@ -5,6 +5,7 @@ import { CTASection } from './cta-section';
 import { FeaturesSection } from './features-section';
 import { HeroSection } from './hero-section';
 // import { MarqueeSection } from './marquee-section';
+import { ActionSection } from './action-section';
 import { ShowcaseSection } from './showcase-section';
 import { TestimonialsSection } from './testimonials-section';
 
@@ -18,6 +19,7 @@ export function Home() {
       <TestimonialsSection />
       <FeaturesSection />
       <ComparisonSection />
+      <ActionSection />
       <CTASection />
       <Footer />
     </main>
