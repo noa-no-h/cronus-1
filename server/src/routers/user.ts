@@ -139,16 +139,23 @@ export const userRouter = router({
     .input(
       z.object({
         token: z.string(),
-        userProjectsAndGoals: z.string(),
+        goals: z.string().optional(),
+        userProjectsAndGoals: z.string().optional(),
       })
     )
     .mutation(async ({ input }) => {
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
+      const goalsContent = input.goals || input.userProjectsAndGoals;
+
+      if (!goalsContent) {
+        throw new Error('Goals content is required');
+      }
+
       const updatedUser = await User.findByIdAndUpdate(
         userId,
-        { $set: { userProjectsAndGoals: input.userProjectsAndGoals } },
+        { $set: { userProjectsAndGoals: goalsContent } },
         { new: true }
       );
 
