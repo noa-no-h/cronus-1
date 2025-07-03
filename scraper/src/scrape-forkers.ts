@@ -1,5 +1,5 @@
-import { Octokit } from 'octokit';
 import { MongoClient } from 'mongodb';
+import { Octokit } from 'octokit';
 import { fetchBasicUserData, fetchUserEmailFromEvents, fetchXProfileMetadata } from './lib';
 
 const octokit = new Octokit({
@@ -32,6 +32,10 @@ async function scrapeUserProfile(username: string) {
 
 async function getForkers(owner: string, repo: string) {
   try {
+    await mongoClient.connect();
+    const db = mongoClient.db('cronus-scraper');
+    const collection = db.collection('forkers');
+
     const forks = await octokit.paginate(octokit.rest.repos.listForks, {
       owner,
       repo,
@@ -39,10 +43,6 @@ async function getForkers(owner: string, repo: string) {
     });
 
     console.log(`Forkers for ${owner}/${repo}:`);
-
-    await mongoClient.connect();
-    const db = mongoClient.db('cronus-scraper');
-    const collection = db.collection('forkers');
 
     for (const fork of forks) {
       const login = fork.owner?.login;

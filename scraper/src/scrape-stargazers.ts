@@ -32,17 +32,15 @@ async function scrapeUserProfile(username: string) {
 
 async function getStargazers(owner: string, repo: string) {
   try {
+    await mongoClient.connect();
+    const db = mongoClient.db('cronus-scraper');
+    const collection = db.collection('stargazers');
+
     const stargazers = await octokit.paginate(octokit.rest.repos.listStargazers, {
       owner,
       repo,
       per_page: 100,
     });
-
-    console.log(`Stargazers for ${owner}/${repo}:`);
-
-    await mongoClient.connect();
-    const db = mongoClient.db('cronus-scraper');
-    const collection = db.collection('stargazers');
 
     for (const stargazer of stargazers) {
       if (stargazer && stargazer.login) {

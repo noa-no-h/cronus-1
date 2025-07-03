@@ -1,11 +1,6 @@
-import { Octokit } from 'octokit';
 import { MongoClient } from 'mongodb';
-import {
-  fetchBasicUserData,
-  fetchUserEmailFromEvents,
-  fetchXProfileMetadata,
-  fetchWatchers,
-} from './lib';
+import { Octokit } from 'octokit';
+import { fetchBasicUserData, fetchUserEmailFromEvents, fetchXProfileMetadata } from './lib';
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -37,24 +32,51 @@ async function scrapeUserProfile(username: string) {
 
 async function getWatchers(owner: string, repo: string) {
   try {
-    const watcherLogins = await fetchWatchers(owner, repo);
-
-    console.log(`Watchers for ${owner}/${repo}:`);
-
     await mongoClient.connect();
     const db = mongoClient.db('cronus-scraper');
     const collection = db.collection('watchers');
 
-    for (const login of watcherLogins) {
-      if (login) {
-        console.log(`- ${login}`);
-        const userProfile = await scrapeUserProfile(login);
-        await collection.updateOne(
-          { login: userProfile.login },
-          { $set: { ...userProfile, interactionType: 'watcher' } },
-          { upsert: true }
-        );
+    const query = /* GraphQL */ `
+      query GetWatchers($owner: String!, $repo: String!, $cursor: String) {
+        repository(owner: $owner, name: $repo) {
+          watchers(first: 100, after: $cursor) {
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              login
+            }
+          }
+        }
       }
+    `;
+
+    let hasNextPage = true;
+    let cursor: string | null = null;
+
+    while (hasNextPage) {
+      const result: any = await octokit.graphql(query, {
+        owner,
+        repo,
+        cursor,
+      });
+
+      const watchers = result.repository.watchers;
+      for (const node of watchers.nodes) {
+        if (node && node.login) {
+          console.log(`- ${node.login}`);
+          const userProfile = await scrapeUserProfile(node.login);
+          await collection.updateOne(
+            { login: userProfile.login },
+            { $set: { ...userProfile, interactionType: 'watcher' } },
+            { upsert: true }
+          );
+        }
+      }
+
+      hasNextPage = watchers.pageInfo.hasNextPage;
+      cursor = watchers.pageInfo.endCursor;
     }
   } catch (error) {
     console.error(`Error fetching watchers:`, error);

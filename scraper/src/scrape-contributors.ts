@@ -36,18 +36,15 @@ async function scrapeUserProfile(username: string) {
 
 async function getContributors(owner: string, repo: string) {
   try {
-    const { data: contributors } = await octokit.rest.repos.listContributors({
-      owner,
-      repo,
-      per_page: 100,
-      page: 1,
-    });
-
-    console.log(`Contributors for ${owner}/${repo} (first page):`);
-
     await mongoClient.connect();
     const db = mongoClient.db('cronus-scraper');
     const collection = db.collection('contributors');
+
+    const contributors = await octokit.paginate(octokit.rest.repos.listContributors, {
+      owner,
+      repo,
+      per_page: 100,
+    });
 
     for (const contributor of contributors) {
       if (contributor && contributor.login) {
