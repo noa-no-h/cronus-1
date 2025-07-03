@@ -33,6 +33,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
           'mt-12 tablet:mt-20',
           'grid gap-6',
           'tablet:grid-cols-1 tablet:px-16',
+          'lg:grid-cols-2 lg:px-16',
           'desktop:grid-cols-[repeat(2,528px)]'
         )}
       >

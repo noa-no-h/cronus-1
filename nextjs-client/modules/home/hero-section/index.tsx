@@ -1,14 +1,12 @@
-'use client';
-
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import DownloadButton from '~/components/ui/download-button';
 import { cn } from '~/lib/cn';
-import { Circle } from './circle';
 
-import { ClockFrame } from './clock-frame';
+import { TimerFrame } from './timer-frame';
 import { LeftFrame } from './left-frame';
 import { RightFrame } from './right-frame';
+import { Clock } from './clock';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
@@ -20,9 +18,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
       )}
       {...props}
     >
-      <div className="absolute inset-x-0 top-[160px] tablet:top-[128px] desktop:top-[100px]">
-        <Circle className="w-[722px] tablet:w-[1172px] absolute left-1/2 -translate-x-1/2" />
-      </div>
+      <Clock />
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">
         <TextLogo className="w-[150px] tablet:w-[200px] text-black" />
@@ -52,7 +48,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
               'tablet:static tablet:w-[354px] desktop:w-[419px]'
             )}
           />
-          <ClockFrame
+          <TimerFrame
             className={cn(
               'absolute w-[324px] bottom-[94px] right-6',
               'tablet:w-[460px] tablet:bottom-[34px] tablet:right-1.5',
