@@ -21,7 +21,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         {...props}
       >
         <div className="absolute inset-x-0 top-0">
-        <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2 pointer-events-none" />
+          <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2 pointer-events-none" />
         </div>
         <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
@@ -30,7 +30,10 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <p className="text-sm tablet:text-xl tracking-[-3%] mt-[15px] text-black">
           The smartest way to stay focused.
         </p>
-        <DownloadButton className={cn('mt-[30px] tablet:mt-4 desktop:mt-7')} />
+        <DownloadButton
+          className={cn('mt-[30px] tablet:mt-4 desktop:mt-7')}
+          location="cta_section_bottom"
+        />
       </section>
     </>
   );

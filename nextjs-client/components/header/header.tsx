@@ -43,7 +43,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
             'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
         /> */}
-        <DownloadButton className="hidden tablet:flex shrink-0" />
+        <DownloadButton className="hidden tablet:flex shrink-0" location="header_navbar" />
       </div>
     </header>
   );

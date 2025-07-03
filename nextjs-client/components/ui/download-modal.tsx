@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
+import { trackDownloadStart } from '~/lib/analytics';
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -9,7 +10,10 @@ interface DownloadModalProps {
 }
 
 const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
-  const handleDownload = (url: string) => {
+  const handleDownload = (url: string, type: 'arm64' | 'x64') => {
+    // Track actual download start
+    trackDownloadStart(type);
+
     window.open(url, '_blank');
     // Redirect to get-started page after download
     setTimeout(() => {
@@ -66,13 +70,13 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
 
             <div className="flex flex-col space-y-4">
               <button
-                onClick={() => handleDownload(downloadUrls.armUrl)}
+                onClick={() => handleDownload(downloadUrls.armUrl, 'arm64')}
                 className="flex-1 px-4 py-3 bg-[#242437] text-white rounded-lg hover:bg-[#1a1a2e] text-center font-semibold transition-all hover:scale-105"
               >
                 Download for Apple Silicon (M1-M4)
               </button>
               <button
-                onClick={() => handleDownload(downloadUrls.intelUrl)}
+                onClick={() => handleDownload(downloadUrls.intelUrl, 'x64')}
                 className="flex-1 px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 text-center font-semibold transition-all hover:scale-105"
               >
                 Download for Intel

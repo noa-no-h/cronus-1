@@ -30,7 +30,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         >
           Understand where your time went and reduce distractions.
         </p>
-        <DownloadButton />
+        <DownloadButton location="hero_section" />
       </div>
 
       <div className="mt-[68px] tablet:mt-[71px] flex justify-center">

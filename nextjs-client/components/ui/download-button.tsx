@@ -3,6 +3,7 @@
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '~/lib/cn';
+import { trackDownloadIntent } from '~/lib/analytics';
 import DownloadModal from './download-modal';
 
 interface DownloadButtonProps {
@@ -10,6 +11,7 @@ interface DownloadButtonProps {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'primary' | 'secondary';
   children?: React.ReactNode;
+  location?: string;
 }
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({
@@ -17,10 +19,12 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   size = 'md',
   variant = 'primary',
   children = 'Download Cronus',
+  location = 'unknown',
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => {
+    trackDownloadIntent(location);
     setIsModalOpen(true);
   };
 
