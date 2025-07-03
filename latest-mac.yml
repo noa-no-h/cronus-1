@@ -1,0 +1,11 @@
+version: 1.5.0
+files:
+  - url: Cronus-1.5.0-arm64.zip
+    sha512: SA9N1Ph529UcHITIxVHDBzZV+hvXt7d2fhZ061p0rzid1+NEgrSeg4fHHqYc8JeoiTk+H9mFXfGzKjNTisUeLQ==
+    size: 175093407
+  - url: Cronus-1.5.0-arm64.dmg
+    sha512: 8KnwDUAILmqGKT6Thao9xOPX+7dspZWluvlWOEyXXuxEI58KH24pviZfdFmZndqVasTHycB32rlW/SMCg6en4Q==
+    size: 182935683
+path: Cronus-1.5.0-arm64.zip
+sha512: SA9N1Ph529UcHITIxVHDBzZV+hvXt7d2fhZ061p0rzid1+NEgrSeg4fHHqYc8JeoiTk+H9mFXfGzKjNTisUeLQ==
+releaseDate: '2025-07-01T16:32:48.584Z'

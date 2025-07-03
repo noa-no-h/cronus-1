@@ -123,6 +123,18 @@ export const userRouter = router({
       return user.userProjectsAndGoals || '';
     }),
 
+  getUserGoals: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
+    const decoded = verifyToken(input.token);
+    const userId = decoded.userId;
+
+    const user = await User.findById(userId).select('userProjectsAndGoals');
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user.userProjectsAndGoals || '';
+  }),
+
   getMultiPurposeApps: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
