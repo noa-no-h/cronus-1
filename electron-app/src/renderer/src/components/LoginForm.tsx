@@ -2,6 +2,7 @@ import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
 import { useCallback, useEffect, useState } from 'react'
 import { APP_NAME, APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
+import IconImage from '../assets/icon.png'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
 
@@ -128,8 +129,16 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       )}
       {...props}
     >
-      <div className="w-full max-w-md mx-auto rounded-lg p-8 ">
+      <div className="w-full max-w-md mx-auto rounded-lg p-8">
         <div className="text-center">
+          <div className="mb-6 flex justify-center">
+            <img
+              src={IconImage}
+              alt="Cronus Logo"
+              className="w-14 h-14 drop-shadow-lg rounded-lg border border-gray-200"
+            />
+          </div>
+
           <h1 className="text-2xl font-semibold">
             Welcome to {APP_NAME} {isDev ? '(Dev Mode)' : ''}
           </h1>
