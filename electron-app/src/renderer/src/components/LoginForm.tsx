@@ -4,6 +4,7 @@ import { APP_NAME, APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
 import { useAuth } from '../contexts/AuthContext'
 import { cn } from '../lib/utils'
+import IconImage from '../assets/icon.png'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
@@ -132,7 +133,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         <div className="text-center">
           <div className="mb-6 flex justify-center">
             <img
-              src="./icon.png"
+              src={IconImage}
               alt="Cronus Logo"
               className="w-14 h-14 drop-shadow-lg rounded-lg border border-gray-200"
             />
