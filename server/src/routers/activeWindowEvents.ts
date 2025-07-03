@@ -198,6 +198,13 @@ export const activeWindowEventsRouter = router({
       const { token, id, name, categoryId, startTime, durationMs } = input;
       verifyToken(token);
 
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Invalid event ID format: ${id}`,
+        });
+      }
+
       const updateData: any = {};
       if (name) {
         updateData.name = name;
