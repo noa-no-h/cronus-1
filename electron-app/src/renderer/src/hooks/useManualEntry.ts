@@ -1,3 +1,4 @@
+import { endOfDay, startOfDay } from 'date-fns'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import type { TimeBlock } from '../lib/dayTimelineHelpers'
@@ -25,33 +26,115 @@ export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) 
     editingEntry: null
   })
 
+  const getQueryInput = () => ({
+    token: token || '',
+    startDateMs: startOfDay(baseDate).getTime(),
+    endDateMs: endOfDay(baseDate).getTime()
+  })
+
   const createManualEntry = trpc.activeWindowEvents.createManual.useMutation({
-    onSuccess: () => {
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    onMutate: async (newEntry) => {
+      const queryInput = getQueryInput()
+      await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
+      const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
+
+      utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
+        const optimisticEntry: any = {
+          _id: `temp-${Date.now()}`,
+          userId: token, // Assuming token is userId, adjust if necessary
+          ownerName: 'manual',
+          type: 'manual',
+          title: newEntry.name,
+          timestamp: newEntry.startTime,
+          durationMs: newEntry.endTime - newEntry.startTime,
+          categoryId: newEntry.categoryId
+        }
+        return oldData ? [...oldData, optimisticEntry] : [optimisticEntry]
+      })
+
+      return { previousEvents }
     },
-    onError: (error) => {
-      console.error('Failed to create manual entry:', error)
+    onError: (err, newEntry, context) => {
+      const queryInput = getQueryInput()
+      if (context?.previousEvents) {
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, context.previousEvents)
+      }
+      console.error('Failed to create manual entry:', err)
       alert('Error: Could not create the entry. Please try again.')
+    },
+    onSettled: () => {
+      const queryInput = getQueryInput()
+      utils.activeWindowEvents.getEventsForDateRange.invalidate(queryInput)
+      utils.activeWindowEvents.getManualEntryHistory.invalidate()
     }
   })
 
   const updateManualEntry = trpc.activeWindowEvents.updateManual.useMutation({
-    onSuccess: () => {
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    onMutate: async (updatedEntry) => {
+      const queryInput = getQueryInput()
+      await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
+      const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
+
+      utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
+        return (
+          oldData?.map((event) => {
+            if (event._id === updatedEntry.id) {
+              const newTimestamp = updatedEntry.startTime ?? event.timestamp
+              const durationMs = updatedEntry.durationMs ?? event.durationMs
+
+              return {
+                ...event,
+                title: updatedEntry.name ?? event.title,
+                categoryId: updatedEntry.categoryId ?? event.categoryId,
+                timestamp: newTimestamp,
+                durationMs
+              }
+            }
+            return event
+          }) || []
+        )
+      })
+
+      return { previousEvents }
     },
-    onError: (error) => {
-      console.error('Failed to update manual entry:', error)
+    onError: (err, newEntry, context) => {
+      const queryInput = getQueryInput()
+      if (context?.previousEvents) {
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, context.previousEvents)
+      }
+      console.error('Failed to update manual entry:', err)
       alert('Error: Could not update the entry. Please try again.')
+    },
+    onSettled: () => {
+      const queryInput = getQueryInput()
+      utils.activeWindowEvents.getEventsForDateRange.invalidate(queryInput)
     }
   })
 
   const deleteManualEntry = trpc.activeWindowEvents.deleteManual.useMutation({
-    onSuccess: () => {
-      utils.activeWindowEvents.getEventsForDateRange.invalidate()
+    onMutate: async ({ id }) => {
+      const queryInput = getQueryInput()
+      await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
+      const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
+
+      utils.activeWindowEvents.getEventsForDateRange.setData(
+        queryInput,
+        (oldData) => oldData?.filter((event) => event._id !== id) || []
+      )
+
+      return { previousEvents }
     },
-    onError: (error) => {
-      console.error('Failed to delete manual entry:', error)
+    onError: (err, newEntry, context) => {
+      const queryInput = getQueryInput()
+      if (context?.previousEvents) {
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, context.previousEvents)
+      }
+      console.error('Failed to delete manual entry:', err)
       alert('Error: Could not delete the entry. Please try again.')
+    },
+    onSettled: () => {
+      const queryInput = getQueryInput()
+      utils.activeWindowEvents.getEventsForDateRange.invalidate(queryInput)
     }
   })
 
