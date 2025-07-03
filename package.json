@@ -6,7 +6,8 @@
     "client",
     "electron-app",
     "server",
-    "shared"
+    "shared",
+    "scraper"
   ],
   "scripts": {
     "dev": "bun --filter '*' dev",

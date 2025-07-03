@@ -1,0 +1,24 @@
+{
+  "name": "scraper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "scrape:contributors": "bun src/scrape-contributors.ts",
+    "scrape:stargazers": "bun src/scrape-stargazers.ts",
+    "scrape:watchers": "bun src/scrape-watchers.ts",
+    "scrape:forkers": "bun src/scrape-forkers.ts",
+    "export-csv": "bun src/export-to-csv.ts"
+  },
+  "dependencies": {
+    "mongodb": "^6.5.0",
+    "octokit": "^3.1.2",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jsdom": "^21.1.6",
+    "@types/papaparse": "^5.3.14",
+    "jsdom": "^24.0.0",
+    "typescript": "^5.0.0"
+  }
+}
