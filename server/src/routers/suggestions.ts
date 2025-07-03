@@ -3,6 +3,7 @@ import { endOfDay, startOfDay } from 'date-fns';
 import { z } from 'zod';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { ActivityEventSuggestionModel } from '../models/activityEventSuggestion';
+import { Category } from '../models/category';
 import { getCalendarEvents } from '../services/googleCalendar';
 import {
   CalendarEvent,
@@ -30,7 +31,7 @@ export const suggestionsRouter = router({
         startTime: { $gte: new Date(input.startTime) },
         endTime: { $lte: new Date(input.endTime) },
       })
-        .populate('suggestedCategoryId')
+        .populate<{ suggestedCategoryId: Category }>('suggestedCategoryId')
         .lean();
 
       return suggestions.map((s) => ({
