@@ -1,4 +1,3 @@
-import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
@@ -26,8 +25,8 @@ export function TutorialModal({ isFirstVisit, onClose }: TutorialModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl w-full h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="flex h-[80vh] w-full max-w-4xl flex-col p-0">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-xl font-semibold">
             Welcome to Cronus AI! Here&apos;s how it works
           </DialogTitle>
@@ -36,19 +35,19 @@ export function TutorialModal({ isFirstVisit, onClose }: TutorialModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 p-6 pt-2">
-          <div className="w-full h-full rounded-lg overflow-hidden">
+        <div className="flex-1 px-6">
+          <div className="h-full w-full overflow-hidden rounded-lg">
             <iframe
               src="https://www.loom.com/embed/34531aee1ce94343a2c4c7cee04a0dc8"
-              className="w-full h-full border-0"
+              className="h-full w-full border-0"
               allowFullScreen
               title="Cronus Tutorial"
             />
           </div>
         </div>
 
-        <div className="p-6 pt-0">
-          <div className="flex justify-between items-center">
+        <div className="p-6">
+          <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
               💡 You can always re-watch this tutorial from the help menu
             </p>
