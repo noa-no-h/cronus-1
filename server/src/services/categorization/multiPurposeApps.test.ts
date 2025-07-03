@@ -113,7 +113,7 @@ describe('Multi-Purpose Apps Categorization', () => {
       const result = await checkActivityHistory(mockUserId, activeWindow);
 
       // Assert
-      expect(result).toBe(mockSocialCategoryId);
+      expect(result?.categoryId).toBe(mockSocialCategoryId);
       expect(User.findById).toHaveBeenCalledTimes(1);
       expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
       expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({

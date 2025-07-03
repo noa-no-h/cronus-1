@@ -16,7 +16,7 @@
     "rebuild:electron:arm": "bun --filter cronus-electron-app native-modules:rebuild:arm",
     "install-electron-deps": "cd electron-app && bunx electron-builder install-app-deps",
     "build:shared": "cd shared && bun run build",
-    "build:server": "cd server && bun run build",
+    "build:server": "bun run build:shared && cd server && bun run build",
     "build:client": "cd client && bun run build",
     "build:electron": "cd electron-app && bun run build",
     "build": "bun run install-electron-deps && bun run build:shared && bun run build:server && bun run build:client && bun run build:electron",
