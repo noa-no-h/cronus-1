@@ -8,6 +8,9 @@ export interface ActivityItem {
   itemType: 'app' | 'website'
   identifier: string
   originalUrl?: string
+  categoryReasoning?: string | null
+  oldCategoryReasoning?: string | null
+  lastCategorizationAt?: Date
 }
 
 export interface ProcessedCategory {
@@ -125,7 +128,10 @@ export const processActivityEvents = (
       durationMs: (existingActivity?.durationMs || 0) + durationMs,
       itemType,
       identifier,
-      originalUrl
+      originalUrl,
+      categoryReasoning: block.originalEvent.categoryReasoning ?? undefined,
+      oldCategoryReasoning: block.originalEvent.oldCategoryReasoning ?? undefined,
+      lastCategorizationAt: block.originalEvent.lastCategorizationAt
     })
   }
 

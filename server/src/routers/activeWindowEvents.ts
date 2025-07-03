@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import mongoose from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
@@ -23,10 +23,7 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
-    console.log(
-      'input in create activeWindowEventsRouter, screenshotS3Url:',
-      input.screenshotS3Url
-    );
+    console.log('input in create activeWindowEventsRouter:', input);
 
     const decodedToken = verifyToken(input.token);
     const userId = decodedToken.userId;
@@ -38,6 +35,7 @@ export const activeWindowEventsRouter = router({
 
     const categorizationResult = await categorizeActivity(userId, activityDetails);
     const categoryId = categorizationResult.categoryId;
+    const categoryReasoning = categorizationResult.categoryReasoning;
 
     const eventToSave: ActiveWindowEvent = {
       userId,
@@ -51,19 +49,15 @@ export const activeWindowEventsRouter = router({
       timestamp,
       screenshotS3Url,
       categoryId, // Add categoryId from categorization service
+      categoryReasoning,
+      lastCategorizationAt: categoryId ? new Date() : undefined,
     };
 
+    // console.log('eventToSave in create activeWindowEventsRouter:', eventToSave);
+
     try {
-      const newEvent = new ActiveWindowEventModel(eventToSave);
-
-      // console.log(
-      //   `[${new Date(newEvent?.timestamp || 0).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] newEvent ownerName: ${newEvent.ownerName} || newEvent title: ${newEvent.title}`
-      // );
-
-      console.log('newEvent in create activeWindowEventsRouter', newEvent);
-
-      await newEvent.save();
-      return newEvent.toObject() as ActiveWindowEvent;
+      const savedEvent = await ActiveWindowEventModel.create(eventToSave);
+      return savedEvent.toObject() as ActiveWindowEvent;
     } catch (error) {
       console.error('Error saving active window event:', error);
       throw new TRPCError({
@@ -343,22 +337,21 @@ export const activeWindowEventsRouter = router({
         }),
       })
     )
-    .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+    .mutation(async ({ input, ctx }) => {
+      const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId, token } = input;
+      const decodedToken = verifyToken(token);
       const userId = decodedToken.userId;
 
-      const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId } = input;
-
-      const queryConditions: any = {
-        userId: userId,
+      const filter: FilterQuery<ActiveWindowEvent> = {
+        userId,
         timestamp: {
-          $gte: startDateMs,
-          $lt: endDateMs,
+          $gte: new Date(startDateMs),
+          $lte: new Date(endDateMs),
         },
       };
 
       if (itemType === 'app') {
-        queryConditions.ownerName = activityIdentifier;
+        filter.ownerName = activityIdentifier;
       } else {
         // itemType === 'website'
         // Function to escape special characters for regex
@@ -367,7 +360,7 @@ export const activeWindowEventsRouter = router({
         };
         const escapedIdentifier = escapeRegExp(activityIdentifier);
 
-        queryConditions.$or = [
+        filter.$or = [
           // Option 1: activityIdentifier is a domain present in a URL
           { url: { $regex: `(^|[^A-Za-z0-9_])${escapedIdentifier}([:\\/]|$)`, $options: 'i' } },
           // Option 2: activityIdentifier is a title, for a browser event where URL is null or empty
@@ -398,20 +391,28 @@ export const activeWindowEventsRouter = router({
 
       console.log(
         'queryConditions in updateEventsCategoryInDateRange',
-        JSON.stringify(queryConditions, null, 2)
+        JSON.stringify(filter, null, 2)
       );
 
       try {
-        const updateResult = await ActiveWindowEventModel.updateMany(queryConditions, {
-          $set: { categoryId: newCategoryId },
-        });
+        const result = await ActiveWindowEventModel.updateMany(filter, [
+          {
+            $set: {
+              oldCategoryId: '$categoryId',
+              oldCategoryReasoning: '$categoryReasoning',
+              categoryId: newCategoryId,
+              categoryReasoning: 'Updated manually',
+              lastCategorizationAt: new Date(),
+            },
+          },
+        ]);
 
         console.log(
-          `[EventsRouter] Updated ${updateResult.modifiedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
+          `[EventsRouter] Updated ${result.modifiedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
         );
         return {
           success: true,
-          updatedCount: updateResult.modifiedCount,
+          updatedCount: result.modifiedCount,
         };
       } catch (error) {
         console.error('[EventsRouter] Error updating event categories:', error);

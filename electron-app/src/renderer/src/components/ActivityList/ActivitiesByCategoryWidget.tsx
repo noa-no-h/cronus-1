@@ -1,3 +1,5 @@
+import { ChevronDownIcon } from '@radix-ui/react-icons'
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
@@ -13,6 +15,7 @@ import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CategoryForm } from '../Settings/CategoryForm'
+import { Button } from '../ui/button'
 import { Card, CardContent } from '../ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
 import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
@@ -49,6 +52,7 @@ const ActivitiesByCategoryWidget = ({
   const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null)
   const [openDropdownActivityKey, setOpenDropdownActivityKey] = useState<string | null>(null)
   const [showMore, setShowMore] = useState<Record<string, boolean>>({})
+  const [showSmallCategories, setShowSmallCategories] = useState(false)
   const { selectedActivities, handleSelectActivity, clearSelection } = useActivitySelection(
     processedData,
     showMore
@@ -234,6 +238,75 @@ const ActivitiesByCategoryWidget = ({
     })
   }
 
+  const oneMinuteMs = 60 * 1000
+  const visibleCategories = processedData.filter((cat) => cat.totalDurationMs >= oneMinuteMs)
+  const hiddenCategories = processedData.filter(
+    (cat) => cat.totalDurationMs > 0 && cat.totalDurationMs < oneMinuteMs
+  )
+
+  const shouldShowAllCategories = visibleCategories.length === 0 && hiddenCategories.length > 0
+  const categoriesToShow = shouldShowAllCategories
+    ? processedData.filter((c) => c.totalDurationMs > 0)
+    : visibleCategories
+  const categoriesToHide = shouldShowAllCategories ? [] : hiddenCategories
+
+  const renderCategoryItems = (categoriesToRender: ProcessedCategory[], variant?: 'empty') => {
+    return categoriesToRender.map((category) => {
+      if (category.totalDurationMs === 0 && variant !== 'empty') return null
+
+      const isAnyActivitySelected = category.activities.some((act) =>
+        selectedActivities.has(`${act.identifier}-${act.name}`)
+      )
+      const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
+      const selectedActivitiesInThisCategory = category.activities.filter((act) =>
+        selectedActivities.has(`${act.identifier}-${act.name}`)
+      )
+      const handleMoveSelected = (targetCategoryId: string) => {
+        handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
+      }
+
+      return (
+        <div key={category.id}>
+          <CategorySectionHeader
+            category={category}
+            variant={variant}
+            isAnyActivitySelected={isAnyActivitySelected}
+            otherCategories={otherCategories}
+            isMovingActivity={isBulkMoving}
+            handleMoveSelected={handleMoveSelected}
+            handleClearSelection={clearSelection}
+            onAddNewCategory={handleAddNewCategory}
+          />
+          <ActivityList
+            activities={category.activities}
+            currentCategory={category}
+            allUserCategories={categories}
+            handleMoveActivity={handleMoveActivity}
+            isMovingActivity={updateCategoryMutation.isLoading}
+            faviconErrors={faviconErrors}
+            handleFaviconError={handleFaviconError}
+            isShowMore={!!showMore[category.id]}
+            onToggleShowMore={() =>
+              setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
+            }
+            hoveredActivityKey={hoveredActivityKey}
+            setHoveredActivityKey={setHoveredActivityKey}
+            openDropdownActivityKey={openDropdownActivityKey}
+            setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+            selectedHour={selectedHour}
+            selectedDay={selectedDay}
+            viewMode="day"
+            startDateMs={startDateMs}
+            endDateMs={endDateMs}
+            selectedActivities={selectedActivities}
+            onSelectActivity={handleSelectActivity}
+            onAddNewCategory={handleAddNewCategory}
+          />
+        </div>
+      )
+    })
+  }
+
   if (isLoadingEventsProp || isLoadingCategories) {
     return <ActivityByCategorySkeleton />
   }
@@ -250,60 +323,10 @@ const ActivitiesByCategoryWidget = ({
             (!todayProcessedEvents || todayProcessedEvents.length === 0) && (
               <p>No activity data for the selected period, or no categories defined.</p>
             )}
-          {processedData.map((category) => {
-            if (category.totalDurationMs === 0) return null
-
-            const isAnyActivitySelected = category.activities.some((act) =>
-              selectedActivities.has(`${act.identifier}-${act.name}`)
-            )
-            const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
-            const selectedActivitiesInThisCategory = category.activities.filter((act) =>
-              selectedActivities.has(`${act.identifier}-${act.name}`)
-            )
-            const handleMoveSelected = (targetCategoryId: string) => {
-              handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
-            }
-
-            return (
-              <div key={category.id}>
-                <CategorySectionHeader
-                  category={category}
-                  variant="empty"
-                  isAnyActivitySelected={isAnyActivitySelected}
-                  otherCategories={otherCategories}
-                  isMovingActivity={isBulkMoving}
-                  handleMoveSelected={handleMoveSelected}
-                  handleClearSelection={clearSelection}
-                  onAddNewCategory={handleAddNewCategory}
-                />
-                <ActivityList
-                  activities={category.activities}
-                  currentCategory={category}
-                  allUserCategories={categories}
-                  handleMoveActivity={handleMoveActivity}
-                  isMovingActivity={updateCategoryMutation.isLoading}
-                  faviconErrors={faviconErrors}
-                  handleFaviconError={handleFaviconError}
-                  isShowMore={!!showMore[category.id]}
-                  onToggleShowMore={() =>
-                    setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
-                  }
-                  hoveredActivityKey={hoveredActivityKey}
-                  setHoveredActivityKey={setHoveredActivityKey}
-                  openDropdownActivityKey={openDropdownActivityKey}
-                  setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-                  selectedHour={selectedHour}
-                  selectedDay={selectedDay}
-                  viewMode="day"
-                  startDateMs={startDateMs}
-                  endDateMs={endDateMs}
-                  selectedActivities={selectedActivities}
-                  onSelectActivity={handleSelectActivity}
-                  onAddNewCategory={handleAddNewCategory}
-                />
-              </div>
-            )
-          })}
+          {renderCategoryItems(
+            processedData.filter((c) => c.totalDurationMs === 0),
+            'empty'
+          )}
         </CardContent>
       </Card>
     )
@@ -334,59 +357,36 @@ const ActivitiesByCategoryWidget = ({
             selectedDay={selectedDay}
             onDaySelect={onDaySelect}
           />
-          {processedData.map((category) => {
-            if (category.totalDurationMs === 0) return null
-
-            const isAnyActivitySelected = category.activities.some((act) =>
-              selectedActivities.has(`${act.identifier}-${act.name}`)
-            )
-            const otherCategories = categories?.filter((cat) => cat._id !== category.id) || []
-            const selectedActivitiesInThisCategory = category.activities.filter((act) =>
-              selectedActivities.has(`${act.identifier}-${act.name}`)
-            )
-            const handleMoveSelected = (targetCategoryId: string) => {
-              handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
-            }
-
-            return (
-              <div key={category.id}>
-                <CategorySectionHeader
-                  category={category}
-                  isAnyActivitySelected={isAnyActivitySelected}
-                  otherCategories={otherCategories}
-                  isMovingActivity={isBulkMoving}
-                  handleMoveSelected={handleMoveSelected}
-                  handleClearSelection={clearSelection}
-                  onAddNewCategory={handleAddNewCategory}
-                />
-                <ActivityList
-                  activities={category.activities}
-                  currentCategory={category}
-                  allUserCategories={categories}
-                  handleMoveActivity={handleMoveActivity}
-                  isMovingActivity={updateCategoryMutation.isLoading}
-                  faviconErrors={faviconErrors}
-                  handleFaviconError={handleFaviconError}
-                  isShowMore={!!showMore[category.id]}
-                  onToggleShowMore={() =>
-                    setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
-                  }
-                  hoveredActivityKey={hoveredActivityKey}
-                  setHoveredActivityKey={setHoveredActivityKey}
-                  openDropdownActivityKey={openDropdownActivityKey}
-                  setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-                  selectedHour={selectedHour}
-                  selectedDay={selectedDay}
-                  viewMode="day"
-                  startDateMs={startDateMs}
-                  endDateMs={endDateMs}
-                  selectedActivities={selectedActivities}
-                  onSelectActivity={handleSelectActivity}
-                  onAddNewCategory={handleAddNewCategory}
-                />
-              </div>
-            )
-          })}
+          {renderCategoryItems(categoriesToShow)}
+          {categoriesToHide.length > 0 && (
+            <Button
+              variant="link"
+              className="p-1 px-2 mt-2 w-full h-auto text-xs text-left justify-start text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors flex items-center gap-1"
+              onClick={() => setShowSmallCategories(!showSmallCategories)}
+            >
+              {showSmallCategories
+                ? 'Show less'
+                : `Show ${categoriesToHide.length} more categories`}
+              <ChevronDownIcon
+                className={`ml-.5 h-4 w-4 transition-transform duration-200 ${
+                  showSmallCategories ? 'rotate-180' : ''
+                }`}
+              />
+            </Button>
+          )}
+          <AnimatePresence>
+            {showSmallCategories && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                {renderCategoryItems(categoriesToHide)}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
     </>

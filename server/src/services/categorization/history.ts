@@ -11,10 +11,15 @@ const getProjectNameFromTitle = (title: string): string | null => {
   return null;
 };
 
+interface HistoryResult {
+  categoryId: string;
+  categoryReasoning: string | null;
+}
+
 export async function checkActivityHistory(
   userId: string,
   activeWindow: Pick<ActiveWindowDetails, 'ownerName' | 'url' | 'type' | 'title'>
-): Promise<string | null> {
+): Promise<HistoryResult | null> {
   try {
     const { ownerName, url, type, title } = activeWindow;
 
@@ -64,7 +69,7 @@ export async function checkActivityHistory(
 
     const lastEventWithSameIdentifier = await ActiveWindowEventModel.findOne(queryCondition)
       .sort({ timestamp: -1 })
-      .select('categoryId')
+      .select('categoryId categoryReasoning')
       .lean();
 
     if (lastEventWithSameIdentifier && lastEventWithSameIdentifier.categoryId) {
@@ -73,7 +78,10 @@ export async function checkActivityHistory(
       // Validate that the category still exists
       const categoryExists = await CategoryModel.findById(categoryId).lean();
       if (categoryExists) {
-        return categoryId;
+        return {
+          categoryId,
+          categoryReasoning: (lastEventWithSameIdentifier.categoryReasoning as string) || null,
+        };
       }
     }
   } catch (error) {

@@ -19,9 +19,9 @@ export async function categorizeActivity(
 ): Promise<CategorizationResult> {
   await logToFile('categorizeActivity called', { userId, activeWindow });
   // 1. History Check
-  const historicalCategoryId = await checkActivityHistory(userId, activeWindow);
-  if (historicalCategoryId) {
-    return { categoryId: historicalCategoryId, categoryReasoning: null };
+  const historyResult = await checkActivityHistory(userId, activeWindow);
+  if (historyResult) {
+    return historyResult;
   }
 
   // 2. LLM-based Categorization by choosing from user's list

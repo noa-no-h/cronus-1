@@ -34,6 +34,9 @@ export interface ActiveWindowEvent extends ActiveWindowDetails {
   userId: string;
   categoryId?: string | null;
   categoryReasoning?: string | null;
+  lastCategorizationAt?: Date;
+  oldCategoryId?: string | null;
+  oldCategoryReasoning?: string | null;
 }
 
 export interface Category {

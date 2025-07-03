@@ -167,7 +167,13 @@ export function DashboardView({ className }: { className?: string }) {
       setTrackedProcessedEvents(null)
     } else if (eventsData && categories) {
       // Process tracked events (existing logic)
-      const trackedBlocks = generateProcessedEventBlocks(eventsData, categories)
+      const eventsWithParsedDates = eventsData.map((event) => ({
+        ...event,
+        lastCategorizationAt: event.lastCategorizationAt
+          ? new Date(event.lastCategorizationAt)
+          : undefined
+      }))
+      const trackedBlocks = generateProcessedEventBlocks(eventsWithParsedDates, categories)
       // console.log('📊 Tracked blocks:', trackedBlocks.length)
 
       const calendarEvents = calendarEventsData || []

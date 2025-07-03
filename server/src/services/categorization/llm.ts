@@ -124,6 +124,7 @@ export async function getOpenAICategoryChoice(
       console.warn('OpenAI response issue or refusal selecting category:', response.output_parsed);
       return null;
     }
+
     return response.output_parsed;
   } catch (error) {
     console.error('Error getting OpenAI category choice:', error);

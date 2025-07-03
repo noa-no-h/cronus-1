@@ -119,7 +119,7 @@ export const ActivityListItem = ({
               <TooltipTrigger asChild>
                 <span>{activity.name}</span>
               </TooltipTrigger>
-              <TooltipContent className="overflow-x-auto max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+              <TooltipContent className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
                 {activity.name}
                 <br />
                 <ul>
@@ -140,6 +140,22 @@ export const ActivityListItem = ({
                   <li>
                     <strong>Duration:</strong> {formatDuration(activity.durationMs)}
                   </li>
+                  {activity.categoryReasoning && (
+                    <li className="whitespace-normal break-all">
+                      <strong>Reasoning:</strong> {activity.categoryReasoning}
+                    </li>
+                  )}
+                  {activity.oldCategoryReasoning && (
+                    <li className="whitespace-normal break-all">
+                      <strong>Old Reasoning:</strong> {activity.oldCategoryReasoning}
+                    </li>
+                  )}
+                  {activity.lastCategorizationAt && (
+                    <li>
+                      <strong>Categorized At:</strong>{' '}
+                      {new Date(activity.lastCategorizationAt).toLocaleString()}
+                    </li>
+                  )}
                 </ul>
               </TooltipContent>
             </Tooltip>
