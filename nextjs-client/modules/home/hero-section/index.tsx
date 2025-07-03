@@ -1,5 +1,3 @@
-'use client';
-
 import type { ComponentProps } from 'react';
 import { TextLogo } from '~/components/logo';
 import DownloadButton from '~/components/ui/download-button';
@@ -9,6 +7,7 @@ import { Circle } from './circle';
 import { ClockFrame } from './clock-frame';
 import { LeftFrame } from './left-frame';
 import { RightFrame } from './right-frame';
+import { Clock } from './clock';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
@@ -20,9 +19,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
       )}
       {...props}
     >
-      <div className="absolute inset-x-0 top-[160px] tablet:top-[128px] desktop:top-[100px]">
-        <Circle className="w-[722px] tablet:w-[1172px] absolute left-1/2 -translate-x-1/2" />
-      </div>
+      <Clock />
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">
         <TextLogo className="w-[150px] tablet:w-[200px] text-black" />
