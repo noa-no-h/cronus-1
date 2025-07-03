@@ -65,7 +65,7 @@ describe('checkActivityHistory', () => {
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
     // Assert
-    expect(result).toBe(mockRecruitingCategoryId);
+    expect(result?.categoryId).toBe(mockRecruitingCategoryId);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
       userId: mockUserId,
@@ -107,7 +107,7 @@ describe('checkActivityHistory', () => {
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
     // Assert
-    expect(result).toBe(mockWorkCategoryId);
+    expect(result?.categoryId).toBe(mockWorkCategoryId);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
       userId: mockUserId,
@@ -150,7 +150,7 @@ describe('checkActivityHistory', () => {
     const result = await checkActivityHistory(mockUserId, activeWindow);
 
     // Assert
-    expect(result).toBe(mockWorkCategoryId);
+    expect(result?.categoryId).toBe(mockWorkCategoryId);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
       userId: mockUserId,
@@ -189,7 +189,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Act
-    await checkActivityHistory(mockUserId, activeWindow);
+    const result = await checkActivityHistory(mockUserId, activeWindow);
 
     // Assert
     expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
@@ -198,6 +198,7 @@ describe('checkActivityHistory', () => {
     });
     // Assert that the category check was performed
     expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
+    expect(result?.categoryId).toBe(mockWorkCategoryId);
   });
 
   test('should return null if history exists but has no categoryId', async () => {
