@@ -57,7 +57,15 @@ const convertCalendarEventToBlock = (event: any): ProcessedEventBlock | null => 
   }
 }
 
-export function DashboardView({ className }: { className?: string }) {
+export function DashboardView({
+  className,
+  showTutorial,
+  setShowTutorial
+}: {
+  className?: string
+  showTutorial: boolean
+  setShowTutorial: (show: boolean) => void
+}) {
   const { token } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
@@ -73,7 +81,6 @@ export function DashboardView({ className }: { className?: string }) {
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
-  const [showTutorial, setShowTutorial] = useState(false)
 
   useEffect(() => {
     // Check if user has seen the tutorial

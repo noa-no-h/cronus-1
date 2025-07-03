@@ -37,6 +37,7 @@ export function MainAppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [permissionsChecked, setPermissionsChecked] = useState(false)
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   const trpcUtils = trpc.useContext()
 
@@ -229,6 +230,12 @@ export function MainAppContent() {
       if (justLoggedIn) {
         resetJustLoggedIn() // Reset the flag if it was set
       }
+    } else {
+      // User has completed onboarding, check if they've seen the tutorial
+      const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
+      if (!hasSeenTutorial) {
+        setShowTutorial(true)
+      }
     }
   }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn])
 
@@ -242,6 +249,7 @@ export function MainAppContent() {
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
     trpcUtils.user.getUserProjectsAndGoals.invalidate()
+    setShowTutorial(true)
   }
 
   const handleResetOnboarding = () => {
@@ -337,7 +345,11 @@ export function MainAppContent() {
           />
         </div>
 
-        <DashboardView className={isSettingsOpen ? 'hidden' : ''} />
+        <DashboardView
+          className={isSettingsOpen ? 'hidden' : ''}
+          showTutorial={showTutorial}
+          setShowTutorial={setShowTutorial}
+        />
         {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
 
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
