@@ -78,6 +78,13 @@ declare global {
       downloadUpdate: () => Promise<void>
       installUpdate: () => Promise<void>
       onUpdateStatus: (callback: (status: any) => void) => () => void
+      captureScreenshotAndOCR: () => Promise<{
+        success: boolean
+        ocrText?: string
+        error?: string
+      }>
+      getAppVersion: () => Promise<string>
+      getBuildDate: () => Promise<string>
     }
     floatingApi: FloatingWindowApi
   }

@@ -38,22 +38,20 @@ export function PermissionsStatus() {
     {
       type: PermissionType.Accessibility,
       name: 'Accessibility',
-      description:
-        'Allows reading window titles and content from other applications. Required for advanced features.',
+      description: 'We read window titles and content from other applications.',
       required: true
     },
     {
       type: PermissionType.AppleEvents,
       name: 'Apple Events',
-      description:
-        'Allows getting detailed browser tab info. Optional - basic functionality works without this.',
+      description: 'Required to track system sleep and wake events.',
       required: false
     },
     {
       type: PermissionType.ScreenRecording,
       name: 'Screen Recording',
       description:
-        'Allows capturing screenshots to help categorize your activity. Enhances productivity insights.',
+        'We capture your screen and then OCR the content to help categorize your activity. Enhances categorization.',
       required: false
     }
   ]

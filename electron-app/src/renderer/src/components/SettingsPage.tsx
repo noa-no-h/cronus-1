@@ -6,6 +6,7 @@ import GoalInputForm from './Settings/GoalInputForm'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
+import { VersionDisplay } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
 // import { CalendarIntegrationSettings } from './CalendarIntegrationSettings'
 
@@ -59,6 +60,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
           <PermissionsStatus />
           <OnboardingSection />
           <LogOutButtonSection />
+          <VersionDisplay />
         </div>
       </div>
     </div>

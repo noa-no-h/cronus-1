@@ -115,6 +115,14 @@ export function registerIpcHandlers(
     }
   })
 
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
+
+  ipcMain.handle('get-build-date', () => {
+    return import.meta.env.VITE_BUILD_DATE
+  })
+
   ipcMain.handle('get-audio-data-url', async () => {
     try {
       let audioFilePath: string

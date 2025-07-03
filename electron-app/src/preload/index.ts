@@ -83,7 +83,9 @@ const api = {
     ipcRenderer.on('update-status', listener)
     return () => ipcRenderer.removeListener('update-status', listener)
   },
-  captureScreenshotAndOCR: () => ipcRenderer.invoke('capture-screenshot-and-ocr')
+  captureScreenshotAndOCR: () => ipcRenderer.invoke('capture-screenshot-and-ocr'),
+  getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  getBuildDate: () => ipcRenderer.invoke('get-build-date')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

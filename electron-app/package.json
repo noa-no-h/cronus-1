@@ -12,7 +12,7 @@
   },
   "scripts": {
     "------ DEVELOPMENT ---------": "echo '------ DEVELOPMENT ---------'",
-    "dev": "electron-vite dev",
+    "dev": "VITE_BUILD_DATE=dev electron-vite dev",
     "postinstall": "electron-builder install-app-deps .",
     "------ LINTING & TYPE-CHECKING ---------": "echo '------ LINTING & TYPE-CHECKING ---------'",
     "format": "prettier --write .",
@@ -21,8 +21,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "------ BUILDING ---------": "echo '------ BUILDING ---------'",
-    "build": "electron-vite build",
-    "build:with-typecheck": "bun run typecheck && electron-vite build",
+    "build": "VITE_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') electron-vite build",
+    "build:with-typecheck": "bun run typecheck && VITE_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') electron-vite build",
     "build:unpack": "bun run build && electron-builder --dir",
     "build:local": "bun run build && electron-builder --mac --dir --config.mac.notarize=false",
     "build:win": "bun run build && electron-builder --win",
@@ -47,7 +47,8 @@
     "------ UTILITIES ---------": "echo '------ UTILITIES ---------'",
     "clean:cronus-installation": "bash clean_cronus_installation.sh",
     "clean-and-build": "time (bun run clean:cronus-installation && bun run build:for-publish:arm64 && open dist/Cronus-*-arm64.dmg && say 'Build complete')",
-    "clean-and-quick-build": "time (bun run clean:cronus-installation && NODE_ENV=production bunper run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg && say 'Quick build complete')"
+    "clean-and-quick-build": "time (bun run clean:cronus-installation && NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg && say 'Quick build complete')",
+    "quick-build": "time (NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg && say 'Quick build complete')"
   },
   "build": {
     "appId": "com.cronus.app",
