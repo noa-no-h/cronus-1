@@ -135,6 +135,33 @@ export const userRouter = router({
     return user.userProjectsAndGoals || '';
   }),
 
+  updateUserGoals: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        userProjectsAndGoals: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decoded = verifyToken(input.token);
+      const userId = decoded.userId;
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: { userProjectsAndGoals: input.userProjectsAndGoals } },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+
+      return {
+        success: true,
+        userProjectsAndGoals: updatedUser.userProjectsAndGoals,
+      };
+    }),
+
   getMultiPurposeApps: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
