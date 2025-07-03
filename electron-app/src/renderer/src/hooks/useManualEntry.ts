@@ -38,9 +38,11 @@ export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) 
       await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
       const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
 
+      const tempId = `temp-${Date.now()}`
+
       utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
         const optimisticEntry: any = {
-          _id: `temp-${Date.now()}`,
+          _id: tempId,
           userId: token, // Assuming token is userId, adjust if necessary
           ownerName: 'manual',
           type: 'manual',
@@ -52,7 +54,15 @@ export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) 
         return oldData ? [...oldData, optimisticEntry] : [optimisticEntry]
       })
 
-      return { previousEvents }
+      return { previousEvents, tempId }
+    },
+    onSuccess: (data, _variables, context) => {
+      if (context?.tempId) {
+        const queryInput = getQueryInput()
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
+          return oldData?.map((event) => (event._id === context.tempId ? data : event)) || []
+        })
+      }
     },
     onError: (err, newEntry, context) => {
       const queryInput = getQueryInput()
