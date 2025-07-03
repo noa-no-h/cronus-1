@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import tutorialVideo from '../assets/cronus-tutorial-25-june.mp4'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
 
@@ -36,19 +37,23 @@ export function TutorialModal({ isFirstVisit, onClose }: TutorialModalProps) {
         </DialogHeader>
 
         <div className="flex-1 px-6 flex flex-col items-center justify-center">
-          <img
-            src="/action.gif"
-            alt="Cronus in action"
+          <video
+            src={tutorialVideo}
+            controls
+            autoPlay
+            loop
             className="rounded-lg shadow-lg max-h-[50vh] w-auto"
             style={{ objectFit: 'contain' }}
-          />
+          >
+            Your browser does not support the video tag.
+          </video>
           <a
             href="https://www.loom.com/share/34531aee1ce94343a2c4c7cee04a0dc8?sid=a601c97f-9d16-4a7d-97e3-d8fc3db96679"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-block px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
-            Watch full video
+            Open video in browser
           </a>
         </div>
 
