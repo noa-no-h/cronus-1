@@ -131,3 +131,45 @@ export async function getOpenAICategoryChoice(
     return null;
   }
 }
+
+// fallback for title
+
+export async function getOpenAISummaryForBlock(
+  activityDetails: Pick<
+    ActiveWindowDetails,
+    'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+  >
+): Promise<string | null> {
+  // You can use a similar prompt structure as getOpenAICategoryChoice, but focused on summarization
+  const prompt = [
+    {
+      role: 'system' as const,
+      content: `You are an AI assistant that summarizes user activity blocks for productivity tracking. 
+Provide a concise, one-line summary of what the user was likely doing in this time block, based on the app, window title, content, and any available context.`,
+    },
+    {
+      role: 'user' as const,
+      content: `
+APP: ${activityDetails.ownerName}
+TITLE: ${activityDetails.title || ''}
+URL: ${activityDetails.url || ''}
+CONTENT: ${activityDetails.content ? activityDetails.content.slice(0, 1000) : ''}
+TYPE: ${activityDetails.type}
+BROWSER: ${activityDetails.browser || ''}
+`,
+    },
+  ];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-2024-08-06',
+      messages: prompt,
+      max_tokens: 50,
+      temperature: 0.3,
+    });
+    return response.choices[0]?.message?.content?.trim() || null;
+  } catch (error) {
+    console.error('Error getting OpenAI summary for block:', error);
+    return null;
+  }
+}

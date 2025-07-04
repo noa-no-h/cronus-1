@@ -4,6 +4,7 @@ import { CategoryModel } from '../../models/category';
 import { User as UserModel } from '../../models/user';
 import { checkActivityHistory } from './history';
 import { getOpenAICategoryChoice } from './llm';
+import { getOpenAISummaryForBlock } from './llm';
 
 interface CategorizationResult {
   categoryId: string | null;
@@ -14,7 +15,7 @@ export async function categorizeActivity(
   userId: string,
   activeWindow: Pick<
     ActiveWindowDetails,
-    'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser' | 'durationMs'
   >
 ): Promise<CategorizationResult> {
   await logToFile('categorizeActivity called', { userId, activeWindow });
@@ -76,6 +77,17 @@ export async function categorizeActivity(
     }
   } else {
     console.log('[CategorizationService] LLM did not choose a category.');
+  }
+
+  // Fallback: If reasoning is missing or too short, and block is "long" (e.g., >10min)
+  const isLongBlock = activeWindow.durationMs && activeWindow.durationMs > 10 * 60 * 1000; // 10 minutes
+  const isReasoningMissingOrShort = !categoryReasoning || categoryReasoning.length < 10;
+
+  if (isLongBlock && isReasoningMissingOrShort) {
+    const summary = await getOpenAISummaryForBlock(activeWindow);
+    if (summary) {
+      categoryReasoning = summary;
+    }
   }
 
   return { categoryId: determinedCategoryId, categoryReasoning };
