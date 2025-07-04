@@ -50,7 +50,7 @@ async function scrapeGraphQLInteractions(
   repo: string,
   interactionType: 'stargazer' | 'watcher' | 'forker',
   db: Db
-): Promise<number> {
+): Promise<void> {
   const collection = db.collection('users');
   const progressCollection = db.collection('scraper_progress');
 
@@ -90,7 +90,6 @@ async function scrapeGraphQLInteractions(
     console.log(`[START] Starting new ${interactionType} scrape for ${owner}/${repo}.`);
   }
 
-  let totalScraped = 0;
   while (hasNextPage) {
     console.log(
       `Scraping ${interactionType}s for ${owner}/${repo}` +
@@ -134,8 +133,7 @@ async function scrapeGraphQLInteractions(
         }
         return false;
       });
-      const results = await Promise.all(promises);
-      totalScraped += results.filter(Boolean).length;
+      await Promise.all(promises);
     }
 
     hasNextPage = interactions.pageInfo.hasNextPage;
@@ -148,10 +146,9 @@ async function scrapeGraphQLInteractions(
       );
     }
   }
-  return totalScraped;
 }
 
-async function scrapeContributors(owner: string, repo: string, db: Db): Promise<number> {
+async function scrapeContributors(owner: string, repo: string, db: Db): Promise<void> {
   const collection = db.collection('users');
   const progressCollection = db.collection('scraper_progress');
   const interactionType = 'contributor';
@@ -165,7 +162,6 @@ async function scrapeContributors(owner: string, repo: string, db: Db): Promise<
     console.log(`[START] Starting new contributor scrape for ${owner}/${repo}.`);
   }
 
-  let totalScraped = 0;
   let hasNextPage = true;
   while (hasNextPage) {
     console.log(`Scraping contributors for ${owner}/${repo}, page ${page}...`);
@@ -217,8 +213,7 @@ async function scrapeContributors(owner: string, repo: string, db: Db): Promise<
         }
         return false;
       });
-      const results = await Promise.all(promises);
-      totalScraped += results.filter(Boolean).length;
+      await Promise.all(promises);
     }
 
     await progressCollection.updateOne(
@@ -228,23 +223,55 @@ async function scrapeContributors(owner: string, repo: string, db: Db): Promise<
     );
     page++;
   }
-  return totalScraped;
 }
 
 export async function scrapeAllInteractionsForRepo(
   owner: string,
   repo: string,
   db: Db
-): Promise<{ [key in InteractionType]?: number }> {
-  const summary: { [key in InteractionType]?: number } = {};
+): Promise<void> {
   try {
-    summary.stargazer = await scrapeGraphQLInteractions(owner, repo, 'stargazer', db);
-    summary.watcher = await scrapeGraphQLInteractions(owner, repo, 'watcher', db);
-    summary.forker = await scrapeGraphQLInteractions(owner, repo, 'forker', db);
-    summary.contributor = await scrapeContributors(owner, repo, db);
-    return summary;
+    const truthQuery = /* GraphQL */ `
+      query GetInteractionCounts($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          stargazers {
+            totalCount
+          }
+          watchers {
+            totalCount
+          }
+          forks {
+            totalCount
+          }
+        }
+      }
+    `;
+    const truthCounts: any = await octokit.graphql(truthQuery, { owner, repo });
+    const apiTotals = {
+      stargazer: truthCounts.repository.stargazers.totalCount,
+      watcher: truthCounts.repository.watchers.totalCount,
+      forker: truthCounts.repository.forks.totalCount,
+    };
+
+    for (const type of ['stargazer', 'watcher', 'forker'] as const) {
+      await scrapeGraphQLInteractions(owner, repo, type, db);
+      const dbCount = await db.collection('users').countDocuments({
+        'repositoryInteractions.interactionType': type,
+        'repositoryInteractions.repositoryOwner': owner,
+        'repositoryInteractions.repositoryName': repo,
+      });
+      const apiTotal = apiTotals[type];
+      if (dbCount < apiTotal) {
+        console.warn(
+          `[RE-SCRAPE] Discrepancy for ${type}s in ${owner}/${repo}. DB: ${dbCount}, API: ${apiTotal}. Starting full re-scrape.`
+        );
+        await db.collection('scraper_progress').deleteOne({ owner, repo, interactionType: type });
+        await scrapeGraphQLInteractions(owner, repo, type, db);
+      }
+    }
+
+    await scrapeContributors(owner, repo, db);
   } catch (error) {
     console.error(`Failed to scrape interactions for ${owner}/${repo}:`, error);
-    return summary;
   }
 }

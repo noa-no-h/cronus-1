@@ -27,15 +27,38 @@ async function main() {
         }
 
         console.log(`Scraping all interactions for ${owner}/${repo}...`);
-        const summary = await scrapeAllInteractionsForRepo(owner, repo, db);
+        await scrapeAllInteractionsForRepo(owner, repo, db);
+
+        console.log(`Finished scraping for ${owner}/${repo}. Calculating totals from DB...`);
+
+        const usersCollection = db.collection('users');
+        const interactionTypes: ['stargazer', 'watcher', 'forker', 'contributor'] = [
+          'stargazer',
+          'watcher',
+          'forker',
+          'contributor',
+        ];
+
+        const summary: { [key: string]: number } = {};
+        for (const type of interactionTypes) {
+          summary[type] = await usersCollection.countDocuments({
+            repositoryInteractions: {
+              $elemMatch: {
+                repositoryOwner: owner,
+                repositoryName: repo,
+                interactionType: type,
+              },
+            },
+          });
+        }
+
         console.log(
-          `Finished scraping for ${owner}/${repo}. Summary:`,
-          Object.entries(summary)
+          `DB totals for ${owner}/${repo}: ${Object.entries(summary)
             .map(([type, count]) => `${type}s: ${count}`)
-            .join(', ')
+            .join(', ')}`
         );
       } catch (error) {
-        console.error(`Failed to scrape interactions for ${url}:`, error);
+        console.error(`Failed to process interactions for ${url}:`, error);
       }
     }
   } catch (error) {
