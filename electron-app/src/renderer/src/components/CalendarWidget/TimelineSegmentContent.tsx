@@ -10,6 +10,12 @@ interface TimelineSegmentContentProps {
   isDarkMode: boolean
 }
 
+function isTitleNotMeaningful(segment) {
+  const title = segment.description?.trim() || ''
+  // If there's no title, or it's only one word, treat as not meaningful
+  return title.split(/\s+/).length <= 1
+}
+
 const TimelineSegmentContent = ({ segment, isDarkMode }: TimelineSegmentContentProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [canShowContent, setCanShowContent] = useState(false)
@@ -75,6 +81,17 @@ const TimelineSegmentContent = ({ segment, isDarkMode }: TimelineSegmentContentP
                 ? `${segment.name} (${segment.categoryName})`
                 : segment.description || segment.name}
             </span>
+            {isLarge &&
+              isTitleNotMeaningful(segment) &&
+              segment.originalEvent?.categoryReasoning && (
+                <span
+                  className="block text-xs text-muted-foreground mt-0.5 truncate"
+                  style={{ fontStyle: 'italic' }}
+                  title={segment.originalEvent.categoryReasoning}
+                >
+                  {segment.originalEvent.categoryReasoning}
+                </span>
+              )}
           </>
         )}
       </div>
