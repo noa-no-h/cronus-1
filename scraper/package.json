@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "scrape:contributors": "bun src/scrape-contributors.ts",
-    "scrape:stargazers": "bun src/scrape-stargazers.ts",
-    "scrape:watchers": "bun src/scrape-watchers.ts",
-    "scrape:forkers": "bun src/scrape-forkers.ts",
+    "scrape:all": "bun src/scrape-all.ts",
     "export-csv": "bun src/export-to-csv.ts"
   },
   "dependencies": {
+    "@octokit/plugin-throttling": "^9.3.0",
     "mongodb": "^6.5.0",
     "octokit": "^3.1.2",
     "papaparse": "^5.4.1"

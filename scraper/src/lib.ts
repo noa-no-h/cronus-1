@@ -1,69 +1,12 @@
 import { JSDOM } from 'jsdom';
 import { Octokit } from 'octokit';
 
-export async function withRateLimitRetry<T>(
-  fn: () => Promise<{ data: T }>,
-  maxRetries: number = 5
-): Promise<{ data: T }> {
-  // Check if the function is a fetch request and contains a LinkedIn URL
-  const fnString = fn.toString();
-  if (fnString.includes('fetch') && fnString.match(/url: ["']([^"']+)["']/)) {
-    const urlMatch = fnString.match(/url: ["']([^"']+)["']/);
-    const url = urlMatch ? urlMatch[1] : '';
-    if (isLinkedInDomain(url)) {
-      console.log(`Skipping LinkedIn domain request: ${url}`);
-      return { data: null as T };
-    }
-  }
-
-  let retryCount = 0;
-  let lastError: Error | null = null;
-
-  while (retryCount < maxRetries) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      lastError = error;
-
-      // If we hit the rate limit
-      if (error.status === 403 && error.response?.headers['x-ratelimit-remaining'] === '0') {
-        const resetTimestamp = parseInt(error.response.headers['x-ratelimit-reset'] as string);
-        const waitTimeMs = resetTimestamp * 1000 - Date.now();
-
-        console.log(`Rate limit exceeded. Reset in minutes: ${waitTimeMs / 60000} minutes`);
-        // Wait until reset time
-        await new Promise((resolve) => setTimeout(resolve, waitTimeMs + 1000));
-        continue;
-      }
-
-      // Handle server errors (5xx) with exponential backoff
-      if (error.status >= 500 && error.status < 600) {
-        const retryAfter = Math.min(Math.pow(2, retryCount), 30);
-        console.log(
-          `Server error (${error.status}). Retrying in ${retryAfter} seconds... (Attempt ${
-            retryCount + 1
-          }/${maxRetries})`
-        );
-        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
-        retryCount++;
-        continue;
-      }
-
-      // If it's not a rate limit or server error, throw it
-      throw error;
-    }
-  }
-
-  // If we've exhausted all retries, throw the last error
-  throw new Error(`Max retries (${maxRetries}) exceeded. Last error: ${lastError?.message}`);
-}
+export const scaperDBName = 'cronus-scraper';
 
 export async function fetchBasicUserData(octokit: Octokit, username: string) {
-  const userData = await withRateLimitRetry(() =>
-    octokit.request('GET /users/{username}', {
-      username,
-    })
-  );
+  const userData = await octokit.request('GET /users/{username}', {
+    username,
+  });
 
   return {
     login: userData.data.login,
@@ -96,13 +39,11 @@ export async function fetchUserEmailFromEvents(
 
   try {
     for (let page = 1; page <= MAX_PAGES_TO_CHECK; page++) {
-      const events = await withRateLimitRetry(() =>
-        octokit.request('GET /users/{username}/events/public', {
-          username,
-          per_page: 30, // Fetch 30 events per page
-          page: page,
-        })
-      );
+      const events = await octokit.request('GET /users/{username}/events/public', {
+        username,
+        per_page: 30, // Fetch 30 events per page
+        page: page,
+      });
 
       if (events.data && events.data.length > 0) {
         for (const event of events.data) {
