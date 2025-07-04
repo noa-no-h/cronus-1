@@ -1,9 +1,12 @@
+import { ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Footer } from '~/components/footer';
 import { Header } from '~/components/header';
+import { MarkdownRenderer } from '~/components/markdown-renderer';
 import { getAllPosts, getPostBySlug } from '~/lib/blog';
+import { CTASection } from '~/modules/home/cta-section';
 import BlogPostClient from './BlogPostClient';
 
 type Props = {
@@ -52,7 +55,7 @@ export default async function BlogPostPage({ params }: Props) {
             href="/blog"
             className="inline-flex items-center text-[#36168D] hover:underline mb-8"
           >
-            ← Back to Blog
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Blog
           </Link>
 
           <div className="mb-8">
@@ -70,21 +73,10 @@ export default async function BlogPostPage({ params }: Props) {
             </h1>
           </div>
 
-          <div
-            className="prose prose-lg max-w-none
-              [&>h1]:text-3xl [&>h1]:font-bold [&>h1]:text-[#242437] [&>h1]:mt-8 [&>h1]:mb-6
-              [&>h2]:text-2xl [&>h2]:font-semibold [&>h2]:text-[#242437] [&>h2]:mt-8 [&>h2]:mb-4
-              [&>h3]:text-xl [&>h3]:font-semibold [&>h3]:text-[#242437] [&>h3]:mt-6 [&>h3]:mb-3
-              [&>p]:text-[#242437CC] [&>p]:leading-relaxed [&>p]:mb-4
-              [&>ul]:text-[#242437CC] [&>ul]:mb-4 [&>ul]:pl-6
-              [&>li]:mb-2 [&>li]:list-disc
-              [&>strong]:text-[#242437] [&>strong]:font-semibold
-              [&>blockquote]:border-l-4 [&>blockquote]:border-[#36168D] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#242437CC] [&>blockquote]:my-4"
-            dangerouslySetInnerHTML={{ __html: post.content || '' }}
-          />
+          <MarkdownRenderer content={post.content || ''} />
         </div>
       </article>
-
+      <CTASection />
       <Footer />
     </main>
   );

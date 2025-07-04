@@ -1,8 +1,6 @@
 import fs from 'fs';
-import path from 'path';
 import matter from 'gray-matter';
-import { remark } from 'remark';
-import html from 'remark-html';
+import path from 'path';
 
 const postsDirectory = path.join(process.cwd(), 'content/blog');
 
@@ -45,12 +43,6 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const matterResult = matter(fileContents);
 
-    // Enable dangerous HTML to allow iframe embeds
-    const processedContent = await remark()
-      .use(html, { allowDangerousHtml: true })
-      .process(matterResult.content);
-    const contentHtml = processedContent.toString();
-
     return {
       slug,
       title: matterResult.data.title,
@@ -58,7 +50,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       date: matterResult.data.date,
       category: matterResult.data.category,
       readTime: matterResult.data.readTime,
-      content: contentHtml,
+      content: matterResult.content,
     };
   } catch (error) {
     console.error('Error getting post by slug:', error);
