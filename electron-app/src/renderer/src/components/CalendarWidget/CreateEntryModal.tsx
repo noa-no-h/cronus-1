@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2 } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { type Category } from 'shared/dist/types'
@@ -10,18 +10,9 @@ import { TimeBlock } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
 import { CategoryForm } from '../Settings/CategoryForm'
 import { Button } from '../ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '../ui/dialog'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
-import { Popover, PopoverAnchor } from '../ui/popover'
-import { CategorySelectionPopover } from './CategorySelectionPopover'
+import { CustomCategorySelectionPopover } from './CustomCategorySelectionPopover'
 import { SelectedCategoryBadge } from './SelectedCategoryBadge'
 
 interface CreateEntryModalProps {
@@ -83,6 +74,7 @@ export const CreateEntryModal = ({
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [showCategoryForm, setShowCategoryForm] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   const {
     searchResults,
@@ -100,6 +92,26 @@ export const CreateEntryModal = ({
     inputValue,
     selectedCategory
   })
+
+  useEffect(() => {
+    if (!isPopoverOpen) return
+
+    const handleClick = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node) &&
+        popoverRef.current &&
+        !popoverRef.current.contains(event.target as Node)
+      ) {
+        setIsPopoverOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClick)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+    }
+  }, [isPopoverOpen])
 
   useEffect(() => {
     if (isOpen && !existingEntry) {
@@ -186,131 +198,149 @@ export const CreateEntryModal = ({
     return ''
   }
 
+  if (!isOpen) {
+    return null
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        {showCategoryForm ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Create New Category</DialogTitle>
-              <DialogDescription>
-                Create a new category to organize your time entries.
-              </DialogDescription>
-            </DialogHeader>
-            <CategoryForm
-              initialData={{ name: inputValue, isProductive: true }}
-              onSave={handleSaveNewCategory}
-              onCancel={() => setShowCategoryForm(false)}
-              isSaving={createCategoryMutation.isLoading}
-            />
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>{existingEntry ? 'Edit Entry' : 'Create New Entry'}</DialogTitle>
-              <DialogDescription>{getDialogDescription()}</DialogDescription>
-            </DialogHeader>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleFormSubmit()
-              }}
-              className="space-y-4"
-            >
-              <Popover open={isPopoverOpen && !existingEntry} onOpenChange={setIsPopoverOpen}>
+    <>
+      <div className="fixed inset-0 z-50 bg-black/80" onClick={onClose} />
+      <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg">
+        <div className="max-h-[80vh] overflow-y-auto -m-6 p-6">
+          {showCategoryForm ? (
+            <>
+              <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+                <h3 className="text-lg font-semibold leading-none tracking-tight">
+                  Create New Category
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Create a new category to organize your time entries.
+                </p>
+              </div>
+              <CategoryForm
+                initialData={{ name: inputValue, isProductive: true }}
+                onSave={handleSaveNewCategory}
+                onCancel={() => setShowCategoryForm(false)}
+                isSaving={createCategoryMutation.isLoading}
+              />
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+                <h3 className="text-lg font-semibold leading-none tracking-tight">
+                  {existingEntry ? 'Edit Entry' : 'Create New Entry'}
+                </h3>
+                <p className="text-sm text-muted-foreground">{getDialogDescription()}</p>
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleFormSubmit()
+                }}
+                className="space-y-4"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="name">Entry Title or Category Search</Label>
-                  <PopoverAnchor asChild>
-                    <Input
-                      id="name"
-                      placeholder="Search for a category or type a title"
-                      value={inputValue}
-                      onChange={(e) => {
-                        setInputValue(e.target.value)
-                      }}
-                      onKeyDown={(e) =>
-                        handleKeyDown(
-                          e,
-                          handleSelectHistory,
-                          handleSelectCategory,
-                          (template) => {
-                            handleSaveNewCategory(template)
-                            setIsPopoverOpen(false)
-                          },
-                          () => {
-                            setIsPopoverOpen(false)
-                            setShowCategoryForm(true)
-                          },
-                          handleFormSubmit
-                        )
-                      }
-                      ref={inputRef}
-                      autoComplete="off"
-                    />
-                  </PopoverAnchor>
-                  {errors.name && (
-                    <p className="text-sm font-medium text-destructive">{errors.name.message}</p>
-                  )}
-                </div>
-                <CategorySelectionPopover
-                  historyResults={historyResults}
-                  searchResults={searchResults}
-                  templateResults={templateResults}
-                  highlightedIndex={highlightedIndex}
-                  showCreateOption={showCreateOption}
-                  inputValue={inputValue}
-                  onSelectHistory={handleSelectHistory}
-                  onSelectCategory={handleSelectCategory}
-                  onSelectTemplate={(template) => {
-                    handleSaveNewCategory(template)
-                    setIsPopoverOpen(false)
-                  }}
-                  onShowCategoryForm={() => {
-                    setIsPopoverOpen(false)
-                    setShowCategoryForm(true)
-                  }}
-                  onHighlight={setHighlightedIndex}
-                />
-              </Popover>
-
-              {selectedCategory && (
-                <SelectedCategoryBadge
-                  selectedCategory={selectedCategory}
-                  onClear={() => {
-                    setSelectedCategory(null)
-                    setInputValue(selectedCategory?.name || '')
-                    inputRef.current?.focus()
-                  }}
-                />
-              )}
-
-              <DialogFooter>
-                {existingEntry && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => {
-                      if (existingEntry._id) {
-                        onDelete(existingEntry._id)
-                      }
+                  <Input
+                    id="name"
+                    placeholder="Search for a category or type a title"
+                    value={inputValue}
+                    onChange={(e) => {
+                      setInputValue(e.target.value)
+                      if (!isPopoverOpen) setIsPopoverOpen(true)
                     }}
-                    className="mr-auto"
-                  >
-                    Delete
-                  </Button>
+                    onKeyDown={(e) =>
+                      handleKeyDown(
+                        e,
+                        handleSelectHistory,
+                        handleSelectCategory,
+                        (template) => {
+                          handleSaveNewCategory(template)
+                          setIsPopoverOpen(false)
+                        },
+                        () => {
+                          setIsPopoverOpen(false)
+                          setShowCategoryForm(true)
+                        },
+                        handleFormSubmit
+                      )
+                    }
+                    ref={inputRef}
+                    autoComplete="off"
+                  />
+                </div>
+                {isPopoverOpen && !existingEntry && (
+                  <CustomCategorySelectionPopover
+                    ref={popoverRef}
+                    anchorEl={inputRef}
+                    historyResults={historyResults}
+                    searchResults={searchResults}
+                    templateResults={templateResults}
+                    highlightedIndex={highlightedIndex}
+                    showCreateOption={showCreateOption}
+                    inputValue={inputValue}
+                    onSelectHistory={handleSelectHistory}
+                    onSelectCategory={handleSelectCategory}
+                    onSelectTemplate={(template) => {
+                      handleSaveNewCategory(template)
+                      setIsPopoverOpen(false)
+                    }}
+                    onShowCategoryForm={() => {
+                      setIsPopoverOpen(false)
+                      setShowCategoryForm(true)
+                    }}
+                    onHighlight={setHighlightedIndex}
+                  />
                 )}
-                <Button type="button" variant="ghost" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {existingEntry ? 'Save' : 'Create'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    {selectedCategory && (
+                      <SelectedCategoryBadge
+                        selectedCategory={selectedCategory}
+                        onClear={() => {
+                          setSelectedCategory(null)
+                          setInputValue(selectedCategory?.name || '')
+                          inputRef.current?.focus()
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                  {existingEntry && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => {
+                        if (existingEntry._id) {
+                          onDelete(existingEntry._id)
+                        }
+                      }}
+                      className="mr-auto"
+                    >
+                      Delete
+                    </Button>
+                  )}
+                  <Button type="button" variant="ghost" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {existingEntry ? 'Save' : 'Create'}
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+        </div>
+      </div>
+    </>
   )
 }
