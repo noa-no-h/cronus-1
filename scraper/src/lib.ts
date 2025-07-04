@@ -1,12 +1,61 @@
 import { JSDOM } from 'jsdom';
 import { Octokit } from 'octokit';
+import { RequestError } from '@octokit/request-error';
 
 export const scaperDBName = 'cronus-scraper';
 
+let isThrottled = false;
+let throttleUntil = 0;
+
+export async function withRateLimitHandling<T>(apiCall: () => Promise<T>): Promise<T | null> {
+  if (isThrottled && Date.now() < throttleUntil) {
+    const waitTime = throttleUntil - Date.now();
+    console.log(
+      `(Pre-emptive) Rate limit is active. Waiting for ${Math.ceil(waitTime / 1000)} seconds...`
+    );
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+  }
+  isThrottled = false;
+
+  try {
+    return await apiCall();
+  } catch (error: any) {
+    if (error instanceof RequestError && (error.status === 403 || error.status === 429)) {
+      console.log(
+        'Potential rate limit error detected. Full error details:',
+        JSON.stringify(error, null, 2)
+      );
+      console.log('Headers:', JSON.stringify(error.response?.headers || {}, null, 2));
+      const resetTimeStr = error.response?.headers['x-ratelimit-reset'];
+      let waitTime = 60000; // Default to 60 seconds if reset time is not available
+      if (resetTimeStr) {
+        const resetTime = Number(resetTimeStr);
+        waitTime = Math.max(resetTime * 1000 - Date.now(), 0) + 1000;
+      }
+      isThrottled = true;
+      throttleUntil = Date.now() + waitTime;
+      console.log(
+        `Rate limit hit (or permission error). Waiting for ${Math.ceil(waitTime / 1000)} seconds...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+      isThrottled = false;
+      console.log('Retrying...');
+      return await apiCall();
+    }
+    console.error('An unexpected error occurred in withRateLimitHandling:', error);
+    throw error;
+  }
+}
+
 export async function fetchBasicUserData(octokit: Octokit, username: string) {
-  const userData = await octokit.request('GET /users/{username}', {
-    username,
-  });
+  const userData = await withRateLimitHandling(() =>
+    octokit.request('GET /users/{username}', {
+      username,
+    })
+  );
+  if (!userData) {
+    throw new Error(`Failed to fetch basic user data for ${username} after retrying.`);
+  }
 
   return {
     login: userData.data.login,
@@ -39,49 +88,56 @@ export async function fetchUserEmailFromEvents(
 
   try {
     for (let page = 1; page <= MAX_PAGES_TO_CHECK; page++) {
-      const events = await octokit.request('GET /users/{username}/events/public', {
-        username,
-        per_page: 30, // Fetch 30 events per page
-        page: page,
-      });
+      const eventsResponse = await withRateLimitHandling(() =>
+        octokit.request('GET /users/{username}/events/public', {
+          username,
+          per_page: 100,
+          page,
+        })
+      );
+      if (!eventsResponse) {
+        break;
+      }
+      const events = eventsResponse.data;
 
-      if (events.data && events.data.length > 0) {
-        for (const event of events.data) {
-          if (event.type === 'PushEvent' && event.payload) {
-            const payload = event.payload as any;
-            if (payload.commits && payload.commits.length > 0) {
-              for (const commit of payload.commits) {
-                if (commit.author && commit.author.email) {
-                  const email = commit.author.email as string;
-                  // Skip bot emails and GitHub Actions emails
-                  if (email.includes('[bot]') || email.includes('github-actions')) {
-                    continue;
-                  }
-                  // Prefer non-noreply emails
-                  if (!email.endsWith('@users.noreply.github.com')) {
-                    return email; // Found a non-noreply email, return immediately
-                  }
-                  // Keep track of the first noreply email encountered (which will be the most recent)
-                  if (!mostRecentNoreplyEmail) {
-                    mostRecentNoreplyEmail = email;
-                  }
+      if (events.length === 0) {
+        break; // No more events to check
+      }
+
+      for (const event of events) {
+        if (event.type === 'PushEvent' && event.payload) {
+          const payload = event.payload as any;
+          if (payload.commits && payload.commits.length > 0) {
+            for (const commit of payload.commits) {
+              if (commit.author && commit.author.email) {
+                const email = commit.author.email as string;
+                // Skip bot emails and GitHub Actions emails
+                if (email.includes('[bot]') || email.includes('github-actions')) {
+                  continue;
+                }
+                // Prefer non-noreply emails
+                if (!email.endsWith('@users.noreply.github.com')) {
+                  return email; // Found a non-noreply email, return immediately
+                }
+                // Keep track of the first noreply email encountered (which will be the most recent)
+                if (!mostRecentNoreplyEmail) {
+                  mostRecentNoreplyEmail = email;
                 }
               }
             }
           }
         }
-      } else {
-        // No more events to fetch for this user
-        break;
       }
     }
-    // If loop finishes, it means no non-noreply email was found.
-    // Return the most recent noreply email found, or null if none.
-    return mostRecentNoreplyEmail;
   } catch (error) {
-    console.error(`Error fetching user email from events for ${username}:`, error);
-    return null;
+    if (error instanceof RequestError && error.status === 404) {
+      // It can happen for suspended accounts
+      console.warn(`Could not fetch events for ${username} (404)`);
+    } else {
+      console.error(`Error fetching events for ${username}:`, error);
+    }
   }
+  return mostRecentNoreplyEmail;
 }
 
 export async function fetchXProfileMetadata(username: string): Promise<{

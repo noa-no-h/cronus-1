@@ -1,30 +1,16 @@
 import { Db } from 'mongodb';
 import { Octokit } from 'octokit';
-import { throttling } from '@octokit/plugin-throttling';
-import { fetchBasicUserData, fetchUserEmailFromEvents, fetchXProfileMetadata } from './lib';
+import {
+  fetchBasicUserData,
+  fetchUserEmailFromEvents,
+  fetchXProfileMetadata,
+  withRateLimitHandling,
+} from './lib';
 
 type InteractionType = 'stargazer' | 'watcher' | 'forker' | 'contributor';
 
-const ThrottledOctokit = Octokit.plugin(throttling);
-
-const octokit = new ThrottledOctokit({
+const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
-  throttle: {
-    onRateLimit: (retryAfter, options, octokit, retryCount) => {
-      octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
-      if (retryCount < 5) {
-        octokit.log.info(`Retrying after ${retryAfter} seconds!`);
-        return true;
-      }
-    },
-    onSecondaryRateLimit: (retryAfter, options, octokit, retryCount) => {
-      octokit.log.warn(`SecondaryRateLimit detected for request ${options.method} ${options.url}`);
-      if (retryCount < 5) {
-        octokit.log.info(`Retrying after ${retryAfter} seconds!`);
-        return true;
-      }
-    },
-  },
 });
 
 async function scrapeUserProfile(username: string) {
@@ -148,80 +134,94 @@ async function scrapeGraphQLInteractions(
   }
 }
 
-async function scrapeContributors(owner: string, repo: string, db: Db): Promise<void> {
+async function scrapeContributors(db: Db, owner: string, repo: string, totalContributors: number) {
   const collection = db.collection('users');
   const progressCollection = db.collection('scraper_progress');
-  const interactionType = 'contributor';
+  const progressKey = `contributors:${owner}/${repo}`;
 
-  const progress = await progressCollection.findOne({ owner, repo, interactionType });
+  const progress = await progressCollection.findOne({ key: progressKey });
+  let currentPage = progress ? progress.lastCompletedPage + 1 : 1;
 
-  let page = progress ? progress.lastCompletedPage + 1 : 1;
-  if (progress) {
-    console.log(`[RESUME] Resuming contributor scrape for ${owner}/${repo} from page: ${page}`);
-  } else {
-    console.log(`[START] Starting new contributor scrape for ${owner}/${repo}.`);
-  }
+  console.log(
+    progress
+      ? `[RESUME] Resuming contributor scrape for ${owner}/${repo} from page: ${currentPage}`
+      : `Scraping contributors for ${owner}/${repo}...`
+  );
 
-  let hasNextPage = true;
-  while (hasNextPage) {
-    console.log(`Scraping contributors for ${owner}/${repo}, page ${page}...`);
-    const response = await octokit.rest.repos.listContributors({
-      owner,
-      repo,
-      per_page: 100,
-      page,
-    });
+  while (true) {
+    try {
+      console.log(`Scraping contributors for ${owner}/${repo}, page ${currentPage}...`);
 
-    const contributors = response.data;
-    if (contributors.length === 0) {
-      hasNextPage = false;
-      break;
-    }
+      const response = await withRateLimitHandling(() =>
+        octokit.rest.repos.listContributors({
+          owner,
+          repo,
+          per_page: 100,
+          page: currentPage,
+          anon: 'false',
+        })
+      );
 
-    const CONCURRENCY_LIMIT = 5;
-    const chunks = [];
-    for (let i = 0; i < contributors.length; i += CONCURRENCY_LIMIT) {
-      chunks.push(contributors.slice(i, i + CONCURRENCY_LIMIT));
-    }
+      if (!response || !response.data) {
+        console.log('No more contributors found or rate limit handling failed.');
+        break;
+      }
 
-    for (const chunk of chunks) {
-      const promises = chunk.map(async (contributor: any) => {
-        if (contributor && contributor.login) {
-          try {
-            console.log(`- ${contributor.login} (${contributor.contributions} contributions)`);
-            const userProfile = await scrapeUserProfile(contributor.login);
-            await collection.updateOne(
-              { login: userProfile.login },
-              {
-                $set: userProfile,
-                $addToSet: {
-                  repositoryInteractions: {
-                    interactionType,
-                    repositoryName: repo,
-                    repositoryOwner: owner,
-                    contributions: contributor.contributions,
+      const contributors = response.data.filter((c) => c.type === 'User' && c.login);
+
+      if (contributors.length === 0) {
+        console.log('No more contributors found.');
+        break;
+      }
+
+      const CONCURRENCY_LIMIT = 5;
+      const chunks = [];
+      for (let i = 0; i < contributors.length; i += CONCURRENCY_LIMIT) {
+        chunks.push(contributors.slice(i, i + CONCURRENCY_LIMIT));
+      }
+
+      for (const chunk of chunks) {
+        const promises = chunk.map(async (contributor: any) => {
+          if (contributor && contributor.login) {
+            try {
+              console.log(`- ${contributor.login} (${contributor.contributions} contributions)`);
+              const userProfile = await scrapeUserProfile(contributor.login);
+              await collection.updateOne(
+                { login: userProfile.login },
+                {
+                  $set: userProfile,
+                  $addToSet: {
+                    repositoryInteractions: {
+                      interactionType: 'contributor',
+                      repositoryName: repo,
+                      repositoryOwner: owner,
+                      contributions: contributor.contributions,
+                    },
                   },
                 },
-              },
-              { upsert: true }
-            );
-            return true;
-          } catch (error) {
-            console.error(`Error processing contributor ${contributor.login}:`, error);
-            return false;
+                { upsert: true }
+              );
+              return true;
+            } catch (error) {
+              console.error(`Error processing contributor ${contributor.login}:`, error);
+              return false;
+            }
           }
-        }
-        return false;
-      });
-      await Promise.all(promises);
-    }
+          return false;
+        });
+        await Promise.all(promises);
+      }
 
-    await progressCollection.updateOne(
-      { owner, repo, interactionType },
-      { $set: { lastCompletedPage: page, lastScrapedAt: new Date() } },
-      { upsert: true }
-    );
-    page++;
+      await progressCollection.updateOne(
+        { key: progressKey },
+        { $set: { lastCompletedPage: currentPage, lastScrapedAt: new Date() } },
+        { upsert: true }
+      );
+      currentPage++;
+    } catch (error) {
+      console.error(`Error scraping contributors for ${owner}/${repo}:`, error);
+      break;
+    }
   }
 }
 
@@ -270,7 +270,12 @@ export async function scrapeAllInteractionsForRepo(
       }
     }
 
-    await scrapeContributors(owner, repo, db);
+    await scrapeContributors(
+      db,
+      owner,
+      repo,
+      apiTotals.stargazer + apiTotals.watcher + apiTotals.forker
+    );
   } catch (error) {
     console.error(`Failed to scrape interactions for ${owner}/${repo}:`, error);
   }
