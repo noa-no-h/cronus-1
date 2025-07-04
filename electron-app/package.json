@@ -13,7 +13,7 @@
   "scripts": {
     "------ DEVELOPMENT ---------": "echo '------ DEVELOPMENT ---------'",
     "dev": "VITE_BUILD_DATE=dev electron-vite dev",
-    "postinstall": "electron-builder install-app-deps .",
+    "postinstall": "electron-builder install-app-deps",
     "------ LINTING & TYPE-CHECKING ---------": "echo '------ LINTING & TYPE-CHECKING ---------'",
     "format": "prettier --write .",
     "lint": "eslint --cache .",
