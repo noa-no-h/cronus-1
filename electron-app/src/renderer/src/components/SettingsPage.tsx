@@ -1,7 +1,7 @@
 import { RefreshCw } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
-import DistractionSoundSettings from './Settings/DistractionSoundSettings'
+// import DistractionSoundSettings from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
@@ -54,7 +54,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
         <div className="space-y-4">
           <GoalInputForm />
           <CategoryManagementSettings />
-          <DistractionSoundSettings />
+          {/* <DistractionSoundSettings /> */}
           <MultiPurposeAppsSettings />
           <ThemeSwitcher />
           <PermissionsStatus />
