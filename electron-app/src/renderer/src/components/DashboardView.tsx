@@ -123,6 +123,32 @@ export function DashboardView({
     calculateDateRange()
   }, [selectedDate, viewMode])
 
+  const [activityWidgetStartDateMs, activityWidgetEndDateMs] = useMemo(() => {
+    // If an hour is selected, the context is that specific hour.
+    if (selectedHour !== null) {
+      // In day view, or week view where no specific day is picked, use selectedDate
+      const baseDate = selectedDay || selectedDate
+      const startOfHour = new Date(baseDate)
+      startOfHour.setHours(selectedHour, 0, 0, 0)
+      const endOfHour = new Date(baseDate)
+      endOfHour.setHours(selectedHour, 59, 59, 999)
+
+      return [startOfHour.getTime(), endOfHour.getTime()]
+    }
+
+    // If a specific day is selected in week view (and no hour is selected)
+    if (viewMode === 'week' && selectedDay) {
+      const startOfDay = new Date(selectedDay)
+      startOfDay.setHours(0, 0, 0, 0)
+      const endOfDay = new Date(selectedDay)
+      endOfDay.setHours(23, 59, 59, 999)
+      return [startOfDay.getTime(), endOfDay.getTime()]
+    }
+
+    // Default: the full range for the current view (day or week)
+    return [startDateMs, endDateMs]
+  }, [startDateMs, endDateMs, selectedHour, selectedDay, viewMode, selectedDate])
+
   const { data: categoriesData, isLoading: isLoadingCategories } =
     trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token })
   const categories = categoriesData as Category[] | undefined
@@ -261,8 +287,8 @@ export function DashboardView({
         <ActivitiesByCategoryWidget
           processedEvents={activityWidgetProcessedEvents}
           isLoadingEvents={isLoadingEvents}
-          startDateMs={startDateMs}
-          endDateMs={endDateMs}
+          startDateMs={activityWidgetStartDateMs}
+          endDateMs={activityWidgetEndDateMs}
           refetchEvents={refetchEvents}
           selectedHour={selectedHour}
           onHourSelect={handleHourSelect}
