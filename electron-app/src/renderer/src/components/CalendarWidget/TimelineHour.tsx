@@ -39,12 +39,13 @@ export const TimelineHour = memo(
         key={hour}
         className={clsx(
           'group relative pl-2 flex border-slate-300 dark:border-slate-600',
-          isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30' : '',
+          isSelectedHour ? 'bg-blue-200/20 dark:bg-blue-800/30 cursor-pointer' : '',
           isLastHour ? '' : 'border-b'
         )}
         ref={isCurrentHour ? currentHourRef : null}
         style={{ height: `${hourHeight}rem` }}
-        onClick={() => (isSelectedHour ? onHourSelect(null) : onHourSelect(hour))}
+        // if this is selected allow the user to click here to deselect
+        onClick={() => isSelectedHour && onHourSelect(null)}
       >
         <div className="w-14 py-2 text-xs text-muted-foreground font-medium flex-col sticky left-0 flex items-center justify-between pr-2 z-10">
           <span className={clsx(isSelectedHour && 'text-blue-500')}>
@@ -52,6 +53,7 @@ export const TimelineHour = memo(
           </span>
           {hasActivity && (
             <Button
+              onClick={() => (isSelectedHour ? onHourSelect(null) : onHourSelect(hour))}
               variant="ghost"
               size="icon"
               className={clsx(
