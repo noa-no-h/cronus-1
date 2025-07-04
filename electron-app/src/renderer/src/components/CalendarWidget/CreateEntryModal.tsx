@@ -234,7 +234,7 @@ export const CreateEntryModal = ({
             </>
           ) : (
             <>
-              <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+              <div className="flex flex-col space-y-1.5 text-center sm:text-left mb-4">
                 <h3 className="text-lg font-semibold leading-none tracking-tight">
                   {existingEntry ? 'Edit Entry' : 'Create New Entry'}
                 </h3>
