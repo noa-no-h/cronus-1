@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
-import { Header } from '~/components/header';
-import { Footer } from '~/components/footer';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getPostBySlug, getAllPosts } from '~/lib/blog';
+import { notFound } from 'next/navigation';
+import { Footer } from '~/components/footer';
+import { Header } from '~/components/header';
+import { getAllPosts, getPostBySlug } from '~/lib/blog';
 import BlogPostClient from './BlogPostClient';
 
 type Props = {
@@ -78,7 +78,8 @@ export default async function BlogPostPage({ params }: Props) {
               [&>p]:text-[#242437CC] [&>p]:leading-relaxed [&>p]:mb-4
               [&>ul]:text-[#242437CC] [&>ul]:mb-4 [&>ul]:pl-6
               [&>li]:mb-2 [&>li]:list-disc
-              [&>strong]:text-[#242437] [&>strong]:font-semibold"
+              [&>strong]:text-[#242437] [&>strong]:font-semibold
+              [&>blockquote]:border-l-4 [&>blockquote]:border-[#36168D] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-[#242437CC] [&>blockquote]:my-4"
             dangerouslySetInnerHTML={{ __html: post.content || '' }}
           />
         </div>
