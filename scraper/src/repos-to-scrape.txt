@@ -1,17 +1,4 @@
-https://github.com/getmoro/moro
-https://github.com/wakatime/browser-wakatime
-https://github.com/sheepzh/time-tracker-4-browser
-https://github.com/matthiasn/lotti
-https://github.com/dominikbraun/timetrace
-https://github.com/DefactoSoftware/Hours
-https://github.com/daya0576/beaverhabits
-https://github.com/kimai/kimai
-https://github.com/solidtime-io/solidtime
 https://github.com/invoiceninja/invoiceninja
 https://github.com/johannesjo/super-productivity
 https://github.com/toggl-open-source/toggldesktop
 https://github.com/GothenburgBitFactory/timewarrior
-https://github.com/DefactoSoftware/Hours
-https://github.com/dominikbraun/timetrace
-https://github.com/matthiasn/lotti
-https://github.com/sheepzh/time-tracker-4-browser

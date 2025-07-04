@@ -1,21 +1,51 @@
-todo
-https://github.com/kimai/kimai
-https://github.com/solidtime-io/solidtime
-https://github.com/invoiceninja/invoiceninja
+todo not researched or processed
+
 https://github.com/johannesjo/super-productivity
-https://github.com/toggl-open-source/toggldesktop
-https://github.com/GothenburgBitFactory/timewarrior
-https://github.com/DefactoSoftware/Hours
-https://github.com/dominikbraun/timetrace
-https://github.com/matthiasn/lotti
-https://github.com/sheepzh/time-tracker-4-browser
-https://github.com/getmoro/moro
-https://github.com/wakatime/browser-wakatime
-https://github.com/daya0576/beaverhabits
-https://github.com/traggo/server
-https://github.com/almarklein/timetagger
-https://github.com/jazzband/Watson
-https://github.com/muety/wakapi
+https://github.com/dwarvesf/blurred
+https://github.com/SelfControlApp/selfcontrol
+https://github.com/hovancik/stretchly
+https://github.com/Splode/pomotroid
+https://github.com/zidoro/pomatez
+https://github.com/ivoronin/TomatoBar
+https://github.com/proginosko/LeechBlockNG
+https://github.com/amitmerchant1990/pomolectron
+https://github.com/ayoisaiah/focus
+https://github.com/Hanziness/FocusTide
+
+also these
+
+https://github.com/johannesjo/super-productivity
+Advanced to-do list app with integrated Pomodoro-style focus sessions and time tracking
+14.1k stars
+https://github.com/hovancik/stretchly
+Cross-platform break time reminder app that prompts you to take regular breaks
+5.2k stars
+https://github.com/Splode/pomotroid
+Simple and visually-pleasing Pomodoro timer (customizable and cross-platform)
+4.7k stars
+https://github.com/zidoro/pomatez
+Customizable Pomodoro timer app with a built-in to-do list and full-screen break mode
+4.4k stars
+https://github.com/SelfControlApp/selfcontrol
+macOS app that blocks access to distracting websites and mail servers for a set time period
+4.2k stars
+https://github.com/ivoronin/TomatoBar
+Pomodoro timer for the macOS menu bar (configurable work/break intervals, hotkeys, notifications)
+2.7k stars
+https://github.com/proginosko/LeechBlockNG
+Browser extension that blocks distracting “time-wasting” websites on a schedule you define
+865 stars
+https://github.com/amitmerchant1990/pomolectron
+Electron-based Pomodoro timer that lives in your system tray or menu bar (Windows, macOS, Linux)
+627 stars
+https://github.com/ayoisaiah/focus
+Command-line Pomodoro productivity timer (CLI tool for Linux, Windows, and macOS)
+518 stars
+https://github.com/Hanziness/FocusTide
+Browser-based Pomodoro timer app (PWA) with a clean UI, to-do list, and flexible scheduling options
+367 stars
+
+--------------------------------
 
 https://github.com/johannesjo/super-productivity
 - advanced to-do list app with built-in timeboxing & time tracking (Jira/GitLab/GitHub integrations)
