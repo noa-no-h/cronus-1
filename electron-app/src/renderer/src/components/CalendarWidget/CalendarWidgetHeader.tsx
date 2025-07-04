@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { Button } from '../ui/button'
 import { Label } from '../ui/label'
 import { Switch } from '../ui/switch'
+import { CalendarHeaderDateNavigation } from './CalendarHeaderDateNavigation'
 
 interface CalendarWidgetHeaderProps {
   handlePrev: () => void
@@ -17,6 +18,7 @@ interface CalendarWidgetHeaderProps {
   onViewModeChange: (mode: 'day' | 'week') => void
   weekViewMode: 'stacked' | 'grouped'
   setWeekViewMode: (mode: 'stacked' | 'grouped') => void
+  onDateSelect: (date: Date) => void
 }
 
 export const CalendarWidgetHeader = ({
@@ -31,7 +33,8 @@ export const CalendarWidgetHeader = ({
   viewMode,
   onViewModeChange,
   weekViewMode,
-  setWeekViewMode
+  setWeekViewMode,
+  onDateSelect
 }: CalendarWidgetHeaderProps) => {
   const compactDate = useMemo(() => {
     if (viewMode === 'week') {
@@ -69,47 +72,17 @@ export const CalendarWidgetHeader = ({
     <div className="p-2 border-b rounded-t-xl shadow-sm sticky top-0 bg-card z-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="xs" onClick={handlePrev}>
-              <ChevronLeft size={20} />
-            </Button>
-            <Button variant="outline" size="xs" onClick={handleNext} disabled={!canGoNext()}>
-              <ChevronRight size={20} />
-            </Button>
-            <div className="flex items-center gap-1 min-w-0">
-              {width >= 1000 ? (
-                <span className="text-sm text-muted-foreground font-medium">{fullDate}</span>
-              ) : width >= 800 ? (
-                <span
-                  className="text-xs text-muted-foreground font-medium px-1 py-0.5"
-                  title={fullDate}
-                >
-                  {compactDate}
-                </span>
-              ) : (
-                <span
-                  className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-muted/30 rounded text-center min-w-[60px]"
-                  title={fullDate}
-                >
-                  {viewMode === 'week'
-                    ? selectedDate.toLocaleDateString(undefined, {
-                        month: 'numeric',
-                        day: 'numeric'
-                      })
-                    : selectedDate.toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                </span>
-              )}
-
-              {selectedDate.toDateString() === new Date().toDateString() && (
-                <span className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md">
-                  Today
-                </span>
-              )}
-            </div>
-          </div>
+          <CalendarHeaderDateNavigation
+            handlePrev={handlePrev}
+            handleNext={handleNext}
+            canGoNext={canGoNext}
+            selectedDate={selectedDate}
+            onDateSelect={onDateSelect}
+            width={width}
+            fullDate={fullDate}
+            compactDate={compactDate}
+            viewMode={viewMode}
+          />
 
           {viewMode === 'day' && (
             <div className="flex items-center gap-2">

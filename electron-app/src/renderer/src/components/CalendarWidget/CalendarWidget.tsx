@@ -225,6 +225,7 @@ const CalendarWidget = ({
         onViewModeChange={onViewModeChange}
         weekViewMode={weekViewMode}
         setWeekViewMode={setWeekViewMode}
+        onDateSelect={onDateChange}
       />
 
       <div className="flex-grow overflow-auto" ref={scrollContainerRef}>
