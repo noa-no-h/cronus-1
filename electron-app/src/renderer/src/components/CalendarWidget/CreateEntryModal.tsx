@@ -94,6 +94,14 @@ export const CreateEntryModal = ({
   })
 
   useEffect(() => {
+    if (isOpen) {
+      // Autofocus on the input when the modal opens.
+      const timer = setTimeout(() => inputRef.current?.focus(), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isPopoverOpen) return
 
     const handleClick = (event: MouseEvent) => {
