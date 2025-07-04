@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -44,6 +44,9 @@
     "publish:with-links:arm64": "time (bun run build:for-publish:arm64 && bun run publish:arm64 && bun run create-latest-links arm64)",
     "publish:with-links:x64": "time (bun run build:for-publish:x64 && bun run publish:x64 && bun run create-latest-links x64)",
     "publish:with-links:all": "time (bun run publish:with-links:arm64 && bun run publish:with-links:x64 && say 'All publishing complete')",
+    "publish-only:with-links:arm64": "time (bun run publish:arm64 && bun run create-latest-links arm64)",
+    "publish-only:with-links:x64": "time (bun run publish:x64 && bun run create-latest-links x64)",
+    "publish-only:with-links:all": "time (bun run publish-only:with-links:arm64 && bun run publish-only:with-links:x64 && say 'All publishing complete')",
     "------ UTILITIES ---------": "echo '------ UTILITIES ---------'",
     "clean:cronus-installation": "bash clean_cronus_installation.sh",
     "clean-and-build": "time (bun run clean:cronus-installation && bun run build:for-publish:arm64 && open dist/Cronus-*-arm64.dmg && say 'Build complete')",
