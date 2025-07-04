@@ -14,7 +14,7 @@ const octokit = new Octokit({
 });
 
 async function scrapeUserProfile(username: string) {
-  console.log(`Scraping profile for ${username}...`);
+  // console.log(`Scraping profile for ${username}...`);
   const basicInfo = await fetchBasicUserData(octokit, username);
   const emailFromEvents = await fetchUserEmailFromEvents(username, octokit);
   let xProfile = null;
@@ -95,7 +95,7 @@ async function scrapeGraphQLInteractions(
         const login = interactionType === 'forker' ? node.owner?.login : node.login;
         if (login) {
           try {
-            console.log(`- ${login}`);
+            // console.log(`- ${login}`);
             const userProfile = await scrapeUserProfile(login);
             await collection.updateOne(
               { login: userProfile.login },
