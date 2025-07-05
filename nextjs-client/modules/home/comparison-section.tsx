@@ -10,14 +10,14 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
   return (
     <section
       className={cn(
-        'bg-white text-[#242437]',
+        'bg-white text-primary',
         'py-16 tablet:py-40',
         'flex flex-col items-center',
         className
       )}
       {...props}
     >
-      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-3%] text-center">
+      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
         Cronus vs others
       </h3>
 
@@ -26,7 +26,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           className={cn(
             'flex flex-col tablet:flex-row desktop:flex-row', // responsive stacking
             'rounded-2xl overflow-hidden',
-            'border-[0.5px] border-[#dfdfdf] tracking-[-2%]',
+            'border-[0.5px] border-[#dfdfdf] tracking-[-0.02em]',
             'bg-[#faf8ff]'
           )}
         >
@@ -55,7 +55,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               <li
                 className={cn(
                   'flex items-center',
-                  'leading-[1.5] tracking-[-2%]',
+                  'leading-[1.5] tracking-[-0.02em]',
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
@@ -98,12 +98,12 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
 
           <li
             className={cn(
-              'bg-[#fafafa] text-[#242437]',
+              'bg-[#fafafa] text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
           >
-            <h5 className="font-semibold text-2xl tracking-[-3%]  leading-[32px] whitespace-nowrap">
+            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-[32px] whitespace-nowrap">
               Traditional Time Trackers
             </h5>
             <ul

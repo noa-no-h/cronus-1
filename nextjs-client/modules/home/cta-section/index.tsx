@@ -27,7 +27,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
           <TextLogo className="w-[150px] text-black" />
         </div>
-        <p className="text-sm tablet:text-xl tracking-[-3%] mt-[15px] text-black">
+        <p className="text-sm tablet:text-xl tracking-[-0.03em] mt-[15px] text-black">
           The smartest way to stay focused.
         </p>
         <DownloadButton

@@ -21,7 +21,7 @@ export default function BlogPage() {
       <section className="pt-[120px] pb-20 bg-white">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#242437] mb-4">Cronus Blog</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">Cronus Blog</h1>
             <p className="text-xl text-[#242437CC] max-w-2xl mx-auto">
               Insights on productivity, time management, and building better focus habits.
             </p>
@@ -43,7 +43,7 @@ export default function BlogPage() {
                 </div>
 
                 <Link href={`/blog/${post.slug}`} className="group">
-                  <h2 className="text-2xl font-semibold text-[#242437] mb-3 group-hover:text-[#36168D] transition-colors">
+                  <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-[#36168D] transition-colors">
                     {post.title}
                   </h2>
                   <p className="text-[#242437CC] leading-relaxed">{post.excerpt}</p>

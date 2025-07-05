@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Hedvig_Letters_Serif, Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
-  variable: '--font-inter',
+const sans = Inter({
+  variable: '--font-sans',
   subsets: ['latin'],
+});
+
+const serif = Hedvig_Letters_Serif({
+  variable: '--font-serif',
+  subsets: ['latin']
 });
 
 export const metadata: Metadata = {
@@ -27,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${sans.variable} ${serif.variable} font-sans antialiased`}>{children}</body>
     </html>
   );
 }
