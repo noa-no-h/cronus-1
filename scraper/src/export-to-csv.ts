@@ -50,6 +50,9 @@ async function exportContributorsToCsv() {
     const usersWithEmail = contributorsForCsv.filter((c) => c.email);
     console.log(`Found ${usersWithEmail.length} users with a valid email address.`);
 
+    const usersWithTwitter = contributorsForCsv.filter((c) => c.twitter_username);
+    console.log(`Found ${usersWithTwitter.length} users with a Twitter/X username.`);
+
     const csv = Papa.unparse(contributorsForCsv);
     fs.writeFileSync('contributors-with-interactions.csv', csv);
     console.log('Successfully exported contributors to contributors-with-interactions.csv');
