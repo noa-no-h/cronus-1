@@ -26,7 +26,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
         <div className={cn('text-[#242437] space-y-6', 'tablet:w-[682px] desktop:w-[480px]')}>
           <h3
             className={cn(
-              'font-semibold tracking-[-3%] whitespace-nowrap',
+              'font-semibold tracking-[-0.03em] whitespace-nowrap',
               'text-xl tablet:text-[32px]'
             )}
           >
@@ -34,7 +34,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           </h3>
           <p
             className={cn(
-              'tracking-[-3%] leading-[1.5]',
+              'tracking-[-0.03em] leading-[1.5]',
               'text-sm tablet:text-base',
               'tablet:w-full desktop:w-[428px]'
             )}
@@ -65,13 +65,13 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             'desktop:w-[480px] desktop:pl-8'
           )}
         >
-          <h3 className={cn('font-semibold tracking-[-3%]', 'text-xl tablet:text-[32px]')}>
+          <h3 className={cn('font-semibold tracking-[-0.03em]', 'text-xl tablet:text-[32px]')}>
             Gamified productivity with Mini-Timer
           </h3>
           <p
             className={cn(
               'text-sm tablet:text-base',
-              'tracking-[-2%] tablet:tracking-[-3%] leading-[1.5]'
+              'tracking-[-0.02em] tablet:tracking-[-0.03em] leading-[1.5]'
             )}
           >
             See your productivity counting up life. No annoying and rule-based blockers. Sometimes

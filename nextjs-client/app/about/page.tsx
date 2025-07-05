@@ -42,7 +42,7 @@ function TeamMemberCard({
       )}
       {...props}
     >
-      <h2 className="font-semibold text-2xl tablet:text-[32px] tracking-[-3%] text-[#242437] mb-4">
+      <h2 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-[#242437] mb-4">
         {member.name}
       </h2>
       <p className="text-[#242437] text-lg tablet:text-xl leading-[1.5] mb-6">{member.bio}</p>
@@ -82,7 +82,7 @@ export default function AboutPage() {
           )}
         >
           <div className="max-w-4xl mx-auto">
-            <h1 className="font-semibold text-3xl tablet:text-4xl desktop:text-5xl tracking-[-3%] text-center mb-12 tablet:mb-20">
+            <h1 className="font-semibold text-3xl tablet:text-4xl desktop:text-5xl tracking-[-0.03em] text-center mb-12 tablet:mb-20">
               Our Team
             </h1>
 

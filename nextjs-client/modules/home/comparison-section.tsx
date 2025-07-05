@@ -17,7 +17,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       )}
       {...props}
     >
-      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-3%] text-center">
+      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
         Cronus vs others
       </h3>
 
@@ -26,7 +26,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           className={cn(
             'inline-flex tablet:item-start desktop:items-center',
             'rounded-2xl overflow-hidden',
-            'border-[0.5px] border-[#dfdfdf] tracking-[-2%]',
+            'border-[0.5px] border-[#dfdfdf] tracking-[-0.02em]',
             'bg-[#faf8ff]'
           )}
         >
@@ -55,7 +55,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               <li
                 className={cn(
                   'flex items-center',
-                  'leading-[1.5] tracking-[-2%]',
+                  'leading-[1.5] tracking-[-0.02em]',
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
@@ -104,7 +104,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               'tablet:w-[357px] desktop:w-[464px]'
             )}
           >
-            <h5 className="font-semibold text-2xl tracking-[-3%]  leading-[32px] whitespace-nowrap">
+            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-[32px] whitespace-nowrap">
               Traditional Time Trackers
             </h5>
             <ul
