@@ -1,50 +1,66 @@
+import { RequestError } from '@octokit/request-error';
 import { JSDOM } from 'jsdom';
 import { Octokit } from 'octokit';
-import { RequestError } from '@octokit/request-error';
 
 export const scaperDBName = 'cronus-scraper';
 
-let isThrottled = false;
-let throttleUntil = 0;
+export async function withRateLimitHandling<T>(
+  apiCall: () => Promise<T>,
+  maxRetries: number = 5
+): Promise<T | null> {
+  let retryCount = 0;
+  let lastError: Error | null = null;
 
-export async function withRateLimitHandling<T>(apiCall: () => Promise<T>): Promise<T | null> {
-  if (isThrottled && Date.now() < throttleUntil) {
-    const waitTime = throttleUntil - Date.now();
-    console.log(
-      `(Pre-emptive) Rate limit is active. Waiting for ${Math.ceil(waitTime / 1000)} seconds...`
-    );
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
-  }
-  isThrottled = false;
-
-  try {
-    return await apiCall();
-  } catch (error: any) {
-    if (error instanceof RequestError && (error.status === 403 || error.status === 429)) {
-      console.log(
-        'Potential rate limit error detected. Full error details:',
-        JSON.stringify(error, null, 2)
-      );
-      console.log('Headers:', JSON.stringify(error.response?.headers || {}, null, 2));
-      const resetTimeStr = error.response?.headers['x-ratelimit-reset'];
-      let waitTime = 60000; // Default to 60 seconds if reset time is not available
-      if (resetTimeStr) {
-        const resetTime = Number(resetTimeStr);
-        waitTime = Math.max(resetTime * 1000 - Date.now(), 0) + 1000;
-      }
-      isThrottled = true;
-      throttleUntil = Date.now() + waitTime;
-      console.log(
-        `Rate limit hit (or permission error). Waiting for ${Math.ceil(waitTime / 1000)} seconds...`
-      );
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-      isThrottled = false;
-      console.log('Retrying...');
+  while (retryCount < maxRetries) {
+    try {
       return await apiCall();
+    } catch (error: any) {
+      lastError = error;
+
+      // Handle rate limit errors
+      if (
+        error instanceof RequestError &&
+        (error.status === 403 || error.status === 429) &&
+        error.response?.headers['x-ratelimit-remaining'] === '0'
+      ) {
+        const resetTimestamp = error.response?.headers['x-ratelimit-reset'];
+        if (resetTimestamp) {
+          const resetTime = Number(resetTimestamp) * 1000;
+          const waitTimeMs = Math.max(resetTime - Date.now(), 0) + 1000; // Add a 1s buffer
+          const waitTimeMinutes = (waitTimeMs / 60000).toFixed(2);
+          const resetTimeFormatted = new Date(resetTime).toLocaleString();
+
+          console.log(
+            `Rate limit exceeded. Waiting for ${waitTimeMinutes} minutes until reset (${resetTimeFormatted}). (Attempt ${
+              retryCount + 1
+            }/${maxRetries})`
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTimeMs));
+          retryCount++;
+          continue;
+        }
+      }
+
+      // Handle server errors (5xx) with exponential backoff
+      if (error instanceof RequestError && error.status >= 500 && error.status < 600) {
+        const retryAfterSeconds = Math.min(Math.pow(2, retryCount) * 2, 60); // Exponential backoff, max 60s
+        console.log(
+          `Server error (${error.status}). Retrying in ${retryAfterSeconds} seconds... (Attempt ${
+            retryCount + 1
+          }/${maxRetries})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryAfterSeconds * 1000));
+        retryCount++;
+        continue;
+      }
+
+      console.error('An unexpected API error occurred in withRateLimitHandling:', error);
+      throw error;
     }
-    console.error('An unexpected error occurred in withRateLimitHandling:', error);
-    throw error;
   }
+
+  console.error(`Max retries (${maxRetries}) exceeded. Last error: ${lastError?.message}`);
+  return null;
 }
 
 export async function fetchBasicUserData(octokit: Octokit, username: string) {

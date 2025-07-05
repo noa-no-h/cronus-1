@@ -11,6 +11,12 @@ type InteractionType = 'stargazer' | 'watcher' | 'forker' | 'contributor';
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
+  retry: {
+    enabled: false,
+  },
+  throttle: {
+    enabled: false,
+  },
 });
 
 async function scrapeUserProfile(username: string) {
@@ -81,7 +87,15 @@ async function scrapeGraphQLInteractions(
       `Scraping ${interactionType}s for ${owner}/${repo}` +
         (cursor ? ` (from cursor: ${cursor})` : '')
     );
-    const result: any = await octokit.graphql(query, { owner, repo, cursor });
+    const result: any = await withRateLimitHandling(() =>
+      octokit.graphql(query, { owner, repo, cursor })
+    );
+
+    if (!result) {
+      console.warn(`[SKIP] Could not fetch ${interactionType} for ${owner}/${repo} after retries.`);
+      break;
+    }
+
     const interactions = result.repository[connectionName];
 
     const CONCURRENCY_LIMIT = 5;
@@ -92,6 +106,10 @@ async function scrapeGraphQLInteractions(
 
     for (const chunk of chunks) {
       const promises = chunk.map(async (node: any) => {
+        if (!node) {
+          console.warn('Skipping a null node in interactions.');
+          return false;
+        }
         const login = interactionType === 'forker' ? node.owner?.login : node.login;
         if (login) {
           try {
@@ -246,7 +264,15 @@ export async function scrapeAllInteractionsForRepo(
         }
       }
     `;
-    const truthCounts: any = await octokit.graphql(truthQuery, { owner, repo });
+    const truthCounts: any = await withRateLimitHandling(() =>
+      octokit.graphql(truthQuery, { owner, repo })
+    );
+
+    if (!truthCounts) {
+      console.error(`Could not fetch interaction counts for ${owner}/${repo}. Aborting scrape.`);
+      return;
+    }
+
     const apiTotals = {
       stargazer: truthCounts.repository.stargazers.totalCount,
       watcher: truthCounts.repository.watchers.totalCount,
