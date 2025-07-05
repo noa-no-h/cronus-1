@@ -8,6 +8,12 @@ readTime: '4 min read'
 
 # Benjamin Franklin on Time Tracking
 
+> Dost thou love life? Then do not squander time; for that's the stuff life is made of.
+
+> Lost time is never found again.
+
+—Benjamin Franklin
+
 ![Benjamin Franklin](/blog/benjamin-painting.jpeg)
 
 Benjamin Franklin's net worth was an estimated $50 million in today's currency. He was a prolific writer, inventor, and business titan. He was also the first person of his standing to share his time tracking and time blocking system. This system wasn't just about productivity; it was a key part of his lifelong project to achieve "moral perfection" through his 13 Virtues. The schedule was his practical tool for the virtue of **Order**. In his autobiography (1790) he wrote:
