@@ -1,4 +1,5 @@
 import { RefObject, useState } from 'react'
+import { useToast } from './use-toast'
 
 export type DragState = {
   isSelecting: boolean
@@ -16,6 +17,8 @@ export const useTimeSelection = (
   ) => void,
   isEnabled: boolean
 ) => {
+  const { toast } = useToast()
+
   const [dragState, setDragState] = useState<DragState>({
     isSelecting: false,
     isDragging: false,
@@ -74,6 +77,22 @@ export const useTimeSelection = (
     if (startTime && endTime) {
       const selectionStart = startTime.y < endTime.y ? startTime : endTime
       const selectionEnd = startTime.y < endTime.y ? endTime : startTime
+
+      // Prevent manual entry if selection ends in the future
+      const now = new Date()
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectionDate = new Date(today)
+      selectionDate.setHours(selectionEnd.hour, selectionEnd.minute, 0, 0)
+      if (selectionDate > now) {
+        toast({
+          title: 'Cannot schedule in the future',
+          description: "You can't add entries after the current time.",
+          variant: 'default'
+        })
+        setDragState((prev) => ({ ...prev, isSelecting: false, isDragging: false }))
+        return
+      }
 
       if (
         selectionEnd.hour * 60 + selectionEnd.minute >
