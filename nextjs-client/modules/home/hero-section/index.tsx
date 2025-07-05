@@ -25,7 +25,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
         <p
           className={cn(
             'w-[358px] tablet:w-[474px]',
-            'font-medium text-sm tablet:text-2xl tracking-[-0.03em] text-center text-black'
+            'font-medium font-serif text-sm tablet:text-2xl tracking-[-0.03em] text-center text-black'
           )}
         >
           Understand where your time went and reduce distractions.

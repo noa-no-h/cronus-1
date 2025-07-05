@@ -11,7 +11,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
   return (
     <footer
       className={cn(
-        'bg-[#f4f4f4] text-[#242437]',
+        'bg-[#f4f4f4] text-primary',
         'tablet:flex tablet:justify-center tablet:items-center tablet:gap-[100px] tablet:flex-col-reverse',
         'desktop:flex-row desktop:items-start',
         'py-14 px-4 tablet:px-12 desktop:px-[180px]',
@@ -35,7 +35,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
 
         <div className={cn('tablet:flex tablet:flex-col tablet:items-end desktop:block')}>
-          <div className={cn('flex gap-6 mt-8 tablet:mt-0 desktop:mt-12 text-[#242437]')}>
+          <div className={cn('flex gap-6 mt-8 tablet:mt-0 desktop:mt-12 text-primary')}>
             <Link href={'#'}>
               <GitHub className="size-5" />
             </Link>

@@ -10,7 +10,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
   return (
     <section
       className={cn(
-        'bg-white text-[#242437]',
+        'bg-white text-primary',
         'py-16 tablet:py-40',
         'flex flex-col items-center',
         className
@@ -98,7 +98,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           
           <li
             className={cn(
-              'bg-[#fafafa] text-[#242437]',
+              'bg-[#fafafa] text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'border-r-[0.5px] border-[#DFDFDF]',
               'tablet:w-[357px] desktop:w-[464px]'

@@ -13,7 +13,7 @@ export function TestimonialCard({
   content: string;
 }) {
   return (
-    <div className={cn("inline-block rounded-2xl ","bg-white","text-[#242437] tracking-[-0.02em]","p-8","tablet:py-10 tablet:px-8")}>
+    <div className={cn("inline-block rounded-2xl ","bg-white","text-primary tracking-[-0.02em]","p-8","tablet:py-10 tablet:px-8")}>
       <p className="w-full h-[104px] tracking-[-0.02em] text-sm tablet:text-base">{content}</p>
       <div className="flex items-center gap-6 mt-6">
         <img className="size-[56px] rounded-full bg-zinc-200" src={avatar} alt={name} />

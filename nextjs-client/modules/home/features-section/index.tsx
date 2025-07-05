@@ -17,14 +17,14 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
   return (
     <section
       className={cn(
-        'bg-white text-[#242437]',
+        'bg-white text-primary',
         'flex flex-col items-center',
         'px-4 py-16 tablet:py-[160px] tablet:px-0',
         className
       )}
       {...props}
     >
-      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
+      <h3 className="text-2xl tablet:text-3xl tracking-tight text-center">
         Other features
       </h3>
 

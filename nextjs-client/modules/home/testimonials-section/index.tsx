@@ -94,7 +94,7 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
 
   return (
     <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
-      <h3 className="font-semibold text-[#242437] text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
+      <h3 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
         What our users are saying
       </h3>
 

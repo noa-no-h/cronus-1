@@ -8,17 +8,17 @@ export default function TermsPage() {
 
       <main className="pt-16 tablet:pt-[90px] px-4 tablet:px-12 desktop:px-[180px] py-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl tablet:text-4xl font-bold text-[#242437] mb-8">
+          <h1 className="text-3xl tablet:text-4xl font-bold text-primary mb-8">
             Terms and Conditions
           </h1>
 
-          <div className="prose prose-lg max-w-none text-[#242437] space-y-6">
+          <div className="prose prose-lg max-w-none text-primary space-y-6">
             <p className="text-lg text-[#242437CC]">
               Last updated: {new Date().toLocaleDateString()}
             </p>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">1. Agreement to Terms</h2>
+              <h2 className="text-2xl font-semibold text-primary">1. Agreement to Terms</h2>
               <p>
                 By accessing or using Cronus, you agree to be bound by these Terms and Conditions
                 and our Privacy Policy. If you disagree with any part of the terms, you do not have
@@ -27,7 +27,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">2. Description of Service</h2>
+              <h2 className="text-2xl font-semibold text-primary">2. Description of Service</h2>
               <p>
                 Cronus is a productivity tracking application that helps users understand how they
                 spend their time on their computer. The service includes:
@@ -41,7 +41,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">3. User Accounts</h2>
+              <h2 className="text-2xl font-semibold text-primary">3. User Accounts</h2>
               <p>To use Cronus, you must create an account. You are responsible for:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Maintaining the confidentiality of your account credentials</li>
@@ -51,7 +51,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">4. Acceptable Use</h2>
+              <h2 className="text-2xl font-semibold text-primary">4. Acceptable Use</h2>
               <p>You agree not to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Use the service for any illegal purpose</li>
@@ -63,7 +63,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">
+              <h2 className="text-2xl font-semibold text-primary">
                 5. Data Collection and Privacy
               </h2>
               <p>Our service collects and processes data about your computer usage, including:</p>
@@ -80,7 +80,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">6. Intellectual Property</h2>
+              <h2 className="text-2xl font-semibold text-primary">6. Intellectual Property</h2>
               <p>
                 The service and its original content, features, and functionality are owned by
                 Cronus and are protected by international copyright, trademark, patent, trade
@@ -89,7 +89,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">
+              <h2 className="text-2xl font-semibold text-primary">
                 7. Subscription and Payments
               </h2>
               <p>
@@ -104,7 +104,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">8. Disclaimer of Warranties</h2>
+              <h2 className="text-2xl font-semibold text-primary">8. Disclaimer of Warranties</h2>
               <p>
                 The service is provided &quot;as is&quot; and &quot;as available&quot; without
                 warranties of any kind, either express or implied. We do not warrant that the
@@ -113,7 +113,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">9. Limitation of Liability</h2>
+              <h2 className="text-2xl font-semibold text-primary">9. Limitation of Liability</h2>
               <p>
                 To the fullest extent permitted by law, Cronus shall not be liable for any indirect,
                 incidental, special, consequential, or punitive damages resulting from your use or
@@ -122,7 +122,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">10. Changes to Terms</h2>
+              <h2 className="text-2xl font-semibold text-primary">10. Changes to Terms</h2>
               <p>
                 We reserve the right to modify these terms at any time. We will notify users of any
                 material changes via email or through the application. Your continued use of Cronus
@@ -131,7 +131,7 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">11. Contact Information</h2>
+              <h2 className="text-2xl font-semibold text-primary">11. Contact Information</h2>
               <p>For any questions about these Terms and Conditions, please contact us at:</p>
               <p>Email: wallawitsch@gmail.com, arne.strickmann@googlemail.com</p>
             </section>
