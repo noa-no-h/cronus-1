@@ -1,4 +1,2 @@
-https://github.com/invoiceninja/invoiceninja
-https://github.com/johannesjo/super-productivity
 https://github.com/toggl-open-source/toggldesktop
 https://github.com/GothenburgBitFactory/timewarrior
