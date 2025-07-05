@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: 'Cronus',
   description:
     'Cronus is an AI-powered time tracking tool that helps you understand how you spend your time.',
+  metadataBase: new URL('https://cronushq.com'),
 };
 
 export const viewport: Viewport = {
