@@ -3,8 +3,9 @@ import { useState, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 // import { Navbar } from '../navbar/navbar';
-import DownloadButton from '../ui/download-button';
 import Link from 'next/link';
+import { Navbar } from '../navbar/navbar';
+import DownloadButton from '../ui/download-button';
 
 export function Header({ className, ...props }: ComponentProps<'header'>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,11 +39,11 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
           'tablet:static tablet:bg-transparent tablet:flex items-center gap-4'
         )}
       >
-        {/* <Navbar
+        <Navbar
           className={cn(
             'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
-        /> */}
+        />
         <DownloadButton className="hidden tablet:flex shrink-0" location="header_navbar" />
       </div>
     </header>
