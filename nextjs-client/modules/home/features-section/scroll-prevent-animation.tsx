@@ -9,7 +9,7 @@ export function ScrollPreventAnimation() {
 
   return (
     <RiveComponent
-      className="size-full"
+      className="size-full min-h-[235px] aspect-[358/235]"
       onMouseEnter={() => rive && rive.play()}
       onMouseLeave={() => rive && rive.pause()}
     />
