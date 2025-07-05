@@ -1,8 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import type { Viewport } from 'next'
- 
 
 const inter = Inter({
   variable: '--font-inter',
@@ -11,7 +9,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Cronus',
-  description: '',
+  description:
+    'Cronus is an AI-powered time tracking tool that helps you understand how you spend your time.',
 };
 
 export const viewport: Viewport = {
@@ -19,7 +18,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-}
+};
 
 export default function RootLayout({
   children,
