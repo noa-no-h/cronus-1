@@ -75,6 +75,18 @@ export const useTimeSelection = (
       const selectionStart = startTime.y < endTime.y ? startTime : endTime
       const selectionEnd = startTime.y < endTime.y ? endTime : startTime
 
+      // Prevent manual entry if selection ends in the future
+      const now = new Date()
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectionDate = new Date(today)
+      selectionDate.setHours(selectionEnd.hour, selectionEnd.minute, 0, 0)
+      if (selectionDate > now) {
+        // Optionally: show a toast/message to the user here
+        setDragState((prev) => ({ ...prev, isSelecting: false, isDragging: false }))
+        return
+      }
+
       if (
         selectionEnd.hour * 60 + selectionEnd.minute >
         selectionStart.hour * 60 + selectionStart.minute
