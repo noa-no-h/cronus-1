@@ -43,6 +43,30 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               {children}
             </a>
           ),
+          img: ({ src, alt }) => {
+            if (!src || typeof src !== 'string') {
+              return null;
+            }
+
+            const [urlSrc, hash] = src.split('#');
+            const style: React.CSSProperties = {
+              display: 'block',
+              margin: 'auto',
+            };
+
+            if (hash) {
+              const widthMatch = /w=(\d+)/.exec(hash);
+              if (widthMatch) {
+                style.maxWidth = `${widthMatch[1]}px`;
+              }
+              const widthPercentMatch = /wp=(\d+)/.exec(hash);
+              if (widthPercentMatch) {
+                style.width = `${widthPercentMatch[1]}%`;
+              }
+            }
+
+            return <img src={urlSrc} alt={alt || ''} style={style} className="rounded-lg my-6" />;
+          },
         }}
       >
         {content}

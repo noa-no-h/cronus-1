@@ -16,11 +16,13 @@ We also explain the difference between "Automatic" and AI time tracking.
 
 Here's a clear breakdown of their strengths and weaknesses based on real user experiences.
 
-## 1. Cronus: Smart, Free, and Truly AI-Powered
+## 1. c: Smart, Free, and Truly AI-Powered
 
 Cronus distinguishes itself by genuinely leveraging AI to understand your tasks. It uses local OCR and sophisticated AI models to automatically differentiate between productive tasks and distractions—meaning no rigid keyword rules.
 
 It's completely free (affordable pricing planned), has a sleek interface with a mini-timer to help you stay focused and gamify productivity. A mobile app that integrates both desktop and mobile screen time is in development. Instead of clunky reports, Cronus provides AI-driven insights and subtle nudges to help you focus on what matters. Cronus even pulls in your calendar events with AI to log offline time (e.g. meetings or lunch) automatically, or you can add manual entries in one click.
+
+![Cronus Interface](/blog/cronus-dashboard.png)
 
 ## 2. Rize: Detailed Tracking with Some Limitations
 
@@ -36,23 +38,37 @@ Rize is expensive, starting at $16.99 per month for basic features like categori
 
 Having launched 16 years ago, RescueTime is showing its age. Users frequently describe its interface as outdated and cumbersome. While it offers automatic tracking, users often report frustration due to its inability to distinguish productive tasks clearly[^1](https://www.reddit.com/r/ProductivityApps/comments/1iw7xfc/comment/mebww11/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button).
 
-The dashboard is packed with charts and automatic categorization of activities (productive vs distracting), but in practice these reports can be “virtually unusable” to derive insights[^1](https://www.reddit.com/r/ProductivityApps/comments/1iw7xfc/rescuetime_rant_whats_the_point_of_this_app/#:~:text=The%20most%20useful%20view%20is,apps%20too%20but%20still%20looking).
+The dashboard is packed with charts and automatic categorization of activities (productive vs distracting), but in practice these reports can be "virtually unusable" to derive insights[^1](https://www.reddit.com/r/ProductivityApps/comments/1iw7xfc/rescuetime_rant_whats_the_point_of_this_app/#:~:text=The%20most%20useful%20view%20is,apps%20too%20but%20still%20looking).
 
-RescueTime has a mobile app, but unfortunately, data from mobile and desktop devices remain siloed, hindering a unified productivity view. Additionally, it offers no option for manual tracking.
+![RescueTime Interface](/blog/rescuetime-web-dashboard.png)
+
+RescueTime has a mobile app, but unfortunately, data from mobile and desktop devices remain siloed, hindering a unified productivity view. It's MacOs app is only a re-packaged version of the mobile app.
+
+![RescueTime Mobile App](/blog/rescuetime-macos-app.png#wp=50)
 
 ## 4. Early (Timeular): Semi-Automated and Privacy-Focused
 
 Early offers automatic context tracking but doesn't fully automate the process. Users must manually confirm and categorize tracked activities[^2](https://product.early.app/#/settings/context-tracking). Early offers a unique 8-sided Bluetooth tracking cube, creating a tangible, game-like interface for those who prefer physical tools over on-screen timers.
 
+![Early Interface](/blog/early-dashboard.png)
+
 ## 5. Memtime: Complex Setup and Manual Categorization
 
 Memtime advertises automatic time tracking but, in practice, still requires extensive manual categorization of apps and websites. Users report a long and complicated onboarding process. Additionally, there's criticism regarding Memtime's billing practices and aggressive upselling strategies.
+
+![Memtime Interface](/blog/memtime-interface.png)
 
 We also found online discussions about concerning billing practices and customer service, with users reporting aggressive tactics like debt collection notices for expired subscriptions plus hefty fees[^2](https://www.reddit.com/r/Autotask/comments/1isc7mj/comment/mpgsnds/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button).
 
 ## 6. Toggl Tracker: Robust but Fully Manual
 
 Toggl Tracker excels in manual time tracking with robust reporting and billing features. However, it offers no automation or AI-driven insights. It demands constant manual input, and users find it challenging to quickly visualize past activities without detailed interaction with the UI.
+
+![Toggl Interface](/blog/toggl-macos-app.png#wp=50)
+
+However, they do show the activity-block in the MacOS app that can be used to retroactivily figure out what you were doing when you were not using the app.
+
+![Toggl Activity Block](/blog/toggl-activity.png)
 
 ## Final Thoughts
 
