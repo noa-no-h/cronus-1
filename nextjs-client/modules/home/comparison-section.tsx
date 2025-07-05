@@ -21,7 +21,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
         Cronus vs others
       </h3>
 
-      <div className={cn('mt-12 tablet:mt-20', 'px-4','max-w-full overflow-x-scroll')}>
+      <div className={cn('mt-12 tablet:mt-20', 'px-4','max-w-full overflow-x-scroll no-scrollbar')}>
         <ul
           className={cn(
             'inline-flex tablet:item-start desktop:items-center',
