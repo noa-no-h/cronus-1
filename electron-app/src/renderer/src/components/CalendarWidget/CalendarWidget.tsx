@@ -23,6 +23,8 @@ interface CalendarWidgetProps {
   onHourSelect: (hour: number | null) => void
   selectedDay: Date | null
   onDaySelect: (day: Date | null) => void
+  weekViewMode: 'stacked' | 'grouped'
+  onWeekViewModeChange: (mode: 'stacked' | 'grouped') => void
 }
 
 const CalendarWidget = ({
@@ -36,16 +38,17 @@ const CalendarWidget = ({
   selectedHour,
   onHourSelect,
   selectedDay,
-  onDaySelect
+  onDaySelect,
+  weekViewMode,
+  onWeekViewModeChange
 }: CalendarWidgetProps) => {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
   const [wasSetToToday, setWasSetToToday] = useState(false)
-  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped')
-  const [hourHeight, setHourHeight] = useState(4) // Default: 64px -> 4rem
   const width = useWindowWidth()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [hourHeight, setHourHeight] = useState(4) // Default: 64px -> 4rem
   const { token } = useAuth()
   const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery(
     { token: token || '' },
@@ -224,7 +227,7 @@ const CalendarWidget = ({
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         weekViewMode={weekViewMode}
-        setWeekViewMode={setWeekViewMode}
+        setWeekViewMode={onWeekViewModeChange}
         onDateSelect={onDateChange}
       />
 
