@@ -19,32 +19,25 @@ interface CategoryTotal {
   isProductive?: boolean
 }
 
-const formatDuration = (ms: number): string | null => {
-  if (ms < 1000) return null
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  if (minutes > 0) {
-    return `${minutes}m`
-  }
-  return null
+interface WeekSummary {
+  startDate: Date
+  endDate: Date
+  productiveCategories: CategoryTotal[]
+  totalProductiveDuration: number
+  totalUnproductiveDuration: number
+  totalWeekDuration: number
 }
 
 export function WeekOverWeekComparison({
   processedEvents,
-  isDarkMode,
-  weekViewMode
+  isDarkMode
 }: WeekOverWeekComparisonProps) {
-  const weekData = useMemo(() => {
+  const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
       return []
     }
 
-    const weeks = []
+    const weeks: WeekSummary[] = []
     const now = new Date()
 
     // Get last 4 weeks
@@ -84,15 +77,11 @@ export function WeekOverWeekComparison({
       const productiveCategories = Array.from(productiveCategoriesMap.values()).sort(
         (a, b) => b.totalDurationMs - a.totalDurationMs
       )
-      const unproductiveCategories = Array.from(unproductiveCategoriesMap.values()).sort(
-        (a, b) => b.totalDurationMs - a.totalDurationMs
-      )
-
       const totalProductiveDuration = productiveCategories.reduce(
         (sum, cat) => sum + cat.totalDurationMs,
         0
       )
-      const totalUnproductiveDuration = unproductiveCategories.reduce(
+      const totalUnproductiveDuration = Array.from(unproductiveCategoriesMap.values()).reduce(
         (sum, cat) => sum + cat.totalDurationMs,
         0
       )
@@ -102,7 +91,6 @@ export function WeekOverWeekComparison({
         startDate: start,
         endDate: end,
         productiveCategories,
-        unproductiveCategories,
         totalProductiveDuration,
         totalUnproductiveDuration,
         totalWeekDuration
@@ -137,8 +125,6 @@ export function WeekOverWeekComparison({
               {
                 startDate,
                 endDate,
-                productiveCategories,
-                unproductiveCategories,
                 totalProductiveDuration,
                 totalUnproductiveDuration,
                 totalWeekDuration
