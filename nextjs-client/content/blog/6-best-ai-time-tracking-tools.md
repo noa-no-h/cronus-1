@@ -68,7 +68,7 @@ Toggl Tracker excels in manual time tracking with robust reporting and billing f
 
 However, they do show the activity-block in the MacOS app that can be used to retroactivily figure out what you were doing when you were not using the app.
 
-![Toggl Activity Block](/blog/toggl-activity.png)
+![Toggl Activity Block](/blog/toggl-activity.png#wp=70)
 
 ## Final Thoughts
 
