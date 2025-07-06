@@ -1,9 +1,12 @@
-'use client';
-
+import { getAllPosts } from '~/lib/blog';
 import { Home } from '~/modules/home';
-import { usePageTracking } from '~/hooks/useTracking';
+import HomeClient from '~/modules/home/HomeClient';
 
 export default function HomePage() {
-  usePageTracking('home');
-  return <Home />;
+  const posts = getAllPosts();
+  return (
+    <HomeClient>
+      <Home posts={posts} />
+    </HomeClient>
+  );
 }

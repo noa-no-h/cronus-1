@@ -4,6 +4,7 @@ excerpt: 'Discover why gentle nudges are more effective than strict blockers, an
 date: '2024-06-11'
 category: 'Productivity'
 readTime: '6 min read'
+featured: false
 ---
 
 # The Power of Gentle Nudges: How Small Reminders Can Transform Your Productivity

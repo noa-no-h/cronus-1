@@ -12,6 +12,7 @@ export interface BlogPost {
   category: string;
   readTime: string;
   content?: string;
+  featured?: boolean;
 }
 
 export function getAllPosts(): BlogPost[] {
@@ -31,6 +32,7 @@ export function getAllPosts(): BlogPost[] {
         date: matterResult.data.date,
         category: matterResult.data.category,
         readTime: matterResult.data.readTime,
+        featured: matterResult.data.featured,
       };
     });
 
@@ -51,6 +53,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       category: matterResult.data.category,
       readTime: matterResult.data.readTime,
       content: matterResult.content,
+      featured: matterResult.data.featured,
     };
   } catch (error) {
     console.error('Error getting post by slug:', error);

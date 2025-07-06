@@ -4,6 +4,7 @@ excerpt: 'Feeling overwhelmed or stuck? Discover how breaking your day into 15-m
 date: '2024-06-11'
 category: 'Productivity'
 readTime: '8 min read'
+featured: false
 ---
 
 # 15-Minute Increments for Productivity: How to Use Them the Right Way

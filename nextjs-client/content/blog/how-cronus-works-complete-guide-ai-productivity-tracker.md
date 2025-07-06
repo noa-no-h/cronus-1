@@ -4,6 +4,7 @@ excerpt: 'Discover how Cronus uses AI to automatically track your activities, un
 date: '2024-01-28'
 category: 'Product'
 readTime: '7 min read'
+featured: true
 ---
 
 # How Cronus Works: The Complete Guide to AI-Powered Productivity Tracking

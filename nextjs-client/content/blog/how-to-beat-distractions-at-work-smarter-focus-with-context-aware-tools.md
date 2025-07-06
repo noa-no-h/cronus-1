@@ -4,6 +4,7 @@ excerpt: 'Learn how to reclaim your attention and improve focus using AI-powered
 date: '2024-01-25'
 category: 'Productivity'
 readTime: '5 min read'
+featured: false
 ---
 
 # How to Beat Distractions at Work: Smarter Focus with Context-Aware Tools

@@ -2,8 +2,9 @@
 title: 'Benjamin Franklin on Time Tracking'
 excerpt: 'A brief history of time tracking and how it has evolved over the years.'
 date: '2025-07-04'
-category: 'Product'
+category: 'Productivity'
 readTime: '4 min read'
+featured: true
 ---
 
 # Benjamin Franklin on Time Tracking

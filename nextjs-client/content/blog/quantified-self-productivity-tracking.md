@@ -4,6 +4,7 @@ excerpt: 'Discover how self-tracking and data-driven insights can transform your
 date: '2024-01-20'
 category: 'Productivity'
 readTime: '8 min read'
+featured: false
 ---
 
 # What Is Quantified Self? The Complete Guide to Productivity Tracking

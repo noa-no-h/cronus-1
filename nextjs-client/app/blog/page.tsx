@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import { Header } from '~/components/header';
 import { Footer } from '~/components/footer';
-import Link from 'next/link';
+import { Header } from '~/components/header';
 import { getAllPosts } from '~/lib/blog';
+import { ArticleCard } from '~/modules/home/blog-section';
 import BlogIndexClient from './BlogIndexClient';
 
 export const metadata: Metadata = {
@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 
 export default function BlogPage() {
   const posts = getAllPosts();
+
+  const featuredPosts = posts.filter((post) => post.featured);
 
   return (
     <main>
@@ -28,28 +30,14 @@ export default function BlogPage() {
           </div>
 
           <div className="grid gap-8">
-            {posts.map((post) => (
-              <article
-                key={post.slug}
-                className="border border-[#DFDFDF] rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
-              >
-                <div className="flex items-center gap-4 mb-3">
-                  <span className="text-sm bg-[#36168D] text-white px-3 py-1 rounded-full">
-                    {post.category}
-                  </span>
-                  <span className="text-sm text-[#242437CC]">{post.date}</span>
-                  <span className="text-sm text-[#242437CC]">•</span>
-                  <span className="text-sm text-[#242437CC]">{post.readTime}</span>
-                </div>
-
-                <Link href={`/blog/${post.slug}`} className="group">
-                  <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-[#36168D] transition-colors">
-                    {post.title}
-                  </h2>
-                  <p className="text-[#242437CC] leading-relaxed">{post.excerpt}</p>
-                </Link>
-              </article>
+            {featuredPosts.map((post) => (
+              <ArticleCard key={post.slug} post={post} />
             ))}
+            {posts
+              .filter((post) => !post.featured)
+              .map((post) => (
+                <ArticleCard key={post.slug} post={post} />
+              ))}
           </div>
         </div>
       </section>

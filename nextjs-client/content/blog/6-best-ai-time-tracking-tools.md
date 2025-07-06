@@ -4,6 +4,7 @@ excerpt: 'A list of the best AI time tracking tools for 2025.'
 date: '2025-07-04'
 category: 'Product'
 readTime: '4 min read'
+featured: true
 ---
 
 # The 6 Best AI Time Tracking Tools: An Objective Comparison
@@ -16,7 +17,7 @@ We also explain the difference between "Automatic" and AI time tracking.
 
 Here's a clear breakdown of their strengths and weaknesses based on real user experiences.
 
-## 1. c: Smart, Free, and Truly AI-Powered
+## 1. Cronus: Smart, Free, and Truly AI-Powered
 
 Cronus distinguishes itself by genuinely leveraging AI to understand your tasks. It uses local OCR and sophisticated AI models to automatically differentiate between productive tasks and distractions—meaning no rigid keyword rules.
 
