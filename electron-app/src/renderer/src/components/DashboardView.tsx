@@ -8,6 +8,7 @@ import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidge
 import CalendarWidget from './CalendarWidget/CalendarWidget'
 import { TutorialModal } from './TutorialModal'
 import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
+import { ProductivityTrendChart } from './CalendarWidget/ProductivityTrendChart'
 import { useDarkMode } from '../hooks/useDarkMode'
 
 export interface ProcessedEventBlock {
@@ -314,6 +315,12 @@ export function DashboardView({
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
+          />
+        )}
+        {viewMode === 'week' && (
+          <ProductivityTrendChart
+            processedEvents={trackedProcessedEvents}
+            isDarkMode={isDarkMode}
           />
         )}
       </div>

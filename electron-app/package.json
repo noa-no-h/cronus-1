@@ -134,11 +134,12 @@
     "fs-extra": "^11.3.0",
     "js-yaml": "^4.1.0",
     "jsonfile": "^6.1.0",
-    "lucide-react": "^0.523.0",
+    "lucide-react": "^0.525.0",
     "node-addon-api": "^4.3.0",
     "posthog-js": "^1.249.5",
     "react-day-picker": "^9.7.0",
     "react-router-dom": "^7.6.1",
+    "recharts": "^3.0.2",
     "shared": "workspace:*",
     "tailwind-merge": "^3.3.1",
     "zod": "^3.24.1"

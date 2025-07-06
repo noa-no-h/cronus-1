@@ -110,13 +110,20 @@ export function WeekOverWeekComparison({
     return `${startMonth} ${startDay}-${endMonth} ${endDay}`
   }
 
+  const formatHours = (durationMs: number): string => {
+    const hours = durationMs / (1000 * 60 * 60)
+    return `${hours.toFixed(1)}h`
+  }
+
   return (
     <TooltipProvider>
       <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
-        <h3 className="text-lg font-semibold text-foreground">Week-over-Week Trend</h3>
-        <p className="text-sm text-muted-foreground">Productivity Ratio</p>
-        <div className="h-48 flex flex-col">
-          <div className="grid grid-cols-4 gap-2 h-32">
+        <h3 className="text-lg font-semibold text-foreground">Week-over-Week Comparison</h3>
+        <p className="text-sm text-muted-foreground">Productivity ratio & hours breakdown</p>
+
+        {/* Bar Chart Section */}
+        <div className="h-40 flex flex-col mt-4">
+          <div className="grid grid-cols-4 gap-2 h-28">
             {weekData.map(
               (
                 {
@@ -191,18 +198,20 @@ export function WeekOverWeekComparison({
                   : 0
 
               return (
-                <div key={index} className="text-left">
+                <div key={index} className="text-left text-xs">
                   {week.totalWeekDuration > 0 ? (
                     <>
-                      <div className="text-xs text-foreground font-medium">
-                        Productive: {Math.round(productivePercentage)}%
+                      <div className="text-foreground font-medium">
+                        Productive: {formatHours(week.totalProductiveDuration)} (
+                        {Math.round(productivePercentage)}%)
                       </div>
-                      <div className="text-xs text-foreground font-medium">
-                        Unproductive: {Math.round(unproductivePercentage)}%
+                      <div className="text-foreground font-medium">
+                        Unproductive: {formatHours(week.totalUnproductiveDuration)} (
+                        {Math.round(unproductivePercentage)}%)
                       </div>
                     </>
                   ) : (
-                    <div className="text-xs text-muted-foreground">No tracking</div>
+                    <div className="text-muted-foreground">No tracking</div>
                   )}
                 </div>
               )
