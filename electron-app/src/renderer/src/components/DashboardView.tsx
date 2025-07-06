@@ -69,11 +69,11 @@ export function DashboardView({
   setShowTutorial: (show: boolean) => void
 }) {
   const { token } = useAuth()
-  const isDarkMode = useDarkMode() // Add this line
+  const isDarkMode = useDarkMode()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
-  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped') // Add this line
+  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped')
   const [googleCalendarProcessedEvents, setGoogleCalendarProcessedEvents] = useState<
     ProcessedEventBlock[] | null
   >(null)
@@ -185,19 +185,6 @@ export function DashboardView({
   )
 
   useEffect(() => {
-    // console.log('🔍 Processing events:', {
-    //   isLoadingFetchedEvents,
-    //   isLoadingCategories,
-    //   isLoadingCalendarEvents,
-    //   eventsDataLength: eventsData?.length || 0,
-    //   categoriesLength: categories?.length || 0,
-    //   calendarEventsLength: calendarEventsData?.length || 0
-    // })
-
-    // console.log('🐛 Debug - eventsData:', eventsData)
-    // console.log('🐛 Debug - startDateMs/endDateMs:', { startDateMs, endDateMs })
-    // console.log('🐛 Debug - token:', token)
-
     if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
       setIsLoadingEvents(true)
       setGoogleCalendarProcessedEvents(null)
@@ -211,7 +198,6 @@ export function DashboardView({
           : undefined
       }))
       const trackedBlocks = generateProcessedEventBlocks(eventsWithParsedDates, categories)
-      // console.log('📊 Tracked blocks:', trackedBlocks.length)
 
       const calendarEvents = calendarEventsData || []
 
@@ -221,7 +207,6 @@ export function DashboardView({
             .map(convertCalendarEventToBlock)
             .filter((block): block is ProcessedEventBlock => block !== null)
         : []
-      // console.log('📅 Calendar blocks:', calendarBlocks.length)
 
       setTrackedProcessedEvents(trackedBlocks)
       setGoogleCalendarProcessedEvents(googleCalendarBlocks)
@@ -287,20 +272,28 @@ export function DashboardView({
     <div
       className={`flex-1 flex flex-row overflow-hidden min-h-0 px-2 pb-2 space-x-2 ${className}`}
     >
-      <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
-        <ActivitiesByCategoryWidget
-          processedEvents={activityWidgetProcessedEvents}
-          isLoadingEvents={isLoadingEvents}
-          startDateMs={activityWidgetStartDateMs}
-          endDateMs={activityWidgetEndDateMs}
-          refetchEvents={refetchEvents}
-          selectedHour={selectedHour}
-          onHourSelect={handleHourSelect}
-          selectedDay={selectedDay}
-          onDaySelect={handleDaySelect}
-        />
-      </div>
-      <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
+      {viewMode === 'day' && (
+        <div className="flex flex-col gap-4 w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
+          <ActivitiesByCategoryWidget
+            processedEvents={activityWidgetProcessedEvents}
+            isLoadingEvents={isLoadingEvents}
+            startDateMs={activityWidgetStartDateMs}
+            endDateMs={activityWidgetEndDateMs}
+            refetchEvents={refetchEvents}
+            selectedHour={selectedHour}
+            onHourSelect={handleHourSelect}
+            selectedDay={selectedDay}
+            onDaySelect={handleDaySelect}
+          />
+        </div>
+      )}
+      <div
+        className={
+          viewMode === 'week'
+            ? 'w-full overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500'
+            : 'w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500'
+        }
+      >
         <CalendarWidget
           selectedDate={selectedDate}
           trackedEvents={trackedProcessedEvents}
