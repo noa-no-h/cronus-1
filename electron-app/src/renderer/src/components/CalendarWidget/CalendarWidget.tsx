@@ -8,6 +8,7 @@ import type { TimeBlock } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
+import CalendarZoomControls from './CalendarZoomControls'
 import DayTimeline from './DayTimeline'
 import WeekView from './WeekView'
 
@@ -214,7 +215,7 @@ const CalendarWidget = ({
   }, [selectedDate, viewMode])
 
   return (
-    <div className="flex select-none flex-col h-full bg-card border-1 border border-border rounded-lg">
+    <div className="relative flex select-none flex-col h-full bg-card border-1 border border-border rounded-lg">
       <CalendarWidgetHeader
         handlePrev={handlePrev}
         width={width}
@@ -222,8 +223,6 @@ const CalendarWidget = ({
         selectedDate={selectedDate}
         handleNext={handleNext}
         canGoNext={canGoNext}
-        handleZoomOut={handleZoomOut}
-        handleZoomIn={handleZoomIn}
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
         weekViewMode={weekViewMode}
@@ -256,6 +255,9 @@ const CalendarWidget = ({
           />
         )}
       </div>
+      {viewMode === 'day' && (
+        <CalendarZoomControls handleZoomIn={handleZoomIn} handleZoomOut={handleZoomOut} />
+      )}
     </div>
   )
 }

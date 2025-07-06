@@ -16,6 +16,7 @@ import { CreateEntryModal } from './CreateEntryModal'
 import { EventSegments } from './EventSegments'
 import { TimelineGrid } from './TimelineGrid'
 import { TimelineOverlays } from './TimelineOverlays'
+
 interface DayTimelineProps {
   trackedTimeBlocks: TimeBlock[]
   googleCalendarTimeBlocks: TimeBlock[]

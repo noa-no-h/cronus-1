@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Layers, Minus, Plus } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '../ui/button'
 import { Label } from '../ui/label'
@@ -12,8 +12,6 @@ interface CalendarWidgetHeaderProps {
   selectedDate: Date
   handleNext: () => void
   canGoNext: () => boolean
-  handleZoomOut: () => void
-  handleZoomIn: () => void
   viewMode: 'day' | 'week'
   onViewModeChange: (mode: 'day' | 'week') => void
   weekViewMode: 'stacked' | 'grouped'
@@ -28,8 +26,6 @@ export const CalendarWidgetHeader = ({
   selectedDate,
   handleNext,
   canGoNext,
-  handleZoomOut,
-  handleZoomIn,
   viewMode,
   onViewModeChange,
   weekViewMode,
@@ -83,17 +79,6 @@ export const CalendarWidgetHeader = ({
             compactDate={compactDate}
             viewMode={viewMode}
           />
-
-          {viewMode === 'day' && (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="xs" onClick={handleZoomOut}>
-                <Minus size={20} />
-              </Button>
-              <Button variant="outline" size="xs" onClick={handleZoomIn}>
-                <Plus size={20} />
-              </Button>
-            </div>
-          )}
         </div>
 
         {viewMode === 'week' && (
