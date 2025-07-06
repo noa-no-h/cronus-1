@@ -32,7 +32,6 @@ const CalendarWidget = ({
   selectedDate,
   trackedEvents,
   googleCalendarEvents,
-  isLoadingEvents,
   viewMode,
   onDateChange,
   onViewModeChange,
@@ -42,8 +41,7 @@ const CalendarWidget = ({
   onDaySelect,
   weekViewMode,
   onWeekViewModeChange
-}: CalendarWidgetProps) => {
-  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([])
+}: CalendarWidgetProps): JSX.Element => {
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
   const [wasSetToToday, setWasSetToToday] = useState(false)
@@ -215,7 +213,11 @@ const CalendarWidget = ({
   }, [selectedDate, viewMode])
 
   return (
-    <div className="relative flex select-none flex-col h-full bg-card border-1 border border-border rounded-lg">
+    <div
+      className={`relative flex select-none flex-col bg-card border-1 border border-border rounded-lg ${
+        viewMode === 'week' ? 'h-96' : 'h-full'
+      }`}
+    >
       <CalendarWidgetHeader
         handlePrev={handlePrev}
         width={width}
