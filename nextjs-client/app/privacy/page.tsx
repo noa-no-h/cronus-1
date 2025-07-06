@@ -8,15 +8,15 @@ export default function PrivacyPage() {
 
       <main className="pt-16 tablet:pt-[90px] px-4 tablet:px-12 desktop:px-[180px] py-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl tablet:text-4xl font-bold text-[#242437] mb-8">Privacy Policy</h1>
+          <h1 className="text-3xl tablet:text-4xl font-bold text-primary mb-8">Privacy Policy</h1>
 
-          <div className="prose prose-lg max-w-none text-[#242437] space-y-6">
+          <div className="prose prose-lg max-w-none text-primary space-y-6">
             <p className="text-lg text-[#242437CC]">
               Last updated: {new Date().toLocaleDateString()}
             </p>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Information We Collect</h2>
+              <h2 className="text-2xl font-semibold text-primary">Information We Collect</h2>
               <p>
                 Cronus collects information to provide better services to our users. We collect
                 information in the following ways:
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">How We Use Information</h2>
+              <h2 className="text-2xl font-semibold text-primary">How We Use Information</h2>
               <p>We use the information we collect to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Provide, maintain, and improve our services</li>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Third-Party Services</h2>
+              <h2 className="text-2xl font-semibold text-primary">Third-Party Services</h2>
               <p>
                 To provide our services, we work with the following trusted third-party providers:
               </p>
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Information Sharing</h2>
+              <h2 className="text-2xl font-semibold text-primary">Information Sharing</h2>
               <p>
                 We share personal information with the third-party services listed above as
                 necessary to provide our services. We do not sell or share your personal information
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Data Security</h2>
+              <h2 className="text-2xl font-semibold text-primary">Data Security</h2>
               <p>
                 We take reasonable measures to protect your information, though no method of
                 transmission over the internet or electronic storage is 100% secure. We work with
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Data Retention</h2>
+              <h2 className="text-2xl font-semibold text-primary">Data Retention</h2>
               <p>
                 We retain personal information only for as long as necessary to provide our services
                 and fulfill the purposes outlined in this privacy policy. When we no longer need
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Your Rights</h2>
+              <h2 className="text-2xl font-semibold text-primary">Your Rights</h2>
               <p>You have the right to:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Access the personal information we hold about you</li>
@@ -112,13 +112,13 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Contact Us</h2>
+              <h2 className="text-2xl font-semibold text-primary">Contact Us</h2>
               <p>If you have any questions about this Privacy Policy, please contact us at:</p>
               <p>Email: wallawitsch@gmail.com</p>
             </section>
 
             <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-[#242437]">Changes to This Policy</h2>
+              <h2 className="text-2xl font-semibold text-primary">Changes to This Policy</h2>
               <p>
                 We may update this Privacy Policy from time to time. We will notify you of any
                 changes by posting the new Privacy Policy on this page and updating the &quot;Last

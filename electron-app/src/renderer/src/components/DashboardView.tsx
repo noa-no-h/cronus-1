@@ -7,6 +7,8 @@ import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
 import { TutorialModal } from './TutorialModal'
+import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -67,9 +69,11 @@ export function DashboardView({
   setShowTutorial: (show: boolean) => void
 }) {
   const { token } = useAuth()
+  const isDarkMode = useDarkMode() // Add this line
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
+  const [weekViewMode, setWeekViewMode] = useState<'stacked' | 'grouped'>('grouped') // Add this line
   const [googleCalendarProcessedEvents, setGoogleCalendarProcessedEvents] = useState<
     ProcessedEventBlock[] | null
   >(null)
@@ -295,10 +299,6 @@ export function DashboardView({
           selectedDay={selectedDay}
           onDaySelect={handleDaySelect}
         />
-        {/* <TopActivityWidget
-          processedEvents={activityWidgetProcessedEvents}
-          isLoadingEvents={isLoadingEvents}
-        /> */}
       </div>
       <div className="w-1/2 overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
         <CalendarWidget
@@ -313,7 +313,16 @@ export function DashboardView({
           onHourSelect={handleHourSelect}
           selectedDay={selectedDay}
           onDaySelect={handleDaySelect}
+          weekViewMode={weekViewMode}
+          onWeekViewModeChange={setWeekViewMode}
         />
+        {viewMode === 'week' && (
+          <WeekOverWeekComparison
+            processedEvents={trackedProcessedEvents}
+            isDarkMode={isDarkMode}
+            weekViewMode={weekViewMode}
+          />
+        )}
       </div>
       <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
     </div>

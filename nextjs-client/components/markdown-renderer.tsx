@@ -11,13 +11,13 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl font-bold text-[#242437] mt-8 mb-6">{children}</h1>
+            <h1 className="text-3xl font-bold text-primary mt-8 mb-6">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-2xl font-semibold text-[#242437] mt-8 mb-4">{children}</h2>
+            <h2 className="text-2xl font-semibold text-primary mt-8 mb-4">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xl font-semibold text-[#242437] mt-6 mb-3">{children}</h3>
+            <h3 className="text-xl font-semibold text-primary mt-6 mb-3">{children}</h3>
           ),
           p: ({ children }) => <p className="text-[#242437CC] leading-relaxed mb-4">{children}</p>,
           ul: ({ children }) => <ul className="text-[#242437CC] mb-4 pl-6">{children}</ul>,
@@ -26,7 +26,7 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
           ),
           li: ({ children }) => <li className="mb-2">{children}</li>,
           strong: ({ children }) => (
-            <strong className="text-[#242437] font-semibold">{children}</strong>
+            <strong className="text-primary font-semibold">{children}</strong>
           ),
           blockquote: ({ children }) => (
             <blockquote className="border-l-4 border-[#36168D] pl-4 italic text-[#242437CC] my-4">
