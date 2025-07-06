@@ -22,7 +22,7 @@ interface WeekSummary {
 export function ProductivityTrendChart({
   processedEvents,
   isDarkMode
-}: ProductivityTrendChartProps) {
+}: ProductivityTrendChartProps): JSX.Element {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
       return []
@@ -33,7 +33,9 @@ export function ProductivityTrendChart({
 
     for (let i = 3; i >= 0; i--) {
       const start = new Date(now)
-      start.setDate(now.getDate() - now.getDay() - i * 7 + 1)
+      const dayOfWeek = now.getDay()
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+      start.setDate(now.getDate() - daysToMonday - i * 7)
       start.setHours(0, 0, 0, 0)
       const end = new Date(start)
       end.setDate(start.getDate() + 7)
@@ -65,7 +67,7 @@ export function ProductivityTrendChart({
     return weeks
   }, [processedEvents])
 
-  const formatWeekLabel = (startDate: Date, endDate: Date) => {
+  const formatWeekLabel = (startDate: Date, endDate: Date): string => {
     const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' })
     const endMonth = endDate.toLocaleDateString(undefined, { month: 'short' })
     const startDay = startDate.getDate()
@@ -140,7 +142,13 @@ export function ProductivityTrendChart({
             height={undefined}
           >
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={4} fontSize={10} />
+            <XAxis
+              dataKey="weekLabel"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={4}
+              fontSize={10}
+            />
             <YAxis
               tickLine={false}
               axisLine={false}
