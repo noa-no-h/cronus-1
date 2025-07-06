@@ -287,33 +287,10 @@ export function CategoryManagementSettings(): JSX.Element {
           )}
 
           {!isFormOpen && !isTemplateViewOpen && activeCategories.length > 0 && (
-            <div className="divide-y divide-border border rounded-lg">
-              {activeCategories.map((category) => (
-                <CategoryListItem
-                  key={category._id}
-                  category={category}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onToggleProductive={handleToggleProductive}
-                  onToggleArchive={handleToggleArchive}
-                  isDeleting={
-                    deleteMutation.isLoading && deleteMutation.variables?.id === category._id
-                  }
-                  isUpdating={
-                    updateMutation.isLoading && updateMutation.variables?.id === category._id
-                  }
-                />
-              ))}
-            </div>
-          )}
-
-          {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
-              <div className="divide-y divide-border border rounded-lg">
-                {archivedCategories.map((category) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
+              {activeCategories.map((category, idx) => (
+                <div key={category._id}>
                   <CategoryListItem
-                    key={category._id}
                     category={category}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
@@ -326,6 +303,31 @@ export function CategoryManagementSettings(): JSX.Element {
                       updateMutation.isLoading && updateMutation.variables?.id === category._id
                     }
                   />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
+              <div className="divide-border grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
+                {archivedCategories.map((category, idx) => (
+                  <div key={category._id}>
+                    <CategoryListItem
+                      category={category}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onToggleProductive={handleToggleProductive}
+                      onToggleArchive={handleToggleArchive}
+                      isDeleting={
+                        deleteMutation.isLoading && deleteMutation.variables?.id === category._id
+                      }
+                      isUpdating={
+                        updateMutation.isLoading && updateMutation.variables?.id === category._id
+                      }
+                    />
+                  </div>
                 ))}
               </div>
             </div>
