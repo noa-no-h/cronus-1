@@ -1,8 +1,10 @@
 import { useMemo } from 'react'
+import type { JSX } from 'react'
 import { processColor } from '../../lib/colors'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { notionStyleCategoryColors } from '../Settings/CategoryForm'
 import { TooltipProvider } from '../ui/tooltip'
+import { Badge } from '../ui/badge'
 
 interface WeekOverWeekComparisonProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -30,7 +32,7 @@ interface WeekSummary {
 export function WeekOverWeekComparison({
   processedEvents,
   isDarkMode
-}: WeekOverWeekComparisonProps) {
+}: WeekOverWeekComparisonProps): JSX.Element {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
       return []
@@ -98,7 +100,7 @@ export function WeekOverWeekComparison({
     return weeks
   }, [processedEvents])
 
-  const formatWeekLabel = (startDate: Date, endDate: Date) => {
+  const formatWeekLabel = (startDate: Date, endDate: Date): string => {
     const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' })
     const endMonth = endDate.toLocaleDateString(undefined, { month: 'short' })
     const startDay = startDate.getDate()
@@ -176,7 +178,9 @@ export function WeekOverWeekComparison({
                         </div>
                       ) : (
                         <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-sm flex items-center justify-center">
-                          <span className="text-xs text-muted-foreground">No data</span>
+                          <Badge variant="secondary" className="text-xs">
+                            No data
+                          </Badge>
                         </div>
                       )}
                     </div>

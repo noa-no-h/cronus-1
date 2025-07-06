@@ -92,12 +92,20 @@ export function ProductivityTrendChart({
 
   // Calculate trend
   const productivityTrend = useMemo(() => {
-    if (chartData.length < 2) return { change: 0, isPositive: false }
+    if (chartData.length < 2) return { change: 0, isPositive: true }
 
     const firstWeek = chartData[0]
     const lastWeek = chartData[chartData.length - 1]
 
-    if (firstWeek.totalHours === 0) return { change: 0, isPositive: false }
+    // If we only have data in the most recent week
+    if (firstWeek.totalHours === 0 && lastWeek.totalHours > 0) {
+      return { change: 100, isPositive: true }
+    }
+
+    // If we have no data at all
+    if (firstWeek.totalHours === 0 && lastWeek.totalHours === 0) {
+      return { change: 0, isPositive: true }
+    }
 
     const firstProductivity =
       firstWeek.totalHours > 0 ? (firstWeek.productiveHours / firstWeek.totalHours) * 100 : 0
