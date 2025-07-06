@@ -35,6 +35,10 @@ export function TutorialModal({ isFirstVisit, onClose }: TutorialModalProps) {
           </DialogDescription>
         </DialogHeader>
 
+        <p className="text-sm text-muted-foreground pb-4">
+          Open some other application (like Chrome) to start the tracking.
+        </p>
+
         <div className="flex-1 px-6 flex flex-col items-center justify-center">
           <video
             src={tutorialVideo}
