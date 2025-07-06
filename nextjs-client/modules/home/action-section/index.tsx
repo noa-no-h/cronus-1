@@ -1,7 +1,5 @@
 import Image from 'next/image';
 
-import actionGif from './action.gif';
-
 export function ActionSection() {
   return (
     <section className="bg-white py-16 sm:py-24">
@@ -13,7 +11,13 @@ export function ActionSection() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <Image src={actionGif} alt="Cronus in action" className="rounded-lg shadow-lg" />
+          <Image
+            src="/action.gif"
+            alt="Cronus in action"
+            className="rounded-lg shadow-lg"
+            width={670}
+            height={377}
+          />
         </div>
       </div>
     </section>
