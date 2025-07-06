@@ -75,8 +75,11 @@ export async function checkActivityHistory(
     if (lastEventWithSameIdentifier && lastEventWithSameIdentifier.categoryId) {
       const categoryId = lastEventWithSameIdentifier.categoryId as string;
 
-      // Validate that the category still exists
-      const categoryExists = await CategoryModel.findById(categoryId).lean();
+      // Validate that the category still exists and is not archived
+      const categoryExists = await CategoryModel.findOne({
+        _id: categoryId,
+        isArchived: false,
+      }).lean();
       if (categoryExists) {
         return {
           categoryId,
