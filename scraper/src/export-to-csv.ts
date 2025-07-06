@@ -40,6 +40,9 @@ const REPO_DESCRIPTIONS: Record<string, string> = {
   selfcontrol: 'macOS site blocker',
 };
 
+// Basic email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 async function exportContributorsToCsv() {
   try {
     await mongoClient.connect();
@@ -69,51 +72,62 @@ async function exportContributorsToCsv() {
       missingRepoNames.forEach((name) => console.error(`- ${name}`));
     }
 
-    const contributorsForCsv = users
-      .filter((user: any) => user.email && !user.email.endsWith('@users.noreply.github.com'))
-      .map((user: any) => {
-        const { _id, repositoryInteractions, ...rest } = user;
+    const uniqueContributors = new Map<string, any>();
+    for (const user of users) {
+      if (
+        user.email &&
+        !user.email.endsWith('@users.noreply.github.com') &&
+        !user.email.endsWith('.private') &&
+        EMAIL_REGEX.test(user.email) &&
+        !uniqueContributors.has(user.email)
+      ) {
+        uniqueContributors.set(user.email, user);
+      }
+    }
 
-        const fullName = rest.name;
-        if (rest.name) {
-          rest.name = rest.name.split(' ')[0];
-        } else {
-          rest.name = rest.login;
+    const contributorsForCsv = Array.from(uniqueContributors.values()).map((user: any) => {
+      const { _id, repositoryInteractions, ...rest } = user;
+
+      const fullName = rest.name;
+      if (rest.name) {
+        rest.name = rest.name.split(' ')[0];
+      } else {
+        rest.name = rest.login;
+      }
+
+      let interactionDetails: any = {};
+      let actionKeyword = '';
+      if (repositoryInteractions && repositoryInteractions.length > 0) {
+        const firstInteraction = repositoryInteractions[0];
+        interactionDetails = {
+          interactionType: firstInteraction.interactionType,
+          repositoryName: firstInteraction.repositoryName,
+          repositoryOwner: firstInteraction.repositoryOwner,
+          contributions: firstInteraction.contributions,
+        };
+        const repoDesc = REPO_DESCRIPTIONS[firstInteraction.repositoryName];
+        let repoLabel = firstInteraction.repositoryName;
+        if (repoDesc) repoLabel += ` (${repoDesc})`;
+        switch (firstInteraction.interactionType as InteractionType) {
+          case 'stargazer':
+            actionKeyword = `stargazed ${repoLabel}`;
+            break;
+          case 'watcher':
+            actionKeyword = `watching ${repoLabel}`;
+            break;
+          case 'forker':
+            actionKeyword = `forked ${repoLabel}`;
+            break;
+          case 'contributor':
+            actionKeyword = `contributed to ${repoLabel}`;
+            break;
+          default:
+            actionKeyword = '';
         }
+      }
 
-        let interactionDetails: any = {};
-        let actionKeyword = '';
-        if (repositoryInteractions && repositoryInteractions.length > 0) {
-          const firstInteraction = repositoryInteractions[0];
-          interactionDetails = {
-            interactionType: firstInteraction.interactionType,
-            repositoryName: firstInteraction.repositoryName,
-            repositoryOwner: firstInteraction.repositoryOwner,
-            contributions: firstInteraction.contributions,
-          };
-          const repoDesc = REPO_DESCRIPTIONS[firstInteraction.repositoryName];
-          let repoLabel = firstInteraction.repositoryName;
-          if (repoDesc) repoLabel += ` (${repoDesc})`;
-          switch (firstInteraction.interactionType as InteractionType) {
-            case 'stargazer':
-              actionKeyword = `stargazed ${repoLabel}`;
-              break;
-            case 'watcher':
-              actionKeyword = `watching ${repoLabel}`;
-              break;
-            case 'forker':
-              actionKeyword = `forked ${repoLabel}`;
-              break;
-            case 'contributor':
-              actionKeyword = `contributed to ${repoLabel}`;
-              break;
-            default:
-              actionKeyword = '';
-          }
-        }
-
-        return { fullName, ...rest, ...interactionDetails, actionKeyword };
-      });
+      return { fullName, ...rest, ...interactionDetails, actionKeyword };
+    });
 
     const csv = Papa.unparse(contributorsForCsv);
     fs.writeFileSync('contributors-with-interactions.csv', csv);
