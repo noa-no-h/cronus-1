@@ -36,7 +36,7 @@ export function CategoryListItem({
   isUpdating
 }: CategoryListItemProps): JSX.Element {
   return (
-    <li className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors">
+    <div className="px-4 py-4 sm:px-6 hover:bg-accent transition-colors">
       <div className="flex items-center justify-between gap-x-4">
         <div className="flex items-center flex-1 min-w-0">
           <span
@@ -122,6 +122,6 @@ export function CategoryListItem({
           </DropdownMenu>
         </div>
       </div>
-    </li>
+    </div>
   )
 }

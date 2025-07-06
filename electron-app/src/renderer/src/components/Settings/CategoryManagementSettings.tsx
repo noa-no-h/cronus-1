@@ -287,9 +287,31 @@ export function CategoryManagementSettings(): JSX.Element {
           )}
 
           {!isFormOpen && !isTemplateViewOpen && activeCategories.length > 0 && (
-            <div className="border border-border rounded-lg overflow-hidden">
-              <ul role="list" className="divide-y divide-border">
-                {activeCategories.map((category) => (
+            <div className="divide-y divide-border border rounded-lg">
+              {activeCategories.map((category) => (
+                <CategoryListItem
+                  key={category._id}
+                  category={category}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggleProductive={handleToggleProductive}
+                  onToggleArchive={handleToggleArchive}
+                  isDeleting={
+                    deleteMutation.isLoading && deleteMutation.variables?.id === category._id
+                  }
+                  isUpdating={
+                    updateMutation.isLoading && updateMutation.variables?.id === category._id
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
+              <div className="divide-y divide-border border rounded-lg">
+                {archivedCategories.map((category) => (
                   <CategoryListItem
                     key={category._id}
                     category={category}
@@ -305,32 +327,6 @@ export function CategoryManagementSettings(): JSX.Element {
                     }
                   />
                 ))}
-              </ul>
-            </div>
-          )}
-
-          {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
-              <div className="border border-border rounded-lg overflow-hidden">
-                <ul role="list" className="divide-y divide-border">
-                  {archivedCategories.map((category) => (
-                    <CategoryListItem
-                      key={category._id}
-                      category={category}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onToggleProductive={handleToggleProductive}
-                      onToggleArchive={handleToggleArchive}
-                      isDeleting={
-                        deleteMutation.isLoading && deleteMutation.variables?.id === category._id
-                      }
-                      isUpdating={
-                        updateMutation.isLoading && updateMutation.variables?.id === category._id
-                      }
-                    />
-                  ))}
-                </ul>
               </div>
             </div>
           )}

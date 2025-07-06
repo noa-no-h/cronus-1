@@ -13,6 +13,7 @@
   top: 0;
   left: 0;
   z-index: 1000; /* Ensure it's above other content if there's any overlap potential */
+  -webkit-user-select: none; /* For Safari */
   user-select: none; /* Prevent text selection within the title bar area */
   box-sizing: border-box; /* Includes padding and border in the element's total width and height */
 
