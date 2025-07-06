@@ -6,6 +6,7 @@
         "ignore": ["-webkit-app-region"]
       }
     ],
-    "axe": "off"
+    "axe": "off",
+    "no-inline-styles": "off"
   }
 }
