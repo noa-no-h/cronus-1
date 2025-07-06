@@ -1,8 +1,9 @@
+import clsx from 'clsx'
 import { Layers } from 'lucide-react'
 import { useMemo } from 'react'
 import { Button } from '../ui/button'
-import { Label } from '../ui/label'
-import { Switch } from '../ui/switch'
+import { Toggle } from '../ui/toggle'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { CalendarHeaderDateNavigation } from './CalendarHeaderDateNavigation'
 
 interface CalendarWidgetHeaderProps {
@@ -81,25 +82,31 @@ export const CalendarWidgetHeader = ({
           />
         </div>
 
-        {viewMode === 'week' && (
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="week-view-mode"
-              checked={weekViewMode === 'stacked'}
-              onCheckedChange={(checked) => setWeekViewMode(checked ? 'stacked' : 'grouped')}
-            />
-            {width >= 1000 ? (
-              <Label htmlFor="week-view-mode" className="text-muted-foreground font-normal">
-                Stacked
-              </Label>
-            ) : (
-              <Label htmlFor="week-view-mode" className="text-muted-foreground">
-                <Layers className="text-muted-foreground" size={16} />
-              </Label>
-            )}
-          </div>
-        )}
-        <div className="flex items-center space-x-2">
+        <div className="flex gap-2 items-center">
+          {viewMode === 'week' && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Toggle
+                  variant="outline"
+                  size="xs"
+                  id="week-view-mode"
+                  pressed={weekViewMode === 'stacked'}
+                  onPressedChange={(pressed) => setWeekViewMode(pressed ? 'stacked' : 'grouped')}
+                  aria-label="Toggle stacked view"
+                >
+                  <Layers
+                    size={16}
+                    className={clsx(
+                      weekViewMode === 'stacked' ? 'text-primary' : 'text-muted-foreground'
+                    )}
+                  />
+                </Toggle>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Stacked View showing breakdown of categories
+              </TooltipContent>
+            </Tooltip>
+          )}
           <Button
             variant="outline"
             size="xs"
