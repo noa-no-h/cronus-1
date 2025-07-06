@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { getDarkerColor, processColor } from '../../lib/colors'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { notionStyleCategoryColors } from '../Settings/CategoryForm'
-import { TooltipProvider } from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 
 interface WeekViewProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -20,6 +20,7 @@ interface CategoryTotal {
   categoryColor?: string
   totalDurationMs: number
   isProductive?: boolean
+  _otherCategories?: Array<{ name: string; duration: number }>
 }
 
 const MAX_DAY_DURATION_MS = 18 * 60 * 60 * 1000 // 18 hours
@@ -125,6 +126,25 @@ const WeekView = ({
     })
   }, [processedEvents, selectedDate])
 
+  // Find the max totalDayDuration for the week (avoid 0 by defaulting to 1)
+  const maxDayDurationMs = useMemo(() => {
+    if (!weekData.length) return 1
+    return Math.max(1, ...weekData.map((d) => d.totalDayDuration))
+  }, [weekData])
+
+  // The tallest bar should be 80% of the height
+  const maxBarHeightPercent = 80
+
+  // For grouped view: find the max single bar (productive or unproductive) duration in the week
+  const maxSingleBarDuration = useMemo(() => {
+    if (!weekData.length) return 1
+    let max = 1
+    for (const d of weekData) {
+      max = Math.max(max, d.totalProductiveDuration, d.totalUnproductiveDuration)
+    }
+    return max
+  }, [weekData])
+
   return (
     <TooltipProvider>
       <div className="flex-1 h-full flex flex-col">
@@ -141,21 +161,25 @@ const WeekView = ({
               },
               index
             ) => {
+              // Use dynamic max for both stacked and grouped views
+              const stackedMax = maxDayDurationMs
+              const groupedMax = maxSingleBarDuration
               const dayHeightPercentage = Math.min(
-                100,
-                (totalDayDuration / MAX_DAY_DURATION_MS) * 100
+                maxBarHeightPercent,
+                (totalDayDuration / (weekViewMode === 'stacked' ? stackedMax : maxDayDurationMs)) *
+                  maxBarHeightPercent
               )
               const isCurrentDay = date.toDateString() === new Date().toDateString()
               const isSelectedDay = selectedDay?.toDateString() === date.toDateString()
 
-              // For grouped view
+              // For grouped view: scale each bar by maxSingleBarDuration
               const productiveHeight = Math.min(
-                100,
-                (totalProductiveDuration / MAX_DAY_DURATION_MS) * 100
+                maxBarHeightPercent,
+                (totalProductiveDuration / groupedMax) * maxBarHeightPercent
               )
               const unproductiveHeight = Math.min(
-                100,
-                (totalUnproductiveDuration / MAX_DAY_DURATION_MS) * 100
+                maxBarHeightPercent,
+                (totalUnproductiveDuration / groupedMax) * maxBarHeightPercent
               )
 
               // For stacked view
@@ -193,93 +217,239 @@ const WeekView = ({
                           style={{ height: `${dayHeightPercentage}%` }}
                         >
                           {/* Productive section */}
-                          {totalProductiveDuration > 0 && (
-                            <div
-                              className="w-full flex flex-col gap-px"
-                              style={{ height: `${productivePercentage}%` }}
-                            >
-                              {productiveCategories.map((cat, catIndex) => {
-                                const percentage =
-                                  (cat.totalDurationMs / totalProductiveDuration) * 100
-                                return (
-                                  <div
-                                    key={catIndex}
-                                    className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
-                                    style={{
-                                      height: `${percentage}%`,
-                                      backgroundColor: processColor(
-                                        cat.categoryColor || '#808080',
-                                        {
-                                          isDarkMode,
-                                          saturation: 1.2,
-                                          lightness: 1.1,
-                                          opacity: isDarkMode ? 0.7 : 0.5
-                                        }
-                                      )
-                                    }}
-                                  >
-                                    {percentage > 10 && (
-                                      <span
-                                        className="text-sm font-medium"
-                                        style={{
-                                          color: getDarkerColor(
-                                            cat.categoryColor || '#808080',
-                                            isDarkMode ? 0.8 : 0.5
-                                          )
-                                        }}
-                                      >
-                                        {formatDuration(cat.totalDurationMs)}
-                                      </span>
-                                    )}
-                                  </div>
+                          {totalProductiveDuration > 0 &&
+                            (() => {
+                              // Group small categories (< 20 min) into one 'Other' at the bottom
+                              const twentyMinMs = 20 * 60 * 1000
+                              const large = productiveCategories.filter(
+                                (cat) => cat.totalDurationMs >= twentyMinMs
+                              )
+                              const small = productiveCategories.filter(
+                                (cat) => cat.totalDurationMs < twentyMinMs
+                              )
+                              let grouped = [...large]
+                              let otherCategories: Array<{ name: string; duration: number }> = []
+                              if (small.length > 0) {
+                                const otherDuration = small.reduce(
+                                  (sum, cat) => sum + cat.totalDurationMs,
+                                  0
                                 )
-                              })}
-                            </div>
-                          )}
+                                otherCategories = small.map((cat) => ({
+                                  name: cat.name,
+                                  duration: cat.totalDurationMs
+                                }))
+                                grouped.push({
+                                  categoryId: 'other',
+                                  name: 'Other',
+                                  categoryColor: '#808080',
+                                  totalDurationMs: otherDuration,
+                                  isProductive: true,
+                                  _otherCategories: otherCategories
+                                })
+                              }
+                              // Sort by duration descending, but always put 'Other' last if present
+                              grouped = grouped
+                                .filter((cat) => cat.categoryId !== 'other')
+                                .sort((a, b) => b.totalDurationMs - a.totalDurationMs)
+                              const other =
+                                grouped.length < large.length + small.length
+                                  ? grouped.find((cat) => cat.categoryId === 'other')
+                                  : null
+                              if (otherCategories.length > 0) {
+                                grouped.push({
+                                  categoryId: 'other',
+                                  name: 'Other',
+                                  categoryColor: '#808080',
+                                  totalDurationMs: otherCategories.reduce(
+                                    (sum, c) => sum + c.duration,
+                                    0
+                                  ),
+                                  isProductive: true,
+                                  _otherCategories: otherCategories
+                                })
+                              }
+                              return (
+                                <div
+                                  className="w-full flex flex-col gap-px"
+                                  style={{ height: `${productivePercentage}%` }}
+                                >
+                                  {grouped.map((cat, catIndex) => {
+                                    const percentage =
+                                      (cat.totalDurationMs / totalProductiveDuration) * 100
+                                    const showLabel = cat.totalDurationMs >= 30 * 60 * 1000 // 30 min
+                                    const isOther = cat.categoryId === 'other'
+                                    return (
+                                      <Tooltip key={catIndex} delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                          <div
+                                            className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
+                                            style={{
+                                              height: `${percentage}%`,
+                                              backgroundColor: processColor(
+                                                isOther
+                                                  ? '#808080'
+                                                  : cat.categoryColor || '#808080',
+                                                {
+                                                  isDarkMode,
+                                                  saturation: 1.2,
+                                                  lightness: 1.1,
+                                                  opacity: isDarkMode ? 0.7 : 0.5
+                                                }
+                                              )
+                                            }}
+                                          >
+                                            {percentage > 10 && showLabel && (
+                                              <span
+                                                className="text-sm font-medium"
+                                                style={{
+                                                  color: getDarkerColor(
+                                                    isOther
+                                                      ? '#808080'
+                                                      : cat.categoryColor || '#808080',
+                                                    isDarkMode ? 0.8 : 0.5
+                                                  )
+                                                }}
+                                              >
+                                                {formatDuration(cat.totalDurationMs)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="center">
+                                          {isOther && cat._otherCategories
+                                            ? [
+                                                <div key="other-title">
+                                                  <b>Other:</b>
+                                                </div>,
+                                                ...cat._otherCategories.map((c, i) => (
+                                                  <div key={i}>
+                                                    {c.name}: {formatDuration(c.duration) || ''}
+                                                  </div>
+                                                ))
+                                              ]
+                                            : cat.name}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )
+                                  })}
+                                </div>
+                              )
+                            })()}
                           {/* Unproductive section */}
-                          {totalUnproductiveDuration > 0 && (
-                            <div
-                              className="w-full flex flex-col gap-px"
-                              style={{ height: `${unproductivePercentage}%` }}
-                            >
-                              {unproductiveCategories.map((cat, catIndex) => {
-                                const percentage =
-                                  (cat.totalDurationMs / totalUnproductiveDuration) * 100
-                                return (
-                                  <div
-                                    key={catIndex}
-                                    className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
-                                    style={{
-                                      height: `${percentage}%`,
-                                      backgroundColor: processColor(
-                                        cat.categoryColor || '#808080',
-                                        {
-                                          isDarkMode,
-                                          saturation: 1.2,
-                                          lightness: 1.1,
-                                          opacity: isDarkMode ? 0.7 : 0.5
-                                        }
-                                      )
-                                    }}
-                                  >
-                                    {percentage > 10 && (
-                                      <span
-                                        className="text-sm font-medium"
-                                        style={{
-                                          color: getDarkerColor(
-                                            cat.categoryColor || '#808080',
-                                            isDarkMode ? 0.8 : 0.5
-                                          )
-                                        }}
-                                      >
-                                        {formatDuration(cat.totalDurationMs)}
-                                      </span>
-                                    )}
-                                  </div>
+                          {totalUnproductiveDuration > 0 &&
+                            (() => {
+                              // Group small categories (< 20 min) into one 'Other' at the bottom
+                              const twentyMinMs = 20 * 60 * 1000
+                              const large = unproductiveCategories.filter(
+                                (cat) => cat.totalDurationMs >= twentyMinMs
+                              )
+                              const small = unproductiveCategories.filter(
+                                (cat) => cat.totalDurationMs < twentyMinMs
+                              )
+                              let grouped = [...large]
+                              let otherCategories: Array<{ name: string; duration: number }> = []
+                              if (small.length > 0) {
+                                const otherDuration = small.reduce(
+                                  (sum, cat) => sum + cat.totalDurationMs,
+                                  0
                                 )
-                              })}
-                            </div>
-                          )}
+                                otherCategories = small.map((cat) => ({
+                                  name: cat.name,
+                                  duration: cat.totalDurationMs
+                                }))
+                                grouped.push({
+                                  categoryId: 'other',
+                                  name: 'Other',
+                                  categoryColor: '#808080',
+                                  totalDurationMs: otherDuration,
+                                  isProductive: false,
+                                  _otherCategories: otherCategories
+                                })
+                              }
+                              // Sort by duration descending, but always put 'Other' last if present
+                              grouped = grouped
+                                .filter((cat) => cat.categoryId !== 'other')
+                                .sort((a, b) => b.totalDurationMs - a.totalDurationMs)
+                              if (otherCategories.length > 0) {
+                                grouped.push({
+                                  categoryId: 'other',
+                                  name: 'Other',
+                                  categoryColor: '#808080',
+                                  totalDurationMs: otherCategories.reduce(
+                                    (sum, c) => sum + c.duration,
+                                    0
+                                  ),
+                                  isProductive: false,
+                                  _otherCategories: otherCategories
+                                })
+                              }
+                              return (
+                                <div
+                                  className="w-full flex flex-col gap-px"
+                                  style={{ height: `${unproductivePercentage}%` }}
+                                >
+                                  {grouped.map((cat, catIndex) => {
+                                    const percentage =
+                                      (cat.totalDurationMs / totalUnproductiveDuration) * 100
+                                    const showLabel = cat.totalDurationMs >= 30 * 60 * 1000 // 30 min
+                                    const isOther = cat.categoryId === 'other'
+                                    return (
+                                      <Tooltip key={catIndex} delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                          <div
+                                            className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
+                                            style={{
+                                              height: `${percentage}%`,
+                                              backgroundColor: processColor(
+                                                isOther
+                                                  ? '#808080'
+                                                  : cat.categoryColor || '#808080',
+                                                {
+                                                  isDarkMode,
+                                                  saturation: 1.2,
+                                                  lightness: 1.1,
+                                                  opacity: isDarkMode ? 0.7 : 0.5
+                                                }
+                                              )
+                                            }}
+                                          >
+                                            {percentage > 10 && showLabel && (
+                                              <span
+                                                className="text-sm font-medium"
+                                                style={{
+                                                  color: getDarkerColor(
+                                                    isOther
+                                                      ? '#808080'
+                                                      : cat.categoryColor || '#808080',
+                                                    isDarkMode ? 0.8 : 0.5
+                                                  )
+                                                }}
+                                              >
+                                                {formatDuration(cat.totalDurationMs)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="center">
+                                          {isOther && cat._otherCategories
+                                            ? [
+                                                <div key="other-title">
+                                                  <b>Other:</b>
+                                                </div>,
+                                                ...cat._otherCategories.map((c, i) => (
+                                                  <div key={i}>
+                                                    {c.name}: {formatDuration(c.duration) || ''}
+                                                  </div>
+                                                ))
+                                              ]
+                                            : cat.name}
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )
+                                  })}
+                                </div>
+                              )
+                            })()}
                         </div>
                       ) : (
                         // Grouped View

@@ -5,7 +5,7 @@ const ActivityByCategorySkeleton = () => {
   return (
     <Card>
       <CardHeader></CardHeader>
-      <CardContent className="space-y-4 pb-0">
+      <CardContent className="space-y-4">
         {[...Array(3)].map((_, i) => (
           <div key={`skel-cat-${i}`} className="space-y-2">
             <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
