@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons'
+import { ChevronRightIcon } from '@radix-ui/react-icons'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
 import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
@@ -33,8 +33,23 @@ export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentToo
     <Tooltip delayDuration={200}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent side="right" align="start" sideOffset={10}>
-        <div className="p-2 space-y-1 w-64 text-left">
-          <p className="font-bold mb-2">Activities in this slot:</p>
+        <motion.div
+          className="p-2 space-y-1 w-64 text-left"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.15,
+            ease: [0.16, 1, 0.3, 1]
+          }}
+        >
+          <motion.p
+            className="font-bold mb-2"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05, duration: 0.2 }}
+          >
+            Activities in this slot:
+          </motion.p>
           {(() => {
             const allActivitiesSorted = Object.entries(segment.allActivities).sort(
               ([, a], [, b]) => b.duration - a.duration
@@ -46,8 +61,18 @@ export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentToo
             return (
               <>
                 {/* Always show main activities */}
-                {mainActivities.map(([key, data]) => (
-                  <div key={key} className="flex items-center justify-between text-xs">
+                {mainActivities.map(([key, data], index) => (
+                  <motion.div
+                    key={key}
+                    className="flex items-center justify-between text-xs"
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 0.1 + index * 0.03,
+                      duration: 0.2,
+                      ease: [0.16, 1, 0.3, 1]
+                    }}
+                  >
                     <div className="flex items-center space-x-2 truncate">
                       <ActivityIcon url={data.block.url} appName={key} size={12} />
                       <span className="truncate">{key}</span>
@@ -55,40 +80,63 @@ export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentToo
                     <span className="flex-shrink-0 text-muted-foreground pl-2">
                       {formatDuration(data.duration)}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
 
                 {/* Expandable short activities section */}
                 {shortActivities.length > 0 && (
-                  <div className="pt-1">
-                    <button
+                  <motion.div
+                    className="pt-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      delay: 0.1 + mainActivities.length * 0.03,
+                      duration: 0.2
+                    }}
+                  >
+                    <motion.button
                       onClick={() => setShowAllActivities(!showAllActivities)}
                       className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.1 }}
                     >
-                      {showAllActivities ? (
-                        <ChevronDownIcon className="w-3 h-3" />
-                      ) : (
+                      <motion.div
+                        animate={{ rotate: showAllActivities ? 90 : 0 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      >
                         <ChevronRightIcon className="w-3 h-3" />
-                      )}
+                      </motion.div>
                       <span className="italic">
                         {shortActivities.length} short activit
                         {shortActivities.length > 1 ? 'ies' : 'y'} (&lt;30s)
                       </span>
-                    </button>
+                    </motion.button>
 
-                    <AnimatePresence>
+                    <AnimatePresence mode="wait">
                       {showAllActivities && (
                         <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="ml-4 mt-1 space-y-1 border-l border-border pl-2"
+                          initial={{ opacity: 0, height: 0, y: -4 }}
+                          animate={{ opacity: 1, height: 'auto', y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -4 }}
+                          transition={{
+                            duration: 0.25,
+                            ease: [0.16, 1, 0.3, 1],
+                            height: { duration: 0.3 }
+                          }}
+                          className="ml-4 mt-1 space-y-1 border-l border-border pl-2 overflow-hidden"
                         >
-                          {shortActivities.map(([key, data]) => (
-                            <div
+                          {shortActivities.map(([key, data], index) => (
+                            <motion.div
                               key={key}
                               className="flex items-center justify-between text-xs opacity-80"
+                              initial={{ opacity: 0, x: -4 }}
+                              animate={{ opacity: 0.8, x: 0 }}
+                              transition={{
+                                delay: index * 0.04,
+                                duration: 0.2,
+                                ease: [0.16, 1, 0.3, 1]
+                              }}
                             >
                               <div className="flex items-center space-x-2 truncate">
                                 <ActivityIcon url={data.block.url} appName={key} size={10} />
@@ -97,17 +145,17 @@ export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentToo
                               <span className="flex-shrink-0 text-muted-foreground pl-2">
                                 {formatDuration(data.duration)}
                               </span>
-                            </div>
+                            </motion.div>
                           ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
-                  </div>
+                  </motion.div>
                 )}
               </>
             )
           })()}
-        </div>
+        </motion.div>
       </TooltipContent>
     </Tooltip>
   )
