@@ -1,8 +1,8 @@
 import { TrendingUp } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from './ui/chart'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from './chart'
 const chartData = [
   { month: 'January', desktop: 186 },
   { month: 'February', desktop: 305 },
