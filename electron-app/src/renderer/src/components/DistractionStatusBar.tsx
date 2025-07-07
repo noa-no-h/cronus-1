@@ -326,7 +326,7 @@ const DistractionStatusBar = ({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right flex items-center gap-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg">
+      <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg shadow-[0_1px_2px_0_rgb(0,0,0,0.03)] dark:shadow-[0_1px_2px_0_rgb(255,255,255,0.02)] border border-black/[0.02] dark:border-white/[0.05] bg-gray-50/50 dark:bg-gray-800/50">
         {!isMiniTimerVisible && (
           <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
             <ExternalLink size={20} />
