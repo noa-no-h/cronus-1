@@ -1,6 +1,6 @@
 {
   "name": "cronus-electron-app",
-  "version": "1.5.2",
+  "version": "1.5.6",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
