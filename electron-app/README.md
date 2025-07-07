@@ -114,67 +114,35 @@ CLIENT_URL="your-client-url"
 
 Cronus delivers automatic updates from the public S3 bucket `cronusnewupdates` (region `us-east-1`). Every packaged copy of the app checks this bucket on startup and whenever the user clicks _Settings → Check for Updates_.
 
-### 1 – AWS Credentials Setup (Prerequisites)
-
-Publishing the application to S3 requires valid AWS credentials with permission to upload to the `cronusnewupdates` bucket.
-
-**Important:** `electron-builder` reliably uses the shared AWS credentials file (`~/.aws/credentials`) and ignores credentials set via environment variables (Bug?). Therefore, the only supported method is to configure your global AWS credentials file.
-
-1.  **Locate or Create the Credentials File:**
-    The file is located at `~/.aws/credentials` on both macOS and Linux. If it doesn't exist, you'll need to create it.
-
-2.  **Add a `[default]` Profile:**
-    Open the file and add your AWS Access Key ID and Secret Access Key under a profile named `[default]`. It should look exactly like this:
-
-    ```ini
-    [default]
-    aws_access_key_id = YOUR_ACCESS_KEY_HERE
-    aws_secret_access_key = YOUR_SECRET_KEY_HERE
-    ```
-
-3.  **Configure the AWS Region (Recommended):**
-    You can also set a default region in `~/.aws/config`. If the file doesn't exist, create it at `~/.aws/config`:
-
-    ```ini
-    [default]
-    region = us-east-1
-    ```
-
-`electron-builder` will automatically detect and use these credentials during the publish step.
-
-### 2 – Release workflow
+### Release workflow
 
 The release process involves two main steps: updating the version and running the release script.
 
 1.  **Bump the version** in [electron-app/package.json](./package.json) (e.g. `"1.0.8" → "1.0.9"`).
 
 2.  **Run the release script from the `electron-app` directory:**
-    Copy and paste the entire block below into your terminal. It cleans the environment, sets up dependencies, loads production variables, and publishes a universal build for all architectures.
+
+    **Important:** The command below contains placeholder AWS credentials. Before running, you must replace `YOUR_AWS_ACCESS_KEY_ID` and `YOUR_AWS_SECRET_ACCESS_KEY` with valid credentials that have permission to publish to the S3 bucket.
+
+    Copy and paste the entire command below into your terminal. It chains all the necessary steps to clean, prepare, and publish a new release for all architectures.
 
     ```bash
-    # Clean, prepare, and publish a new release.
-    # This script should be run from the `electron-app` directory.
-
-    echo "Step 1: Cleaning previous Cronus installation..."
-    bun run clean:cronus-installation
-
-    echo "Step 2: Setting environment and copying dependencies..."
-    export NODE_ENV=production
-    cp -r ../node_modules/electron-updater node_modules/
-    cp -r ../node_modules/fs-extra node_modules/
-    cp -r ../node_modules/jsonfile node_modules/
-    cp -r ../node_modules/debug node_modules/
-
-    echo "Step 3: Loading production environment variables..."
-    set -a && source .env.production && set +a
-
-    echo "Step 4: Building and publishing for all architectures..."
+    bun run clean:cronus-installation && \
+    export NODE_ENV=production && \
+    cp -r ../node_modules/electron-updater node_modules/ && \
+    cp -r ../node_modules/fs-extra node_modules/ && \
+    cp -r ../node_modules/jsonfile node_modules/ && \
+    cp -r ../node_modules/debug node_modules/ && \
+    set -a && source .env.production && set +a && \
+    AWS_REGION="us-east-1" \
+    S3_BUCKET_NAME="cronusnewupdates" \
+    AWS_ACCESS_KEY_ID="YOUR_AWS_ACCESS_KEY_ID" \
+    AWS_SECRET_ACCESS_KEY="YOUR_AWS_SECRET_ACCESS_KEY" \
+    AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE=1 \
     bun run publish:with-links:all
-
-    echo "Release process complete."
     ```
 
-    This script handles the entire release process:
+    This command handles the entire release process:
     - Cleans any previous local installation.
     - Sets up the production environment and dependencies.
     - Builds the application.
@@ -184,7 +152,7 @@ The release process involves two main steps: updating the version and running th
 
 If you just need to create a local build for testing without uploading, use `bun run build:for-publish:arm64` or `bun run build:for-publish:x64`.
 
-### 3 – Permanent Download Links
+### Permanent Download Links
 
 The release script automatically handles updating the permanent download links. You can find them at:
 
@@ -195,7 +163,7 @@ The release script automatically handles updating the permanent download links. 
 
 The website can use these fixed URLs and never needs updating - they will automatically serve the newest build.
 
-### 4 – Troubleshooting quick reference
+### Troubleshooting quick reference
 
 | Symptom                            | Likely fix                                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -203,7 +171,7 @@ The website can use these fixed URLs and never needs updating - they will automa
 | No toast after "Check for updates" | Ensure the installed build has a lower version than the one referenced in `latest-mac.yml`. |
 | Still nothing happens              | Open DevTools → Console, look for `update-status` events to see errors or states.           |
 
-### 4 – Common build issues
+### Common build issues
 
 **Missing module errors during runtime:**
 If you get "Cannot find module" errors (like `debug`, `electron-updater`, etc.), running the consolidated release script above should fix the issue by copying the required dependencies from the workspace root. This happens because electron-builder doesn't always properly resolve workspace dependencies.
