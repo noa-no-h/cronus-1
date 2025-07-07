@@ -144,22 +144,39 @@ Publishing the application to S3 requires valid AWS credentials with permission 
 
 ### 2 – Release workflow
 
+The release process involves two main steps: updating the version and running the release script.
+
 1.  **Bump the version** in [electron-app/package.json](./package.json) (e.g. `"1.0.8" → "1.0.9"`).
-2.  **Build, publish, and update download links:**
-    Run the all-in-one script from within the `electron-app` directory. You can publish for a specific architecture (`arm64` or `x64`) or for both.
+
+2.  **Run the release script from the `electron-app` directory:**
+    Copy and paste the entire block below into your terminal. It cleans the environment, sets up dependencies, loads production variables, and publishes a universal build for all architectures.
 
     ```bash
-    # To publish for Apple Silicon (arm64)
-    bun run publish:with-links:arm64
+    # Clean, prepare, and publish a new release.
+    # This script should be run from the `electron-app` directory.
 
-    # To publish for Intel (x64)
-    bun run publish:with-links:x64
+    echo "Step 1: Cleaning previous Cronus installation..."
+    bun run clean:cronus-installation
 
-    # To publish for both architectures
+    echo "Step 2: Setting environment and copying dependencies..."
+    export NODE_ENV=production
+    cp -r ../node_modules/electron-updater node_modules/
+    cp -r ../node_modules/fs-extra node_modules/
+    cp -r ../node_modules/jsonfile node_modules/
+    cp -r ../node_modules/debug node_modules/
+
+    echo "Step 3: Loading production environment variables..."
+    set -a && source .env.production && set +a
+
+    echo "Step 4: Building and publishing for all architectures..."
     bun run publish:with-links:all
+
+    echo "Release process complete."
     ```
 
-    This single command handles the entire release process for the specified architecture(s):
+    This script handles the entire release process:
+    - Cleans any previous local installation.
+    - Sets up the production environment and dependencies.
     - Builds the application.
     - Packages the `.dmg` and `.zip` files.
     - Publishes the new version and its `latest-mac.yml` file to S3.
@@ -169,7 +186,7 @@ If you just need to create a local build for testing without uploading, use `bun
 
 ### 3 – Permanent Download Links
 
-The `publish:with-links:*` scripts automatically handle updating the permanent download links. You can find them at:
+The release script automatically handles updating the permanent download links. You can find them at:
 
 - **Latest ARM64 DMG:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.dmg`
 - **Latest ARM64 ZIP:** `https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-arm64.zip`
@@ -189,27 +206,4 @@ The website can use these fixed URLs and never needs updating - they will automa
 ### 4 – Common build issues
 
 **Missing module errors during runtime:**
-If you get "Cannot find module" errors (like `debug`, `electron-updater`, etc.), copy the required dependencies from the workspace root:
-
-```bash
-cd electron-app
-cp -r ../node_modules/electron-updater node_modules/
-cp -r ../node_modules/fs-extra node_modules/
-cp -r ../node_modules/jsonfile node_modules/
-cp -r ../node_modules/debug node_modules/
-```
-
-This happens because electron-builder doesn't always properly resolve workspace dependencies.
-
-**Complete build sequence:**
-
-```bash
-cd electron-app
-# Update version in package.json
-# Set environment variables (if needed)
-set -a && source .env.production && set +a
-# Build source code
-NODE_ENV=production bun run build
-# Package and publish
-npx electron-builder --mac --arm64 --publish always
-```
+If you get "Cannot find module" errors (like `debug`, `electron-updater`, etc.), running the consolidated release script above should fix the issue by copying the required dependencies from the workspace root. This happens because electron-builder doesn't always properly resolve workspace dependencies.
