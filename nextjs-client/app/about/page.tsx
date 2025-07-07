@@ -55,7 +55,7 @@ function TeamMemberCard({
             rel="noopener noreferrer"
             className={cn(
               'inline-flex items-center px-4 py-2',
-              'bg-[#242437] text-white rounded-md',
+              'bg-primary text-white rounded-md',
               'text-sm font-medium',
               'hover:bg-[#1a1a2e] transition-colors'
             )}

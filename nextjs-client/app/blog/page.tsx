@@ -24,7 +24,7 @@ export default function BlogPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">Cronus Blog</h1>
-            <p className="text-xl text-[#242437CC] max-w-2xl mx-auto">
+            <p className="text-xl text-primary-80 max-w-2xl mx-auto">
               Insights on productivity, time management, and building better focus habits.
             </p>
           </div>

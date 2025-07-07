@@ -63,9 +63,9 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="text-sm bg-[#36168D] text-white px-3 py-1 rounded-full">
                 {post.category}
               </span>
-              <span className="text-sm text-[#242437CC]">{post.date}</span>
-              <span className="text-sm text-[#242437CC]">•</span>
-              <span className="text-sm text-[#242437CC]">{post.readTime}</span>
+              <span className="text-sm text-primary-80">{post.date}</span>
+              <span className="text-sm text-primary-80">•</span>
+              <span className="text-sm text-primary-80">{post.readTime}</span>
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
