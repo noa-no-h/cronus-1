@@ -21,7 +21,7 @@ const testimonials = [
     title: 'Founder of Astral AI',
     avatar: savannah,
     content:
-      "HUGE fan so far! Funnily enough, I had a 'holy shit, this product is going to be in my life for a long time' moment when I saw the visual representation of everything I’d done in the calendar format.",
+      "HUGE fan so far! Funnily enough, I had a 'holy shit, this product is going to be in my life for a long time' moment when I saw everything I'd done laid out in the calendar view.",
   },
   {
     name: 'Moritz Wallawitsch',
