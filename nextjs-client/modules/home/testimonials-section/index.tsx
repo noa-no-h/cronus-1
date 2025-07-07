@@ -3,72 +3,32 @@ import AutoScroll from 'embla-carousel-auto-scroll';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
+import leander from './leander-maerkisch.png';
+import moritz from './moritz-wallawitsch.jpeg';
+import savannah from './savannah-feder.jpeg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
   {
-    name: '@dev_mike',
-    title: 'Frontend Developer',
-    avatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+    name: 'Leander Märkisch',
+    title: 'Founder of Floy',
+    avatar: leander,
     content:
-      'Used to feel guilty about "wasting time" on Stack Overflow. Turns out I was actually problem-solving! Cronus gets the difference between research and rabbit holes.',
+      'I used Rize for a while but found it overwhelming and slow. Tried out Cronus and instantly fell in love with the simplicity and speed. That’s how productivity tracking should feel like.',
   },
   {
-    name: 'Sarah Chen',
-    title: 'Product Designer',
-    avatar:
-      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&h=150&fit=crop&crop=center',
+    name: 'Savannah Feder',
+    title: 'Founder of Astral AI',
+    avatar: savannah,
     content:
-      'Love that it tracks my iPad sketching time too. Finally, my boss can see that those "doodles" during meetings are actually ideation work!',
+      "HUGE fan so far! Funnily enough, I had a 'holy shit, this product is going to be in my life for a long time' moment when I saw the visual representation of everything I’d done in the calendar format.",
   },
   {
-    name: '@remote_anna',
-    title: 'Marketing Manager',
-    avatar:
-      'https://images.unsplash.com/photo-1575936123452-b67c3203c357?w=150&h=150&fit=crop&crop=center',
+    name: 'Moritz Wallawitsch',
+    title: 'Founder of Cronus, ex. RemNote',
+    avatar: moritz,
     content:
-      'Working from home made me paranoid about productivity. Now I have actual data showing I\'m crushing it, even with those coffee breaks.',
-  },
-  {
-    name: 'James Wilson',
-    title: 'Freelance Writer',
-    avatar:
-      'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=150&h=150&fit=crop&crop=center',
-    content:
-      'Clients love the transparency. I can show them exactly how many hours went into each project, including research and revision time.',
-  },
-  {
-    name: '@creator_sam',
-    title: 'Content Creator',
-    avatar:
-      'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=150&h=150&fit=crop&crop=center',
-    content:
-      'The mini timer is addictive! Makes editing feel like a game. Plus I can finally answer "how long does a video take?" with real numbers.',
-  },
-  {
-    name: 'Lisa Park',
-    title: 'UX Researcher',
-    avatar:
-      'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=150&h=150&fit=crop&crop=center',
-    content:
-      'Smart enough to know when I\'m on social for user research vs mindless scrolling. No more awkward "work or procrastination?" moments.',
-  },
-  {
-    name: '@startup_founder',
-    title: 'CEO',
-    avatar:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-    content:
-      'Helps me model good productivity habits for my team. Amazing how awareness alone changed my work patterns.',
-  },
-  {
-    name: 'Alex Rodriguez',
-    title: 'Data Analyst',
-    avatar:
-      'https://images.unsplash.com/photo-1516110833967-0b5716ca1387?w=150&h=150&fit=crop&crop=center',
-    content:
-      'The patterns it finds are fascinating. Apparently I code best after a 10-minute Twitter break - who knew procrastination could be strategic?',
+      "I'm biased because I co-created this but before it took me like about 2h every week to answer two important questions: 1. How many hours did I work this week? and 2. How many hours was I distracted/on social media etc. this week? Cronus automates that.",
   },
 ];
 
@@ -90,7 +50,6 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
       }),
     ]
   );
-
 
   return (
     <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
