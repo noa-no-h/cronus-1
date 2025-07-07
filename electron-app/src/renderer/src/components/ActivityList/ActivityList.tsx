@@ -4,6 +4,10 @@ import React from 'react'
 import { Category as SharedCategory } from 'shared'
 import { ActivityItem, ProcessedCategory } from '../../lib/activityProcessing'
 import { Button } from '../ui/button'
+import { Card, CardContent } from '../ui/card'
+import { Badge } from '../ui/badge'
+import { format } from 'date-fns'
+import { ClipboardIcon } from 'lucide-react'
 import { ActivityListItem } from './ActivityListItem'
 
 interface ActivityListProps {
@@ -121,6 +125,42 @@ export const ActivityList = ({
         </motion.div>
       )
     })
+  }
+
+  if (activities.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.2,
+          ease: [0.16, 1, 0.3, 1]
+        }}
+      >
+        <Card className="border-dashed">
+          <CardContent className="pt-6 pb-4 flex flex-col items-center text-center space-y-3">
+            <div className="rounded-full bg-secondary/25 p-3">
+              <ClipboardIcon className="w-6 h-6 text-secondary-foreground/70" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-medium text-sm">No activities tracked</h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedDay ? (
+                  <>
+                    No activities recorded for{' '}
+                    <Badge variant="secondary" className="font-normal">
+                      {format(selectedDay, 'MMMM d, yyyy')}
+                    </Badge>
+                  </>
+                ) : (
+                  'No activities recorded for this period'
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )
   }
 
   return (

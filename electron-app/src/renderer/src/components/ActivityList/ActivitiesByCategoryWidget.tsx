@@ -22,6 +22,9 @@ import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
 import { ActivityList } from './ActivityList'
 import { CategorySectionHeader } from './CategorySectionHeader'
 import { TimeRangeSelectionInfo } from './TimeRangeSelectionInfo'
+import { ClipboardIcon } from '@radix-ui/react-icons'
+import { Badge } from '../ui/badge'
+import { format } from 'date-fns'
 
 interface ActivitiesByCategoryWidgetProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -45,7 +48,7 @@ const ActivitiesByCategoryWidget = ({
   onHourSelect,
   selectedDay,
   onDaySelect
-}: ActivitiesByCategoryWidgetProps) => {
+}: ActivitiesByCategoryWidgetProps): React.ReactElement => {
   const { token } = useAuth()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
@@ -95,7 +98,7 @@ const ActivitiesByCategoryWidget = ({
 
   const handleSaveNewCategory = async (
     data: Omit<SharedCategory, '_id' | 'userId' | 'createdAt' | 'updatedAt'>
-  ) => {
+  ): Promise<void> => {
     if (!token) return
     try {
       const newCategory = (await createCategoryMutation.mutateAsync({
@@ -128,7 +131,7 @@ const ActivitiesByCategoryWidget = ({
   const handleMoveMultipleActivities = async (
     activitiesToMove: ActivityItem[],
     targetCategoryId: string
-  ) => {
+  ): Promise<void> => {
     if (!token || startDateMs === null || endDateMs === null || activitiesToMove.length === 0) {
       return
     }
@@ -177,7 +180,7 @@ const ActivitiesByCategoryWidget = ({
     }
   }
 
-  const handleAddNewCategory = () => {
+  const handleAddNewCategory = (): void => {
     setOpenDropdownActivityKey(null) // close any open dropdowns
     setIsCreateCategoryOpen(true)
   }
@@ -223,7 +226,7 @@ const ActivitiesByCategoryWidget = ({
     setFaviconErrors((prev) => new Set(prev).add(identifier))
   }
 
-  const handleMoveActivity = (activity: ActivityItem, targetCategoryId: string) => {
+  const handleMoveActivity = (activity: ActivityItem, targetCategoryId: string): void => {
     if (!token || startDateMs === null || endDateMs === null) {
       console.error('Missing token or date range for move operation')
       return
@@ -250,7 +253,10 @@ const ActivitiesByCategoryWidget = ({
     : visibleCategories
   const categoriesToHide = shouldShowAllCategories ? [] : hiddenCategories
 
-  const renderCategoryItems = (categoriesToRender: ProcessedCategory[], variant?: 'empty') => {
+  const renderCategoryItems = (
+    categoriesToRender: ProcessedCategory[],
+    variant?: 'empty'
+  ): React.ReactElement[] => {
     return categoriesToRender.map((category) => {
       if (category.totalDurationMs === 0 && variant !== 'empty') return null
 
@@ -261,7 +267,7 @@ const ActivitiesByCategoryWidget = ({
       const selectedActivitiesInThisCategory = category.activities.filter((act) =>
         selectedActivities.has(`${act.identifier}-${act.name}`)
       )
-      const handleMoveSelected = (targetCategoryId: string) => {
+      const handleMoveSelected = (targetCategoryId: string): void => {
         handleMoveMultipleActivities(selectedActivitiesInThisCategory, targetCategoryId)
       }
 
@@ -277,31 +283,59 @@ const ActivitiesByCategoryWidget = ({
             handleClearSelection={clearSelection}
             onAddNewCategory={handleAddNewCategory}
           />
-          <ActivityList
-            activities={category.activities}
-            currentCategory={category}
-            allUserCategories={categories}
-            handleMoveActivity={handleMoveActivity}
-            isMovingActivity={updateCategoryMutation.isLoading}
-            faviconErrors={faviconErrors}
-            handleFaviconError={handleFaviconError}
-            isShowMore={!!showMore[category.id]}
-            onToggleShowMore={() =>
-              setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
-            }
-            hoveredActivityKey={hoveredActivityKey}
-            setHoveredActivityKey={setHoveredActivityKey}
-            openDropdownActivityKey={openDropdownActivityKey}
-            setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-            selectedHour={selectedHour}
-            selectedDay={selectedDay}
-            viewMode="day"
-            startDateMs={startDateMs}
-            endDateMs={endDateMs}
-            selectedActivities={selectedActivities}
-            onSelectActivity={handleSelectActivity}
-            onAddNewCategory={handleAddNewCategory}
-          />
+          {variant === 'empty' ? (
+            <ActivityList
+              activities={[]} // Pass empty array to trigger empty state UI
+              currentCategory={category}
+              allUserCategories={categories}
+              handleMoveActivity={handleMoveActivity}
+              isMovingActivity={updateCategoryMutation.isLoading}
+              faviconErrors={faviconErrors}
+              handleFaviconError={handleFaviconError}
+              isShowMore={!!showMore[category.id]}
+              onToggleShowMore={() =>
+                setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
+              }
+              hoveredActivityKey={hoveredActivityKey}
+              setHoveredActivityKey={setHoveredActivityKey}
+              openDropdownActivityKey={openDropdownActivityKey}
+              setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+              selectedHour={selectedHour}
+              selectedDay={selectedDay}
+              viewMode="day"
+              startDateMs={startDateMs}
+              endDateMs={endDateMs}
+              selectedActivities={selectedActivities}
+              onSelectActivity={handleSelectActivity}
+              onAddNewCategory={handleAddNewCategory}
+            />
+          ) : (
+            <ActivityList
+              activities={category.activities}
+              currentCategory={category}
+              allUserCategories={categories}
+              handleMoveActivity={handleMoveActivity}
+              isMovingActivity={updateCategoryMutation.isLoading}
+              faviconErrors={faviconErrors}
+              handleFaviconError={handleFaviconError}
+              isShowMore={!!showMore[category.id]}
+              onToggleShowMore={() =>
+                setShowMore((prev) => ({ ...prev, [category.id]: !prev[category.id] }))
+              }
+              hoveredActivityKey={hoveredActivityKey}
+              setHoveredActivityKey={setHoveredActivityKey}
+              openDropdownActivityKey={openDropdownActivityKey}
+              setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+              selectedHour={selectedHour}
+              selectedDay={selectedDay}
+              viewMode="day"
+              startDateMs={startDateMs}
+              endDateMs={endDateMs}
+              selectedActivities={selectedActivities}
+              onSelectActivity={handleSelectActivity}
+              onAddNewCategory={handleAddNewCategory}
+            />
+          )}
         </div>
       )
     })
@@ -311,24 +345,42 @@ const ActivitiesByCategoryWidget = ({
     return <ActivityByCategorySkeleton />
   }
 
-  if (
+  const hasNoActivities =
     !todayProcessedEvents ||
     todayProcessedEvents.length === 0 ||
+    todayProcessedEvents.every((event) => SYSTEM_EVENT_NAMES.includes(event.name)) ||
     processedData.every((p) => p.totalDurationMs === 0)
-  ) {
+
+  if (hasNoActivities) {
     return (
-      <Card>
-        <CardContent className="space-y-4">
-          {(!categories || categories.length === 0) &&
-            (!todayProcessedEvents || todayProcessedEvents.length === 0) && (
-              <p>No activity data for the selected period, or no categories defined.</p>
-            )}
-          {renderCategoryItems(
-            processedData.filter((c) => c.totalDurationMs === 0),
-            'empty'
-          )}
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.2,
+          ease: [0.16, 1, 0.3, 1]
+        }}
+      >
+        <Card className="border-dashed">
+          <CardContent className="pt-6 pb-4 flex flex-col items-center text-center space-y-3">
+            <div className="rounded-full bg-secondary/25 p-3">
+              <ClipboardIcon className="w-6 h-6 text-secondary-foreground/70" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-medium text-sm">No activities tracked</h3>
+              <p className="text-sm text-muted-foreground">
+                {selectedDay ? (
+                  <Badge variant="secondary" className="font-normal">
+                    {format(selectedDay, 'MMMM d, yyyy')}
+                  </Badge>
+                ) : (
+                  'No activities recorded for this day'
+                )}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 
