@@ -51,7 +51,7 @@ const findOrCreateUserAndOnboard = async (payload: TokenPayload) => {
         transactionalId: 'cmcsc5r410gblzn0juvq2vsxb',
         email: payload.email!,
         dataVariables: {
-          firstName,
+          datavariable: firstName,
         },
       });
     } catch (error) {
