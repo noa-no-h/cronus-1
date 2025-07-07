@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { type DaySegment } from '../../lib/dayTimelineHelpers'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
@@ -21,7 +22,7 @@ interface EventSegmentsProps {
   layout: 'full' | 'split'
 }
 
-export const EventSegments = ({
+export const EventSegments: React.FC<EventSegmentsProps> = ({
   daySegments,
   selectedHour,
   isDarkMode,
@@ -33,10 +34,10 @@ export const EventSegments = ({
   totalSegmentVerticalSpacing,
   type,
   layout
-}: EventSegmentsProps) => {
+}) => {
   return (
-    <>
-      {daySegments.map((segment) => {
+    <AnimatePresence mode="sync">
+      {daySegments.map((segment, index) => {
         const isManual = segment.type === 'manual'
         const isCalendarEvent = type === 'calendar'
         const isSuggestion = segment.isSuggestion
@@ -69,7 +70,7 @@ export const EventSegments = ({
         const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
 
         const content = (
-          <div
+          <motion.div
             data-is-segment="true"
             className={clsx(
               'group transition-all overflow-hidden',
@@ -93,6 +94,14 @@ export const EventSegments = ({
                   ? 0.5
                   : 1
             }}
+            initial={{ opacity: 0, x: -4 }}
+            animate={{ opacity: 0.8, x: 0 }}
+            exit={{ opacity: 0, x: -4 }}
+            transition={{
+              delay: index * 0.04,
+              duration: 0.2,
+              ease: [0.16, 1, 0.3, 1]
+            }}
             onMouseDown={(e) => {
               if (canInteract) {
                 onMoveStart(segment, e)
@@ -108,12 +117,15 @@ export const EventSegments = ({
             <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
             {canInteract && (
               <>
-                <div
+                <motion.div
                   className="absolute top-0 left-0 right-0 h-4 -translate-y-1/2 cursor-row-resize z-30 group"
                   onMouseDown={(e) => {
                     e.stopPropagation()
                     onResizeStart(segment, 'top', e)
                   }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.04 + 0.1 }}
                 >
                   <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="w-4 h-3 flex flex-col justify-between">
@@ -121,13 +133,16 @@ export const EventSegments = ({
                       <div className="w-full h-[2px] bg-gray-400 dark:bg-gray-500 rounded-full" />
                     </div>
                   </div>
-                </div>
-                <div
+                </motion.div>
+                <motion.div
                   className="absolute bottom-0 left-0 right-0 h-4 translate-y-1/2 cursor-row-resize z-30 group"
                   onMouseDown={(e) => {
                     e.stopPropagation()
                     onResizeStart(segment, 'bottom', e)
                   }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.04 + 0.1 }}
                 >
                   <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="w-4 h-3 flex flex-col justify-between">
@@ -135,10 +150,10 @@ export const EventSegments = ({
                       <div className="w-full h-[2px] bg-gray-400 dark:bg-gray-500 rounded-full" />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </>
             )}
-          </div>
+          </motion.div>
         )
 
         if (isGroupedCalendarEvent) {
@@ -172,6 +187,6 @@ export const EventSegments = ({
           </TimelineSegmentTooltip>
         )
       })}
-    </>
+    </AnimatePresence>
   )
 }

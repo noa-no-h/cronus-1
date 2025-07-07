@@ -1,5 +1,6 @@
 import { ChevronDownIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
+import React from 'react'
 import { Category as SharedCategory } from 'shared'
 import { ActivityItem, ProcessedCategory } from '../../lib/activityProcessing'
 import { Button } from '../ui/button'
@@ -51,7 +52,7 @@ export const ActivityList = ({
   selectedActivities,
   onSelectActivity,
   onAddNewCategory
-}: ActivityListProps) => {
+}: ActivityListProps): React.ReactElement => {
   const oneMinuteMs = 60 * 1000
   const visibleActivities = activities.filter((act) => act.durationMs >= oneMinuteMs)
   const hiddenActivities = activities.filter((act) => act.durationMs < oneMinuteMs)
@@ -61,7 +62,7 @@ export const ActivityList = ({
   const activitiesToShow = shouldShowAllActivities ? activities : visibleActivities
   const activitiesToHide = shouldShowAllActivities ? [] : hiddenActivities
 
-  const renderItems = (items: ActivityItem[]) => {
+  const renderItems = (items: ActivityItem[]): React.ReactElement[] => {
     const validItems = items.filter((activity) => {
       if (activity.itemType === 'website' && !activity.originalUrl) {
         // This is the problematic entry, let's not render it for now.
@@ -84,64 +85,85 @@ export const ActivityList = ({
       const isNextSelected = nextActivityKey ? selectedActivities.has(nextActivityKey) : false
 
       return (
-        <ActivityListItem
+        <motion.div
           key={activityKey}
-          activity={activity}
-          isSelected={isSelected}
-          isPrevSelected={isPrevSelected}
-          isNextSelected={isNextSelected}
-          currentCategory={currentCategory}
-          allUserCategories={allUserCategories}
-          handleMoveActivity={handleMoveActivity}
-          isMovingActivity={isMovingActivity}
-          faviconErrors={faviconErrors}
-          handleFaviconError={handleFaviconError}
-          hoveredActivityKey={hoveredActivityKey}
-          setHoveredActivityKey={setHoveredActivityKey}
-          openDropdownActivityKey={openDropdownActivityKey}
-          setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-          onSelectActivity={onSelectActivity}
-          selectedHour={selectedHour}
-          selectedDay={selectedDay}
-          viewMode={viewMode}
-          startDateMs={startDateMs}
-          endDateMs={endDateMs}
-          onAddNewCategory={onAddNewCategory}
-        />
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.2,
+            ease: [0.16, 1, 0.3, 1],
+            delay: index * 0.03 // Stagger each item
+          }}
+        >
+          <ActivityListItem
+            activity={activity}
+            isSelected={isSelected}
+            isPrevSelected={isPrevSelected}
+            isNextSelected={isNextSelected}
+            currentCategory={currentCategory}
+            allUserCategories={allUserCategories}
+            handleMoveActivity={handleMoveActivity}
+            isMovingActivity={isMovingActivity}
+            faviconErrors={faviconErrors}
+            handleFaviconError={handleFaviconError}
+            hoveredActivityKey={hoveredActivityKey}
+            setHoveredActivityKey={setHoveredActivityKey}
+            openDropdownActivityKey={openDropdownActivityKey}
+            setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+            onSelectActivity={onSelectActivity}
+            selectedHour={selectedHour}
+            selectedDay={selectedDay}
+            viewMode={viewMode}
+            startDateMs={startDateMs}
+            endDateMs={endDateMs}
+            onAddNewCategory={onAddNewCategory}
+          />
+        </motion.div>
       )
     })
   }
 
   return (
-    <>
-      {renderItems(activitiesToShow)}
-      {activitiesToHide.length > 0 && (
-        <Button
-          variant="link"
-          className="p-1 px-2 mt-2 w-full h-auto text-xs text-left justify-start text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors flex items-center gap-1"
-          onClick={onToggleShowMore}
-        >
-          {isShowMore ? 'Show less' : `Show ${activitiesToHide.length} more`}
-          <ChevronDownIcon
-            className={`ml-.5 h-4 w-4 transition-transform duration-200 ${
-              isShowMore ? 'rotate-180' : ''
-            }`}
-          />
-        </Button>
-      )}
-      <AnimatePresence>
-        {isShowMore && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {renderItems(activitiesToShow)}
+        {activitiesToHide.length > 0 && (
+          <Button
+            variant="link"
+            className="p-1 px-2 mt-2 w-full h-auto text-xs text-left justify-start text-slate-600 dark:text-slate-400 hover:text-foreground transition-colors flex items-center gap-1"
+            onClick={onToggleShowMore}
           >
-            {renderItems(activitiesToHide)}
-          </motion.div>
+            {isShowMore ? 'Show less' : `Show ${activitiesToHide.length} more`}
+            <ChevronDownIcon
+              className={`ml-.5 h-4 w-4 transition-transform duration-200 ${
+                isShowMore ? 'rotate-180' : ''
+              }`}
+            />
+          </Button>
         )}
-      </AnimatePresence>
-    </>
+        <AnimatePresence>
+          {isShowMore && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{
+                duration: 0.25,
+                ease: [0.16, 1, 0.3, 1],
+                height: { duration: 0.3 }
+              }}
+              className="overflow-hidden"
+            >
+              {renderItems(activitiesToHide)}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>
   )
 }
