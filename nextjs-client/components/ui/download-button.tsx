@@ -39,7 +39,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({
   };
 
   const variantClasses = {
-    primary: 'bg-[#242437] hover:bg-[#1a1a2e] text-white',
+    primary: 'bg-primary hover:bg-[#1a1a2e] text-white',
     secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900',
   };
 
