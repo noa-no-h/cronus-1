@@ -1,3 +1,4 @@
+import React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
 import { DashboardView } from './components/DashboardView'
@@ -29,8 +30,8 @@ export interface ActivityToRecategorize {
   endDateMs?: number
 }
 
-export function MainAppContent() {
-  const { isAuthenticated, token, user, justLoggedIn, resetJustLoggedIn } = useAuth()
+export function MainAppContent(): React.ReactElement {
+  const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn } = useAuth()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -100,7 +101,7 @@ export function MainAppContent() {
   )
 
   const handleSaveRecategorize = useCallback(
-    (newCategoryId: string) => {
+    (newCategoryId: string): void => {
       if (!recategorizeTarget || !token) {
         toast({
           title: 'Error',
@@ -140,7 +141,7 @@ export function MainAppContent() {
   )
 
   useEffect(() => {
-    const handleRecategorizeRequestFromIPC = (receivedData: any) => {
+    const handleRecategorizeRequestFromIPC = (receivedData: Category): void => {
       console.log('App.tsx: IPC Handler - Raw received data:', receivedData)
 
       // The received data should be the category object.
@@ -198,7 +199,7 @@ export function MainAppContent() {
   })
 
   useEffect(() => {
-    const checkPermissions = async () => {
+    const checkPermissions = async (): Promise<void> => {
       if (token) {
         try {
           const accessibilityStatus = await window.api.getPermissionStatus(
@@ -239,7 +240,7 @@ export function MainAppContent() {
     }
   }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn])
 
-  const handleOnboardingComplete = () => {
+  const handleOnboardingComplete = (): void => {
     setShowOnboarding(false)
     // Set the local storage flag to mark onboarding as completed
     localStorage.setItem('hasCompletedOnboarding', 'true')
@@ -252,13 +253,13 @@ export function MainAppContent() {
     setShowTutorial(true)
   }
 
-  const handleResetOnboarding = () => {
+  const handleResetOnboarding = (): void => {
     setShowOnboarding(true)
     // Remove the local storage flag to allow onboarding to show again
     localStorage.removeItem('hasCompletedOnboarding')
   }
 
-  const handleOpenMiniTimer = () => {
+  const handleOpenMiniTimer = (): void => {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.send('show-floating-window')
     }
@@ -280,7 +281,7 @@ export function MainAppContent() {
 
   useEffect(() => {
     // Fetch initial state
-    const fetchInitialVisibility = async () => {
+    const fetchInitialVisibility = async (): Promise<void> => {
       if (window.api?.getFloatingWindowVisibility) {
         try {
           const isVisible = await window.api.getFloatingWindowVisibility()
@@ -294,7 +295,7 @@ export function MainAppContent() {
     fetchInitialVisibility()
 
     // Listener for subsequent changes
-    const handleVisibilityChange = (_event: unknown, isVisible: boolean) => {
+    const handleVisibilityChange = (_event: unknown, isVisible: boolean): void => {
       setIsMiniTimerVisible(isVisible)
     }
 
@@ -314,27 +315,9 @@ export function MainAppContent() {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="h-full flex flex-col overflow-hidden">
-        {/* Test button for OTA */}
-        {/* <button
-          style={{
-            position: 'fixed',
-            top: 20,
-            right: 20,
-            zIndex: 9999,
-            padding: '8px 16px',
-            background: '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 4,
-            cursor: 'pointer'
-          }}
-          onClick={() => window.api.checkForUpdates()}
-        >
-          Check for Updates
-        </button> */}
+      <div className="flex flex-col h-screen">
         <div className="custom-title-bar">{APP_NAME}</div>
-        <div className="p-2">
+        <div className="flex-none p-2">
           <DistractionStatusBar
             activeWindow={activeWindow}
             onOpenMiniTimerClick={handleOpenMiniTimer}
@@ -344,14 +327,17 @@ export function MainAppContent() {
             isSettingsOpen={isSettingsOpen}
           />
         </div>
-
-        <DashboardView
-          className={isSettingsOpen ? 'hidden' : ''}
-          showTutorial={showTutorial}
-          setShowTutorial={setShowTutorial}
-        />
-        {isSettingsOpen && <SettingsPage onResetOnboarding={handleResetOnboarding} />}
-
+        <div className={`flex-1 flex ${isSettingsOpen ? '' : 'overflow-hidden'}`}>
+          <div
+            className={`flex-1 flex flex-col ${isSettingsOpen ? 'overflow-auto' : 'overflow-hidden'}`}
+          >
+            {isSettingsOpen ? (
+              <SettingsPage onResetOnboarding={handleResetOnboarding} />
+            ) : (
+              <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+            )}
+          </div>
+        </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
         <UpdateNotification />
         <Toaster />

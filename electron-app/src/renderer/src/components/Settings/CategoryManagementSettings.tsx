@@ -201,25 +201,24 @@ export function CategoryManagementSettings(): JSX.Element {
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            {!areCategoriesMatchingDefaults &&
-              categories && ( // Show only if not matching defaults and categories are loaded
-                <Button
-                  onClick={handleResetToDefault}
-                  variant="outline"
-                  className="text-sm font-medium"
-                  disabled={
-                    !token ||
-                    isFormOpen ||
-                    isTemplateViewOpen ||
-                    resetToDefaultMutation.isLoading ||
-                    createMutation.isLoading ||
-                    updateMutation.isLoading ||
-                    deleteMutation.isLoading
-                  }
-                >
-                  Reset to Default
-                </Button>
-              )}
+            {!areCategoriesMatchingDefaults && categories && (
+              <Button
+                onClick={handleResetToDefault}
+                variant="outline"
+                className="text-sm font-medium"
+                disabled={
+                  !token ||
+                  isFormOpen ||
+                  isTemplateViewOpen ||
+                  resetToDefaultMutation.isLoading ||
+                  createMutation.isLoading ||
+                  updateMutation.isLoading ||
+                  deleteMutation.isLoading
+                }
+              >
+                Reset to Default
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -311,7 +310,7 @@ export function CategoryManagementSettings(): JSX.Element {
           {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
-              <div className="divide-border grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
                 {archivedCategories.map((category, idx) => (
                   <div key={category._id}>
                     <CategoryListItem

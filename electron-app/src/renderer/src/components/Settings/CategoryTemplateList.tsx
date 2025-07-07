@@ -139,7 +139,7 @@ export function CategoryTemplateList({
   )
 
   return (
-    <>
+    <div>
       <div className="flex justify-end">
         <Button onClick={onCancel} variant="outline">
           Back to Categories
@@ -177,6 +177,6 @@ export function CategoryTemplateList({
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

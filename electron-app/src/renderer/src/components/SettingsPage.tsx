@@ -49,8 +49,8 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="p-2 pt-0">
+    <div className="h-full">
+      <div className="p-2 pt-0 pb-4">
         <div className="space-y-4">
           <GoalInputForm />
           <CategoryManagementSettings />
