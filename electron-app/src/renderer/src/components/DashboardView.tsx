@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { ReactElement } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { REFRESH_EVENTS_INTERVAL_MS } from '../lib/constants'
@@ -26,7 +27,21 @@ export interface ProcessedEventBlock {
   source?: 'tracked' | 'calendar'
 }
 
-const convertCalendarEventToBlock = (event: any): ProcessedEventBlock | null => {
+interface CalendarEvent {
+  id: string
+  summary: string
+  start: {
+    dateTime?: string
+    date?: string
+  }
+  end: {
+    dateTime?: string
+    date?: string
+  }
+  [key: string]: unknown
+}
+
+const convertCalendarEventToBlock = (event: CalendarEvent): ProcessedEventBlock | null => {
   // Only include events with specific times (not all-day events)
   if (!event.start.dateTime || !event.end.dateTime) {
     return null
@@ -55,7 +70,7 @@ const convertCalendarEventToBlock = (event: any): ProcessedEventBlock | null => 
       categoryId: null,
       type: 'calendar',
       ...event
-    } as any,
+    } as ActiveWindowEvent,
     source: 'calendar'
   }
 }
@@ -68,7 +83,7 @@ export function DashboardView({
   className?: string
   showTutorial: boolean
   setShowTutorial: (show: boolean) => void
-}) {
+}): ReactElement {
   const { token } = useAuth()
   const isDarkMode = useDarkMode()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -99,7 +114,7 @@ export function DashboardView({
   }, [])
 
   useEffect(() => {
-    const calculateDateRange = () => {
+    const calculateDateRange = (): void => {
       if (viewMode === 'day') {
         const startOfDay = new Date(selectedDate)
         startOfDay.setHours(0, 0, 0, 0)
@@ -109,19 +124,26 @@ export function DashboardView({
         setStartDateMs(startOfDay.getTime())
         setEndDateMs(endOfDay.getTime())
       } else {
-        // Week view - Monday to Sunday
-        const startOfWeek = new Date(selectedDate)
-        const dayOfWeek = startOfWeek.getDay() // Sunday = 0, Monday = 1, etc.
-        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Monday start
-        startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract)
-        startOfWeek.setHours(0, 0, 0, 0)
+        // Week view - get data for last 4 weeks
+        const endOfCurrentWeek = new Date(selectedDate)
+        const dayOfWeek = endOfCurrentWeek.getDay()
+        const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
+        endOfCurrentWeek.setDate(endOfCurrentWeek.getDate() + daysToSunday)
+        endOfCurrentWeek.setHours(23, 59, 59, 999)
 
-        const endOfWeek = new Date(startOfWeek)
-        endOfWeek.setDate(startOfWeek.getDate() + 6)
-        endOfWeek.setHours(23, 59, 59, 999)
+        const startOfFourWeeksAgo = new Date(endOfCurrentWeek)
+        startOfFourWeeksAgo.setDate(startOfFourWeeksAgo.getDate() - 28) // Go back 4 weeks
+        startOfFourWeeksAgo.setHours(0, 0, 0, 0)
 
-        setStartDateMs(startOfWeek.getTime())
-        setEndDateMs(endOfWeek.getTime())
+        console.log('Date range for fetching:', {
+          start: startOfFourWeeksAgo.toISOString(),
+          end: endOfCurrentWeek.toISOString(),
+          viewMode,
+          selectedDate: selectedDate.toISOString()
+        })
+
+        setStartDateMs(startOfFourWeeksAgo.getTime())
+        setEndDateMs(endOfCurrentWeek.getTime())
       }
     }
 
@@ -242,32 +264,30 @@ export function DashboardView({
     return trackedProcessedEvents
   }, [trackedProcessedEvents, selectedHour, selectedDay, viewMode])
 
-  const handleDateChange = (newDate: Date) => {
+  const handleDateChange = (newDate: Date): void => {
     setSelectedDate(newDate)
     setSelectedHour(null)
     setSelectedDay(null)
   }
 
-  const handleTutorialClose = () => {
-    localStorage.setItem('hasSeenTutorial', 'true')
+  const handleTutorialClose = (): void => {
     setShowTutorial(false)
+    localStorage.setItem('hasSeenTutorial', 'true')
   }
 
-  const handleViewModeChange = (newMode: 'day' | 'week') => {
+  const handleViewModeChange = (newMode: 'day' | 'week'): void => {
     setViewMode(newMode)
     setSelectedHour(null)
     setSelectedDay(null)
   }
 
-  const handleHourSelect = useCallback((hour: number | null) => {
+  const handleHourSelect = (hour: number | null): void => {
     setSelectedHour(hour)
-    setSelectedDay(null)
-  }, [])
+  }
 
-  const handleDaySelect = useCallback((day: Date | null) => {
+  const handleDaySelect = (day: Date | null): void => {
     setSelectedDay(day)
-    setSelectedHour(null)
-  }, [])
+  }
 
   return (
     <div

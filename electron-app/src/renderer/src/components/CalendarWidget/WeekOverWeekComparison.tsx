@@ -142,13 +142,28 @@ export function WeekOverWeekComparison({
                 const unproductivePercentage =
                   totalWeekDuration > 0 ? (totalUnproductiveDuration / totalWeekDuration) * 100 : 0
 
+                const isCurrentWeek = index === weekData.length - 1
+
                 return (
                   <div key={index} className="flex flex-col items-center">
                     <div className="text-xs font-medium text-foreground mb-1">
                       {formatWeekLabel(startDate, endDate)}
                     </div>
 
-                    <div className="w-full h-full flex flex-col justify-end">
+                    <div className="w-full h-full flex flex-col justify-end relative">
+                      {isCurrentWeek && (
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                          <Badge variant="secondary" className="relative pl-5 whitespace-nowrap">
+                            <span className="absolute left-2 top-[50%] -translate-y-[50%] flex items-center justify-center">
+                              <span className="relative inline-flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full bg-red-500 h-2 w-2"></span>
+                              </span>
+                            </span>
+                            This Week
+                          </Badge>
+                        </div>
+                      )}
                       {totalWeekDuration > 0 ? (
                         <div className="w-full h-full flex flex-col">
                           {totalProductiveDuration > 0 && (

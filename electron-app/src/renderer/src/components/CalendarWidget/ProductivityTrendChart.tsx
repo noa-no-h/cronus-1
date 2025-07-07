@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
+import type { ReactElement } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { processColor } from '../../lib/colors'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { notionStyleCategoryColors } from '../Settings/CategoryForm'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart'
+import { Badge } from '../ui/badge'
 
 interface ProductivityTrendChartProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -22,27 +24,43 @@ interface WeekSummary {
 export function ProductivityTrendChart({
   processedEvents,
   isDarkMode
-}: ProductivityTrendChartProps): JSX.Element {
+}: ProductivityTrendChartProps): ReactElement {
   const weekData = useMemo<WeekSummary[]>(() => {
-    if (!processedEvents) {
+    if (!processedEvents || processedEvents.length === 0) {
       return []
     }
 
     const weeks: WeekSummary[] = []
     const now = new Date()
 
+    // Get the 4 weeks, starting from 3 weeks ago
     for (let i = 3; i >= 0; i--) {
+      // Use the same week calculation as WeekOverWeekComparison
       const start = new Date(now)
-      const dayOfWeek = now.getDay()
-      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-      start.setDate(now.getDate() - daysToMonday - i * 7)
+      start.setDate(now.getDate() - now.getDay() - i * 7 + 1) // Monday start
       start.setHours(0, 0, 0, 0)
       const end = new Date(start)
       end.setDate(start.getDate() + 7)
 
+      console.log(`Week ${3 - i} boundaries:`, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+        weekNumber: 3 - i
+      })
+
       const weekEvents = processedEvents.filter((event) => {
         const eventTime = event.startTime.getTime()
         return eventTime >= start.getTime() && eventTime < end.getTime()
+      })
+
+      console.log(`Week ${3 - i} events:`, {
+        start: start.toISOString(),
+        end: end.toISOString(),
+        eventsCount: weekEvents.length,
+        productiveEvents: weekEvents.filter((e) => e.isProductive).length,
+        unproductiveEvents: weekEvents.filter((e) => !e.isProductive).length,
+        firstEventTime: weekEvents[0]?.startTime.toISOString(),
+        lastEventTime: weekEvents[weekEvents.length - 1]?.startTime.toISOString()
       })
 
       const totalProductiveDuration = weekEvents
@@ -55,6 +73,12 @@ export function ProductivityTrendChart({
 
       const totalWeekDuration = totalProductiveDuration + totalUnproductiveDuration
 
+      console.log(`Week ${3 - i} durations:`, {
+        productiveHours: totalProductiveDuration / (1000 * 60 * 60),
+        unproductiveHours: totalUnproductiveDuration / (1000 * 60 * 60),
+        totalHours: totalWeekDuration / (1000 * 60 * 60)
+      })
+
       weeks.push({
         startDate: start,
         endDate: end,
@@ -64,6 +88,7 @@ export function ProductivityTrendChart({
       })
     }
 
+    // Sort weeks chronologically (oldest to newest)
     return weeks
   }, [processedEvents])
 
@@ -130,7 +155,9 @@ export function ProductivityTrendChart({
   return (
     <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
       <h3 className="text-lg font-semibold text-foreground mb-2">Productivity Trend</h3>
-      <p className="text-sm text-muted-foreground mb-4">Weekly productive hours over time</p>
+      <p className="text-sm text-muted-foreground mb-4">
+        Weekly productive hours over the last month
+      </p>
 
       <div className="h-32">
         <ChartContainer
@@ -142,9 +169,9 @@ export function ProductivityTrendChart({
             data={chartData}
             margin={{
               left: 5,
-              right: 5,
+              right: 60,
               top: 5,
-              bottom: 5
+              bottom: 25
             }}
             width={undefined}
             height={undefined}
@@ -154,8 +181,42 @@ export function ProductivityTrendChart({
               dataKey="weekLabel"
               tickLine={false}
               axisLine={false}
-              tickMargin={4}
+              tickMargin={20}
               fontSize={10}
+              tick={({ x, y, payload }) => {
+                const isCurrentWeek = payload.index === chartData.length - 1
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text x={0} y={0} dy={0} textAnchor="middle" fontSize={10}>
+                      {payload.value}
+                    </text>
+                    {isCurrentWeek && (
+                      <foreignObject
+                        x={-30}
+                        y={5}
+                        width={60}
+                        height={20}
+                        style={{ overflow: 'visible' }}
+                      >
+                        <div className="flex items-center justify-center">
+                          <Badge
+                            variant="secondary"
+                            className="relative pl-5 whitespace-nowrap text-[10px]"
+                          >
+                            <span className="absolute left-2 top-[50%] -translate-y-[50%] flex items-center justify-center">
+                              <span className="relative inline-flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full bg-red-500 h-2 w-2"></span>
+                              </span>
+                            </span>
+                            This Week
+                          </Badge>
+                        </div>
+                      </foreignObject>
+                    )}
+                  </g>
+                )
+              }}
             />
             <YAxis
               tickLine={false}
