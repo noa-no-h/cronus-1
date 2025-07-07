@@ -1,6 +1,7 @@
 import { User } from '@shared/types';
-import { GetTokenOptions, OAuth2Client } from 'google-auth-library';
+import { GetTokenOptions, OAuth2Client, TokenPayload } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
+import { LoopsClient } from 'loops';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
@@ -11,6 +12,55 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET
 );
+
+const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
+
+const findOrCreateUserAndOnboard = async (payload: TokenPayload) => {
+  let user = await UserModel.findOne({ googleId: payload.sub });
+
+  if (!user) {
+    user = await UserModel.create({
+      email: payload.email,
+      name: payload.name,
+      googleId: payload.sub,
+      picture: payload.picture,
+      multiPurposeApps: [
+        'Mail',
+        'Beeper Desktop',
+        'WhatsApp',
+        'Notion',
+        'Slack',
+        'Telegram',
+        'Discord',
+        'Obsidian',
+        'Microsoft Teams',
+        'Messages',
+        'Spotify',
+        'Figma',
+        'Superhuman',
+        'Fantastical',
+        'Spark',
+      ],
+    });
+
+    await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
+
+    try {
+      const firstName = payload.name ? payload.name.split(' ')[0] : '';
+      await loops.sendTransactionalEmail({
+        transactionalId: 'cmcsc5r410gblzn0juvq2vsxb',
+        email: payload.email!,
+        dataVariables: {
+          datavariable: firstName,
+        },
+      });
+    } catch (error) {
+      console.error('Loops API error:', error);
+    }
+  }
+
+  return user;
+};
 
 export interface ExportUsageResponse {
   canExport: boolean;
@@ -50,36 +100,7 @@ export const authRouter = router({
         const payload = ticket.getPayload();
         if (!payload) throw new Error('No payload');
 
-        // Find or create user
-        let user = await UserModel.findOne({ googleId: payload.sub });
-
-        if (!user) {
-          user = await UserModel.create({
-            email: payload.email,
-            name: payload.name,
-            googleId: payload.sub,
-            picture: payload.picture,
-            multiPurposeApps: [
-              'Mail',
-              'Beeper Desktop',
-              'WhatsApp',
-              'Notion',
-              'Slack',
-              'Telegram',
-              'Discord',
-              'Obsidian',
-              'Microsoft Teams',
-              'Messages',
-              'Spotify',
-              'Figma',
-              'Superhuman',
-              'Fantastical',
-              'Spark',
-            ],
-          });
-
-          await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
-        }
+        const user = await findOrCreateUserAndOnboard(payload);
 
         // Generate access token (short-lived)
         const accessToken = jwt.sign(
@@ -334,33 +355,7 @@ export const authRouter = router({
         if (!payload) throw new Error('No payload');
 
         // Find or create user (reuse your existing logic)
-        let user = await UserModel.findOne({ googleId: payload.sub });
-        if (!user) {
-          user = await UserModel.create({
-            email: payload.email,
-            name: payload.name,
-            googleId: payload.sub,
-            picture: payload.picture,
-            multiPurposeApps: [
-              'Mail',
-              'Beeper Desktop',
-              'WhatsApp',
-              'Notion',
-              'Slack',
-              'Telegram',
-              'Discord',
-              'Obsidian',
-              'Microsoft Teams',
-              'Messages',
-              'Spotify',
-              'Figma',
-              'Superhuman',
-              'Fantastical',
-              'Spark',
-            ],
-          });
-          await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
-        }
+        const user = await findOrCreateUserAndOnboard(payload);
 
         if (hasCalendarScope && tokens.access_token) {
           user.googleAccessToken = tokens.access_token;
