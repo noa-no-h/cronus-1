@@ -6,7 +6,7 @@ import { cn } from '~/lib/cn';
 const teamMembers = [
   {
     name: 'Arne Strickmann',
-    bio: 'Software Engineer with experience at VC funds and fast-growing startups. Studied Computer Software Engineering at CODE University and Computer Science at 42 Paris.',
+    bio: 'Software Engineer with experience at venture firms and fast-growing startups. Studied Software Engineering at CODE University and Computer Science at 42.',
     links: [
       { name: 'X', url: 'https://x.com/arnestrickmann' },
       { name: 'LinkedIn', url: 'https://www.linkedin.com/in/arnestrickmann/' },
