@@ -80,7 +80,7 @@ const DistractionStatusBar = ({
   const [isNarrowView, setIsNarrowView] = useState(false)
 
   useEffect(() => {
-    const handleResize = () => {
+    const handleResize = (): void => {
       setIsNarrowView(window.innerWidth < 800)
     }
     window.addEventListener('resize', handleResize)
@@ -100,7 +100,7 @@ const DistractionStatusBar = ({
 
   useEffect(() => {
     if (latestEvent) {
-      // @ts-ignore
+      // @ts-ignore - Window API is injected by Electron at runtime and not available in TypeScript types
       window.api?.logToFile(
         '[DistractionCategorizationResult] Received latest event from server:',
         latestEvent
@@ -136,7 +136,7 @@ const DistractionStatusBar = ({
   const [currentDayEndDateMs, setCurrentDayEndDateMs] = React.useState<number | null>(null)
 
   React.useEffect(() => {
-    const updateDates = () => {
+    const updateDates = (): void => {
       const now = new Date()
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
       const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
@@ -279,7 +279,12 @@ const DistractionStatusBar = ({
     <div className="flex items-center gap-2 w-full">
       <div
         className={clsx(
-          'rounded-lg border-none shadow-none p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
+          'rounded-lg',
+          'shadow-[0_1px_3px_0_rgb(0,0,0,0.05)]',
+          'dark:shadow-[0_1px_3px_0_rgb(255,255,255,0.03)]',
+          'border border-black/[0.03]',
+          'dark:border-white/[0.08]',
+          'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
           cardBgColor
         )}
       >
