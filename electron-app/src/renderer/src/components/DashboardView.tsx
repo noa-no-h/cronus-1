@@ -10,6 +10,7 @@ import CalendarWidget from './CalendarWidget/CalendarWidget'
 import { TutorialModal } from './TutorialModal'
 import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
 import { ProductivityTrendChart } from './CalendarWidget/ProductivityTrendChart'
+import { TotalTimeLoggedChart } from './CalendarWidget/TotalTimeLoggedChart'
 import { useDarkMode } from '../hooks/useDarkMode'
 
 export interface ProcessedEventBlock {
@@ -342,6 +343,9 @@ export function DashboardView({
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
           />
+        )}
+        {viewMode === 'week' && (
+          <TotalTimeLoggedChart processedEvents={trackedProcessedEvents} isDarkMode={isDarkMode} />
         )}
       </div>
       <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />

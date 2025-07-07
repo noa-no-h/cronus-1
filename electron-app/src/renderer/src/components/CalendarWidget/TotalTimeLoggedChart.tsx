@@ -8,7 +8,7 @@ import { notionStyleCategoryColors } from '../Settings/CategoryForm'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart'
 import { Badge } from '../ui/badge'
 
-interface ProductivityTrendChartProps {
+interface TotalTimeLoggedChartProps {
   processedEvents: ProcessedEventBlock[] | null
   isDarkMode: boolean
 }
@@ -16,15 +16,13 @@ interface ProductivityTrendChartProps {
 interface WeekSummary {
   startDate: Date
   endDate: Date
-  totalProductiveDuration: number
-  totalUnproductiveDuration: number
-  totalWeekDuration: number
+  totalDuration: number
 }
 
-export function ProductivityTrendChart({
+export function TotalTimeLoggedChart({
   processedEvents,
   isDarkMode
-}: ProductivityTrendChartProps): ReactElement {
+}: TotalTimeLoggedChartProps): ReactElement {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents || processedEvents.length === 0) {
       return []
@@ -35,60 +33,26 @@ export function ProductivityTrendChart({
 
     // Get the 4 weeks, starting from 3 weeks ago
     for (let i = 3; i >= 0; i--) {
-      // Use the same week calculation as WeekOverWeekComparison
       const start = new Date(now)
       start.setDate(now.getDate() - now.getDay() - i * 7 + 1) // Monday start
       start.setHours(0, 0, 0, 0)
       const end = new Date(start)
       end.setDate(start.getDate() + 7)
 
-      console.log(`Week ${3 - i} boundaries:`, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-        weekNumber: 3 - i
-      })
-
       const weekEvents = processedEvents.filter((event) => {
         const eventTime = event.startTime.getTime()
         return eventTime >= start.getTime() && eventTime < end.getTime()
       })
 
-      console.log(`Week ${3 - i} events:`, {
-        start: start.toISOString(),
-        end: end.toISOString(),
-        eventsCount: weekEvents.length,
-        productiveEvents: weekEvents.filter((e) => e.isProductive).length,
-        unproductiveEvents: weekEvents.filter((e) => !e.isProductive).length,
-        firstEventTime: weekEvents[0]?.startTime.toISOString(),
-        lastEventTime: weekEvents[weekEvents.length - 1]?.startTime.toISOString()
-      })
-
-      const totalProductiveDuration = weekEvents
-        .filter((event) => event.isProductive)
-        .reduce((sum, event) => sum + event.durationMs, 0)
-
-      const totalUnproductiveDuration = weekEvents
-        .filter((event) => !event.isProductive)
-        .reduce((sum, event) => sum + event.durationMs, 0)
-
-      const totalWeekDuration = totalProductiveDuration + totalUnproductiveDuration
-
-      console.log(`Week ${3 - i} durations:`, {
-        productiveHours: totalProductiveDuration / (1000 * 60 * 60),
-        unproductiveHours: totalUnproductiveDuration / (1000 * 60 * 60),
-        totalHours: totalWeekDuration / (1000 * 60 * 60)
-      })
+      const totalDuration = weekEvents.reduce((sum, event) => sum + event.durationMs, 0)
 
       weeks.push({
         startDate: start,
         endDate: end,
-        totalProductiveDuration,
-        totalUnproductiveDuration,
-        totalWeekDuration
+        totalDuration
       })
     }
 
-    // Sort weeks chronologically (oldest to newest)
     return weeks
   }, [processedEvents])
 
@@ -109,35 +73,18 @@ export function ProductivityTrendChart({
     return weekData.map((week, index) => ({
       week: `W${index + 1}`,
       weekLabel: formatWeekLabel(week.startDate, week.endDate),
-      productiveHours: parseFloat((week.totalProductiveDuration / (1000 * 60 * 60)).toFixed(1)),
-      unproductiveHours: parseFloat((week.totalUnproductiveDuration / (1000 * 60 * 60)).toFixed(1)),
-      totalHours: parseFloat((week.totalWeekDuration / (1000 * 60 * 60)).toFixed(1))
+      totalHours: parseFloat((week.totalDuration / (1000 * 60 * 60)).toFixed(1))
     }))
   }, [weekData])
 
   // Calculate trend
-  const productivityTrend = useMemo(() => {
+  const timeTrend = useMemo(() => {
     if (chartData.length < 2) return { change: 0, isPositive: true }
 
     const firstWeek = chartData[0]
     const lastWeek = chartData[chartData.length - 1]
 
-    // If we only have data in the most recent week
-    if (firstWeek.totalHours === 0 && lastWeek.totalHours > 0) {
-      return { change: 100, isPositive: true }
-    }
-
-    // If we have no data at all
-    if (firstWeek.totalHours === 0 && lastWeek.totalHours === 0) {
-      return { change: 0, isPositive: true }
-    }
-
-    const firstProductivity =
-      firstWeek.totalHours > 0 ? (firstWeek.productiveHours / firstWeek.totalHours) * 100 : 0
-    const lastProductivity =
-      lastWeek.totalHours > 0 ? (lastWeek.productiveHours / lastWeek.totalHours) * 100 : 0
-
-    const change = lastProductivity - firstProductivity
+    const change = ((lastWeek.totalHours - firstWeek.totalHours) / firstWeek.totalHours) * 100
 
     return {
       change: Math.abs(change),
@@ -146,23 +93,21 @@ export function ProductivityTrendChart({
   }, [chartData])
 
   const chartConfig = {
-    productiveHours: {
-      label: 'Productive Hours',
+    totalHours: {
+      label: 'Total Hours',
       color: processColor(notionStyleCategoryColors[0], { isDarkMode, opacity: 0.8 })
     }
   } satisfies ChartConfig
 
   return (
-    <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+    <div className="border border-border rounded-lg bg-card p-4 mb-3">
       <div className="flex items-center gap-2 mb-2">
         <h3 className="text-lg font-semibold text-foreground">Productivity Trend</h3>
         <Badge variant="secondary" className="text-xs">
-          Productive Time
+          Overall Time
         </Badge>
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Weekly productive hours over the last month
-      </p>
+      <p className="text-sm text-muted-foreground mb-4">Total hours logged over the last month</p>
 
       <div className="h-32">
         <ChartContainer
@@ -232,22 +177,15 @@ export function ProductivityTrendChart({
             />
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  formatter={(value, name) => [
-                    `${value}h`,
-                    name === 'productiveHours' ? 'Productive' : 'Unproductive'
-                  ]}
-                />
-              }
+              content={<ChartTooltipContent formatter={(value) => [`${value}h`, 'Total Time']} />}
             />
             <Line
-              dataKey="productiveHours"
+              dataKey="totalHours"
               type="linear"
-              stroke={chartConfig.productiveHours.color}
+              stroke={chartConfig.totalHours.color}
               strokeWidth={2}
               dot={{
-                fill: chartConfig.productiveHours.color,
+                fill: chartConfig.totalHours.color,
                 strokeWidth: 2,
                 r: 3
               }}
@@ -256,24 +194,23 @@ export function ProductivityTrendChart({
         </ChartContainer>
       </div>
 
-      {/* Trend Summary */}
       <div className="flex items-center gap-2 text-sm mt-2">
         <div className="flex gap-2 leading-none font-medium">
-          {productivityTrend.isPositive ? (
+          {timeTrend.isPositive ? (
             <>
-              Trending up by {productivityTrend.change.toFixed(1)}%{' '}
+              Trending up by {timeTrend.change.toFixed(1)}%{' '}
               <TrendingUp className="h-4 w-4 text-green-500" />
             </>
           ) : (
             <>
-              Trending down by {productivityTrend.change.toFixed(1)}%{' '}
+              Trending down by {timeTrend.change.toFixed(1)}%{' '}
               <TrendingDown className="h-4 w-4 text-red-500" />
             </>
           )}
         </div>
       </div>
       <div className="text-muted-foreground leading-none text-sm">
-        Showing productive hours over the last 4 weeks
+        Showing total hours logged over the last 4 weeks
       </div>
     </div>
   )
