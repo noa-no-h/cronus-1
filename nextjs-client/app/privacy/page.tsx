@@ -73,6 +73,27 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-primary">
+                Google API Services User Data Policy Compliance
+              </h2>
+              <p>
+                Cronus&apos;s use and transfer of information received from Google APIs will adhere
+                to the{' '}
+                <a
+                  href="https://developers.google.com/terms/api-services-user-data-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Google API Services User Data Policy
+                </a>
+                , including the Limited Use requirements. We only use your Google data to provide
+                and improve our services, and we never sell or share your data with third parties
+                except as necessary to operate and enhance Cronus.
+              </p>
+            </section>
+
+            <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Information Sharing</h2>
               <p>
                 We share personal information with the third-party services listed above as
