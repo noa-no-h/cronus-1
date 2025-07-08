@@ -99,11 +99,11 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           <li
             className={cn(
               'bg-zinc-50 text-primary',
-              'p-8 desktop:py-9 desktop:px-[56px]',
+              'p-8 desktop:py-9 desktop:px-14',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
           >
-            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-[32px] whitespace-nowrap">
+            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-8 whitespace-nowrap">
               Traditional Time Trackers
             </h5>
             <ul
