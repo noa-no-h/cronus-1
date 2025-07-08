@@ -215,7 +215,7 @@ const CalendarWidget = ({
   return (
     <div
       className={`relative flex select-none flex-col bg-card border-1 border border-border rounded-lg ${
-        viewMode === 'week' ? 'h-96' : 'h-full'
+        viewMode === 'week' ? 'h-[30rem]' : 'h-full'
       }`}
     >
       <CalendarWidgetHeader

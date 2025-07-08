@@ -1,5 +1,4 @@
-import { processColor } from '../../../lib/colors'
-import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
+import { ProductiveVsUnproductiveDisplay } from '../ProductiveVsUnproductiveDisplay'
 
 interface WeekViewFooterProps {
   totalDayDuration: number
@@ -21,35 +20,13 @@ export const WeekViewFooter = ({
       {totalDayDuration > 0 ? (
         <>
           <div className="text-foreground font-medium">{formatDuration(totalDayDuration)}</div>
-          <div className="flex flex-col items-left gap-0.5 mt-1">
-            {totalProductiveDuration > 0 && (
-              <div className="flex items-left gap-1">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: processColor(notionStyleCategoryColors[0], {
-                      isDarkMode,
-                      opacity: isDarkMode ? 0.7 : 0.6
-                    })
-                  }}
-                />
-                <span>{formatDuration(totalProductiveDuration)}</span>
-              </div>
-            )}
-            {totalUnproductiveDuration > 0 && (
-              <div className="flex items-left gap-1">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: processColor(notionStyleCategoryColors[1], {
-                      isDarkMode,
-                      opacity: isDarkMode ? 0.7 : 0.6
-                    })
-                  }}
-                />
-                <span>{formatDuration(totalUnproductiveDuration)}</span>
-              </div>
-            )}
+          <div className="flex flex-col items-left gap-0.5">
+            <ProductiveVsUnproductiveDisplay
+              productiveDuration={totalProductiveDuration}
+              unproductiveDuration={totalUnproductiveDuration}
+              isDarkMode={isDarkMode}
+              formatDuration={formatDuration}
+            />
           </div>
         </>
       ) : (

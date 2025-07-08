@@ -1,11 +1,10 @@
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { useMemo } from 'react'
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from 'recharts'
 import { processColor } from '../../../lib/colors'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
-import { Badge } from '../../ui/badge'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../../ui/chart'
 
 interface ProductivityTrendChartProps {
@@ -101,7 +100,7 @@ export function ProductivityTrendChart({
     if (startMonth === endMonth) {
       return `${startMonth} ${startDay}-${endDay}`
     }
-    return `${startMonth} ${startDay}-${endMonth} ${endDay}`
+    return `${startMonth} ${startDay} - ${endMonth} ${endDay}`
   }
 
   // Prepare chart data for line chart
@@ -114,6 +113,34 @@ export function ProductivityTrendChart({
       totalHours: parseFloat((week.totalWeekDuration / (1000 * 60 * 60)).toFixed(1))
     }))
   }, [weekData])
+
+  const segmentedChartData = useMemo(() => {
+    if (chartData.length < 2) {
+      return chartData.map((d, i) => ({
+        ...d,
+        index: i,
+        lastWeekProductiveHours: null
+      }))
+    }
+
+    return chartData.map((d, i) => {
+      const point = {
+        ...d,
+        index: i,
+        lastWeekProductiveHours: null as number | null
+      }
+
+      if (i === chartData.length - 2) {
+        point.lastWeekProductiveHours = d.productiveHours
+      }
+
+      if (i === chartData.length - 1) {
+        point.productiveHours = null as any
+        point.lastWeekProductiveHours = d.productiveHours
+      }
+      return point
+    })
+  }, [chartData])
 
   // Calculate trend
   const productivityTrend = useMemo(() => {
@@ -155,15 +182,8 @@ export function ProductivityTrendChart({
   return (
     <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
       <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-lg font-semibold text-foreground">Productivity Trend</h3>
-        <Badge variant="secondary" className="text-xs">
-          Productive Time
-        </Badge>
+        <h3 className="text-lg font-semibold text-foreground">Weekly Productive Hours Trend</h3>
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Weekly productive hours over the last month
-      </p>
-
       <div className="h-32">
         <ChartContainer
           config={chartConfig}
@@ -171,7 +191,7 @@ export function ProductivityTrendChart({
         >
           <LineChart
             accessibilityLayer
-            data={chartData}
+            data={segmentedChartData}
             margin={{
               left: 5,
               right: 60,
@@ -189,36 +209,11 @@ export function ProductivityTrendChart({
               tickMargin={20}
               fontSize={10}
               tick={({ x, y, payload }) => {
-                const isCurrentWeek = payload.index === chartData.length - 1
                 return (
                   <g transform={`translate(${x},${y})`}>
                     <text x={0} y={0} dy={0} textAnchor="middle" fontSize={10}>
-                      {payload.value}
+                      {payload.value}{' '}
                     </text>
-                    {isCurrentWeek && (
-                      <foreignObject
-                        x={-30}
-                        y={5}
-                        width={60}
-                        height={20}
-                        style={{ overflow: 'visible' }}
-                      >
-                        <div className="flex items-center justify-center">
-                          <Badge
-                            variant="secondary"
-                            className="relative pl-5 whitespace-nowrap text-[10px]"
-                          >
-                            <span className="absolute left-2 top-[50%] -translate-y-[50%] flex items-center justify-center">
-                              <span className="relative inline-flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full bg-red-500 h-2 w-2"></span>
-                              </span>
-                            </span>
-                            This Week
-                          </Badge>
-                        </div>
-                      </foreignObject>
-                    )}
                   </g>
                 )
               }}
@@ -229,15 +224,30 @@ export function ProductivityTrendChart({
               tickMargin={4}
               fontSize={10}
               tickFormatter={(value) => `${value}h`}
+              ticks={[0, 10, 20, 30, 40, 50, 60]}
             />
+            <ReferenceLine y={10} stroke="#e5e7eb" />
+            <ReferenceLine y={20} stroke="#e5e7eb" />
+            <ReferenceLine y={30} stroke="#e5e7eb" />
+            <ReferenceLine y={40} stroke="#e5e7eb" />
+            <ReferenceLine y={50} stroke="#e5e7eb" />
+            <ReferenceLine y={60} stroke="#e5e7eb" />
             <ChartTooltip
               cursor={false}
               content={
                 <ChartTooltipContent
-                  formatter={(value, name) => [
-                    `${value}h`,
-                    name === 'productiveHours' ? 'Productive' : 'Unproductive'
-                  ]}
+                  formatter={(value, name, item) => {
+                    if (name === 'lastWeekProductiveHours' && value === null) return null
+
+                    const displayName =
+                      name === 'productiveHours' || name === 'lastWeekProductiveHours'
+                        ? 'Productive'
+                        : 'Unproductive'
+
+                    const isCurrentWeek = item.payload.index === chartData.length - 1
+
+                    return [`${value}h `, displayName, isCurrentWeek ? ' (This Week)' : '']
+                  }}
                 />
               }
             />
@@ -251,6 +261,21 @@ export function ProductivityTrendChart({
                 strokeWidth: 2,
                 r: 3
               }}
+              connectNulls={false}
+            />
+            <Line
+              dataKey="lastWeekProductiveHours"
+              type="linear"
+              stroke={chartConfig.productiveHours.color}
+              strokeWidth={2}
+              strokeOpacity={0.2}
+              dot={{
+                fill: chartConfig.productiveHours.color,
+                strokeWidth: 2,
+                r: 3,
+                fillOpacity: 0.4
+              }}
+              connectNulls={false}
             />
           </LineChart>
         </ChartContainer>
@@ -262,18 +287,15 @@ export function ProductivityTrendChart({
           {productivityTrend.isPositive ? (
             <>
               Trending up by {productivityTrend.change.toFixed(1)}%{' '}
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400" />
             </>
           ) : (
             <>
               Trending down by {productivityTrend.change.toFixed(1)}%{' '}
-              <TrendingDown className="h-4 w-4 text-red-500" />
+              <TrendingDown className="h-4 w-4 text-red-500 dark:text-red-400" />
             </>
           )}
         </div>
-      </div>
-      <div className="text-muted-foreground leading-none text-sm">
-        Showing productive hours over the last 4 weeks
       </div>
     </div>
   )

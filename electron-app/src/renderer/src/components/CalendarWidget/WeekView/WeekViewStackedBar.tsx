@@ -18,8 +18,8 @@ export const WeekViewStackedBar = ({
   isDarkMode,
   isProductive
 }: WeekViewStackedBarProps) => {
-  // Group small categories (< 20 min) into one 'Other' at the bottom
-  const twentyMinMs = 20 * 60 * 1000
+  // Group small categories (< 10 min) into one 'Other' at the bottom
+  const twentyMinMs = 10 * 60 * 1000
   const large = categories.filter((cat) => cat.totalDurationMs >= twentyMinMs)
   const small = categories.filter((cat) => cat.totalDurationMs < twentyMinMs)
   let grouped = [...large]

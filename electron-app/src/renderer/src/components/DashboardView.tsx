@@ -9,7 +9,6 @@ import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
 import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductivityTrendChart'
-import { TotalTimeLoggedChart } from './CalendarWidget/WeekView/TotalTimeLoggedChart'
 import { WeekOverWeekComparison } from './CalendarWidget/WeekView/WeekOverWeekComparison'
 import { TutorialModal } from './TutorialModal'
 
@@ -344,9 +343,6 @@ export function DashboardView({
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
           />
-        )}
-        {viewMode === 'week' && (
-          <TotalTimeLoggedChart processedEvents={trackedProcessedEvents} isDarkMode={isDarkMode} />
         )}
       </div>
       <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
