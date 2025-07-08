@@ -1,6 +1,6 @@
 {
   "name": "Cronus",
-  "version": "1.5.7",
+  "version": "1.5.9",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -114,6 +114,9 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-oauth/google": "^0.12.1",
     "@sentry/electron": "^6.8.0",
+    "@sentry/node": "^6.8.0",
+    "@sentry/types": "^6.8.0",
+    "@sentry/utils": "^6.8.0",
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@types/color": "^4.2.0",
