@@ -1,7 +1,7 @@
 import './assets/custom-title-bar.css'
 import './styles/index.css'
 
-import * as Sentry from '@sentry/electron/renderer'
+// import * as Sentry from '@sentry/electron/renderer'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PostHogProvider } from 'posthog-js/react'
 import React, { useEffect, useState } from 'react'
@@ -12,12 +12,12 @@ import { SettingsProvider } from './contexts/SettingsContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { createTrpcClient, trpc } from './utils/trpc'
 
-// Initialize Sentry
-if (!import.meta.env.DEV) {
-  Sentry.init({
-    dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
-  })
-}
+// // Initialize Sentry
+// if (!import.meta.env.DEV) {
+//   Sentry.init({
+//     dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296'
+//   })
+// }
 
 const Main = () => {
   const [queryClient] = useState(() => new QueryClient())

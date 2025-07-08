@@ -1,6 +1,6 @@
 {
   "name": "Cronus",
-  "version": "1.5.9",
+  "version": "1.6.9",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -58,7 +58,9 @@
     "productName": "Cronus",
     "files": [
       "out/",
-      "!build-assets/**/*"
+      "node_modules/",
+      "!build-assets/**/*",
+      "package.json"
     ],
     "publish": [
       {
@@ -113,13 +115,10 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-oauth/google": "^0.12.1",
-    "@sentry/electron": "^6.8.0",
-    "@sentry/node": "^6.8.0",
-    "@sentry/types": "^6.8.0",
-    "@sentry/utils": "^6.8.0",
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@types/color": "^4.2.0",
+    "agent-base": "^6.0.2",
     "app-builder-lib": "^26.0.12",
     "builder-util": "^26.0.11",
     "builder-util-runtime": "^9.3.1",
@@ -127,16 +126,21 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "color": "^5.0.0",
+    "cookie": "^0.4.1",
     "crc": "^4.3.2",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "debug": "^4.4.1",
+    "deepmerge": "4.3.1",
     "electron-app": "^1.0.0",
     "electron-updater": "^6.6.2",
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
+    "graceful-fs": "^4.2.11",
+    "https-proxy-agent": "^5.0.0",
     "js-yaml": "^4.1.0",
     "jsonfile": "^6.1.0",
+    "lru_map": "^0.3.3",
     "lucide-react": "^0.525.0",
     "node-addon-api": "^4.3.0",
     "posthog-js": "^1.249.5",
@@ -145,6 +149,8 @@
     "recharts": "^3.0.2",
     "shared": "workspace:*",
     "tailwind-merge": "^3.3.1",
+    "tslib": "^1.9.3",
+    "universalify": "^2.0.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {
