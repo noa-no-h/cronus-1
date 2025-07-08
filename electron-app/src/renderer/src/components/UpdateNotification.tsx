@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { toast } from '../hooks/use-toast'
-import { ToastAction } from './ui/toast'
-import { Button } from './ui/button'
 import { useTheme } from '../contexts/ThemeContext'
+import { toast } from '../hooks/use-toast'
+import { Button } from './ui/button'
+import { ToastAction } from './ui/toast'
 
 export function UpdateNotification() {
   const { theme } = useTheme()
@@ -38,12 +38,7 @@ export function UpdateNotification() {
           description: 'Update downloaded successfully. Restart to apply the update.',
           action: (
             <ToastAction asChild altText="Restart Now">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => window.api.installUpdate()}
-                className={theme === 'light' ? 'bg-black text-white hover:bg-gray-900' : ''}
-              >
+              <Button variant="default" size="sm" onClick={() => window.api.installUpdate()}>
                 Restart Now
               </Button>
             </ToastAction>
