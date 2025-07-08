@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useDarkMode } from '../../hooks/useDarkMode'

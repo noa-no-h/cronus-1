@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
 import type { ReactElement } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
+import { useDarkMode } from '../hooks/useDarkMode'
 import { REFRESH_EVENTS_INTERVAL_MS } from '../lib/constants'
 import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
-import { TutorialModal } from './TutorialModal'
-import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
 import { ProductivityTrendChart } from './CalendarWidget/ProductivityTrendChart'
 import { TotalTimeLoggedChart } from './CalendarWidget/TotalTimeLoggedChart'
-import { useDarkMode } from '../hooks/useDarkMode'
+import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
+import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -64,7 +64,7 @@ const convertCalendarEventToBlock = (event: CalendarEvent): ProcessedEventBlock 
     isProductive: undefined,
     originalEvent: {
       _id: event.id,
-      userId: 'calendar', // <-- add this line
+      userId: 'calendar',
       ownerName: 'Google Calendar',
       title: event.summary,
       url: undefined,

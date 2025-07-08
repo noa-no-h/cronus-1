@@ -94,7 +94,19 @@ const DistractionStatusBar = ({
       { token: token || '' },
       {
         enabled: !!token && typeof token === 'string' && token.length > 0,
-        refetchInterval: 1000 // Poll every 1 second
+        refetchInterval: 1000, // Poll every 1 second
+        select: (data) => {
+          if (!data) {
+            return null
+          }
+          const event = data as unknown as ActiveWindowEvent
+          return {
+            ...event,
+            lastCategorizationAt: event.lastCategorizationAt
+              ? new Date(event.lastCategorizationAt)
+              : undefined
+          }
+        }
       }
     )
 
@@ -164,7 +176,21 @@ const DistractionStatusBar = ({
           token.length > 0 &&
           currentDayStartDateMs !== null &&
           currentDayEndDateMs !== null,
-        refetchInterval: 30000
+        refetchInterval: 30000,
+        select: (data) => {
+          if (!data) {
+            return []
+          }
+          return data.map((event) => {
+            const e = event as unknown as ActiveWindowEvent
+            return {
+              ...e,
+              lastCategorizationAt: e.lastCategorizationAt
+                ? new Date(e.lastCategorizationAt)
+                : undefined
+            }
+          })
+        }
       }
     )
 

@@ -53,7 +53,6 @@ export const TimelineHour = memo(
           </span>
           {hasActivity && (
             <Button
-              onClick={() => (isSelectedHour ? onHourSelect(null) : onHourSelect(hour))}
               variant="ghost"
               size="icon"
               className={clsx(
