@@ -64,17 +64,22 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       )}
     >
       <span
-        onClick={() => isEnlarged && onCategoryClick && onCategoryClick()}
         className={clsx(
           'font-sm font-medium flex flex-row items-center gap-1',
           labelColorCls,
-          isEnlarged && 'pr-2 category-name-area hover:underline cursor-pointer',
+          isEnlarged && 'pr-2',
           isHovered && isEnlarged && 'bg-white/10 rounded-md p-1'
         )}
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
       >
         {isHovered && isEnlarged && (
-          <EditIcon size={18} className="text-muted-foreground mr-2 cursor-pointer" />
+          <span className="edit-icon-area rounded-md p-1 hover:bg-white/10">
+            <EditIcon
+              onClick={() => isEnlarged && onCategoryClick && onCategoryClick()}
+              size={18}
+              className="text-muted-foreground cursor-pointer hover:text-primary"
+            />
+          </span>
         )}
         <span className="truncate w-full max-w-[80px]">
           {categoryDetails?.name || label}

@@ -106,7 +106,7 @@ const FloatingDisplay: React.FC = () => {
     if (event.button !== 0) return
     if (
       (event.target as HTMLElement).closest('.close-button-area') ||
-      (event.target as HTMLElement).closest('.category-name-area')
+      (event.target as HTMLElement).closest('.edit-icon-area')
     ) {
       return
     }
