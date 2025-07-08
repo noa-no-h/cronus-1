@@ -15,7 +15,8 @@ export const useTimeSelection = (
     startTime: { hour: number; minute: number },
     endTime: { hour: number; minute: number }
   ) => void,
-  isEnabled: boolean
+  isEnabled: boolean,
+  dayForEntries: Date
 ) => {
   const { toast } = useToast()
 
@@ -78,20 +79,23 @@ export const useTimeSelection = (
       const selectionStart = startTime.y < endTime.y ? startTime : endTime
       const selectionEnd = startTime.y < endTime.y ? endTime : startTime
 
-      // Prevent manual entry if selection ends in the future
+      // Only prevent future selection if dayForEntries is today
       const now = new Date()
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const selectionDate = new Date(today)
-      selectionDate.setHours(selectionEnd.hour, selectionEnd.minute, 0, 0)
-      if (selectionDate > now) {
-        toast({
-          title: 'Cannot schedule in the future',
-          description: "You can't add entries after the current time.",
-          variant: 'default'
-        })
-        setDragState((prev) => ({ ...prev, isSelecting: false, isDragging: false }))
-        return
+      const isToday = dayForEntries.toDateString() === now.toDateString()
+      if (isToday) {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const selectionDate = new Date(today)
+        selectionDate.setHours(selectionEnd.hour, selectionEnd.minute, 0, 0)
+        if (selectionDate > now) {
+          toast({
+            title: 'Cannot schedule in the future',
+            description: "You can't add entries after the current time.",
+            variant: 'default'
+          })
+          setDragState((prev) => ({ ...prev, isSelecting: false, isDragging: false }))
+          return
+        }
       }
 
       if (

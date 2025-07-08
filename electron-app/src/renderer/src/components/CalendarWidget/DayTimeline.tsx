@@ -106,7 +106,8 @@ const DayTimeline = ({
     (startTime, endTime) => {
       openNewEntryModal(startTime, endTime)
     },
-    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving
+    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving,
+    dayForEntries
   )
 
   const { data: suggestions, refetch: refetchSuggestions } = trpc.suggestions.list.useQuery(
