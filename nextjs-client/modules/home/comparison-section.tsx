@@ -59,7 +59,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Goal className="size-6" />
+                <Goal className="size-6 text-icon-muted" />
                 Goal-aware distraction nudging
               </li>
               <li
@@ -69,7 +69,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <List className="size-6" />
+                <List className="size-6 text-icon-muted" />
                 Passive + contextual
               </li>
               <li
@@ -79,7 +79,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Device className="size-6" />
+                <Device className="size-6 text-icon-muted" />
                 Cross-device analysis
               </li>
               <li
@@ -90,7 +90,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'whitespace-nowrap'
                 )}
               >
-                <Pencil className="size-6" />
+                <Pencil className="size-6 text-icon-muted" />
                 Clean, proactive design
               </li>
             </ul>
