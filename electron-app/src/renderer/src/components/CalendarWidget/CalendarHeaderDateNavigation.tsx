@@ -34,7 +34,7 @@ export const CalendarHeaderDateNavigation = ({
       {viewMode === 'day' ? (
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="xs" className="cursor-pointer">
+            <Button variant="outline" size="xs" className="cursor-pointer">
               <div className="flex items-center gap-1 min-w-0">
                 {width >= 1000 ? (
                   <span className="text-sm text-muted-foreground font-medium">{fullDate}</span>
