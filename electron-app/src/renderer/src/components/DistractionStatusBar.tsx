@@ -50,17 +50,21 @@ const arePropsEqual = (
   prevProps: DistractionStatusBarProps,
   nextProps: DistractionStatusBarProps
 ): boolean => {
-  if (!prevProps.activeWindow && !nextProps.activeWindow) return true
-  if (!prevProps.activeWindow || !nextProps.activeWindow) return false
-  const p = prevProps.activeWindow
-  const n = nextProps.activeWindow
+  const activeWindowEqual =
+    (!prevProps.activeWindow && !nextProps.activeWindow) ||
+    !!(
+      prevProps.activeWindow &&
+      nextProps.activeWindow &&
+      prevProps.activeWindow.ownerName === nextProps.activeWindow.ownerName &&
+      prevProps.activeWindow.title === nextProps.activeWindow.title &&
+      prevProps.activeWindow.url === nextProps.activeWindow.url &&
+      prevProps.activeWindow.content === nextProps.activeWindow.content &&
+      prevProps.activeWindow.type === nextProps.activeWindow.type &&
+      prevProps.activeWindow.browser === nextProps.activeWindow.browser
+    )
+
   return (
-    p.ownerName === n.ownerName &&
-    p.title === n.title &&
-    p.url === n.url &&
-    p.content === n.content &&
-    p.type === n.type &&
-    p.browser === n.browser &&
+    activeWindowEqual &&
     prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
     prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog &&
     prevProps.onSettingsClick === nextProps.onSettingsClick &&

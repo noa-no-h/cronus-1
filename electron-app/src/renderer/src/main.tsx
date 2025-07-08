@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './AppWrapper'
 import { AuthProvider } from './contexts/AuthContext'
+import { SettingsProvider } from './contexts/SettingsContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { createTrpcClient, trpc } from './utils/trpc'
 
@@ -46,7 +47,9 @@ const Main = () => {
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <ThemeProvider>
-                <App />
+                <SettingsProvider>
+                  <App />
+                </SettingsProvider>
               </ThemeProvider>
             </AuthProvider>
           </QueryClientProvider>

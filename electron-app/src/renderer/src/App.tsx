@@ -1,5 +1,4 @@
-import React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
@@ -11,6 +10,7 @@ import { Toaster } from './components/ui/toaster'
 import { TooltipProvider } from './components/ui/tooltip'
 import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
+import { useSettings } from './contexts/SettingsContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
@@ -32,13 +32,17 @@ export interface ActivityToRecategorize {
 
 export function MainAppContent(): React.ReactElement {
   const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn } = useAuth()
+  const { isSettingsOpen, setIsSettingsOpen } = useSettings()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [permissionsChecked, setPermissionsChecked] = useState(false)
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
+
+  const handleSettingsClick = useCallback(() => {
+    setIsSettingsOpen((prev) => !prev)
+  }, [setIsSettingsOpen])
 
   const trpcUtils = trpc.useContext()
 
@@ -323,7 +327,7 @@ export function MainAppContent(): React.ReactElement {
             onOpenMiniTimerClick={handleOpenMiniTimer}
             isMiniTimerVisible={isMiniTimerVisible}
             onOpenRecategorizeDialog={openRecategorizeDialog}
-            onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            onSettingsClick={handleSettingsClick}
             isSettingsOpen={isSettingsOpen}
           />
         </div>

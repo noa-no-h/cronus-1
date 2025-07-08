@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { toast } from '../../hooks/use-toast'
 import { trpc } from '../../utils/trpc'
@@ -9,13 +9,19 @@ import { Textarea } from '../ui/textarea'
 interface GoalInputFormProps {
   onboardingMode?: boolean
   onComplete?: () => void
+  shouldFocus?: boolean
 }
 
-const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProps) => {
+const GoalInputForm = ({
+  onboardingMode = false,
+  onComplete,
+  shouldFocus = false
+}: GoalInputFormProps) => {
   const { token } = useAuth()
   const [userProjectsAndGoals, setUserProjectsAndGoals] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const hasContent = userProjectsAndGoals.trim().length > 0
 
@@ -67,6 +73,16 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
       setIsEditing(true)
     }
   }, [onboardingMode])
+
+  useEffect(() => {
+    if (shouldFocus) {
+      setIsEditing(true)
+      setTimeout(() => {
+        textareaRef.current?.focus()
+        textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 100)
+    }
+  }, [shouldFocus])
 
   const handleSave = async () => {
     if (!token) return
@@ -132,6 +148,7 @@ const GoalInputForm = ({ onboardingMode = false, onComplete }: GoalInputFormProp
         <div>
           {isEditing ? (
             <Textarea
+              ref={textareaRef}
               id="userProjectsAndGoals"
               value={userProjectsAndGoals}
               onChange={(e) => setUserProjectsAndGoals(e.target.value)}

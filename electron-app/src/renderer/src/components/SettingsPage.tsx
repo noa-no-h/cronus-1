@@ -1,5 +1,7 @@
 import { RefreshCw } from 'lucide-react'
+import { useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
 // import DistractionSoundSettings from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
@@ -16,6 +18,16 @@ interface SettingsPageProps {
 
 export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
   const { user, logout } = useAuth()
+  const { focusOn, setFocusOn } = useSettings()
+
+  useEffect(() => {
+    if (focusOn === 'goal-input') {
+      // The focusing logic will be inside GoalInputForm
+      // We reset the focus request here after a short delay
+      // to allow the component to render and focus.
+      setTimeout(() => setFocusOn(null), 100)
+    }
+  }, [focusOn, setFocusOn])
 
   const LogOutButtonSection = () => {
     return (
@@ -52,7 +64,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
     <div className="h-full">
       <div className="p-2 pt-0 pb-4">
         <div className="space-y-4">
-          <GoalInputForm />
+          <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
           <CategoryManagementSettings />
           {/* <DistractionSoundSettings /> */}
           <MultiPurposeAppsSettings />

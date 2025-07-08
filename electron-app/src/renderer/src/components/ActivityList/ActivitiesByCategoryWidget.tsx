@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useAuth } from '../../contexts/AuthContext'
+import { useSettings } from '../../contexts/SettingsContext'
 import { toast } from '../../hooks/use-toast'
 import useActivitySelection from '../../hooks/useActivitySelection'
 import { getTimeRangeDescription } from '../../lib/activityMoving'
@@ -49,6 +50,7 @@ const ActivitiesByCategoryWidget = ({
   onDaySelect
 }: ActivitiesByCategoryWidgetProps): React.ReactElement => {
   const { token } = useAuth()
+  const { setIsSettingsOpen, setFocusOn } = useSettings()
   const [processedData, setProcessedData] = useState<ProcessedCategory[]>([])
   const [faviconErrors, setFaviconErrors] = useState<Set<string>>(new Set())
   const [hoveredActivityKey, setHoveredActivityKey] = useState<string | null>(null)
@@ -78,13 +80,26 @@ const ActivitiesByCategoryWidget = ({
 
         toast({
           title: 'Activity Moved',
-          description: `${variables.activityIdentifier} moved to ${targetCategoryName} ${getTimeRangeDescription(
-            selectedHour,
-            selectedDay,
-            'day',
-            startDateMs,
-            endDateMs
-          )}. Note: Improve your Work & Goals setting for better categorization.`
+          duration: 5000,
+          description: (
+            <>
+              {variables.activityIdentifier} moved to {targetCategoryName}{' '}
+              {getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.
+              <br />
+              <br />
+              Make your{' '}
+              <button
+                onClick={() => {
+                  setIsSettingsOpen(true)
+                  setFocusOn('goal-input')
+                }}
+                className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                Work & Goals
+              </button>{' '}
+              setting more specific for better categorization.
+            </>
+          )
         })
       },
       onError: (error) => {
