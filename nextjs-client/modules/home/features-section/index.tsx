@@ -9,8 +9,8 @@ import { ScrollPreventAnimation } from './scroll-prevent-animation';
 
 const cardClassnames = cn(
   'pt-10 tablet:pt-16 desktop:pt-[54px]',
-  'bg-[#FAFAFA] rounded-2xl overflow-hidden',
-  'border-[0.5px] border-[#dfdfdf]'
+  'bg-zinc-50 rounded-2xl overflow-hidden',
+  'border-[0.5px] border-neutral-300'
 );
 
 export function FeaturesSection({ className, ...props }: ComponentProps<'section'>) {

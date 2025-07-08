@@ -13,7 +13,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
     <>
       <section
         className={cn(
-          'relative bg-[#f4f4f4]',
+          'relative bg-zinc-100',
           'flex flex-col items-center mt-[-4px]',
           'h-[540px]',
           className

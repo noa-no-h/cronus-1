@@ -14,7 +14,7 @@ import { TestimonialsSection } from './testimonials-section';
 export function Home({ posts }: { posts: BlogPost[] }) {
   return (
     <main className="overflow-hidden">
-      <Header className=" bg-[#ebebeb]" />
+      <Header className=" bg-gray-200" />
       <HeroSection />
       {/* <MarqueeSection /> */}
       <ShowcaseSection />

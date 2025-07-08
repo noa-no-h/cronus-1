@@ -26,15 +26,15 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           className={cn(
             'flex flex-col tablet:flex-row desktop:flex-row', // responsive stacking
             'rounded-2xl overflow-hidden',
-            'border-[0.5px] border-[#dfdfdf] tracking-[-0.02em]',
-            'bg-[#faf8ff]'
+            'border-[0.5px] border-neutral-300 tracking-[-0.02em]',
+            'bg-purple-50'
           )}
         >
           <li
             className={cn(
-              'text-[#36168D]',
+              'text-purple-600',
               'p-8 desktop:py-9 desktop:px-[56px]',
-              'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-[#DFDFDF]',
+              'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
           >
@@ -47,7 +47,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                 'text-xl',
                 'mt-[13px] tablet:mt-4',
                 '[&>li]:py-[13px]',
-                '[&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                '[&>li]:border-t-[0.5px] [&>li]:border-purple-600-alpha',
                 'tablet:[&>li]:py-4 desktop:[&>li]:py-5',
                 '[&>li:last-child]:pb-0'
               )}
@@ -98,7 +98,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
 
           <li
             className={cn(
-              'bg-[#fafafa] text-primary',
+              'bg-zinc-50 text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
@@ -111,7 +111,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                 'text-xl',
                 'mt-[13px] tablet:mt-5',
                 '[&>li]:py-4',
-                'tablet:[&>li]:py-[21px] [&>li]:border-t-[0.5px] [&>li]:border-[#36168D14]',
+                'tablet:[&>li]:py-[21px] [&>li]:border-t-[0.5px] [&>li]:border-purple-600-alpha',
                 '[&>li:last-child]:pb-0'
               )}
             >

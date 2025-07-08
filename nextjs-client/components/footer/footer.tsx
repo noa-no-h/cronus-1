@@ -11,7 +11,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
   return (
     <footer
       className={cn(
-        'bg-[#f4f4f4] text-primary',
+        'bg-zinc-100 text-primary',
         'tablet:flex tablet:justify-center tablet:items-center tablet:gap-[100px] tablet:flex-col-reverse',
         'desktop:flex-row desktop:items-start',
         'py-14 px-4 tablet:px-12 desktop:px-[180px]',
