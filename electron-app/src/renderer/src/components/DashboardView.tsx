@@ -64,6 +64,7 @@ const convertCalendarEventToBlock = (event: CalendarEvent): ProcessedEventBlock 
     isProductive: undefined,
     originalEvent: {
       _id: event.id,
+      userId: 'calendar', // <-- add this line
       ownerName: 'Google Calendar',
       title: event.summary,
       url: undefined,
