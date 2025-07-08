@@ -19,6 +19,10 @@ export default defineConfig({
   },
   renderer: {
     resolve: {
+      alias: {
+        '@renderer': resolve(__dirname, 'src/renderer/src'),
+        src: resolve(__dirname, 'src/renderer/src')
+      },
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
     },
     plugins: [react()],

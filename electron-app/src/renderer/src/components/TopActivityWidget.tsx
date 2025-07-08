@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { Card } from '../components/ui/card'
 // import { ActiveWindowEvent } from 'shared' // No longer directly needed for props
+import { formatDuration } from '../lib/timeFormatting'
 import { getFaviconURL, getGoogleFaviconURL } from '../utils/favicon'
 import AppIcon from './AppIcon'
 import type { ProcessedEventBlock } from './DashboardView' // Import ProcessedEventBlock
@@ -50,25 +51,6 @@ const extractWebsiteInfo = (url: string, title: string): { domain: string; title
   } catch {
     return { domain: 'unknown', title: title || 'Unknown Website' }
   }
-}
-
-// Helper function to format milliseconds to a readable string
-const formatDuration = (ms: number): string => {
-  if (ms < 0) ms = 0
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  if (minutes > 0) {
-    return `${minutes}m`
-  }
-  if (totalSeconds > 0) {
-    return `${totalSeconds}s`
-  }
-  return '0m'
 }
 
 const TopActivityWidget: React.FC<TopActivityWidgetProps> = ({

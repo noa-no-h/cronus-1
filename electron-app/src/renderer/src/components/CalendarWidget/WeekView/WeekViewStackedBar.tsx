@@ -1,4 +1,5 @@
 import { getDarkerColor, processColor } from '../../../lib/colors'
+import { formatDuration } from '../../../lib/timeFormatting'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import type { CategoryTotal } from './WeekView'
 
@@ -8,20 +9,6 @@ export interface WeekViewStackedBarProps {
   percentage: number
   isDarkMode: boolean
   isProductive?: boolean
-}
-
-const formatDuration = (ms: number): string | null => {
-  if (ms < 1000) return null
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  if (minutes > 0) {
-    return `${minutes}m`
-  }
-  return null
 }
 
 export const WeekViewStackedBar = ({

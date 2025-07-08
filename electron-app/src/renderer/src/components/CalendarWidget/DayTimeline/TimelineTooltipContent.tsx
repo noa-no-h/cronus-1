@@ -1,5 +1,5 @@
-import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
-import { ActivityIcon } from '../ActivityList/ActivityIcon'
+import { ActivityIcon } from '@renderer/components/ActivityList/ActivityIcon'
+import { formatDuration } from '@renderer/lib/timeFormatting'
 
 interface HourlyTimelineSegment {
   startMinute: number

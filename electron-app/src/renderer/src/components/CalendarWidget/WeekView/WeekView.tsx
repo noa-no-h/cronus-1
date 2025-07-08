@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useMemo } from 'react'
+import { formatDuration } from '../../../lib/timeFormatting'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
 import { TooltipProvider } from '../../ui/tooltip'
@@ -23,21 +24,6 @@ export interface CategoryTotal {
   totalDurationMs: number
   isProductive?: boolean
   _otherCategories?: Array<{ name: string; duration: number }>
-}
-
-const formatDuration = (ms: number): string | null => {
-  if (ms < 1000) return null
-  const totalSeconds = Math.floor(ms / 1000)
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  if (minutes > 0) {
-    return `${minutes}m`
-  }
-  return null
 }
 
 const WeekView = ({
