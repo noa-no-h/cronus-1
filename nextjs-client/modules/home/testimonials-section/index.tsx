@@ -6,6 +6,7 @@ import { cn } from '~/lib/cn';
 import leander from './leander-maerkisch.png';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
+import simon from './simon-berens.jpg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -29,6 +30,13 @@ const testimonials = [
     avatar: moritz,
     content:
       'It used to take me ~2 hours each week to figure out: 1) how many hours I worked, and 2) how much time I was distracted/on social media. Cronus automates it and makes it 10x more accurate.',
+  },
+  {
+    name: 'Simon Berens',
+    title: 'Founder of Brighter',
+    avatar: simon,
+    content:
+      'Cronus showed me exactly how much time I wasted on Hacker News and other distractions. It’s also great for tracking work vs. learning.',
   },
 ];
 
