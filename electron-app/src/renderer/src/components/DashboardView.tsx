@@ -330,12 +330,14 @@ export function DashboardView({
           onDaySelect={handleDaySelect}
           weekViewMode={weekViewMode}
           onWeekViewModeChange={setWeekViewMode}
+          isLoading={isLoadingEvents}
         />
         {viewMode === 'week' && (
           <WeekOverWeekComparison
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
+            isLoading={isLoadingEvents}
           />
         )}
         {viewMode === 'week' && (

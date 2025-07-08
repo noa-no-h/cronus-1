@@ -310,11 +310,7 @@ const DistractionStatusBar = ({
       <div
         className={clsx(
           'rounded-lg',
-          'shadow-[0_1px_3px_0_rgb(0,0,0,0.05)]',
-          'dark:shadow-[0_1px_3px_0_rgb(255,255,255,0.03)]',
-          'border border-black/[0.03]',
-          'dark:border-white/[0.08]',
-          'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
+          'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between sm:gap-x-3',
           cardBgColor
         )}
       >
@@ -356,16 +352,25 @@ const DistractionStatusBar = ({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg shadow-[0_1px_2px_0_rgb(0,0,0,0.03)] dark:shadow-[0_1px_2px_0_rgb(255,255,255,0.02)] border border-black/[0.02] dark:border-white/[0.05] bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
         {!isMiniTimerVisible && (
-          <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
+          <Button
+            className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+            variant="ghost"
+            onClick={onOpenMiniTimerClick}
+            title="Open Mini Timer"
+          >
             <ExternalLink size={20} />
             {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" title="Open Feedback">
+            <Button
+              className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+              variant="ghost"
+              title="Open Feedback"
+            >
               <CircleQuestionMark size={20} />
             </Button>
           </DropdownMenuTrigger>
@@ -421,7 +426,7 @@ const DistractionStatusBar = ({
         <Button
           variant="ghost"
           size={isNarrowView ? 'icon' : 'default'}
-          className={!isNarrowView ? 'w-32' : ''}
+          className={!isNarrowView ? 'w-32 hover:bg-gray-200 dark:hover:bg-gray-700/50' : ''}
           onClick={onSettingsClick}
           title="Settings"
         >

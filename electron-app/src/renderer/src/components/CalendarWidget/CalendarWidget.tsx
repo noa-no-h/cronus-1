@@ -26,6 +26,7 @@ interface CalendarWidgetProps {
   onDaySelect: (day: Date | null) => void
   weekViewMode: 'stacked' | 'grouped'
   onWeekViewModeChange: (mode: 'stacked' | 'grouped') => void
+  isLoading?: boolean
 }
 
 const CalendarWidget = ({
@@ -40,7 +41,8 @@ const CalendarWidget = ({
   selectedDay,
   onDaySelect,
   weekViewMode,
-  onWeekViewModeChange
+  onWeekViewModeChange,
+  isLoading = false
 }: CalendarWidgetProps): JSX.Element => {
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
@@ -241,6 +243,7 @@ const CalendarWidget = ({
             selectedDate={selectedDate}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
+            isLoading={isLoading}
           />
         ) : (
           <DayTimeline

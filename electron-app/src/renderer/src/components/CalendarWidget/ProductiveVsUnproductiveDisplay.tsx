@@ -1,5 +1,6 @@
 import { processColor } from '../../lib/colors'
 import { notionStyleCategoryColors } from '../Settings/CategoryForm'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface Props {
   productiveDuration: number
@@ -19,7 +20,7 @@ export function ProductiveVsUnproductiveDisplay({
     : (ms: number) => `${(ms / (1000 * 60 * 60)).toFixed(1)}h`
 
   return (
-    <div className="flex flex-col items-left gap-0.5 mt-1">
+    <div className="flex flex-col flex-start gap-0.5 mt-1 text-muted-foreground">
       {productiveDuration > 0 && (
         <div className="flex items-center gap-1">
           <div
@@ -31,14 +32,6 @@ export function ProductiveVsUnproductiveDisplay({
               })
             }}
           />
-          <span>
-            {format(productiveDuration)}{' '}
-            <span className="text-muted-foreground hidden md:inline">
-              (
-              {Math.round((productiveDuration / (productiveDuration + unproductiveDuration)) * 100)}
-              %)
-            </span>
-          </span>
         </div>
       )}
       {unproductiveDuration > 0 && (
@@ -52,16 +45,17 @@ export function ProductiveVsUnproductiveDisplay({
               })
             }}
           />
-          <span>
-            {format(unproductiveDuration)}{' '}
-            <span className="text-muted-foreground hidden md:inline">
-              (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>{format(unproductiveDuration)}</span>
+            </TooltipTrigger>
+            <TooltipContent>
               {Math.round(
                 (unproductiveDuration / (productiveDuration + unproductiveDuration)) * 100
               )}
-              %)
-            </span>
-          </span>
+              %
+            </TooltipContent>
+          </Tooltip>
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { processColor } from '../../../lib/colors'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
-import { Badge } from '../../ui/badge'
+import { Skeleton } from '../../ui/skeleton'
 import { TooltipProvider } from '../../ui/tooltip'
 import { ProductiveVsUnproductiveDisplay } from '../ProductiveVsUnproductiveDisplay'
 
@@ -11,6 +11,7 @@ interface WeekOverWeekComparisonProps {
   processedEvents: ProcessedEventBlock[] | null
   isDarkMode: boolean
   weekViewMode: 'stacked' | 'grouped'
+  isLoading?: boolean
 }
 
 interface CategoryTotal {
@@ -32,7 +33,8 @@ interface WeekSummary {
 
 export function WeekOverWeekComparison({
   processedEvents,
-  isDarkMode
+  isDarkMode,
+  isLoading = false
 }: WeekOverWeekComparisonProps): JSX.Element {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
@@ -113,6 +115,31 @@ export function WeekOverWeekComparison({
     return `${startMonth} ${startDay}-${endMonth} ${endDay}`
   }
 
+  if (isLoading) {
+    return (
+      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+        <Skeleton className="h-6 w-40 mb-4" />
+        <div className="h-40 flex flex-col mt-4">
+          <div className="grid grid-cols-4 gap-2 h-28">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col items-center w-full">
+                <Skeleton className="h-4 w-16 mb-2" />
+                <div className="w-full h-full flex flex-col justify-end relative">
+                  <Skeleton className="w-full h-full rounded-t-sm" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-2 mt-2">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-4 w-20" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <TooltipProvider>
       <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
@@ -141,7 +168,7 @@ export function WeekOverWeekComparison({
 
                 return (
                   <div key={index} className="flex flex-col items-center">
-                    <div className="text-xs font-medium text-foreground mb-1">
+                    <div className="text-xs font-medium text-foreground mb-2">
                       {formatWeekLabel(startDate, endDate)}
                     </div>
 
@@ -152,21 +179,9 @@ export function WeekOverWeekComparison({
                     >
                       {totalWeekDuration > 0 ? (
                         <div className="w-full h-full flex flex-col">
-                          {totalProductiveDuration > 0 && (
-                            <div
-                              className="w-full transition-all duration-300 rounded-t-sm"
-                              style={{
-                                height: `${productivePercentage}%`,
-                                backgroundColor: processColor(notionStyleCategoryColors[0], {
-                                  isDarkMode,
-                                  opacity: isDarkMode ? 0.7 : 0.6
-                                })
-                              }}
-                            />
-                          )}
                           {totalUnproductiveDuration > 0 && (
                             <div
-                              className="w-full transition-all duration-300 rounded-b-sm"
+                              className="w-full transition-all duration-300 rounded-t-sm"
                               style={{
                                 height: `${unproductivePercentage}%`,
                                 backgroundColor: processColor(notionStyleCategoryColors[1], {
@@ -176,12 +191,22 @@ export function WeekOverWeekComparison({
                               }}
                             />
                           )}
+                          {totalProductiveDuration > 0 && (
+                            <div
+                              className="w-full transition-all duration-300 rounded-b-sm"
+                              style={{
+                                height: `${productivePercentage}%`,
+                                backgroundColor: processColor(notionStyleCategoryColors[0], {
+                                  isDarkMode,
+                                  opacity: isDarkMode ? 0.7 : 0.6
+                                })
+                              }}
+                            />
+                          )}
                         </div>
                       ) : (
                         <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-sm flex items-center justify-center">
-                          <Badge variant="secondary" className="text-xs">
-                            No data
-                          </Badge>
+                          <div className="text-xs text-muted-foreground">No data</div>
                         </div>
                       )}
                     </div>

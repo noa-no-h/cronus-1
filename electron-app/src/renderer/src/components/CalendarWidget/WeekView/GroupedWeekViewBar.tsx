@@ -8,6 +8,7 @@ interface GroupedWeekViewBarProps {
   unproductiveColor: string
   totalProductiveDuration: number
   totalUnproductiveDuration: number
+  isLoading?: boolean
 }
 
 export const GroupedWeekViewBar = ({
