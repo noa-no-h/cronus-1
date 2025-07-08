@@ -28,7 +28,7 @@ const testimonials = [
     title: 'Founder of Cronus, ex. RemNote',
     avatar: moritz,
     content:
-      "I'm biased because I co-created this but before, it took me about 2 hours every week to answer two important questions: 1. How many hours did I work this week? and 2. How many hours was I distracted/on social media etc. this week? Cronus automates that.",
+      'It used to take me ~2 hours each week to figure out: 1) how many hours I worked, and 2) how much time I was distracted/on social media. Cronus automates it and makes it 10x more accurate.',
   },
 ];
 
