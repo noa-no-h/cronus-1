@@ -1,7 +1,7 @@
 'use client';
 import AutoScroll from 'embla-carousel-auto-scroll';
 import useEmblaCarousel from 'embla-carousel-react';
-import type { ComponentProps } from 'react';
+import { useMemo, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import leander from './leander-maerkisch.png';
 import moritz from './moritz-wallawitsch.jpeg';
@@ -32,6 +32,8 @@ const testimonials = [
   },
 ];
 
+const data = [...testimonials,...testimonials].map((item,idx) => ({index:idx,...item}) )
+
 export function TestimonialsSection({ className, ...props }: ComponentProps<'section'>) {
   const [emblaRef] = useEmblaCarousel(
     {
@@ -51,6 +53,7 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
     ]
   );
 
+
   return (
     <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
       <h3 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
@@ -59,7 +62,7 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
 
       <div className="mt-20 overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {testimonials.map((testimonial, index) => (
+          {data.map((testimonial, index) => (
             <div key={index} className="flex-none w-80 tablet:w-[460px] mr-4 tablet:mr-6">
               <TestimonialCard
                 name={testimonial.name}

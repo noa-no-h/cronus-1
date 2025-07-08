@@ -1,7 +1,6 @@
 import Image, { StaticImageData } from 'next/image';
 import { cn } from '~/lib/cn';
 
-/* eslint-disable @next/next/no-img-element */
 export function TestimonialCard({
   name,
   title,
