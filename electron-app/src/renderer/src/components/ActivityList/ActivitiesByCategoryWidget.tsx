@@ -38,6 +38,30 @@ interface ActivitiesByCategoryWidgetProps {
   onDaySelect: (day: Date | null) => void
 }
 
+function WorkGoalsHint({
+  setIsSettingsOpen,
+  setFocusOn
+}: {
+  setIsSettingsOpen: (open: boolean) => void
+  setFocusOn: (field: string) => void
+}) {
+  return (
+    <>
+      Make your{' '}
+      <button
+        onClick={() => {
+          setIsSettingsOpen(true)
+          setFocusOn('goal-input')
+        }}
+        className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+      >
+        Work & Goals
+      </button>{' '}
+      setting more specific for better categorization.
+    </>
+  )
+}
+
 const ActivitiesByCategoryWidget = ({
   processedEvents: todayProcessedEvents,
   isLoadingEvents: isLoadingEventsProp,
@@ -87,17 +111,7 @@ const ActivitiesByCategoryWidget = ({
               {getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.
               <br />
               <br />
-              Make your{' '}
-              <button
-                onClick={() => {
-                  setIsSettingsOpen(true)
-                  setFocusOn('goal-input')
-                }}
-                className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-              >
-                Work & Goals
-              </button>{' '}
-              setting more specific for better categorization.
+              <WorkGoalsHint setIsSettingsOpen={setIsSettingsOpen} setFocusOn={setFocusOn} />
             </>
           )
         })
@@ -171,15 +185,14 @@ const ActivitiesByCategoryWidget = ({
       refetchEvents()
       toast({
         title: 'Activities Moved',
-        description: `${
-          activitiesToMove.length
-        } activities moved to ${targetCategoryName} ${getTimeRangeDescription(
-          selectedHour,
-          selectedDay,
-          'day',
-          startDateMs,
-          endDateMs
-        )}.`
+        description: (
+          <>
+            {`${activitiesToMove.length} activities moved to ${targetCategoryName} ${getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.`}
+            <br />
+            <br />
+            <WorkGoalsHint setIsSettingsOpen={setIsSettingsOpen} setFocusOn={setFocusOn} />
+          </>
+        )
       })
       clearSelection()
     } catch (error) {
@@ -470,7 +483,7 @@ const ActivitiesByCategoryWidget = ({
                 </div>
                 <div>
                   <span className="font-medium text-sm text-yellow-800 dark:text-yellow-200">
-                    Now go onto Chrome or other applications to start the tracking.
+                    Now open Chrome or other applications to start tracking.
                   </span>
                 </div>
               </CardContent>
