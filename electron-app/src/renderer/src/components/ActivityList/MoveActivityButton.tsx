@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface MoveActivityButtonProps {
   activity: ActivityItem
@@ -78,26 +78,24 @@ export const MoveActivityButton = ({
         }
       }}
     >
-      <TooltipProvider>
-        <Tooltip delayDuration={250}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-5 px-2 py-1 text-xs"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Move to...
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent>
-            Move this activity to another category{' '}
-            {getTimeRangeDescription(selectedHour, selectedDay, viewMode, startDateMs, endDateMs)}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip delayDuration={250}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-5 px-2 py-1 text-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Move to...
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          Move this activity to another category{' '}
+          {getTimeRangeDescription(selectedHour, selectedDay, viewMode, startDateMs, endDateMs)}
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
         {activeCategories.map((targetCat) => (
           <DropdownMenuItem

@@ -80,15 +80,15 @@ export const ActivityListItem = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            key={uniqueKey}
-            className={`group flex w-full select-none items-center cursor-pointer justify-between px-1 py-0.5 ${borderRadiusClass} ${
-              isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-muted'
-            }`}
-            onMouseEnter={() => setHoveredActivityKey(uniqueKey)}
-            onMouseLeave={() => setHoveredActivityKey(null)}
-          >
+        <div
+          key={uniqueKey}
+          className={`group flex w-full select-none items-center cursor-pointer justify-between px-1 py-0.5 ${borderRadiusClass} ${
+            isSelected ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-muted'
+          }`}
+          onMouseEnter={() => setHoveredActivityKey(uniqueKey)}
+          onMouseLeave={() => setHoveredActivityKey(null)}
+        >
+          <TooltipTrigger asChild>
             <div
               className="flex flex-1 items-center min-w-0"
               onClick={(e) => onSelectActivity(selectionKey, e)}
@@ -120,32 +120,32 @@ export const ActivityListItem = ({
                 {activity.name}
               </span>
             </div>
-            <div className="flex items-center flex-shrink-0 ml-2">
-              {showMoveUI ? (
-                <MoveActivityButton
-                  activity={activity}
-                  otherCategories={otherCategories}
-                  handleMoveActivity={handleMoveActivity}
-                  isMovingActivity={isMovingActivity}
-                  selectedHour={selectedHour}
-                  selectedDay={selectedDay}
-                  viewMode={viewMode}
-                  startDateMs={startDateMs}
-                  endDateMs={endDateMs}
-                  openDropdownActivityKey={openDropdownActivityKey}
-                  setOpenDropdownActivityKey={setOpenDropdownActivityKey}
-                  activityKey={uniqueKey}
-                  setHoveredActivityKey={setHoveredActivityKey}
-                  onAddNewCategory={onAddNewCategory}
-                />
-              ) : (
-                <span className="text-sm text-muted-foreground">
-                  {formatDuration(activity.durationMs)}
-                </span>
-              )}
-            </div>
+          </TooltipTrigger>
+          <div className="flex items-center flex-shrink-0 ml-2">
+            {showMoveUI ? (
+              <MoveActivityButton
+                activity={activity}
+                otherCategories={otherCategories}
+                handleMoveActivity={handleMoveActivity}
+                isMovingActivity={isMovingActivity}
+                selectedHour={selectedHour}
+                selectedDay={selectedDay}
+                viewMode={viewMode}
+                startDateMs={startDateMs}
+                endDateMs={endDateMs}
+                openDropdownActivityKey={openDropdownActivityKey}
+                setOpenDropdownActivityKey={setOpenDropdownActivityKey}
+                activityKey={uniqueKey}
+                setHoveredActivityKey={setHoveredActivityKey}
+                onAddNewCategory={onAddNewCategory}
+              />
+            ) : (
+              <span className="text-sm text-muted-foreground">
+                {formatDuration(activity.durationMs)}
+              </span>
+            )}
           </div>
-        </TooltipTrigger>
+        </div>
         <TooltipContent className="max-w-xs text-muted-foreground sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
           <ul>
             <li>
