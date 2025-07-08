@@ -41,8 +41,8 @@ export function MainAppContent(): React.ReactElement {
   const [showTutorial, setShowTutorial] = useState(false)
 
   const handleSettingsClick = useCallback(() => {
-    setIsSettingsOpen((prev) => !prev)
-  }, [setIsSettingsOpen])
+    setIsSettingsOpen(!isSettingsOpen)
+  }, [setIsSettingsOpen, isSettingsOpen])
 
   const trpcUtils = trpc.useContext()
 
@@ -320,27 +320,25 @@ export function MainAppContent(): React.ReactElement {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex flex-col h-screen">
-        <div className="custom-title-bar">{APP_NAME}</div>
-        <div className="flex-none p-2">
-          <DistractionStatusBar
-            activeWindow={activeWindow}
-            onOpenMiniTimerClick={handleOpenMiniTimer}
-            isMiniTimerVisible={isMiniTimerVisible}
-            onOpenRecategorizeDialog={openRecategorizeDialog}
-            onSettingsClick={handleSettingsClick}
-            isSettingsOpen={isSettingsOpen}
-          />
-        </div>
-        <div className={`flex-1 flex ${isSettingsOpen ? '' : 'overflow-hidden'}`}>
-          <div
-            className={`flex-1 flex flex-col ${isSettingsOpen ? 'overflow-auto' : 'overflow-hidden'}`}
-          >
-            {isSettingsOpen ? (
-              <SettingsPage onResetOnboarding={handleResetOnboarding} />
-            ) : (
-              <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
-            )}
+        <div className="sticky top-0 z-50 bg-white dark:bg-black">
+          <div className="custom-title-bar">{APP_NAME}</div>
+          <div className="flex-none p-2">
+            <DistractionStatusBar
+              activeWindow={activeWindow}
+              onOpenMiniTimerClick={handleOpenMiniTimer}
+              isMiniTimerVisible={isMiniTimerVisible}
+              onOpenRecategorizeDialog={openRecategorizeDialog}
+              onSettingsClick={handleSettingsClick}
+              isSettingsOpen={isSettingsOpen}
+            />
           </div>
+        </div>
+        <div className="flex-1 flex flex-col overflow-auto">
+          {isSettingsOpen ? (
+            <SettingsPage onResetOnboarding={handleResetOnboarding} />
+          ) : (
+            <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+          )}
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
         <UpdateNotification />

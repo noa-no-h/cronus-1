@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
@@ -8,7 +8,7 @@ import GoalInputForm from './Settings/GoalInputForm'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
-import { VersionDisplay } from './Settings/VersionDisplay'
+import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
 // import { CalendarIntegrationSettings } from './CalendarIntegrationSettings'
 
@@ -19,6 +19,7 @@ interface SettingsPageProps {
 export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
   const { user, logout } = useAuth()
   const { focusOn, setFocusOn } = useSettings()
+  const [showPermissions, setShowPermissions] = useState(false)
 
   useEffect(() => {
     if (focusOn === 'goal-input') {
@@ -61,7 +62,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
   }
 
   return (
-    <div className="h-full">
+    <div>
       <div className="p-2 pt-0 pb-4">
         <div className="space-y-4">
           <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
@@ -69,10 +70,10 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
           {/* <DistractionSoundSettings /> */}
           <MultiPurposeAppsSettings />
           <ThemeSwitcher />
-          <PermissionsStatus />
           <OnboardingSection />
           <LogOutButtonSection />
-          <VersionDisplay />
+          <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
+          {showPermissions && <PermissionsStatus />}
         </div>
       </div>
     </div>

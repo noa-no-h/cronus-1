@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export function VersionDisplay() {
+export function AppInformation({ onShowPermissions }: { onShowPermissions: () => void }) {
   const [version, setVersion] = useState('')
   const [buildDate, setBuildDate] = useState('')
 
@@ -28,10 +28,17 @@ export function VersionDisplay() {
   return (
     <div className="space-y-4">
       <div className="bg-muted/30 rounded-lg p-6 border border-border">
-        <h2 className="text-xl font-semibold mb-4">Version</h2>
+        <h2 className="text-xl font-semibold mb-4">App Information</h2>
         <p className="text-muted-foreground">App Version: {version}</p>
         <p className="text-muted-foreground">Build Date: {buildDate}</p>
+        <button
+          className="text-muted-foreground underline text-sm mt-2 hover:text-primary transition-colors"
+          onClick={onShowPermissions}
+          type="button"
+        >
+          Display Permission Settings
+        </button>
       </div>
     </div>
   )
-} 
+}
