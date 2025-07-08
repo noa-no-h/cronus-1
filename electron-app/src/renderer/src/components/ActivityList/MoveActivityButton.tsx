@@ -45,7 +45,9 @@ export const MoveActivityButton = ({
   setHoveredActivityKey,
   onAddNewCategory
 }: MoveActivityButtonProps) => {
-  if (otherCategories.length === 1) {
+  const activeCategories = otherCategories.filter((c) => !c.isArchived)
+
+  if (activeCategories.length === 1) {
     return (
       <Button
         variant="outline"
@@ -53,14 +55,14 @@ export const MoveActivityButton = ({
         className="h-5 px-2 py-1 text-xs"
         onClick={(e) => {
           e.stopPropagation()
-          handleMoveActivity(activity, otherCategories[0]._id)
+          handleMoveActivity(activity, activeCategories[0]._id)
         }}
         disabled={isMovingActivity}
       >
         {isMovingActivity
           ? 'Moving...'
-          : `Move: ${otherCategories[0].name.substring(0, 10)}${
-              otherCategories[0].name.length > 10 ? '...' : ''
+          : `Move: ${activeCategories[0].name.substring(0, 10)}${
+              activeCategories[0].name.length > 10 ? '...' : ''
             }`}
       </Button>
     )
@@ -97,7 +99,7 @@ export const MoveActivityButton = ({
         </Tooltip>
       </TooltipProvider>
       <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-        {otherCategories.map((targetCat) => (
+        {activeCategories.map((targetCat) => (
           <DropdownMenuItem
             key={targetCat._id}
             onClick={(e) => {
