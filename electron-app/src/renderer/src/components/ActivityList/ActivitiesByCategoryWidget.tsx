@@ -400,6 +400,12 @@ const ActivitiesByCategoryWidget = ({
     )
   }
 
+  // Flatten all activities
+  const allActivities = processedData.flatMap((cat) => cat.activities)
+  const hasOnlyCronusOrElectron =
+    allActivities.length > 0 &&
+    allActivities.every((act) => ['Electron', 'Cronus'].includes(act.name))
+
   return (
     <>
       <Dialog open={isCreateCategoryOpen} onOpenChange={setIsCreateCategoryOpen}>
@@ -455,6 +461,21 @@ const ActivitiesByCategoryWidget = ({
               </motion.div>
             )}
           </AnimatePresence>
+          {/* Show the note if only Cronus/Electron activities are present */}
+          {hasOnlyCronusOrElectron && (
+            <Card className="border-dashed mt-4 bg-yellow-50 dark:bg-yellow-900/30">
+              <CardContent className="pt-4 pb-3 flex flex-col items-center text-center space-y-2">
+                <div className="rounded-full bg-yellow-100 p-2">
+                  <ClipboardIcon className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div>
+                  <span className="font-medium text-sm text-yellow-800 dark:text-yellow-200">
+                    Now go onto Chrome or other applications to start the tracking.
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
     </>
