@@ -35,7 +35,7 @@ export function TutorialModal({ isFirstVisit, onClose }: TutorialModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <p className="text-sm text-muted-foreground pb-4">
+        <p className="text-sm mx-6 text-muted-foreground pb-4">
           Open some other application (like Chrome) to start the tracking.
         </p>
 
