@@ -2,11 +2,12 @@ import { getDarkerColor, processColor } from '../../../lib/colors'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import type { CategoryTotal } from './WeekView'
 
-interface ProductiveCategoriesStackedBarProps {
-  productiveCategories: CategoryTotal[]
-  totalProductiveDuration: number
-  productivePercentage: number
+export interface WeekViewStackedBarProps {
+  categories: CategoryTotal[]
+  totalDuration: number
+  percentage: number
   isDarkMode: boolean
+  isProductive?: boolean
 }
 
 const formatDuration = (ms: number): string | null => {
@@ -23,16 +24,17 @@ const formatDuration = (ms: number): string | null => {
   return null
 }
 
-const ProductiveCategoriesStackedBar = ({
-  productiveCategories,
-  totalProductiveDuration,
-  productivePercentage,
-  isDarkMode
-}: ProductiveCategoriesStackedBarProps) => {
+export const WeekViewStackedBar = ({
+  categories,
+  totalDuration,
+  percentage,
+  isDarkMode,
+  isProductive
+}: WeekViewStackedBarProps) => {
   // Group small categories (< 20 min) into one 'Other' at the bottom
   const twentyMinMs = 20 * 60 * 1000
-  const large = productiveCategories.filter((cat) => cat.totalDurationMs >= twentyMinMs)
-  const small = productiveCategories.filter((cat) => cat.totalDurationMs < twentyMinMs)
+  const large = categories.filter((cat) => cat.totalDurationMs >= twentyMinMs)
+  const small = categories.filter((cat) => cat.totalDurationMs < twentyMinMs)
   let grouped = [...large]
   let otherCategories: Array<{ name: string; duration: number }> = []
   if (small.length > 0) {
@@ -43,7 +45,7 @@ const ProductiveCategoriesStackedBar = ({
       name: 'Other',
       categoryColor: '#808080',
       totalDurationMs: otherDuration,
-      isProductive: true,
+      isProductive,
       _otherCategories: otherCategories
     })
   }
@@ -57,14 +59,14 @@ const ProductiveCategoriesStackedBar = ({
       name: 'Other',
       categoryColor: '#808080',
       totalDurationMs: otherCategories.reduce((sum, c) => sum + c.duration, 0),
-      isProductive: true,
+      isProductive,
       _otherCategories: otherCategories
     })
   }
   return (
-    <div className="w-full flex flex-col gap-px" style={{ height: `${productivePercentage}%` }}>
+    <div className="w-full flex flex-col gap-px" style={{ height: `${percentage}%` }}>
       {grouped.map((cat, catIndex) => {
-        const percentage = (cat.totalDurationMs / totalProductiveDuration) * 100
+        const catPercent = (cat.totalDurationMs / totalDuration) * 100
         const showLabel = cat.totalDurationMs >= 30 * 60 * 1000 // 30 min
         const isOther = cat.categoryId === 'other'
         return (
@@ -73,7 +75,7 @@ const ProductiveCategoriesStackedBar = ({
               <div
                 className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
                 style={{
-                  height: `${percentage}%`,
+                  height: `${catPercent}%`,
                   backgroundColor: processColor(
                     isOther ? '#808080' : cat.categoryColor || '#808080',
                     {
@@ -85,7 +87,7 @@ const ProductiveCategoriesStackedBar = ({
                   )
                 }}
               >
-                {percentage > 10 && showLabel && (
+                {catPercent > 10 && showLabel && (
                   <span
                     className="text-sm font-medium"
                     style={{
@@ -120,5 +122,3 @@ const ProductiveCategoriesStackedBar = ({
     </div>
   )
 }
-
-export default ProductiveCategoriesStackedBar

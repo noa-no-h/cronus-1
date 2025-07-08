@@ -1,10 +1,11 @@
 import clsx from 'clsx'
 import { useMemo } from 'react'
-import { getDarkerColor, processColor } from '../../../lib/colors'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
-import ProductiveCategoriesStackedBar from './ProductiveCategoriesStackedBar'
+import { TooltipProvider } from '../../ui/tooltip'
+import { GroupedWeekViewBar } from './GroupedWeekViewBar'
+import { WeekViewFooter } from './WeekViewFooter'
+import { WeekViewStackedBar } from './WeekViewStackedBar'
 
 interface WeekViewProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -180,11 +181,11 @@ const WeekView = ({
                 (totalUnproductiveDuration / groupedMax) * maxBarHeightPercent
               )
 
-              // For stacked view
-              const productivePercentage =
-                totalDayDuration > 0 ? (totalProductiveDuration / totalDayDuration) * 100 : 0
-              const unproductivePercentage =
-                totalDayDuration > 0 ? (totalUnproductiveDuration / totalDayDuration) * 100 : 0
+              // Combine productive and unproductive categories for stacked view
+              const allCategories = [
+                ...productiveCategories.map((cat) => ({ ...cat, isProductive: true })),
+                ...unproductiveCategories.map((cat) => ({ ...cat, isProductive: false }))
+              ]
 
               return (
                 <div
@@ -214,202 +215,32 @@ const WeekView = ({
                           className="w-full flex flex-col transition-all duration-500 gap-px"
                           style={{ height: `${dayHeightPercentage}%` }}
                         >
-                          {/* Productive section */}
-                          {totalProductiveDuration > 0 && (
-                            <ProductiveCategoriesStackedBar
-                              productiveCategories={productiveCategories}
-                              totalProductiveDuration={totalProductiveDuration}
-                              productivePercentage={productivePercentage}
-                              isDarkMode={isDarkMode}
-                            />
-                          )}
-                          {/* Unproductive section */}
-                          {totalUnproductiveDuration > 0 &&
-                            (() => {
-                              // Group small categories (< 20 min) into one 'Other' at the bottom
-                              const twentyMinMs = 20 * 60 * 1000
-                              const large = unproductiveCategories.filter(
-                                (cat) => cat.totalDurationMs >= twentyMinMs
-                              )
-                              const small = unproductiveCategories.filter(
-                                (cat) => cat.totalDurationMs < twentyMinMs
-                              )
-                              let grouped = [...large]
-                              let otherCategories: Array<{ name: string; duration: number }> = []
-                              if (small.length > 0) {
-                                const otherDuration = small.reduce(
-                                  (sum, cat) => sum + cat.totalDurationMs,
-                                  0
-                                )
-                                otherCategories = small.map((cat) => ({
-                                  name: cat.name,
-                                  duration: cat.totalDurationMs
-                                }))
-                                grouped.push({
-                                  categoryId: 'other',
-                                  name: 'Other',
-                                  categoryColor: '#808080',
-                                  totalDurationMs: otherDuration,
-                                  isProductive: false,
-                                  _otherCategories: otherCategories
-                                })
-                              }
-                              // Sort by duration descending, but always put 'Other' last if present
-                              grouped = grouped
-                                .filter((cat) => cat.categoryId !== 'other')
-                                .sort((a, b) => b.totalDurationMs - a.totalDurationMs)
-                              if (otherCategories.length > 0) {
-                                grouped.push({
-                                  categoryId: 'other',
-                                  name: 'Other',
-                                  categoryColor: '#808080',
-                                  totalDurationMs: otherCategories.reduce(
-                                    (sum, c) => sum + c.duration,
-                                    0
-                                  ),
-                                  isProductive: false,
-                                  _otherCategories: otherCategories
-                                })
-                              }
-                              return (
-                                <div
-                                  className="w-full flex flex-col gap-px"
-                                  style={{ height: `${unproductivePercentage}%` }}
-                                >
-                                  {grouped.map((cat, catIndex) => {
-                                    const percentage =
-                                      (cat.totalDurationMs / totalUnproductiveDuration) * 100
-                                    const showLabel = cat.totalDurationMs >= 30 * 60 * 1000 // 30 min
-                                    const isOther = cat.categoryId === 'other'
-                                    return (
-                                      <Tooltip key={catIndex} delayDuration={100}>
-                                        <TooltipTrigger asChild>
-                                          <div
-                                            className="w-full transition-all duration-300 rounded-lg flex items-center justify-center text-center overflow-hidden"
-                                            style={{
-                                              height: `${percentage}%`,
-                                              backgroundColor: processColor(
-                                                isOther
-                                                  ? '#808080'
-                                                  : cat.categoryColor || '#808080',
-                                                {
-                                                  isDarkMode,
-                                                  saturation: 1.2,
-                                                  lightness: 1.1,
-                                                  opacity: isDarkMode ? 0.7 : 0.5
-                                                }
-                                              )
-                                            }}
-                                          >
-                                            {percentage > 10 && showLabel && (
-                                              <span
-                                                className="text-sm font-medium"
-                                                style={{
-                                                  color: getDarkerColor(
-                                                    isOther
-                                                      ? '#808080'
-                                                      : cat.categoryColor || '#808080',
-                                                    isDarkMode ? 0.8 : 0.5
-                                                  )
-                                                }}
-                                              >
-                                                {formatDuration(cat.totalDurationMs)}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" align="center">
-                                          {isOther && cat._otherCategories
-                                            ? [
-                                                <div key="other-title">
-                                                  <b>Other:</b>
-                                                </div>,
-                                                ...cat._otherCategories.map((c, i) => (
-                                                  <div key={i}>
-                                                    {c.name}: {formatDuration(c.duration) || ''}
-                                                  </div>
-                                                ))
-                                              ]
-                                            : cat.name}
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    )
-                                  })}
-                                </div>
-                              )
-                            })()}
+                          <WeekViewStackedBar
+                            categories={allCategories}
+                            totalDuration={totalDayDuration}
+                            percentage={100}
+                            isDarkMode={isDarkMode}
+                          />
                         </div>
                       ) : (
-                        // Grouped View
-                        <div className="w-full h-full flex flex-row justify-evenly items-end">
-                          {totalProductiveDuration > 0 && (
-                            <div
-                              className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
-                              style={{
-                                height: `${productiveHeight}%`,
-                                backgroundColor: processColor(notionStyleCategoryColors[0], {
-                                  isDarkMode,
-                                  opacity: isDarkMode ? 0.7 : 0.6
-                                })
-                              }}
-                            />
-                          )}
-                          {totalUnproductiveDuration > 0 && (
-                            <div
-                              className="w-1/3 transition-all duration-300 flex rounded-lg items-center justify-center text-center overflow-hidden"
-                              style={{
-                                height: `${unproductiveHeight}%`,
-                                backgroundColor: processColor(notionStyleCategoryColors[1], {
-                                  isDarkMode,
-                                  opacity: isDarkMode ? 0.7 : 0.6
-                                })
-                              }}
-                            />
-                          )}
-                        </div>
+                        <GroupedWeekViewBar
+                          productiveHeight={productiveHeight}
+                          unproductiveHeight={unproductiveHeight}
+                          isDarkMode={isDarkMode}
+                          productiveColor={notionStyleCategoryColors[0]}
+                          unproductiveColor={notionStyleCategoryColors[1]}
+                          totalProductiveDuration={totalProductiveDuration}
+                          totalUnproductiveDuration={totalUnproductiveDuration}
+                        />
                       ))}
                   </div>
-                  <div className="flex flex-col items-center justify-center text-muted-foreground text-xs font-normal p-1 border-t h-16 dark:border-slate-700">
-                    {totalDayDuration > 0 ? (
-                      <>
-                        <div className="text-foreground font-medium">
-                          {formatDuration(totalDayDuration)}
-                        </div>
-                        <div className="flex flex-col items-left gap-0.5 mt-1">
-                          {totalProductiveDuration > 0 && (
-                            <div className="flex items-left gap-1">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor: processColor(notionStyleCategoryColors[0], {
-                                    isDarkMode,
-                                    opacity: isDarkMode ? 0.7 : 0.6
-                                  })
-                                }}
-                              />
-                              <span>{formatDuration(totalProductiveDuration)}</span>
-                            </div>
-                          )}
-                          {totalUnproductiveDuration > 0 && (
-                            <div className="flex items-left gap-1">
-                              <div
-                                className="w-2 h-2 rounded-full"
-                                style={{
-                                  backgroundColor: processColor(notionStyleCategoryColors[1], {
-                                    isDarkMode,
-                                    opacity: isDarkMode ? 0.7 : 0.6
-                                  })
-                                }}
-                              />
-                              <span>{formatDuration(totalUnproductiveDuration)}</span>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <div>No data</div>
-                    )}
-                  </div>
+                  <WeekViewFooter
+                    totalDayDuration={totalDayDuration}
+                    totalProductiveDuration={totalProductiveDuration}
+                    totalUnproductiveDuration={totalUnproductiveDuration}
+                    isDarkMode={isDarkMode}
+                    formatDuration={formatDuration}
+                  />
                 </div>
               )
             }

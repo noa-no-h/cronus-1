@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
+import { WorkGoalImprovementHint } from './components/ActivityList/WorkGoalImprovementHint'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { OnboardingModal } from './components/OnboardingModal'
@@ -32,7 +33,7 @@ export interface ActivityToRecategorize {
 
 export function MainAppContent(): React.ReactElement {
   const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn } = useAuth()
-  const { isSettingsOpen, setIsSettingsOpen } = useSettings()
+  const { isSettingsOpen, setIsSettingsOpen, setFocusOn } = useSettings()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -70,7 +71,17 @@ export function MainAppContent(): React.ReactElement {
         console.log('🔄 RE-CATEGORIZATION SUCCESS:', variables)
         toast({
           title: 'Activity Re-categorized',
-          description: `${variables.activityIdentifier} has been moved.`
+          description: (
+            <>
+              {`${variables.activityIdentifier} has been moved.`}
+              <br />
+              <br />
+              <WorkGoalImprovementHint
+                setIsSettingsOpen={setIsSettingsOpen}
+                setFocusOn={setFocusOn}
+              />
+            </>
+          )
         })
 
         trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
@@ -87,11 +98,24 @@ export function MainAppContent(): React.ReactElement {
       },
       onError: (error) => {
         console.error('Error updating category:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to re-categorize activity. ' + error.message,
-          variant: 'destructive'
-        })
+        // Check for timeout or network/server error
+        const isTimeout = error?.message?.toLowerCase().includes('timeout')
+        const isNetwork = error?.message?.toLowerCase().includes('network')
+        const isServer = error?.message?.toLowerCase().includes('server')
+        if (isTimeout || isNetwork || isServer) {
+          toast({
+            title: 'Server Unresponsive',
+            description:
+              'Hey, sorry the server is unresponsive right now, please try again in a few minutes.',
+            variant: 'destructive'
+          })
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to re-categorize activity. ' + error.message,
+            variant: 'destructive'
+          })
+        }
       }
     })
 

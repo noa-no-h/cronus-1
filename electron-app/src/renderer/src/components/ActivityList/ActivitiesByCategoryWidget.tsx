@@ -25,6 +25,7 @@ import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
 import { ActivityList } from './ActivityList'
 import { CategorySectionHeader } from './CategorySectionHeader'
 import { TimeRangeSelectionInfo } from './TimeRangeSelectionInfo'
+import { WorkGoalImprovementHint } from './WorkGoalImprovementHint'
 
 interface ActivitiesByCategoryWidgetProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -36,30 +37,6 @@ interface ActivitiesByCategoryWidgetProps {
   onHourSelect: (hour: number | null) => void
   selectedDay: Date | null
   onDaySelect: (day: Date | null) => void
-}
-
-function WorkGoalsHint({
-  setIsSettingsOpen,
-  setFocusOn
-}: {
-  setIsSettingsOpen: (open: boolean) => void
-  setFocusOn: (field: string) => void
-}) {
-  return (
-    <>
-      Make your{' '}
-      <button
-        onClick={() => {
-          setIsSettingsOpen(true)
-          setFocusOn('goal-input')
-        }}
-        className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-      >
-        Work & Goals
-      </button>{' '}
-      setting more specific for better categorization.
-    </>
-  )
 }
 
 const ActivitiesByCategoryWidget = ({
@@ -111,7 +88,10 @@ const ActivitiesByCategoryWidget = ({
               {getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.
               <br />
               <br />
-              <WorkGoalsHint setIsSettingsOpen={setIsSettingsOpen} setFocusOn={setFocusOn} />
+              <WorkGoalImprovementHint
+                setIsSettingsOpen={setIsSettingsOpen}
+                setFocusOn={setFocusOn}
+              />
             </>
           )
         })
@@ -185,12 +165,16 @@ const ActivitiesByCategoryWidget = ({
       refetchEvents()
       toast({
         title: 'Activities Moved',
+        duration: 5000,
         description: (
           <>
             {`${activitiesToMove.length} activities moved to ${targetCategoryName} ${getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.`}
             <br />
             <br />
-            <WorkGoalsHint setIsSettingsOpen={setIsSettingsOpen} setFocusOn={setFocusOn} />
+            <WorkGoalImprovementHint
+              setIsSettingsOpen={setIsSettingsOpen}
+              setFocusOn={setFocusOn}
+            />
           </>
         )
       })
