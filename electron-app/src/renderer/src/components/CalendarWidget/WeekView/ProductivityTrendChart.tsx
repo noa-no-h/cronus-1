@@ -6,10 +6,12 @@ import { processColor } from '../../../lib/colors'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../../ui/chart'
+import { Skeleton } from '../../ui/skeleton'
 
 interface ProductivityTrendChartProps {
   processedEvents: ProcessedEventBlock[] | null
   isDarkMode: boolean
+  isLoading?: boolean
 }
 
 interface WeekSummary {
@@ -22,8 +24,19 @@ interface WeekSummary {
 
 export function ProductivityTrendChart({
   processedEvents,
-  isDarkMode
+  isDarkMode,
+  isLoading = false
 }: ProductivityTrendChartProps): ReactElement {
+  if (isLoading) {
+    return (
+      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+        <Skeleton className="h-6 w-56 mb-4" />
+        <Skeleton className="h-32 w-full mb-4" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+    )
+  }
+
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents || processedEvents.length === 0) {
       return []
