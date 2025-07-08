@@ -23,7 +23,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
     >
       <div className="flex items-center justify-between w-full tablet:w-auto">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Logo className="w-[29px] text-black" />
+          <Logo className="w-[29px] text-accent" />
           <TextLogo className="w-[114px] text-black" />
         </Link>
         {/* Commented out burger menu until we have navigation content */}

@@ -15,6 +15,7 @@
   --color-foreground: var(--foreground);
   --color-primary: #242437;
   --color-primary-80: #242437cc;
+  --color-accent:#213BF7;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -39,7 +39,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             )}
           >
             <h5 className="flex items-center gap-1.5">
-              <Logo className="w-[28px]" />
+              <Logo className="w-[28px] text-accent" />
               <TextLogo className="w-[108px]" />
             </h5>
             <ul
