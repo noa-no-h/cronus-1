@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { Button } from '../ui/button'
+import { Button } from '../../ui/button'
 
 const CalendarZoomControls = ({
   handleZoomIn,

@@ -1,10 +1,10 @@
-import { useMemo } from 'react'
 import type { JSX } from 'react'
-import { processColor } from '../../lib/colors'
-import type { ProcessedEventBlock } from '../DashboardView'
-import { notionStyleCategoryColors } from '../Settings/CategoryForm'
-import { TooltipProvider } from '../ui/tooltip'
-import { Badge } from '../ui/badge'
+import { useMemo } from 'react'
+import { processColor } from '../../../lib/colors'
+import type { ProcessedEventBlock } from '../../DashboardView'
+import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
+import { Badge } from '../../ui/badge'
+import { TooltipProvider } from '../../ui/tooltip'
 
 interface WeekOverWeekComparisonProps {
   processedEvents: ProcessedEventBlock[] | null

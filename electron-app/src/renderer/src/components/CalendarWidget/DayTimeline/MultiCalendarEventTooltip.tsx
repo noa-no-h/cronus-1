@@ -1,6 +1,6 @@
 import React from 'react'
-import type { DaySegment } from '../../lib/dayTimelineHelpers'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import type { DaySegment } from '../../../lib/dayTimelineHelpers'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 
 interface MultiCalendarEventTooltipProps {
   children: React.ReactNode

@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { type Category } from 'shared/dist/types'
-import { Badge } from '../ui/badge'
-import { Label } from '../ui/label'
+import { Badge } from '../../ui/badge'
+import { Label } from '../../ui/label'
 
 interface SelectedCategoryBadgeProps {
   selectedCategory: Category

@@ -1,12 +1,12 @@
-import { useMemo } from 'react'
+import { TrendingDown, TrendingUp } from 'lucide-react'
 import type { ReactElement } from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { useMemo } from 'react'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
-import { processColor } from '../../lib/colors'
-import type { ProcessedEventBlock } from '../DashboardView'
-import { notionStyleCategoryColors } from '../Settings/CategoryForm'
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart'
-import { Badge } from '../ui/badge'
+import { processColor } from '../../../lib/colors'
+import type { ProcessedEventBlock } from '../../DashboardView'
+import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
+import { Badge } from '../../ui/badge'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '../../ui/chart'
 
 interface ProductivityTrendChartProps {
   processedEvents: ProcessedEventBlock[] | null

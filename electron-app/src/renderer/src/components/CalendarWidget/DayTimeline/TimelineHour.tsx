@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Filter } from 'lucide-react'
 import { memo } from 'react'
-import { Button } from '../ui/button'
+import { Button } from '../../ui/button'
 
 interface TimelineHourProps {
   hour: number

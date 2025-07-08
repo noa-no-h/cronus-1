@@ -1,5 +1,5 @@
-import { getDarkerColor, processColor } from '../../lib/colors'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { getDarkerColor, processColor } from '../../../lib/colors'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import type { CategoryTotal } from './WeekView'
 
 interface ProductiveCategoriesStackedBarProps {

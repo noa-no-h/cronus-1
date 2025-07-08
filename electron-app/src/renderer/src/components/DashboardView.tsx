@@ -8,9 +8,9 @@ import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
-import { ProductivityTrendChart } from './CalendarWidget/ProductivityTrendChart'
-import { TotalTimeLoggedChart } from './CalendarWidget/TotalTimeLoggedChart'
-import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
+import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductivityTrendChart'
+import { TotalTimeLoggedChart } from './CalendarWidget/WeekView/TotalTimeLoggedChart'
+import { WeekOverWeekComparison } from './CalendarWidget/WeekView/WeekOverWeekComparison'
 import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {

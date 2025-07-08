@@ -8,9 +8,9 @@ import type { TimeBlock } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
-import CalendarZoomControls from './CalendarZoomControls'
-import DayTimeline from './DayTimeline'
-import WeekView from './WeekView'
+import CalendarZoomControls from './DayTimeline/CalendarZoomControls'
+import DayTimeline from './DayTimeline/DayTimeline'
+import WeekView from './WeekView/WeekView'
 
 interface CalendarWidgetProps {
   selectedDate: Date

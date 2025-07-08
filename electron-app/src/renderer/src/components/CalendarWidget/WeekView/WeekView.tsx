@@ -1,9 +1,9 @@
 import clsx from 'clsx'
 import { useMemo } from 'react'
-import { getDarkerColor, processColor } from '../../lib/colors'
-import type { ProcessedEventBlock } from '../DashboardView'
-import { notionStyleCategoryColors } from '../Settings/CategoryForm'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { getDarkerColor, processColor } from '../../../lib/colors'
+import type { ProcessedEventBlock } from '../../DashboardView'
+import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/tooltip'
 import ProductiveCategoriesStackedBar from './ProductiveCategoriesStackedBar'
 
 interface WeekViewProps {
