@@ -1,10 +1,6 @@
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
-import { Discord } from '../icons/discord';
-import { GitHub } from '../icons/github';
-import { XformerlyTwitter } from '../icons/x';
-import { YouTube } from '../icons/youtube';
 import { Logo, TextLogo } from '../logo';
 
 export function Footer({ className, ...props }: ComponentProps<'footer'>) {
@@ -35,7 +31,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
 
         <div className={cn('tablet:flex tablet:flex-col tablet:items-end desktop:block')}>
-          <div className={cn('flex gap-6 mt-8 tablet:mt-0 desktop:mt-12 text-primary')}>
+          {/* <div className={cn('flex gap-6 mt-8 tablet:mt-0 desktop:mt-12 text-primary')}>
             <Link href={'#'}>
               <GitHub className="size-5" />
             </Link>
@@ -48,7 +44,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
             <Link href={'#'}>
               <Discord className="size-5" />
             </Link>
-          </div>
+          </div> */}
 
           <div className="mt-5.5 desktop:mt-12">Cronus © {new Date().getFullYear()}</div>
         </div>
