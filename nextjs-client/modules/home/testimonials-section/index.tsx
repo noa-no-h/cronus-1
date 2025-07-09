@@ -3,6 +3,7 @@ import AutoScroll from 'embla-carousel-auto-scroll';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
+import koii from './koii-benvenutto.jpeg';
 import leander from './leander-maerkisch.png';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
@@ -16,6 +17,13 @@ const testimonials = [
     avatar: leander,
     content:
       'I used Rize for a while but found it overwhelming and slow. Tried out Cronus and instantly fell in love with the simplicity and speed. That’s how productivity tracking should feel like.',
+  },
+  {
+    name: 'Koii Benvenutto',
+    title: 'Product Manager at Trass Games',
+    avatar: koii,
+    content:
+      "Cronus is refreshingly simple. Open it, and you instantly see where your time is going. It's easy to classify activities on the fly without getting bogged down in categories. The simplest and most effective time tracker I've used.",
   },
   {
     name: 'Savannah Feder',
