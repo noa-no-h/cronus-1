@@ -68,11 +68,10 @@ export default function PrivacyPage() {
             </section>
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">
-                Google API Services User Data Policy Compliance
+                Google API Services and Limited Use Disclosure
               </h2>
               <p>
-                Cronus&apos;s use and transfer of information received from Google APIs will adhere
-                to the{' '}
+                The use of information received from Google APIs will adhere to the{' '}
                 <a
                   href="https://developers.google.com/terms/api-services-user-data-policy"
                   target="_blank"
@@ -81,19 +80,41 @@ export default function PrivacyPage() {
                 >
                   Google API Services User Data Policy
                 </a>
-                , including the{' '}
+                , including the Limited Use requirements.
+              </p>
+              <p className="mt-4">
+                <strong>Limited Use Disclosure:</strong> Our application&apos;s use of information
+                received from Google Workspace APIs will adhere to{' '}
                 <a
-                  href="https://developers.google.com/terms/api-services-user-data-policy#additional_requirements_for_specific_api_scopes"
+                  href="https://developers.google.com/workspace/workspace-api-user-data-developer-policy#limited-use"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
-                  Limited Use requirements
+                  Google&apos;s Limited Use requirements
                 </a>
-                . We only use your Google data to provide and improve our services, and we never
-                sell or share your data with third parties except as necessary to operate and
-                enhance Cronus.
+                . The use of information received from Google Workspace APIs will adhere to the
+                Limited Use requirements. Specifically, we affirm that:
               </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>
+                  We only use Google user data to provide and improve our time tracking and
+                  productivity analysis services.
+                </li>
+                <li>We do not use Google user data for serving advertisements.</li>
+                <li>
+                  We do not allow humans to read Google user data unless:
+                  <ul className="list-disc pl-6 mt-2">
+                    <li>We have your explicit consent</li>
+                    <li>It is necessary for security purposes</li>
+                    <li>It is required to comply with applicable laws</li>
+                  </ul>
+                </li>
+                <li>
+                  We do not sell Google user data or share it with third parties except as necessary
+                  to provide and improve our services.
+                </li>
+              </ul>
             </section>
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Information Sharing</h2>
