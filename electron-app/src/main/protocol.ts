@@ -37,6 +37,19 @@ export function handleAppUrl(url: string, mainWindow: BrowserWindow | null): voi
 }
 
 export function setupProtocolHandlers(getMainWindow: () => BrowserWindow | null): void {
+  // Force unregister any existing handlers first
+  app.removeAsDefaultProtocolClient(PROTOCOL_SCHEME)
+
+  // Register the protocol with the OS
+  if (is.dev) {
+    // In development, we need to specify the full path to Electron
+    const path = process.execPath
+    app.setAsDefaultProtocolClient(PROTOCOL_SCHEME, path, [path.resolve(process.argv[1])])
+  } else {
+    // In production, just register normally
+    app.setAsDefaultProtocolClient(PROTOCOL_SCHEME)
+  }
+
   // Handle protocol links on macOS when the app is running
   app.on('open-url', (event, url) => {
     event.preventDefault()

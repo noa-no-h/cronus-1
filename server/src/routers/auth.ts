@@ -327,15 +327,12 @@ export const authRouter = router({
           code: input.code,
         };
 
-        if (input.isDesktopFlow) {
-          const redirectUri = `${process.env.CLIENT_URL}/electron-callback`;
-          console.log('Using redirect URI for desktop flow:', redirectUri);
-          tokenOptions.redirect_uri = redirectUri;
-        } else {
-          const redirectUri = 'http://localhost:5173';
-          console.log('Using redirect URI for dev popup flow:', redirectUri);
-          tokenOptions.redirect_uri = redirectUri;
-        }
+        // Always use CLIENT_URL, with /electron-callback for desktop flow
+        const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const redirectUri = input.isDesktopFlow ? `${baseUrl}/electron-callback` : baseUrl;
+
+        console.log('Using redirect URI:', redirectUri);
+        tokenOptions.redirect_uri = redirectUri;
 
         // Exchange code for tokens with Google
         const { tokens } = await googleClient.getToken(tokenOptions);
