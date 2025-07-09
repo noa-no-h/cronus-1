@@ -47,7 +47,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                 'text-xl',
                 'mt-[13px] tablet:mt-4',
                 '[&>li]:py-[13px]',
-                '[&>li]:border-t-[0.5px] [&>li]:border-purple-600-alpha',
+                '[&>li]:border-t-[0.5px] [&>li]:#36168D14',
                 'tablet:[&>li]:py-4 desktop:[&>li]:py-5',
                 '[&>li:last-child]:pb-0'
               )}
