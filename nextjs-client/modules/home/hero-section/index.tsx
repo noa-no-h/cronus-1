@@ -12,7 +12,7 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
   return (
     <section
       className={cn(
-        'bg-gray-200 relative overflow-hidden',
+        'bg-zinc-200 relative overflow-hidden',
         'pt-[62px] tablet:pt-[114px]',
         className
       )}

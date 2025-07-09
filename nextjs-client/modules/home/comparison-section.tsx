@@ -27,12 +27,12 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             'flex flex-col tablet:flex-row desktop:flex-row', // responsive stacking
             'rounded-2xl overflow-hidden',
             'border-[0.5px] border-neutral-300 tracking-[-0.02em]',
-            'bg-purple-50'
+            'bg-accent/5'
           )}
         >
           <li
             className={cn(
-              'text-purple-600',
+              'text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300',
               'w-full tablet:w-[357px] desktop:w-[464px]'
