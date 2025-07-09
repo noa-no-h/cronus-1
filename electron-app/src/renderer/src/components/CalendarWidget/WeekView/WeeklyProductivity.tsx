@@ -12,6 +12,7 @@ interface WeekOverWeekComparisonProps {
   isDarkMode: boolean
   weekViewMode: 'stacked' | 'grouped'
   isLoading?: boolean
+  viewingDate: Date
 }
 
 interface CategoryTotal {
@@ -31,10 +32,11 @@ interface WeekSummary {
   totalWeekDuration: number
 }
 
-export function WeekOverWeekComparison({
+export function WeeklyProductivity({
   processedEvents,
   isDarkMode,
-  isLoading = false
+  isLoading = false,
+  viewingDate
 }: WeekOverWeekComparisonProps): JSX.Element {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
@@ -42,7 +44,7 @@ export function WeekOverWeekComparison({
     }
 
     const weeks: WeekSummary[] = []
-    const now = new Date()
+    const now = viewingDate
 
     for (let i = 3; i >= 0; i--) {
       const start = new Date(now)
@@ -101,7 +103,7 @@ export function WeekOverWeekComparison({
     }
 
     return weeks
-  }, [processedEvents])
+  }, [processedEvents, viewingDate])
 
   const formatWeekLabel = (startDate: Date, endDate: Date): string => {
     const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' })
@@ -159,12 +161,13 @@ export function WeekOverWeekComparison({
                 },
                 index
               ) => {
+                const today = new Date()
+                const isActualCurrentWeek = today >= startDate && today < endDate
+
                 const productivePercentage =
                   totalWeekDuration > 0 ? (totalProductiveDuration / totalWeekDuration) * 100 : 0
                 const unproductivePercentage =
                   totalWeekDuration > 0 ? (totalUnproductiveDuration / totalWeekDuration) * 100 : 0
-
-                const isCurrentWeek = index === weekData.length - 1
 
                 return (
                   <div key={index} className="flex flex-col items-center">
@@ -174,14 +177,16 @@ export function WeekOverWeekComparison({
 
                     <div
                       className={`w-full h-full flex flex-col justify-end relative ${
-                        isCurrentWeek ? 'opacity-70' : ''
+                        isActualCurrentWeek ? 'opacity-70' : ''
                       }`}
                     >
                       {totalWeekDuration > 0 ? (
                         <div className="w-full h-full flex flex-col">
                           {totalUnproductiveDuration > 0 && (
                             <div
-                              className="w-full transition-all duration-300 rounded-t-sm"
+                              className={`w-full transition-all duration-300 ${
+                                totalProductiveDuration > 0 ? 'rounded-t-sm' : 'rounded-sm'
+                              }`}
                               style={{
                                 height: `${unproductivePercentage}%`,
                                 backgroundColor: processColor(notionStyleCategoryColors[1], {
@@ -193,7 +198,9 @@ export function WeekOverWeekComparison({
                           )}
                           {totalProductiveDuration > 0 && (
                             <div
-                              className="w-full transition-all duration-300 rounded-b-sm"
+                              className={`w-full transition-all duration-300 ${
+                                totalUnproductiveDuration > 0 ? 'rounded-b-sm' : 'rounded-sm'
+                              }`}
                               style={{
                                 height: `${productivePercentage}%`,
                                 backgroundColor: processColor(notionStyleCategoryColors[0], {

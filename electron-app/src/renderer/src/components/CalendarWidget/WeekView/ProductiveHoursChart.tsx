@@ -12,6 +12,7 @@ interface ProductivityTrendChartProps {
   processedEvents: ProcessedEventBlock[] | null
   isDarkMode: boolean
   isLoading?: boolean
+  viewingDate: Date
 }
 
 interface WeekSummary {
@@ -25,13 +26,50 @@ interface WeekSummary {
 export function ProductivityTrendChart({
   processedEvents,
   isDarkMode,
-  isLoading = false
+  isLoading = false,
+  viewingDate
 }: ProductivityTrendChartProps): ReactElement {
   if (isLoading) {
+    console.log('isLoading in ProductivityTrendChart', isLoading)
+
     return (
       <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+        {/* Title Skeleton */}
         <Skeleton className="h-6 w-56 mb-4" />
-        <Skeleton className="h-32 w-full mb-4" />
+        {/* Chart Skeleton */}
+        <div className="h-32 w-full mb-4 relative overflow-hidden">
+          <div className="absolute inset-0 flex flex-col justify-between py-4">
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-px w-full" />
+          </div>
+          <div className="absolute inset-0 flex items-center justify-around pl-8">
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 200 80"
+              preserveAspectRatio="none"
+              className="opacity-50"
+            >
+              <path
+                d="M 10,60 C 40,30 80,70 120,50 S 160,20 190,40"
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth="1"
+                fill="none"
+                strokeDasharray="4 4"
+              />
+            </svg>
+          </div>
+          <div className="absolute bottom-[-16px] left-0 right-0 flex justify-around pl-10 pr-10">
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-12" />
+          </div>
+        </div>
+        {/* Summary Skeleton */}
         <Skeleton className="h-4 w-40" />
       </div>
     )
@@ -43,7 +81,7 @@ export function ProductivityTrendChart({
     }
 
     const weeks: WeekSummary[] = []
-    const now = new Date()
+    const now = viewingDate
 
     // Get the 4 weeks, starting from 3 weeks ago
     for (let i = 3; i >= 0; i--) {
@@ -102,7 +140,7 @@ export function ProductivityTrendChart({
 
     // Sort weeks chronologically (oldest to newest)
     return weeks
-  }, [processedEvents])
+  }, [processedEvents, viewingDate])
 
   const formatWeekLabel = (startDate: Date, endDate: Date): string => {
     const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' })
@@ -123,12 +161,20 @@ export function ProductivityTrendChart({
       weekLabel: formatWeekLabel(week.startDate, week.endDate),
       productiveHours: parseFloat((week.totalProductiveDuration / (1000 * 60 * 60)).toFixed(1)),
       unproductiveHours: parseFloat((week.totalUnproductiveDuration / (1000 * 60 * 60)).toFixed(1)),
-      totalHours: parseFloat((week.totalWeekDuration / (1000 * 60 * 60)).toFixed(1))
+      totalHours: parseFloat((week.totalWeekDuration / (1000 * 60 * 60)).toFixed(1)),
+      startDate: week.startDate,
+      endDate: week.endDate
     }))
   }, [weekData])
 
   const segmentedChartData = useMemo(() => {
-    if (chartData.length < 2) {
+    const today = new Date()
+    const currentWeekIndex = chartData.findIndex(
+      (week) => today >= week.startDate && today < week.endDate
+    )
+
+    // If no week is the "current" week (e.g., viewing the past), or it's the first week, don't segment.
+    if (currentWeekIndex <= 0) {
       return chartData.map((d, i) => ({
         ...d,
         index: i,
@@ -136,6 +182,7 @@ export function ProductivityTrendChart({
       }))
     }
 
+    // Apply segmentation for the current week
     return chartData.map((d, i) => {
       const point = {
         ...d,
@@ -143,13 +190,15 @@ export function ProductivityTrendChart({
         lastWeekProductiveHours: null as number | null
       }
 
-      if (i === chartData.length - 2) {
+      // The point BEFORE the current week
+      if (i === currentWeekIndex - 1) {
         point.lastWeekProductiveHours = d.productiveHours
       }
 
-      if (i === chartData.length - 1) {
-        point.productiveHours = null as any
-        point.lastWeekProductiveHours = d.productiveHours
+      // The current week's point
+      if (i === currentWeekIndex) {
+        point.productiveHours = null as any // Don't draw a solid line to this point
+        point.lastWeekProductiveHours = d.productiveHours // Draw a faded line to this point
       }
       return point
     })
@@ -195,7 +244,7 @@ export function ProductivityTrendChart({
   return (
     <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
       <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-lg font-semibold text-foreground">Weekly Productive Hours Trend</h3>
+        <h3 className="text-lg font-semibold text-foreground">Productive Hours</h3>
       </div>
       <div className="h-32">
         <ChartContainer
@@ -257,9 +306,12 @@ export function ProductivityTrendChart({
                         ? 'Productive'
                         : 'Unproductive'
 
-                    const isCurrentWeek = item.payload.index === chartData.length - 1
+                    const today = new Date()
+                    const { startDate, endDate } = item.payload
+                    const isActualCurrentWeek =
+                      today >= startDate && today < new Date(endDate.getTime() + 86400000)
 
-                    return [`${value}h `, displayName, isCurrentWeek ? ' (This Week)' : '']
+                    return [`${value}h `, displayName, isActualCurrentWeek ? ' (This Week)' : '']
                   }}
                 />
               }

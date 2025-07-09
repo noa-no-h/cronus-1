@@ -8,8 +8,8 @@ import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
-import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductivityTrendChart'
-import { WeekOverWeekComparison } from './CalendarWidget/WeekView/WeekOverWeekComparison'
+import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductiveHoursChart'
+import { WeeklyProductivity } from './CalendarWidget/WeekView/WeeklyProductivity'
 import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {
@@ -125,26 +125,26 @@ export function DashboardView({
         setStartDateMs(startOfDay.getTime())
         setEndDateMs(endOfDay.getTime())
       } else {
-        // Week view - get data for last 4 weeks
-        const endOfCurrentWeek = new Date(selectedDate)
-        const dayOfWeek = endOfCurrentWeek.getDay()
-        const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
-        endOfCurrentWeek.setDate(endOfCurrentWeek.getDate() + daysToSunday)
-        endOfCurrentWeek.setHours(23, 59, 59, 999)
+        // Week view - get data for the 4 weeks ending with the selected date's week
+        const endOfWeek = new Date(selectedDate)
+        // Adjust to the end of the week (Sunday)
+        endOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay() + 7)
+        endOfWeek.setHours(23, 59, 59, 999)
 
-        const startOfFourWeeksAgo = new Date(endOfCurrentWeek)
-        startOfFourWeeksAgo.setDate(startOfFourWeeksAgo.getDate() - 28) // Go back 4 weeks
-        startOfFourWeeksAgo.setHours(0, 0, 0, 0)
+        const startOfFourWeeks = new Date(selectedDate)
+        // Go back to the Monday of the week 3 weeks prior
+        startOfFourWeeks.setDate(selectedDate.getDate() - selectedDate.getDay() - 3 * 7 + 1)
+        startOfFourWeeks.setHours(0, 0, 0, 0)
 
         console.log('Date range for fetching:', {
-          start: startOfFourWeeksAgo.toISOString(),
-          end: endOfCurrentWeek.toISOString(),
+          start: startOfFourWeeks.toISOString(),
+          end: endOfWeek.toISOString(),
           viewMode,
           selectedDate: selectedDate.toISOString()
         })
 
-        setStartDateMs(startOfFourWeeksAgo.getTime())
-        setEndDateMs(endOfCurrentWeek.getTime())
+        setStartDateMs(startOfFourWeeks.getTime())
+        setEndDateMs(endOfWeek.getTime())
       }
     }
 
@@ -333,17 +333,20 @@ export function DashboardView({
           isLoading={isLoadingEvents}
         />
         {viewMode === 'week' && (
-          <WeekOverWeekComparison
+          <WeeklyProductivity
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
             isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
           />
         )}
         {viewMode === 'week' && (
           <ProductivityTrendChart
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
+            isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
           />
         )}
       </div>
