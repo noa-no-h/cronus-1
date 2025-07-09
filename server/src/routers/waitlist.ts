@@ -16,8 +16,8 @@ export const waitlistRouter = router({
         });
         await waitlistEntry.save();
         return { success: true };
-      } catch (error) {
-        if (error.code === 11000) {
+      } catch (error: unknown) {
+        if (error instanceof Error && error.message.includes('E11000')) {
           return { success: true };
         }
         throw error;
