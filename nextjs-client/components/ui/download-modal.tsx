@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { trackDownloadStart } from '~/lib/analytics';
 import { Input } from './input';
 import { Button } from './button';
+import Image from 'next/image';
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -87,7 +88,16 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
             transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold mb-4 text-center text-gray-900">Download Cronus</h2>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Image
+                src="/icons/apple.png"
+                alt="Apple Logo"
+                width={24}
+                height={24}
+                className="w-6 h-6"
+              />
+              <h2 className="text-2xl font-bold text-gray-900">Download Cronus</h2>
+            </div>
             <p className="text-gray-600 mb-6 text-center">
               Choose the version that matches your Mac:
             </p>
@@ -109,9 +119,16 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
 
             {/* Windows Waitlist Section */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-semibold mb-3 text-center text-gray-800">
-                Using Windows?
-              </h3>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Image
+                  src="/icons/windows.png"
+                  alt="Windows Logo"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                <h3 className="text-lg font-semibold text-gray-800">Using Windows?</h3>
+              </div>
               <p className="text-sm text-gray-600 mb-4 text-center">
                 Join our waitlist to be notified when Windows version is available
               </p>
