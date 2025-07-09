@@ -45,12 +45,12 @@ export default async function BlogPostPage({ params }: Props) {
   }
 
   return (
-    <main>
+    <main className="overflow-x-hidden">
       <BlogPostClient slug={slug} title={post.title} />
       <Header className="h-[90px] bg-white" />
 
       <article className="pt-[120px] pb-20 bg-white">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Link
             href="/blog"
             className="inline-flex items-center text-[#36168D] hover:underline mb-8"
