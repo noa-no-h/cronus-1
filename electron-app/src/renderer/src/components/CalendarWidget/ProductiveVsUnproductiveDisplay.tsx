@@ -32,6 +32,7 @@ export function ProductiveVsUnproductiveDisplay({
               })
             }}
           />
+          <span>{format(productiveDuration)}</span>
         </div>
       )}
       {unproductiveDuration > 0 && (

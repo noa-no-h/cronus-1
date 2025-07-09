@@ -102,6 +102,9 @@ export const WeekViewStackedBar = ({
                     ))
                   ]
                 : cat.name}
+              <div className="text-xs text-muted-foreground">
+                {formatDuration(cat.totalDurationMs)}
+              </div>
             </TooltipContent>
           </Tooltip>
         )
