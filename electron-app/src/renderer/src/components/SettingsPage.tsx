@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
-// import DistractionSoundSettings from './Settings/DistractionSoundSettings'
+import { DistractionSoundSettings } from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
@@ -67,7 +67,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
         <div className="space-y-4">
           <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
           <CategoryManagementSettings />
-          {/* <DistractionSoundSettings /> */}
+          <DistractionSoundSettings />
           <MultiPurposeAppsSettings />
           <ThemeSwitcher />
           <OnboardingSection />
