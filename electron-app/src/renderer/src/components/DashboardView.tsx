@@ -9,6 +9,7 @@ import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
 import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductiveHoursChart'
+import WeekBreakdown from './CalendarWidget/WeekView/WeekBreakdown'
 import { WeeklyProductivity } from './CalendarWidget/WeekView/WeeklyProductivity'
 import { TutorialModal } from './TutorialModal'
 
@@ -343,6 +344,14 @@ export function DashboardView({
           onWeekViewModeChange={setWeekViewMode}
           isLoading={isLoadingEvents}
         />
+        {viewMode === 'week' && (
+          <WeekBreakdown
+            processedEvents={trackedProcessedEvents}
+            isDarkMode={isDarkMode}
+            isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
+          />
+        )}
         {viewMode === 'week' && (
           <WeeklyProductivity
             processedEvents={trackedProcessedEvents}
