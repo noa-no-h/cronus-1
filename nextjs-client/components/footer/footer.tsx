@@ -31,7 +31,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
             <Logo className="w-[29px]" />
             <TextLogo className="w-[114px] text-black" />
           </div>
-          <p className="text-primary-80 text-sm mt-3">AI-Powered, Efficiency Revolution</p>
+          <p className="text-primary-80 text-sm mt-3">AI-Powered Efficiency Revolution</p>
         </div>
 
         <div className={cn('tablet:flex tablet:flex-col tablet:items-end desktop:block')}>

@@ -3,8 +3,8 @@ import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import macosPng from './macos.png';
 
-import { TimeFrame } from './time-frame';
 import { AppsFrame } from './apps-frame';
+import { TimeFrame } from './time-frame';
 import { Tracker } from './tracker';
 
 export function ShowcaseSection({ className, ...props }: ComponentProps<'section'>) {
@@ -30,7 +30,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
               'text-xl tablet:text-3xl'
             )}
           >
-            AI Time and distraction tracking
+            AI Time and Distraction Tracking
           </h3>
           <p
             className={cn(
@@ -40,7 +40,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             )}
           >
             How many hours have you worked last week? How much time were you distracted? Cronus
-            helps you answer these questions using context-aware ai (Not just rule-based
+            helps you answer these questions using context-aware AI (not just rule-based
             categorization).
           </p>
         </div>
@@ -66,7 +66,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
           )}
         >
           <h3 className={cn('font-medium font-serif tracking-tight', 'text-xl tablet:text-3xl')}>
-            Gamified productivity with Mini-Timer
+            Gamified Productivity with the Mini Timer
           </h3>
           <p
             className={cn(
@@ -74,8 +74,8 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
               'tracking-[-0.02em] tablet:tracking-[-0.03em] leading-[1.5]'
             )}
           >
-            See your productivity counting up life. No annoying and rule-based blockers. Sometimes
-            you have to used distracted websites for work. Cronus understand what you are doing and
+            See your productivity counting up live. No annoying and rule-based blockers. Sometimes
+            you have to use distracting websites for work. Cronus understands what you are doing and
             categorizes your work accordingly.
           </p>
         </div>
@@ -86,7 +86,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
               'absolute',
               'w-[370px] top-9 right-5',
               'tablet:w-[760px] tablet:top-[60px] tablet:-right-20',
-              "desktop:w-[480px] desktop:left-[114px]"
+              'desktop:w-[480px] desktop:left-[114px]'
             )}
           />
         </div>
