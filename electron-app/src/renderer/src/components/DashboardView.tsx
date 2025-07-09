@@ -290,6 +290,17 @@ export function DashboardView({
     setSelectedDay(day)
   }
 
+  const handleDaySelectAndSwitch = (day: Date | null): void => {
+    if (day) {
+      setSelectedDate(day)
+      setViewMode('day')
+      setSelectedHour(null) // Reset hour selection
+      setSelectedDay(null) // Reset day selection in week context
+    } else {
+      setSelectedDay(null)
+    }
+  }
+
   return (
     <div
       className={`flex-1 flex flex-row overflow-hidden min-h-0 px-2 pb-2 space-x-2 ${className}`}
@@ -327,7 +338,7 @@ export function DashboardView({
           selectedHour={selectedHour}
           onHourSelect={handleHourSelect}
           selectedDay={selectedDay}
-          onDaySelect={handleDaySelect}
+          onDaySelect={handleDaySelectAndSwitch}
           weekViewMode={weekViewMode}
           onWeekViewModeChange={setWeekViewMode}
           isLoading={isLoadingEvents}

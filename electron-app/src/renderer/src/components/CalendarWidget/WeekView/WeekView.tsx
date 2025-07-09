@@ -50,6 +50,7 @@ const WeekView = ({
     const days = Array.from({ length: 7 }).map((_, i) => {
       const day = new Date(startOfWeek)
       day.setDate(day.getDate() + i)
+      day.setHours(0, 0, 0, 0) // Set to start of day
       return day
     })
 
@@ -235,6 +236,10 @@ const WeekView = ({
               const isCurrentDay = date.toDateString() === new Date().toDateString()
               const isSelectedDay = selectedDay?.toDateString() === date.toDateString()
 
+              const today = new Date()
+              today.setHours(0, 0, 0, 0)
+              const isFutureDay = date > today
+
               // For grouped view: scale each bar by maxSingleBarDuration
               const productiveHeight = Math.min(
                 maxBarHeightPercent,
@@ -254,10 +259,16 @@ const WeekView = ({
               return (
                 <div
                   key={index}
-                  className={`flex flex-col border-1 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer ${
+                  className={`flex flex-col border-1 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                    isFutureDay
+                      ? 'cursor-not-allowed opacity-50 pointer-events-none'
+                      : 'cursor-pointer'
+                  } ${
                     index === 6 ? 'border-r-0' : 'border-r'
                   } ${isSelectedDay ? 'bg-blue-200/20 dark:bg-blue-800/30' : ''}`}
-                  onClick={() => onDaySelect(isSelectedDay ? null : date)}
+                  onClick={() => {
+                    if (!isFutureDay) onDaySelect(isSelectedDay ? null : date)
+                  }}
                 >
                   <div
                     className={clsx(
