@@ -30,13 +30,9 @@ export const TimelineHour = memo(
       if (selectedHour === hour) {
         onHourSelect(null) // Deselect if already selected
       } else {
-        console.log('setting selectedHour to', hour)
         onHourSelect(hour)
       }
     }
-
-    console.log('selectedHour in TimelineHour', selectedHour)
-    console.log('hour in TimelineHour', hour)
 
     return (
       <div
