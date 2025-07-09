@@ -3,15 +3,23 @@ import AutoScroll from 'embla-carousel-auto-scroll';
 import useEmblaCarousel from 'embla-carousel-react';
 import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
+import freddy from './freddy-feldmeier.png';
 import koii from './koii-benvenutto.jpeg';
 import leander from './leander-maerkisch.png';
+import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
-import freddy from './freddy-feldmeier.png';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
+  {
+    name: 'Luke Piette',
+    title: 'Head of Growth at Runpod',
+    avatar: luke,
+    content:
+      'I thought I was working 12-hour days, but Cronus showed me the reality. After a gym session and lunch, I was surprised to see three hours had passed. Understanding where my time truly goes allows me to re-allocate it, work more, and be more productive.',
+  },
   {
     name: 'Leander Märkisch',
     title: 'Founder of Floy',
