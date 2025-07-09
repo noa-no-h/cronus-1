@@ -1,8 +1,10 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { trackDownloadStart } from '~/lib/analytics';
+import { Input } from './input';
+import { Button } from './button';
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -10,6 +12,9 @@ interface DownloadModalProps {
 }
 
 const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
+  const [email, setEmail] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const handleDownload = (url: string, type: 'arm64' | 'x64') => {
     // Track actual download start
     trackDownloadStart(type);
@@ -20,6 +25,25 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
       window.location.href = '/get-started';
     }, 500);
     onClose();
+  };
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/windows-waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      console.error('Error submitting to waitlist:', error);
+    }
   };
 
   // Handle escape key to close modal
@@ -81,6 +105,36 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
               >
                 Download for Intel
               </button>
+            </div>
+
+            {/* Windows Waitlist Section */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3 className="text-lg font-semibold mb-3 text-center text-gray-800">
+                Using Windows?
+              </h3>
+              <p className="text-sm text-gray-600 mb-4 text-center">
+                Join our waitlist to be notified when Windows version is available
+              </p>
+
+              {!isSubmitted ? (
+                <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-3">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full"
+                  />
+                  <Button type="submit" variant="outline" className="w-full">
+                    Join Waitlist
+                  </Button>
+                </form>
+              ) : (
+                <p className="text-green-600 text-center text-sm">
+                  Thanks for joining! We&apos;ll notify you when Windows version is ready.
+                </p>
+              )}
             </div>
 
             <button
