@@ -23,7 +23,24 @@ export const useCategorySelection = ({
   historyData,
   inputValue,
   selectedCategory
-}: UseCategorySelectionProps) => {
+}: UseCategorySelectionProps): {
+  searchResults: Category[]
+  templateResults: typeof templateCategories
+  historyResults: HistoryData
+  isPopoverOpen: boolean
+  setIsPopoverOpen: (open: boolean) => void
+  highlightedIndex: number
+  setHighlightedIndex: (index: number) => void
+  showCreateOption: boolean
+  handleKeyDown: (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    onSelectHistory: (item: NonNullable<typeof historyResults>[0]) => void,
+    onSelectCategory: (category: Category) => void,
+    onSelectTemplate: (template: (typeof templateCategories)[0]) => void,
+    onShowCategoryForm: () => void,
+    onSubmit: () => void
+  ) => void
+} => {
   const [searchResults, setSearchResults] = useState<Category[]>([])
   const [templateResults, setTemplateResults] = useState<typeof templateCategories>([])
   const [historyResults, setHistoryResults] = useState<HistoryData>([])
@@ -31,7 +48,7 @@ export const useCategorySelection = ({
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
   useEffect(() => {
-    if (!inputValue.trim() || !categories || selectedCategory) {
+    if (selectedCategory) {
       setSearchResults([])
       setTemplateResults([])
       setHistoryResults([])
@@ -40,6 +57,20 @@ export const useCategorySelection = ({
     }
 
     const lowerCaseQuery = inputValue.toLowerCase()
+
+    // When there's no input, show recent history and all categories
+    if (!inputValue.trim()) {
+      if (historyData) {
+        // Show only the most recent 3 history items when no search
+        setHistoryResults(historyData.slice(0, 3))
+      }
+      // Show all non-archived categories
+      setSearchResults(categories.filter((cat) => !cat.isArchived))
+      // Don't show templates when no search
+      setTemplateResults([])
+      setIsPopoverOpen(true)
+      return
+    }
 
     // Filter history
     if (historyData) {
@@ -90,7 +121,7 @@ export const useCategorySelection = ({
     onSelectTemplate: (template: (typeof templateCategories)[0]) => void,
     onShowCategoryForm: () => void,
     onSubmit: () => void
-  ) => {
+  ): void => {
     if (isPopoverOpen) {
       const itemsCount =
         (historyResults?.length || 0) +

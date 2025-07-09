@@ -95,7 +95,10 @@ export const CreateEntryModal = ({
 
   useEffect(() => {
     if (!isOpen) return
-    const timer = setTimeout(() => inputRef.current?.focus(), 100)
+    const timer = setTimeout(() => {
+      inputRef.current?.focus()
+      setIsPopoverOpen(true) // Show dropdown immediately when modal opens
+    }, 100)
     return () => clearTimeout(timer)
   }, [isOpen])
 
@@ -125,6 +128,7 @@ export const CreateEntryModal = ({
       setInputValue('')
       setSelectedCategory(null)
       setShowCategoryForm(false)
+      setIsPopoverOpen(true) // Show dropdown when modal opens with no existing entry
     }
   }, [isOpen, existingEntry, reset])
 
@@ -255,6 +259,7 @@ export const CreateEntryModal = ({
                       setInputValue(e.target.value)
                       if (!isPopoverOpen) setIsPopoverOpen(true)
                     }}
+                    onFocus={() => setIsPopoverOpen(true)} // Show dropdown on focus
                     onKeyDown={(e) =>
                       handleKeyDown(
                         e,

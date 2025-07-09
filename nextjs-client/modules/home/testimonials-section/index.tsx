@@ -8,6 +8,7 @@ import leander from './leander-maerkisch.png';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
+import freddy from './freddy-feldmeier.png';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -45,6 +46,13 @@ const testimonials = [
     avatar: simon,
     content:
       'Cronus showed me exactly how much time I wasted on Hacker News and other distractions. It’s also great for tracking work vs. learning.',
+  },
+  {
+    name: 'Frederik Feldmeier',
+    title: 'Software Engineer',
+    avatar: freddy,
+    content:
+      'Cronus has completely transformed how I manage my time by automatically tracking my work and distractions with impressive accuracy - really helped me getting more done.',
   },
 ];
 
