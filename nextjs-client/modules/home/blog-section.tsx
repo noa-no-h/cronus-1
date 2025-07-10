@@ -16,7 +16,7 @@ export function ArticleCard({ post }: { post: BlogPost }) {
         <span className="text-sm text-primary-80">{post.readTime}</span>
       </div>
       <Link href={`/blog/${post.slug}`} className="group">
-        <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-accent/60 transition-colors">
+        <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-accent/80 transition-colors">
           {post.title}
         </h2>
         <p className="text-primary-80 leading-relaxed">{post.excerpt}</p>
