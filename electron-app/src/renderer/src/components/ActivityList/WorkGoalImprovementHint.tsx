@@ -17,7 +17,7 @@ export function WorkGoalImprovementHint({
       >
         Work & Goals
       </button>{' '}
-      setting more specific for better categorization.
+      setting more specific for better AI categorization.
     </>
   )
 }
