@@ -13,8 +13,8 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
     <>
       <section
         className={cn(
-          'relative bg-[#f4f4f4]',
-          'flex flex-col items-center mt-[-4px]',
+          'relative bg-zinc-100',
+          'flex flex-col items-center -mt-1',
           'h-[540px]',
           className
         )}
@@ -23,7 +23,7 @@ export function CTASection({ className, ...props }: ComponentProps<'section'>) {
         <div className="absolute inset-x-0 top-0">
           <Circle className="w-[1440px] absolute left-1/2 -translate-x-1/2 pointer-events-none" />
         </div>
-        <Image className="mt-[-80px]" src={hourglass} width={400} alt="cronus" draggable={false} />
+        <Image className="-mt-20" src={hourglass} width={400} alt="cronus" draggable={false} />
         <div className="w-[150px] mx-auto mt-[-236px] gird place-items-center">
           <TextLogo className="w-[150px] text-black" />
         </div>

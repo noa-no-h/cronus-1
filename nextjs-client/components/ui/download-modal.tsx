@@ -105,7 +105,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
             <div className="flex flex-col space-y-4">
               <button
                 onClick={() => handleDownload(downloadUrls.armUrl, 'arm64')}
-                className="flex-1 px-4 py-3 bg-primary text-white rounded-lg hover:bg-[#1a1a2e] text-center font-semibold transition-all hover:scale-105"
+                className="flex-1 px-4 py-3 bg-primary text-white rounded-lg hover:bg-dark-hover text-center font-semibold transition-all hover:scale-105"
               >
                 Download for Apple Silicon (M1-M4)
               </button>

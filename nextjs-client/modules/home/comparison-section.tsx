@@ -26,20 +26,20 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
           className={cn(
             'flex flex-col tablet:flex-row desktop:flex-row', // responsive stacking
             'rounded-2xl overflow-hidden',
-            'border-[0.5px] border-[#dfdfdf] tracking-[-0.02em]',
-            'bg-[#faf8ff]'
+            'border-[0.5px] border-neutral-300 tracking-[-0.02em]',
+            'bg-accent/5'
           )}
         >
           <li
             className={cn(
-              'text-[#36168D]',
+              'text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
-              'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-[#DFDFDF]',
+              'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
           >
             <h5 className="flex items-center gap-1.5">
-              <Logo className="w-[28px]" />
+              <Logo className="w-[28px] text-accent" />
               <TextLogo className="w-[108px]" />
             </h5>
             <ul
@@ -59,7 +59,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Goal className="size-6" />
+                <Goal className="size-6 text-icon-muted" />
                 Goal-aware distraction nudging
               </li>
               <li
@@ -69,7 +69,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <List className="size-6" />
+                <List className="size-6 text-icon-muted" />
                 Passive + contextual
               </li>
               <li
@@ -79,7 +79,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Device className="size-6" />
+                <Device className="size-6 text-icon-muted" />
                 Cross-device analysis
               </li>
               <li
@@ -90,7 +90,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'whitespace-nowrap'
                 )}
               >
-                <Pencil className="size-6" />
+                <Pencil className="size-6 text-icon-muted" />
                 Clean, proactive design
               </li>
             </ul>
@@ -98,12 +98,12 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
 
           <li
             className={cn(
-              'bg-[#fafafa] text-primary',
-              'p-8 desktop:py-9 desktop:px-[56px]',
+              'bg-zinc-50 text-primary',
+              'p-8 desktop:py-9 desktop:px-14',
               'w-full tablet:w-[357px] desktop:w-[464px]'
             )}
           >
-            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-[32px] whitespace-nowrap">
+            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-8 whitespace-nowrap">
               Traditional Time Trackers
             </h5>
             <ul
