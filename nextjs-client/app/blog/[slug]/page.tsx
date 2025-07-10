@@ -53,14 +53,14 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Link
             href="/blog"
-            className="inline-flex items-center text-[#36168D] hover:underline mb-8"
+            className="inline-flex items-center border-accent hover:underline mb-8"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Blog
           </Link>
 
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="text-sm bg-[#36168D] text-white px-3 py-1 rounded-full">
+              <span className="text-sm border-accent text-white px-3 py-1 rounded-full">
                 {post.category}
               </span>
               <span className="text-sm text-primary-80">{post.date}</span>
