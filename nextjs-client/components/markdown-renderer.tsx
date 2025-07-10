@@ -29,14 +29,14 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             <strong className="text-primary font-semibold">{children}</strong>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-purple-600 pl-4 italic text-primary-80 my-4">
+            <blockquote className="border-l-4 border-accent/80 pl-4 italic text-primary-80 my-4">
               {children}
             </blockquote>
           ),
           a: ({ href, children }) => (
             <a
               href={href}
-              className="text-purple-600 hover:underline"
+              className="text-accent/80 hover:underline"
               target="_blank"
               rel="noopener noreferrer"
             >
