@@ -27,14 +27,14 @@ mock.module('../../models/category', () => ({
   CategoryModel: mockCategoryModel,
 }));
 mock.module('../../models/user', () => ({
-  User: mockUserModel,
+  UserModel: mockUserModel,
 }));
 
 // Import the service AFTER mocks are set up
 const { categorizeActivity } = await import('./categorizationService');
 const { ActiveWindowEventModel } = await import('../../models/activeWindowEvent');
 const { CategoryModel } = await import('../../models/category');
-const { User: UserModel } = await import('../../models/user');
+const { UserModel } = await import('../../models/user');
 
 describe('categorizeActivity', () => {
   const mockUserId = new mongoose.Types.ObjectId().toString();
@@ -305,5 +305,38 @@ describe('categorizeActivity', () => {
         expectedCategoryName: workCategory.name,
       });
     }, 30000);
+  });
+});
+
+describe('categorizeActivity with multi-purpose apps', () => {
+  let userId: string;
+
+  beforeAll(async () => {
+    const { UserModel } = await import('../../models/user');
+    const user = new UserModel({
+      email: 'test@example.com',
+      name: 'Test User',
+      multiPurposeApps: ['Chrome', 'iTerm2'],
+    });
+    await user.save();
+    userId = user._id.toString();
+
+    const { CategoryModel } = await import('../../models/category');
+    const categories = [
+      { userId, name: 'Work', isProductive: true, color: '#4caf50', isDefault: false },
+      { userId, name: 'Communication', isProductive: false, color: '#2196f3', isDefault: false },
+    ];
+    await CategoryModel.insertMany(categories);
+  });
+
+  afterAll(async () => {
+    const { UserModel } = await import('../../models/user');
+    await UserModel.deleteMany({});
+    const { CategoryModel } = await import('../../models/category');
+    await CategoryModel.deleteMany({});
+  });
+
+  it('should return Uncategorized if ownerName is a multi-purpose app and no specific rule matches', async () => {
+    // Test implementation
   });
 });

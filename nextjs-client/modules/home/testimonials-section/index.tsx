@@ -1,8 +1,7 @@
 'use client';
 import AutoScroll from 'embla-carousel-auto-scroll';
 import useEmblaCarousel from 'embla-carousel-react';
-import { useInView } from 'framer-motion';
-import { useRef, type ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import freddy from './freddy-feldmeier.png';
 import koii from './koii-benvenutto.jpeg';
@@ -65,12 +64,7 @@ const testimonials = [
   },
 ];
 
-const data = [...testimonials,...testimonials].map((item,idx) => ({index:idx,...item}) )
-
 export function TestimonialsSection({ className, ...props }: ComponentProps<'section'>) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true });
-  
   const [emblaRef] = useEmblaCarousel(
     {
       loop: true,
@@ -81,23 +75,23 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
     [
       AutoScroll({
         speed: 1,
-        active: isInView,
+        startDelay: 1000,
         stopOnInteraction: false,
         stopOnMouseEnter: true,
+        playOnInit: true,
       }),
     ]
   );
 
-
   return (
-    <section ref={sectionRef} className={cn('bg-zinc-100 py-16 tablet:py-30 desktop:py-40', className)} {...props}>
+    <section className={cn('bg-[#f4f4f4] py-16 tablet:py-30 desktop:py-40', className)} {...props}>
       <h3 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
         What our users are saying
       </h3>
 
       <div className="mt-20 overflow-hidden" ref={emblaRef}>
         <div className="flex">
-          {data.map((testimonial, index) => (
+          {testimonials.map((testimonial, index) => (
             <div key={index} className="flex-none w-80 tablet:w-[460px] mr-4 tablet:mr-6">
               <TestimonialCard
                 name={testimonial.name}

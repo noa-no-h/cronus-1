@@ -1,7 +1,7 @@
 import { ActiveWindowDetails } from '../../../../shared/types';
 import { ActiveWindowEventModel } from '../../models/activeWindowEvent';
 import { CategoryModel } from '../../models/category';
-import { User as UserModel } from '../../models/user';
+import { UserModel } from '../../models/user';
 
 const getProjectNameFromTitle = (title: string): string | null => {
   const parts = title.split('—');

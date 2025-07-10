@@ -46,7 +46,7 @@ const DayTimeline = ({
   const prevHourHeightRef = useRef(hourHeight)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
   const justModifiedRef = useRef(false)
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [resizingState, setResizingState] = useState<{
     isResizing: boolean
     entry: DaySegment | null
@@ -483,6 +483,8 @@ const DayTimeline = ({
           totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
           type="activity"
           layout={hasGoogleCalendarEvents ? 'split' : 'full'}
+          token={token}
+          dayForEntries={dayForEntries}
         />
 
         <EventSegments
@@ -490,13 +492,15 @@ const DayTimeline = ({
           selectedHour={selectedHour}
           isDarkMode={isDarkMode}
           segmentBackgroundColor={segmentBackgroundColor}
-          onSegmentClick={() => {}}
-          onResizeStart={() => {}}
-          onMoveStart={() => {}}
+          onSegmentClick={handleSegmentClick}
+          onResizeStart={handleResizeStart}
+          onMoveStart={handleMoveStart}
           SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
           totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
           type="activity"
           layout={hasGoogleCalendarEvents ? 'split' : 'full'}
+          token={token}
+          dayForEntries={dayForEntries}
         />
 
         {hasGoogleCalendarEvents && (
@@ -512,6 +516,8 @@ const DayTimeline = ({
             totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
             type="calendar"
             layout="split"
+            token={token}
+            dayForEntries={dayForEntries}
           />
         )}
 

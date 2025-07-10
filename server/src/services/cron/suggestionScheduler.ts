@@ -1,5 +1,5 @@
 import Baker from 'cronbake';
-import { User as UserModel } from '../../models/user';
+import { UserModel } from '../../models/user';
 import { getCalendarEvents } from '../googleCalendar';
 import { generateSuggestionsForUser } from '../suggestions/suggestionGenerationService';
 

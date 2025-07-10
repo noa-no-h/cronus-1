@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { User } from '../models/user';
+import { UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 
@@ -42,7 +42,11 @@ export const userRouter = router({
           input.distractionNotificationInterval;
       }
 
-      const updatedUser = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true });
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        { $set: updateData },
+        { new: true }
+      );
 
       if (!updatedUser) {
         throw new Error('User not found');
@@ -60,7 +64,7 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const user = await User.findById(userId).select('electronAppSettings').lean();
+      const user = await UserModel.findById(userId).select('electronAppSettings').lean();
 
       if (!user) {
         throw new Error('User not found');
@@ -92,7 +96,7 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const updatedUser = await User.findByIdAndUpdate(
+      const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
         { $set: { userProjectsAndGoals: input.userProjectsAndGoals } },
         { new: true }
@@ -114,7 +118,7 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const user = await User.findById(userId).select('userProjectsAndGoals');
+      const user = await UserModel.findById(userId).select('userProjectsAndGoals');
 
       if (!user) {
         throw new Error('User not found');
@@ -127,7 +131,7 @@ export const userRouter = router({
     const decoded = verifyToken(input.token);
     const userId = decoded.userId;
 
-    const user = await User.findById(userId).select('userProjectsAndGoals');
+    const user = await UserModel.findById(userId).select('userProjectsAndGoals');
     if (!user) {
       throw new Error('User not found');
     }
@@ -153,7 +157,7 @@ export const userRouter = router({
         throw new Error('Goals content is required');
       }
 
-      const updatedUser = await User.findByIdAndUpdate(
+      const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
         { $set: { userProjectsAndGoals: goalsContent } },
         { new: true }
@@ -175,7 +179,7 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const user = await User.findById(userId).select('multiPurposeApps').lean();
+      const user = await UserModel.findById(userId).select('multiPurposeApps').lean();
 
       if (!user) {
         throw new Error('User not found');
@@ -195,7 +199,7 @@ export const userRouter = router({
       const decoded = verifyToken(input.token);
       const userId = decoded.userId;
 
-      const updatedUser = await User.findByIdAndUpdate(
+      const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
         { $set: { multiPurposeApps: input.apps } },
         { new: true }

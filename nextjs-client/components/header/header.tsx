@@ -23,7 +23,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
     >
       <div className="flex items-center justify-between w-full tablet:w-auto">
         <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Logo className="w-[29px] text-accent" />
+          <Logo className="w-[29px] text-black" />
           <TextLogo className="w-[114px] text-black" />
         </Link>
         {/* Commented out burger menu until we have navigation content */}
@@ -41,7 +41,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
       >
         <Navbar
           className={cn(
-            'bg-zinc-200 flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
+            'bg-[#ebebeb] flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
           )}
         />
         <DownloadButton className="hidden tablet:flex shrink-0" location="header_navbar" />

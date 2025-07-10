@@ -183,7 +183,7 @@ export function MarqueeSection({ className, ...props }: ComponentProps<'section'
   return (
     <section
       className={cn(
-        'bg-zinc-50',
+        'bg-[#f4f4f4]',
         'flex justify-center items-center gap-12',
         '[&>svg]:shrink-0',
         'py-[60px]',

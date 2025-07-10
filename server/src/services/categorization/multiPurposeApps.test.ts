@@ -23,14 +23,14 @@ mock.module('../../models/category', () => ({
   CategoryModel: mockCategoryModel,
 }));
 mock.module('../../models/user', () => ({
-  User: mockUserModel,
+  UserModel: mockUserModel,
 }));
 
 // Import services AFTER mocks are set up
 const { categorizeActivity } = await import('./categorizationService');
 const { ActiveWindowEventModel } = await import('../../models/activeWindowEvent');
 const { CategoryModel } = await import('../../models/category');
-const { User } = await import('../../models/user');
+const { UserModel } = await import('../../models/user');
 
 describe('Multi-Purpose Apps Categorization', () => {
   const mockUserId = new mongoose.Types.ObjectId().toString();
@@ -60,7 +60,7 @@ describe('Multi-Purpose Apps Categorization', () => {
         _id: mockUserId,
         multiPurposeApps: [multiPurposeAppName, 'Slack'],
       };
-      (User.findById as jest.Mock).mockReturnValue({
+      (UserModel.findById as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue(mockUser),
       });
@@ -70,7 +70,7 @@ describe('Multi-Purpose Apps Categorization', () => {
 
       // Assert
       expect(result).toBeNull();
-      expect(User.findById).toHaveBeenCalledTimes(1);
+      expect(UserModel.findById).toHaveBeenCalledTimes(1);
       expect(ActiveWindowEventModel.findOne).not.toHaveBeenCalled();
     });
 
@@ -88,7 +88,7 @@ describe('Multi-Purpose Apps Categorization', () => {
         _id: mockUserId,
         multiPurposeApps: ['Slack', 'Notion'], // 'Beeper Desktop' is not here
       };
-      (User.findById as jest.Mock).mockReturnValue({
+      (UserModel.findById as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue(mockUser),
       });
@@ -114,7 +114,7 @@ describe('Multi-Purpose Apps Categorization', () => {
 
       // Assert
       expect(result?.categoryId).toBe(mockSocialCategoryId);
-      expect(User.findById).toHaveBeenCalledTimes(1);
+      expect(UserModel.findById).toHaveBeenCalledTimes(1);
       expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
       expect(ActiveWindowEventModel.findOne).toHaveBeenCalledWith({
         ownerName: 'Beeper Desktop',
@@ -155,7 +155,7 @@ describe('Multi-Purpose Apps Categorization', () => {
         lean: jest.fn().mockResolvedValue(null),
       });
       // Mock User and Category fetches
-      (User.findById as jest.Mock).mockReturnValue({
+      (UserModel.findById as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
         lean: jest.fn().mockResolvedValue(mockUser),
       });
