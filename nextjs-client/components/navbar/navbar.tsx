@@ -10,7 +10,7 @@ export function Navbar({ className }: { className?: string }) {
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
             <Link
               href="/blog"
-              className="text-primary hover:text-accent/80 transition-colors font-semibold"
+              className="text-primary hover:text-primary/60 transition-colors font-semibold"
             >
               Blog
             </Link>
@@ -21,7 +21,7 @@ export function Navbar({ className }: { className?: string }) {
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
             <Link
               href="/features"
-              className="text-primary hover:text-purple-600 transition-colors font-medium"
+              className="text-primary hover:text-primary/60 transition-colors font-medium"
             >
               Features
             </Link>
@@ -32,7 +32,7 @@ export function Navbar({ className }: { className?: string }) {
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
             <Link
               href="/pricing"
-              className="text-primary hover:text-purple-600 transition-colors font-medium"
+              className="text-primary hover:text-primary/60 transition-colors font-medium"
             >
               Pricing
             </Link>

@@ -36,7 +36,7 @@ function TeamMemberCard({
   return (
     <div
       className={cn(
-        'bg-purple-50 rounded-2xl p-8 tablet:p-12',
+        'bg-accent/5 rounded-2xl p-8 tablet:p-12',
         'border-[0.5px] border-neutral-300',
         className
       )}
