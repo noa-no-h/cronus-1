@@ -49,7 +49,7 @@ const CalendarWidget = ({
   const [wasSetToToday, setWasSetToToday] = useState(false)
   const width = useWindowWidth()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [hourHeight, setHourHeight] = useState(4) // Default: 64px -> 4rem
+  const [hourHeight, setHourHeight] = useState(5) // Default: 80px -> 5rem
   const { token } = useAuth()
   const [animationDirection, setAnimationDirection] = useState<'prev' | 'next' | 'none'>('none')
 
