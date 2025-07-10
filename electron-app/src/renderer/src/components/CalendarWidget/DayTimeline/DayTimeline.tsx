@@ -1,4 +1,5 @@
 import { endOfDay, startOfDay } from 'date-fns'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ActivityEventSuggestion } from 'shared'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -28,6 +29,7 @@ interface DayTimelineProps {
   onHourSelect: (hour: number | null) => void
   hourHeight: number
   scrollContainerRef: React.RefObject<HTMLDivElement | null>
+  animationDirection: 'prev' | 'next' | 'none'
 }
 
 const DayTimeline = ({
@@ -40,7 +42,8 @@ const DayTimeline = ({
   selectedHour,
   onHourSelect,
   hourHeight,
-  scrollContainerRef
+  scrollContainerRef,
+  animationDirection
 }: DayTimelineProps) => {
   const currentHourRef = useRef<HTMLDivElement>(null)
   const prevHourHeightRef = useRef(hourHeight)
@@ -451,61 +454,44 @@ const DayTimeline = ({
       ? hexToRgba(segment.categoryColor, isDarkMode ? 0.5 : 0.3)
       : hexToRgba('#808080', isDarkMode ? 0.3 : 0.2)
 
+  const initialX =
+    animationDirection === 'next' ? '-100%' : animationDirection === 'prev' ? '100%' : '0%'
+  const exitX =
+    animationDirection === 'next' ? '100%' : animationDirection === 'prev' ? '-100%' : '0%'
+
   return (
-    <div className="flex-1">
-      <div
-        ref={timelineContainerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleTimelineMouseMove}
-        onMouseUp={handleTimelineMouseUp}
-        onMouseLeave={handleMouseLeave}
-        className="relative"
-        style={{ height: timelineHeight }}
+    <AnimatePresence initial={false}>
+      <motion.div
+        key={dayForEntries.toISOString()}
+        initial={{ x: initialX, opacity: 0 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ x: exitX, opacity: 0 }}
+        transition={{
+          x: { type: 'spring', stiffness: 300, damping: 30 },
+          opacity: { duration: 0.2 }
+        }}
+        className="flex-1"
       >
-        <TimelineGrid
-          currentHour={currentHour}
-          selectedHour={selectedHour}
-          currentHourRef={currentHourRef}
-          hourHeight={hourHeight}
-          onHourSelect={onHourSelect}
-          hourlyActivity={hourlyActivity}
-        />
+        <div
+          ref={timelineContainerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleTimelineMouseMove}
+          onMouseUp={handleTimelineMouseUp}
+          onMouseLeave={handleMouseLeave}
+          className="relative"
+          style={{ height: timelineHeight }}
+        >
+          <TimelineGrid
+            currentHour={currentHour}
+            selectedHour={selectedHour}
+            currentHourRef={currentHourRef}
+            hourHeight={hourHeight}
+            onHourSelect={onHourSelect}
+            hourlyActivity={hourlyActivity}
+          />
 
-        <EventSegments
-          daySegments={trackedDaySegments}
-          selectedHour={selectedHour}
-          isDarkMode={isDarkMode}
-          segmentBackgroundColor={segmentBackgroundColor}
-          onSegmentClick={handleSegmentClick}
-          onResizeStart={handleResizeStart}
-          onMoveStart={handleMoveStart}
-          SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
-          totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
-          type="activity"
-          layout={hasGoogleCalendarEvents ? 'split' : 'full'}
-          token={token}
-          dayForEntries={dayForEntries}
-        />
-
-        <EventSegments
-          daySegments={suggestionDaySegments}
-          selectedHour={selectedHour}
-          isDarkMode={isDarkMode}
-          segmentBackgroundColor={segmentBackgroundColor}
-          onSegmentClick={handleSegmentClick}
-          onResizeStart={handleResizeStart}
-          onMoveStart={handleMoveStart}
-          SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
-          totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
-          type="activity"
-          layout={hasGoogleCalendarEvents ? 'split' : 'full'}
-          token={token}
-          dayForEntries={dayForEntries}
-        />
-
-        {hasGoogleCalendarEvents && (
           <EventSegments
-            daySegments={googleCalendarDaySegments}
+            daySegments={trackedDaySegments}
             selectedHour={selectedHour}
             isDarkMode={isDarkMode}
             segmentBackgroundColor={segmentBackgroundColor}
@@ -514,37 +500,71 @@ const DayTimeline = ({
             onMoveStart={handleMoveStart}
             SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
             totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
-            type="calendar"
-            layout="split"
+            type="activity"
+            layout={hasGoogleCalendarEvents ? 'split' : 'full'}
             token={token}
             dayForEntries={dayForEntries}
           />
-        )}
 
-        <TimelineOverlays
-          previewState={previewState}
-          dragState={dragState}
-          yToTime={yToTime}
-          isToday={isToday}
-          currentTime={currentTime}
-          timelineHeight={timelineHeight}
-          isDragging={dragState.isDragging}
-          isModalOpen={modalState.isOpen}
-          hasGoogleCalendarEvents={hasGoogleCalendarEvents}
-        />
-      </div>
-      {modalState.isOpen && (
-        <CreateEntryModal
-          isOpen={modalState.isOpen}
-          onClose={handleModalClose}
-          onSubmit={handleModalSubmit}
-          onDelete={handleModalDelete}
-          startTime={modalState.startTime}
-          endTime={modalState.endTime}
-          existingEntry={modalState.editingEntry as TimeBlock | null}
-        />
-      )}
-    </div>
+          <EventSegments
+            daySegments={suggestionDaySegments}
+            selectedHour={selectedHour}
+            isDarkMode={isDarkMode}
+            segmentBackgroundColor={segmentBackgroundColor}
+            onSegmentClick={handleSegmentClick}
+            onResizeStart={handleResizeStart}
+            onMoveStart={handleMoveStart}
+            SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
+            totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+            type="activity"
+            layout={hasGoogleCalendarEvents ? 'split' : 'full'}
+            token={token}
+            dayForEntries={dayForEntries}
+          />
+
+          {hasGoogleCalendarEvents && (
+            <EventSegments
+              daySegments={googleCalendarDaySegments}
+              selectedHour={selectedHour}
+              isDarkMode={isDarkMode}
+              segmentBackgroundColor={segmentBackgroundColor}
+              onSegmentClick={handleSegmentClick}
+              onResizeStart={handleResizeStart}
+              onMoveStart={handleMoveStart}
+              SEGMENT_TOP_OFFSET_PX={SEGMENT_TOP_OFFSET_PX}
+              totalSegmentVerticalSpacing={totalSegmentVerticalSpacing}
+              type="calendar"
+              layout="split"
+              token={token}
+              dayForEntries={dayForEntries}
+            />
+          )}
+
+          <TimelineOverlays
+            previewState={previewState}
+            dragState={dragState}
+            yToTime={yToTime}
+            isToday={isToday}
+            currentTime={currentTime}
+            timelineHeight={timelineHeight}
+            isDragging={dragState.isDragging}
+            isModalOpen={modalState.isOpen}
+            hasGoogleCalendarEvents={hasGoogleCalendarEvents}
+          />
+        </div>
+        {modalState.isOpen && (
+          <CreateEntryModal
+            isOpen={modalState.isOpen}
+            onClose={handleModalClose}
+            onSubmit={handleModalSubmit}
+            onDelete={handleModalDelete}
+            startTime={modalState.startTime}
+            endTime={modalState.endTime}
+            existingEntry={modalState.editingEntry as TimeBlock | null}
+          />
+        )}
+      </motion.div>
+    </AnimatePresence>
   )
 }
 
