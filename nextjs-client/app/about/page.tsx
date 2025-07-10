@@ -36,8 +36,8 @@ function TeamMemberCard({
   return (
     <div
       className={cn(
-        'bg-accent/5 rounded-2xl p-8 tablet:p-12',
-        'border-[0.5px] border-neutral-300',
+        'bg-[#faf8ff] rounded-2xl p-8 tablet:p-12',
+        'border-[0.5px] border-[#dfdfdf]',
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ function TeamMemberCard({
               'inline-flex items-center px-4 py-2',
               'bg-primary text-white rounded-md',
               'text-sm font-medium',
-              'hover:bg-dark-hover transition-colors'
+              'hover:bg-[#1a1a2e] transition-colors'
             )}
           >
             {link.name}

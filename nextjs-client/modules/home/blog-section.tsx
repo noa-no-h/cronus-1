@@ -6,7 +6,7 @@ export function ArticleCard({ post }: { post: BlogPost }) {
   return (
     <article
       key={post.slug}
-      className="border border-neutral-300 rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
+      className="border border-[#DFDFDF] rounded-lg p-6 hover:shadow-lg transition-shadow bg-white"
     >
       <div className="flex items-center gap-4 mb-3">
         <span className="text-sm text-primary-80">{post.category}</span>
@@ -16,7 +16,7 @@ export function ArticleCard({ post }: { post: BlogPost }) {
         <span className="text-sm text-primary-80">{post.readTime}</span>
       </div>
       <Link href={`/blog/${post.slug}`} className="group">
-        <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-accent/80 transition-colors">
+        <h2 className="text-2xl font-semibold text-primary mb-3 group-hover:text-[#36168D] transition-colors">
           {post.title}
         </h2>
         <p className="text-primary-80 leading-relaxed">{post.excerpt}</p>
@@ -45,7 +45,7 @@ export function BlogSection({ posts }: { posts: BlogPost[] }) {
         <div className="text-center">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-accent/85 font-semibold hover:underline text-lg"
+            className="inline-flex items-center gap-2 text-[#36168D] font-semibold hover:underline text-lg"
           >
             Read all blog posts <ArrowRightIcon className="w-6 h-6" />
           </Link>

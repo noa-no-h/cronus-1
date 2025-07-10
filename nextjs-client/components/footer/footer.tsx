@@ -7,7 +7,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
   return (
     <footer
       className={cn(
-        'bg-zinc-100 text-primary',
+        'bg-[#f4f4f4] text-primary',
         'tablet:flex tablet:justify-center tablet:items-center tablet:gap-[100px] tablet:flex-col-reverse',
         'desktop:flex-row desktop:items-start',
         'py-14 px-4 tablet:px-12 desktop:px-[180px]',
@@ -24,7 +24,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
       >
         <div>
           <div className="flex items-center gap-2">
-            <Logo className="w-[29px] text-accent" />
+            <Logo className="w-[29px]" />
             <TextLogo className="w-[114px] text-black" />
           </div>
           <p className="text-primary-80 text-sm mt-3">AI-Powered Efficiency Revolution</p>
@@ -63,7 +63,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
 
         <div className="space-y-[15px] flex flex-col">
-          <h5 className="text-primary-65 font-semibold leading-7">RESOURCES</h5>
+          <h5 className="text-primary-65 font-semibold leading-[28px]">RESOURCES</h5>
           {/* <Link href={'/audit-report'}>Audit Report</Link> */}
           {/* <Link href={'/changelog'}>Changelog</Link> */}
           <Link href={'/blog'}>Blog</Link>
@@ -72,7 +72,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
         </div>
 
         <div className="space-y-[15px] flex flex-col">
-          <h5 className="text-primary-65 font-semibold leading-7">COMPANY</h5>
+          <h5 className="text-primary-65 font-semibold leading-[28px]">COMPANY</h5>
           <Link href={'/about'}>About us</Link>
           <Link href={'/privacy'}>Privacy Policy</Link>
           <Link href={'/terms'}>Terms of Service</Link>
