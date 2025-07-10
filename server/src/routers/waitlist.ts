@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { publicProcedure, router } from '../trpc';
 import { WindowsWaitlist } from '../models/windowsWaitlist';
+import { publicProcedure, router } from '../trpc';
 
 export const waitlistRouter = router({
   addToWindowsWaitlist: publicProcedure
