@@ -429,4 +429,48 @@ export const activeWindowEventsRouter = router({
         });
       }
     }),
+
+  deleteEventsInDateRange: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        startDateMs: z.number(),
+        endDateMs: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { token, startDateMs, endDateMs } = input;
+      const decodedToken = verifyToken(token);
+      const userId = decodedToken.userId;
+
+      const filter: FilterQuery<ActiveWindowEvent> = {
+        userId,
+        $and: [
+          { timestamp: { $lt: endDateMs } },
+          {
+            $expr: {
+              $gt: [{ $add: ['$timestamp', { $ifNull: ['$durationMs', 0] }] }, startDateMs],
+            },
+          },
+        ],
+      };
+
+      console.log('filter in deleteEventsInDateRange', JSON.stringify(filter, null, 2));
+
+      try {
+        const result = await ActiveWindowEventModel.deleteMany(filter);
+
+        console.log(`[EventsRouter] Hard-deleted ${result.deletedCount} events for user ${userId}`);
+        return {
+          success: true,
+          deletedCount: result.deletedCount,
+        };
+      } catch (error) {
+        console.error('[EventsRouter] Error hard-deleting events:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete events in date range.',
+        });
+      }
+    }),
 });

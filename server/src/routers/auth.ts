@@ -5,7 +5,7 @@ import { LoopsClient } from 'loops';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
-import { User as UserModel } from '../models/user';
+import { IUser, UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 
 const googleClient = new OAuth2Client(
@@ -15,7 +15,7 @@ const googleClient = new OAuth2Client(
 
 const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
 
-const findOrCreateUserAndOnboard = async (payload: TokenPayload) => {
+const findOrCreateUserAndOnboard = async (payload: TokenPayload): Promise<IUser> => {
   let user = await UserModel.findOne({ googleId: payload.sub });
 
   if (!user) {
@@ -359,7 +359,9 @@ export const authRouter = router({
 
         if (hasCalendarScope && tokens.access_token) {
           user.googleAccessToken = tokens.access_token;
-          user.googleRefreshToken = tokens.refresh_token;
+          if (tokens.refresh_token) {
+            user.googleRefreshToken = tokens.refresh_token;
+          }
           user.hasCalendarAccess = true;
           await user.save();
           console.log('Stored Google Calendar tokens for user:', user.email);

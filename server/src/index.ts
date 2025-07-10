@@ -6,7 +6,7 @@ import cors from 'cors';
 import express from 'express';
 import mongoose from 'mongoose';
 import Stripe from 'stripe';
-import { User as UserModel } from './models/user';
+import { UserModel } from './models/user';
 import { calendarRouter } from './routers/calendar';
 import sitemapRouter from './routes/sitemap';
 import { startSuggestionCronJob } from './services/cron/suggestionScheduler';

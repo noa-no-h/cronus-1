@@ -1,6 +1,44 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-const userSchema = new mongoose.Schema({
+export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  name: string;
+  googleId: string;
+  picture?: string;
+  createdAt: Date;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  hasCalendarAccess: boolean;
+  hasSubscription: boolean;
+  stripeCustomerId?: string;
+  exportActionUsageCount: number;
+  hasCompletedOnboarding: boolean;
+  waitlistData?: {
+    firstName?: string;
+    lastName?: string;
+    jobTitle?: string;
+    companyName?: string;
+    workEmail?: string;
+    useCase?: string;
+    competitorExperience?: string;
+    submittedAt?: Date;
+  };
+  isWaitlisted: boolean;
+  tokenVersion: number;
+  electronAppSettings: {
+    calendarZoomLevel: number;
+    theme: 'light' | 'dark' | 'system';
+    playDistractionSound: boolean;
+    distractionSoundInterval: number;
+    showDistractionNotifications: boolean;
+    distractionNotificationInterval: number;
+  };
+  userProjectsAndGoals: string;
+  multiPurposeApps: string[];
+}
+
+const userSchema = new Schema({
   email: {
     type: String,
     required: true,
@@ -84,4 +122,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-export const User = mongoose.model('User', userSchema);
+export const UserModel = mongoose.model<IUser>('User', userSchema);

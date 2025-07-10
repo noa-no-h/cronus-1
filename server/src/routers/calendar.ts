@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { UserModel } from '../models/user';
 import { GoogleCalendarService } from '../services/googleCalendar';
-import { User as UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 

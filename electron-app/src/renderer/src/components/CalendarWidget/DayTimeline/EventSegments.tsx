@@ -1,8 +1,16 @@
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger
+} from '@renderer/components/ui/context-menu'
 import clsx from 'clsx'
+import { endOfDay, startOfDay } from 'date-fns'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../../../lib/colors'
 import { type DaySegment } from '../../../lib/dayTimelineHelpers'
+import { trpc } from '../../../utils/trpc'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
 import { MultiCalendarEventTooltip } from './MultiCalendarEventTooltip'
 import TimelineSegmentContent from './TimelineSegmentContent'
@@ -20,6 +28,8 @@ interface EventSegmentsProps {
   totalSegmentVerticalSpacing: number
   type: 'activity' | 'calendar'
   layout: 'full' | 'split'
+  token: string | null
+  dayForEntries: Date
 }
 
 export const EventSegments: React.FC<EventSegmentsProps> = ({
@@ -33,8 +43,78 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
   SEGMENT_TOP_OFFSET_PX,
   totalSegmentVerticalSpacing,
   type,
-  layout
+  layout,
+  token,
+  dayForEntries
 }) => {
+  const utils = trpc.useUtils()
+  const deleteEventsMutation = trpc.activeWindowEvents.deleteEventsInDateRange.useMutation({
+    onMutate: async (deletedRange) => {
+      const queryInput = {
+        token: token || '',
+        startDateMs: startOfDay(dayForEntries).getTime(),
+        endDateMs: endOfDay(dayForEntries).getTime()
+      }
+      await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
+      const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
+
+      utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
+        if (!oldData) return []
+        return oldData.filter((event) => {
+          const eventStartTime = event.timestamp
+          const eventEndTime = event.timestamp + (event.durationMs || 0)
+          const overlaps =
+            eventStartTime < deletedRange.endDateMs && eventEndTime > deletedRange.startDateMs
+          return !overlaps
+        })
+      })
+
+      return { previousEvents }
+    },
+    onError: (err, newEntry, context) => {
+      const queryInput = {
+        token: token || '',
+        startDateMs: startOfDay(dayForEntries).getTime(),
+        endDateMs: endOfDay(dayForEntries).getTime()
+      }
+      if (context?.previousEvents) {
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, context.previousEvents)
+      }
+      console.error('Failed to delete segment:', err)
+      alert('Error: Could not delete the segment. Please try again.')
+    },
+    onSettled: () => {
+      const queryInput = {
+        token: token || '',
+        startDateMs: startOfDay(dayForEntries).getTime(),
+        endDateMs: endOfDay(dayForEntries).getTime()
+      }
+      utils.activeWindowEvents.getEventsForDateRange.invalidate(queryInput)
+    }
+  })
+
+  const handleDeleteSegment = (segment: DaySegment) => {
+    if (!token) return
+
+    const dayStart = startOfDay(dayForEntries)
+    const startTime = new Date(dayStart.getTime() + segment.startMinute * 60000)
+    const endTime = new Date(dayStart.getTime() + segment.endMinute * 60000)
+
+    console.log(
+      'deleting segment from',
+      startTime.toISOString(),
+      'to',
+      endTime.toISOString(),
+      'full segment',
+      JSON.stringify(segment, null, 2)
+    )
+    deleteEventsMutation.mutate({
+      token: token,
+      startDateMs: startTime.getTime(),
+      endDateMs: endTime.getTime()
+    })
+  }
+
   return (
     <AnimatePresence mode="sync">
       {daySegments.map((segment, index) => {
@@ -69,7 +149,7 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
         const segmentCursor = canInteract ? 'pointer' : 'default'
         const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
 
-        const content = (
+        const segmentDiv = (
           <motion.div
             data-is-segment="true"
             className={clsx(
@@ -154,6 +234,17 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
               </>
             )}
           </motion.div>
+        )
+
+        const content = (
+          <ContextMenu>
+            <ContextMenuTrigger>{segmentDiv}</ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
+                Delete Segment
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         )
 
         if (isGroupedCalendarEvent) {

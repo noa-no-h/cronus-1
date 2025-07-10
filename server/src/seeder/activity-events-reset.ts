@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import * as readline from 'readline';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
-import { User } from '../models/user';
+import { UserModel } from '../models/user';
 
 const envPath =
   process.env.NODE_ENV === 'production'
@@ -39,7 +39,7 @@ async function run() {
     console.log(`Connected to MongoDB: ${MONGO_URI}`);
 
     const userEmail = 'wallawitsch@gmail.com';
-    const user = await User.findOne({ email: userEmail });
+    const user = await UserModel.findOne({ email: userEmail });
 
     if (!user) {
       console.log(`User with email ${userEmail} not found.`);

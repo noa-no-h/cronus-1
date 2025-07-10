@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { z } from 'zod';
-import { User as UserModel } from '../models/user';
+import { UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
 

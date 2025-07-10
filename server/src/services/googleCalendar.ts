@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { User as UserModel } from '../models/user';
+import { UserModel } from '../models/user';
 
 export interface CalendarEvent {
   id: string;
