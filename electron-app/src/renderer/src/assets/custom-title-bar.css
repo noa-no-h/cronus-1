@@ -1,7 +1,7 @@
 /* electron-app/src/renderer/src/assets/custom-title-bar.css */
 
 .custom-title-bar {
-  height: 32px; /* Adjust to your preferred height. macOS traffic lights are ~28-32px high. */
+  height: 32px;
   width: 100%;
   background-color: hsl(var(--secondary)); /* Changed from #111827 */
 

@@ -4,14 +4,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { type Category } from 'shared/dist/types'
 import { z } from 'zod'
-import { useAuth } from '../../contexts/AuthContext'
-import { useCategorySelection } from '../../hooks/useCategorySelection'
-import { TimeBlock } from '../../lib/dayTimelineHelpers'
-import { trpc } from '../../utils/trpc'
-import { CategoryForm } from '../Settings/CategoryForm'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
+import { useAuth } from '../../../contexts/AuthContext'
+import { useCategorySelection } from '../../../hooks/useCategorySelection'
+import { TimeBlock } from '../../../lib/dayTimelineHelpers'
+import { trpc } from '../../../utils/trpc'
+import { CategoryForm } from '../../Settings/CategoryForm'
+import { Button } from '../../ui/button'
+import { Input } from '../../ui/input'
+import { Label } from '../../ui/label'
 import { CustomCategorySelectionPopover } from './CustomCategorySelectionPopover'
 import { SelectedCategoryBadge } from './SelectedCategoryBadge'
 
@@ -94,11 +94,12 @@ export const CreateEntryModal = ({
   })
 
   useEffect(() => {
-    if (isOpen) {
-      // Autofocus on the input when the modal opens.
-      const timer = setTimeout(() => inputRef.current?.focus(), 100)
-      return () => clearTimeout(timer)
-    }
+    if (!isOpen) return
+    const timer = setTimeout(() => {
+      inputRef.current?.focus()
+      setIsPopoverOpen(true) // Show dropdown immediately when modal opens
+    }, 100)
+    return () => clearTimeout(timer)
   }, [isOpen])
 
   useEffect(() => {
@@ -127,6 +128,7 @@ export const CreateEntryModal = ({
       setInputValue('')
       setSelectedCategory(null)
       setShowCategoryForm(false)
+      setIsPopoverOpen(true) // Show dropdown when modal opens with no existing entry
     }
   }, [isOpen, existingEntry, reset])
 
@@ -257,6 +259,7 @@ export const CreateEntryModal = ({
                       setInputValue(e.target.value)
                       if (!isPopoverOpen) setIsPopoverOpen(true)
                     }}
+                    onFocus={() => setIsPopoverOpen(true)} // Show dropdown on focus
                     onKeyDown={(e) =>
                       handleKeyDown(
                         e,

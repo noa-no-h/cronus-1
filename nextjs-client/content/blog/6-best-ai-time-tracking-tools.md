@@ -45,7 +45,7 @@ The dashboard is packed with charts and automatic categorization of activities (
 
 RescueTime has a mobile app, but unfortunately, data from mobile and desktop devices remain siloed, hindering a unified productivity view. It's MacOs app is only a re-packaged version of the mobile app.
 
-![RescueTime Mobile App](/blog/rescuetime-macos-app.png#wp=50)
+![h Mobile App](/blog/rescuetime-macos-app.png#wp=50)
 
 ## 4. Early (Timeular): Semi-Automated and Privacy-Focused
 

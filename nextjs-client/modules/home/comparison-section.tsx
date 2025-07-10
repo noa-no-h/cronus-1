@@ -18,7 +18,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       {...props}
     >
       <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
-        Cronus vs others
+        Cronus vs Others
       </h3>
 
       <div className={cn('mt-12 tablet:mt-20', 'px-4', 'max-w-full')}>

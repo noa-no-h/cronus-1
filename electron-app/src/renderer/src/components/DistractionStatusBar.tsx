@@ -50,17 +50,21 @@ const arePropsEqual = (
   prevProps: DistractionStatusBarProps,
   nextProps: DistractionStatusBarProps
 ): boolean => {
-  if (!prevProps.activeWindow && !nextProps.activeWindow) return true
-  if (!prevProps.activeWindow || !nextProps.activeWindow) return false
-  const p = prevProps.activeWindow
-  const n = nextProps.activeWindow
+  const activeWindowEqual =
+    (!prevProps.activeWindow && !nextProps.activeWindow) ||
+    !!(
+      prevProps.activeWindow &&
+      nextProps.activeWindow &&
+      prevProps.activeWindow.ownerName === nextProps.activeWindow.ownerName &&
+      prevProps.activeWindow.title === nextProps.activeWindow.title &&
+      prevProps.activeWindow.url === nextProps.activeWindow.url &&
+      prevProps.activeWindow.content === nextProps.activeWindow.content &&
+      prevProps.activeWindow.type === nextProps.activeWindow.type &&
+      prevProps.activeWindow.browser === nextProps.activeWindow.browser
+    )
+
   return (
-    p.ownerName === n.ownerName &&
-    p.title === n.title &&
-    p.url === n.url &&
-    p.content === n.content &&
-    p.type === n.type &&
-    p.browser === n.browser &&
+    activeWindowEqual &&
     prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
     prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog &&
     prevProps.onSettingsClick === nextProps.onSettingsClick &&
@@ -94,7 +98,19 @@ const DistractionStatusBar = ({
       { token: token || '' },
       {
         enabled: !!token && typeof token === 'string' && token.length > 0,
-        refetchInterval: 1000 // Poll every 1 second
+        refetchInterval: 1000, // Poll every 1 second
+        select: (data) => {
+          if (!data) {
+            return null
+          }
+          const event = data as unknown as ActiveWindowEvent
+          return {
+            ...event,
+            lastCategorizationAt: event.lastCategorizationAt
+              ? new Date(event.lastCategorizationAt)
+              : undefined
+          }
+        }
       }
     )
 
@@ -164,7 +180,21 @@ const DistractionStatusBar = ({
           token.length > 0 &&
           currentDayStartDateMs !== null &&
           currentDayEndDateMs !== null,
-        refetchInterval: 30000
+        refetchInterval: 30000,
+        select: (data) => {
+          if (!data) {
+            return []
+          }
+          return data.map((event) => {
+            const e = event as unknown as ActiveWindowEvent
+            return {
+              ...e,
+              lastCategorizationAt: e.lastCategorizationAt
+                ? new Date(e.lastCategorizationAt)
+                : undefined
+            }
+          })
+        }
       }
     )
 
@@ -280,11 +310,7 @@ const DistractionStatusBar = ({
       <div
         className={clsx(
           'rounded-lg',
-          'shadow-[0_1px_3px_0_rgb(0,0,0,0.05)]',
-          'dark:shadow-[0_1px_3px_0_rgb(255,255,255,0.03)]',
-          'border border-black/[0.03]',
-          'dark:border-white/[0.08]',
-          'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between gap-x-2 sm:gap-x-3',
+          'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between sm:gap-x-3',
           cardBgColor
         )}
       >
@@ -326,16 +352,25 @@ const DistractionStatusBar = ({
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg shadow-[0_1px_2px_0_rgb(0,0,0,0.03)] dark:shadow-[0_1px_2px_0_rgb(255,255,255,0.02)] border border-black/[0.02] dark:border-white/[0.05] bg-gray-50/50 dark:bg-gray-800/50">
+      <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
         {!isMiniTimerVisible && (
-          <Button variant="ghost" onClick={onOpenMiniTimerClick} title="Open Mini Timer">
+          <Button
+            className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+            variant="ghost"
+            onClick={onOpenMiniTimerClick}
+            title="Open Mini Timer"
+          >
             <ExternalLink size={20} />
             {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" title="Open Feedback">
+            <Button
+              className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+              variant="ghost"
+              title="Open Feedback"
+            >
               <CircleQuestionMark size={20} />
             </Button>
           </DropdownMenuTrigger>
@@ -391,7 +426,7 @@ const DistractionStatusBar = ({
         <Button
           variant="ghost"
           size={isNarrowView ? 'icon' : 'default'}
-          className={!isNarrowView ? 'w-32' : ''}
+          className={!isNarrowView ? 'w-32 hover:bg-gray-200 dark:hover:bg-gray-700/50' : ''}
           onClick={onSettingsClick}
           title="Settings"
         >

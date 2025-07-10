@@ -1,6 +1,6 @@
-import React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
+import { WorkGoalImprovementHint } from './components/ActivityList/WorkGoalImprovementHint'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { OnboardingModal } from './components/OnboardingModal'
@@ -11,6 +11,7 @@ import { Toaster } from './components/ui/toaster'
 import { TooltipProvider } from './components/ui/tooltip'
 import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
+import { useSettings } from './contexts/SettingsContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
@@ -32,13 +33,17 @@ export interface ActivityToRecategorize {
 
 export function MainAppContent(): React.ReactElement {
   const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn } = useAuth()
+  const { isSettingsOpen, setIsSettingsOpen, setFocusOn } = useSettings()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [permissionsChecked, setPermissionsChecked] = useState(false)
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
+
+  const handleSettingsClick = useCallback(() => {
+    setIsSettingsOpen(!isSettingsOpen)
+  }, [setIsSettingsOpen, isSettingsOpen])
 
   const trpcUtils = trpc.useContext()
 
@@ -66,7 +71,17 @@ export function MainAppContent(): React.ReactElement {
         console.log('🔄 RE-CATEGORIZATION SUCCESS:', variables)
         toast({
           title: 'Activity Re-categorized',
-          description: `${variables.activityIdentifier} has been moved.`
+          description: (
+            <>
+              {`${variables.activityIdentifier} has been moved.`}
+              <br />
+              <br />
+              <WorkGoalImprovementHint
+                setIsSettingsOpen={setIsSettingsOpen}
+                setFocusOn={setFocusOn}
+              />
+            </>
+          )
         })
 
         trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
@@ -83,11 +98,24 @@ export function MainAppContent(): React.ReactElement {
       },
       onError: (error) => {
         console.error('Error updating category:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to re-categorize activity. ' + error.message,
-          variant: 'destructive'
-        })
+        // Check for timeout or network/server error
+        const isTimeout = error?.message?.toLowerCase().includes('timeout')
+        const isNetwork = error?.message?.toLowerCase().includes('network')
+        const isServer = error?.message?.toLowerCase().includes('server')
+        if (isTimeout || isNetwork || isServer) {
+          toast({
+            title: 'Server Unresponsive',
+            description:
+              'Hey, sorry the server is unresponsive right now, please try again in a few minutes.',
+            variant: 'destructive'
+          })
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to re-categorize activity. ' + error.message,
+            variant: 'destructive'
+          })
+        }
       }
     })
 
@@ -316,27 +344,25 @@ export function MainAppContent(): React.ReactElement {
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex flex-col h-screen">
-        <div className="custom-title-bar">{APP_NAME}</div>
-        <div className="flex-none p-2">
-          <DistractionStatusBar
-            activeWindow={activeWindow}
-            onOpenMiniTimerClick={handleOpenMiniTimer}
-            isMiniTimerVisible={isMiniTimerVisible}
-            onOpenRecategorizeDialog={openRecategorizeDialog}
-            onSettingsClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            isSettingsOpen={isSettingsOpen}
-          />
-        </div>
-        <div className={`flex-1 flex ${isSettingsOpen ? '' : 'overflow-hidden'}`}>
-          <div
-            className={`flex-1 flex flex-col ${isSettingsOpen ? 'overflow-auto' : 'overflow-hidden'}`}
-          >
-            {isSettingsOpen ? (
-              <SettingsPage onResetOnboarding={handleResetOnboarding} />
-            ) : (
-              <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
-            )}
+        <div className="sticky top-0 z-50 bg-white dark:bg-black">
+          <div className="custom-title-bar">{APP_NAME}</div>
+          <div className="flex-none p-2">
+            <DistractionStatusBar
+              activeWindow={activeWindow}
+              onOpenMiniTimerClick={handleOpenMiniTimer}
+              isMiniTimerVisible={isMiniTimerVisible}
+              onOpenRecategorizeDialog={openRecategorizeDialog}
+              onSettingsClick={handleSettingsClick}
+              isSettingsOpen={isSettingsOpen}
+            />
           </div>
+        </div>
+        <div className="flex-1 flex flex-col overflow-auto">
+          {isSettingsOpen ? (
+            <SettingsPage onResetOnboarding={handleResetOnboarding} />
+          ) : (
+            <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+          )}
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
         <UpdateNotification />

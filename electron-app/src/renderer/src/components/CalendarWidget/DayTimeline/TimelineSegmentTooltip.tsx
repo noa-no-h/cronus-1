@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
 import { ChevronRightIcon } from '@radix-ui/react-icons'
-import { motion, AnimatePresence } from 'framer-motion'
-import { formatDuration } from '../../lib/activityByCategoryWidgetHelpers'
-import { EnrichedTimelineSegment } from '../../lib/dayTimelineHelpers'
-import { ActivityIcon } from '../ActivityList/ActivityIcon'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { AnimatePresence, motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { EnrichedTimelineSegment } from '../../../lib/dayTimelineHelpers'
+import { formatDuration } from '../../../lib/timeFormatting'
+import { ActivityIcon } from '../../ActivityList/ActivityIcon'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
 
 interface TimelineSegmentTooltipProps {

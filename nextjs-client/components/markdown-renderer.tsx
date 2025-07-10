@@ -7,7 +7,7 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content, className = '' }: MarkdownRendererProps) {
   return (
-    <div className={`prose prose-lg max-w-none ${className}`}>
+    <div className={`prose prose-lg max-w-none overflow-x-hidden ${className}`}>
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
@@ -52,6 +52,8 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
             const style: React.CSSProperties = {
               display: 'block',
               margin: 'auto',
+              maxWidth: '100%',
+              height: 'auto',
             };
 
             if (hash) {
@@ -65,8 +67,20 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               }
             }
 
-            return <img src={urlSrc} alt={alt || ''} style={style} className="rounded-lg my-6" />;
+            return (
+              <img src={urlSrc} alt={alt || ''} style={style} className="rounded-lg my-6 w-full" />
+            );
           },
+          code: ({ children }) => (
+            <code className="bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5 text-sm break-words">
+              {children}
+            </code>
+          ),
+          pre: ({ children }) => (
+            <pre className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 overflow-x-auto">
+              {children}
+            </pre>
+          ),
         }}
       >
         {content}

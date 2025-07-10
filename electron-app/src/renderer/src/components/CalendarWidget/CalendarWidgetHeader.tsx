@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Button } from '../ui/button'
 import { Toggle } from '../ui/toggle'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import { CalendarHeaderDateNavigation } from './CalendarHeaderDateNavigation'
+import { CalendarHeaderDateNavigation } from './DayTimeline/CalendarHeaderDateNavigation'
 
 interface CalendarWidgetHeaderProps {
   handlePrev: () => void

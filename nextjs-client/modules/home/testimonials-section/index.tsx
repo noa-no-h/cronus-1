@@ -4,18 +4,36 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useInView } from 'framer-motion';
 import { useRef, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
+import freddy from './freddy-feldmeier.png';
+import koii from './koii-benvenutto.jpeg';
 import leander from './leander-maerkisch.png';
+import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
+import simon from './simon-berens.jpg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
+  {
+    name: 'Luke Piette',
+    title: 'Head of Growth at Runpod',
+    avatar: luke,
+    content:
+      'I thought I was working 12-hour days, but Cronus showed me the reality. After a gym session and lunch, I was surprised to see three hours had passed. Understanding where my time truly goes allows me to re-allocate it, work more, and be more productive.',
+  },
   {
     name: 'Leander Märkisch',
     title: 'Founder of Floy',
     avatar: leander,
     content:
       'I used Rize for a while but found it overwhelming and slow. Tried out Cronus and instantly fell in love with the simplicity and speed. That’s how productivity tracking should feel like.',
+  },
+  {
+    name: 'Koii Benvenutto',
+    title: 'Product Manager at Trass Games',
+    avatar: koii,
+    content:
+      "Cronus is refreshingly simple. Open it, and you instantly see where your time is going. It's easy to classify activities on the fly without getting bogged down in categories. The simplest and most effective time tracker I've used.",
   },
   {
     name: 'Savannah Feder',
@@ -29,7 +47,21 @@ const testimonials = [
     title: 'Founder of Cronus, ex. RemNote',
     avatar: moritz,
     content:
-      "I'm biased because I co-created this but before, it took me about 2 hours every week to answer two important questions: 1. How many hours did I work this week? and 2. How many hours was I distracted/on social media etc. this week? Cronus automates that.",
+      'It used to take me ~2 hours each week to figure out: 1) how many hours I worked, and 2) how much time I was distracted/on social media. Cronus automates it and makes it 10x more accurate.',
+  },
+  {
+    name: 'Simon Berens',
+    title: 'Founder of Brighter',
+    avatar: simon,
+    content:
+      'Cronus showed me exactly how much time I wasted on Hacker News and other distractions. It’s also great for tracking work vs. learning.',
+  },
+  {
+    name: 'Frederik Feldmeier',
+    title: 'Software Engineer',
+    avatar: freddy,
+    content:
+      'Cronus has completely transformed how I manage my time by automatically tracking my work and distractions with impressive accuracy - really helped me getting more done.',
   },
 ];
 

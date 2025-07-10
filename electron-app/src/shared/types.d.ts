@@ -16,21 +16,25 @@ export interface User {
 export interface ActiveWindowDetails {
   windowId?: number
   ownerName: string
-  type: 'window' | 'browser' | 'system'
+  type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
   browser?: 'chrome' | 'safari' | 'arc' | null
-  title: string
+  title?: string | null
   url?: string | null
   content?: string | null
-  timestamp?: number
+  timestamp: number
+  contentSource?: 'ocr' | 'accessibility' | null
   localScreenshotPath?: string | null
   screenshotS3Url?: string | null
-  captureReason?: 'app_switch' | 'periodic_backup' | null
-  categoryReasoning?: string | null
+  durationMs?: number
 }
 export interface ActiveWindowEvent extends ActiveWindowDetails {
+  _id?: string
   userId: string
   categoryId?: string | null
   categoryReasoning?: string | null
+  lastCategorizationAt?: Date
+  oldCategoryId?: string | null
+  oldCategoryReasoning?: string | null
 }
 export interface Category {
   _id: string
@@ -39,6 +43,9 @@ export interface Category {
   description?: string
   color: string
   isProductive: boolean
+  isDefault: boolean // Whether this is a default category
+  isArchived?: boolean
+  isLikelyToBeOffline?: boolean
   createdAt: Date
   updatedAt: Date
 }

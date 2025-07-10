@@ -2,8 +2,8 @@ import { type DaySegment } from '@renderer/lib/dayTimelineHelpers'
 import clsx from 'clsx'
 import { Check, X } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
-import { getDarkerColor, getLighterColor } from '../../lib/colors'
-import { ActivityIcon } from '../ActivityList/ActivityIcon'
+import { getDarkerColor, getLighterColor } from '../../../lib/colors'
+import { ActivityIcon } from '../../ActivityList/ActivityIcon'
 
 interface TimelineSegmentContentProps {
   segment: DaySegment

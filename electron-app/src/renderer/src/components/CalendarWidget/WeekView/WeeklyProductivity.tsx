@@ -1,15 +1,18 @@
-import { useMemo } from 'react'
 import type { JSX } from 'react'
-import { processColor } from '../../lib/colors'
-import type { ProcessedEventBlock } from '../DashboardView'
-import { notionStyleCategoryColors } from '../Settings/CategoryForm'
-import { TooltipProvider } from '../ui/tooltip'
-import { Badge } from '../ui/badge'
+import { useMemo } from 'react'
+import { processColor } from '../../../lib/colors'
+import type { ProcessedEventBlock } from '../../DashboardView'
+import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
+import { Skeleton } from '../../ui/skeleton'
+import { TooltipProvider } from '../../ui/tooltip'
+import { ProductiveVsUnproductiveDisplay } from '../ProductiveVsUnproductiveDisplay'
 
 interface WeekOverWeekComparisonProps {
   processedEvents: ProcessedEventBlock[] | null
   isDarkMode: boolean
   weekViewMode: 'stacked' | 'grouped'
+  isLoading?: boolean
+  viewingDate: Date
 }
 
 interface CategoryTotal {
@@ -29,9 +32,11 @@ interface WeekSummary {
   totalWeekDuration: number
 }
 
-export function WeekOverWeekComparison({
+export function WeeklyProductivity({
   processedEvents,
-  isDarkMode
+  isDarkMode,
+  isLoading = false,
+  viewingDate
 }: WeekOverWeekComparisonProps): JSX.Element {
   const weekData = useMemo<WeekSummary[]>(() => {
     if (!processedEvents) {
@@ -39,7 +44,7 @@ export function WeekOverWeekComparison({
     }
 
     const weeks: WeekSummary[] = []
-    const now = new Date()
+    const now = viewingDate
 
     for (let i = 3; i >= 0; i--) {
       const start = new Date(now)
@@ -98,7 +103,7 @@ export function WeekOverWeekComparison({
     }
 
     return weeks
-  }, [processedEvents])
+  }, [processedEvents, viewingDate])
 
   const formatWeekLabel = (startDate: Date, endDate: Date): string => {
     const startMonth = startDate.toLocaleDateString(undefined, { month: 'short' })
@@ -112,16 +117,35 @@ export function WeekOverWeekComparison({
     return `${startMonth} ${startDay}-${endMonth} ${endDay}`
   }
 
-  const formatHours = (durationMs: number): string => {
-    const hours = durationMs / (1000 * 60 * 60)
-    return `${hours.toFixed(1)}h`
+  if (isLoading) {
+    return (
+      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+        <Skeleton className="h-6 w-40 mb-4" />
+        <div className="h-40 flex flex-col mt-4">
+          <div className="grid grid-cols-4 gap-2 h-28">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col items-center w-full">
+                <Skeleton className="h-4 w-16 mb-2" />
+                <div className="w-full h-full flex flex-col justify-end relative">
+                  <Skeleton className="w-full h-full rounded-t-sm" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-2 mt-2">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-4 w-20" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <TooltipProvider>
       <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
-        <h3 className="text-lg font-semibold text-foreground">Week-over-Week Comparison</h3>
-        <p className="text-sm text-muted-foreground">Productivity ratio & hours breakdown</p>
+        <h3 className="text-lg font-semibold text-foreground">Weekly Productivity</h3>
 
         {/* Bar Chart Section */}
         <div className="h-40 flex flex-col mt-4">
@@ -137,50 +161,32 @@ export function WeekOverWeekComparison({
                 },
                 index
               ) => {
+                const today = new Date()
+                const isActualCurrentWeek = today >= startDate && today < endDate
+
                 const productivePercentage =
                   totalWeekDuration > 0 ? (totalProductiveDuration / totalWeekDuration) * 100 : 0
                 const unproductivePercentage =
                   totalWeekDuration > 0 ? (totalUnproductiveDuration / totalWeekDuration) * 100 : 0
 
-                const isCurrentWeek = index === weekData.length - 1
-
                 return (
                   <div key={index} className="flex flex-col items-center">
-                    <div className="text-xs font-medium text-foreground mb-1">
+                    <div className="text-xs font-medium text-foreground mb-2">
                       {formatWeekLabel(startDate, endDate)}
                     </div>
 
-                    <div className="w-full h-full flex flex-col justify-end relative">
-                      {isCurrentWeek && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-                          <Badge variant="secondary" className="relative pl-5 whitespace-nowrap">
-                            <span className="absolute left-2 top-[50%] -translate-y-[50%] flex items-center justify-center">
-                              <span className="relative inline-flex h-2 w-2">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full bg-red-500 h-2 w-2"></span>
-                              </span>
-                            </span>
-                            This Week
-                          </Badge>
-                        </div>
-                      )}
+                    <div
+                      className={`w-full h-full flex flex-col justify-end relative ${
+                        isActualCurrentWeek ? 'opacity-70' : ''
+                      }`}
+                    >
                       {totalWeekDuration > 0 ? (
                         <div className="w-full h-full flex flex-col">
-                          {totalProductiveDuration > 0 && (
-                            <div
-                              className="w-full transition-all duration-300 rounded-t-sm"
-                              style={{
-                                height: `${productivePercentage}%`,
-                                backgroundColor: processColor(notionStyleCategoryColors[0], {
-                                  isDarkMode,
-                                  opacity: isDarkMode ? 0.7 : 0.6
-                                })
-                              }}
-                            />
-                          )}
                           {totalUnproductiveDuration > 0 && (
                             <div
-                              className="w-full transition-all duration-300 rounded-b-sm"
+                              className={`w-full transition-all duration-300 ${
+                                totalProductiveDuration > 0 ? 'rounded-t-sm' : 'rounded-sm'
+                              }`}
                               style={{
                                 height: `${unproductivePercentage}%`,
                                 backgroundColor: processColor(notionStyleCategoryColors[1], {
@@ -190,12 +196,24 @@ export function WeekOverWeekComparison({
                               }}
                             />
                           )}
+                          {totalProductiveDuration > 0 && (
+                            <div
+                              className={`w-full transition-all duration-300 ${
+                                totalUnproductiveDuration > 0 ? 'rounded-b-sm' : 'rounded-sm'
+                              }`}
+                              style={{
+                                height: `${productivePercentage}%`,
+                                backgroundColor: processColor(notionStyleCategoryColors[0], {
+                                  isDarkMode,
+                                  opacity: isDarkMode ? 0.7 : 0.6
+                                })
+                              }}
+                            />
+                          )}
                         </div>
                       ) : (
                         <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-sm flex items-center justify-center">
-                          <Badge variant="secondary" className="text-xs">
-                            No data
-                          </Badge>
+                          <div className="text-xs text-muted-foreground">No data</div>
                         </div>
                       )}
                     </div>
@@ -206,35 +224,19 @@ export function WeekOverWeekComparison({
           </div>
 
           <div className="grid grid-cols-4 gap-2 mt-2">
-            {weekData.map((week, index) => {
-              const productivePercentage =
-                week.totalWeekDuration > 0
-                  ? (week.totalProductiveDuration / week.totalWeekDuration) * 100
-                  : 0
-              const unproductivePercentage =
-                week.totalWeekDuration > 0
-                  ? (week.totalUnproductiveDuration / week.totalWeekDuration) * 100
-                  : 0
-
-              return (
-                <div key={index} className="text-left text-xs">
-                  {week.totalWeekDuration > 0 ? (
-                    <>
-                      <div className="text-foreground font-medium">
-                        Productive: {formatHours(week.totalProductiveDuration)} (
-                        {Math.round(productivePercentage)}%)
-                      </div>
-                      <div className="text-foreground font-medium">
-                        Unproductive: {formatHours(week.totalUnproductiveDuration)} (
-                        {Math.round(unproductivePercentage)}%)
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-muted-foreground">No tracking</div>
-                  )}
-                </div>
-              )
-            })}
+            {weekData.map((week, index) => (
+              <div key={index} className="text-left text-xs">
+                {week.totalWeekDuration > 0 ? (
+                  <ProductiveVsUnproductiveDisplay
+                    productiveDuration={week.totalProductiveDuration}
+                    unproductiveDuration={week.totalUnproductiveDuration}
+                    isDarkMode={isDarkMode}
+                  />
+                ) : (
+                  <div className="text-muted-foreground">No tracking</div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -26,7 +26,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
           key={hour}
           hour={hour}
           isCurrentHour={hour === currentHour}
-          isSelectedHour={selectedHour === hour}
+          selectedHour={selectedHour}
           currentHourRef={hour === currentHour ? currentHourRef : null}
           isLastHour={hour === 23}
           hourHeight={hourHeight}

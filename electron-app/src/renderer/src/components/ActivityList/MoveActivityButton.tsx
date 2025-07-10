@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
 interface MoveActivityButtonProps {
   activity: ActivityItem
@@ -45,7 +45,9 @@ export const MoveActivityButton = ({
   setHoveredActivityKey,
   onAddNewCategory
 }: MoveActivityButtonProps) => {
-  if (otherCategories.length === 1) {
+  const activeCategories = otherCategories.filter((c) => !c.isArchived)
+
+  if (activeCategories.length === 1) {
     return (
       <Button
         variant="outline"
@@ -53,14 +55,14 @@ export const MoveActivityButton = ({
         className="h-5 px-2 py-1 text-xs"
         onClick={(e) => {
           e.stopPropagation()
-          handleMoveActivity(activity, otherCategories[0]._id)
+          handleMoveActivity(activity, activeCategories[0]._id)
         }}
         disabled={isMovingActivity}
       >
         {isMovingActivity
           ? 'Moving...'
-          : `Move: ${otherCategories[0].name.substring(0, 10)}${
-              otherCategories[0].name.length > 10 ? '...' : ''
+          : `Move: ${activeCategories[0].name.substring(0, 10)}${
+              activeCategories[0].name.length > 10 ? '...' : ''
             }`}
       </Button>
     )
@@ -76,28 +78,26 @@ export const MoveActivityButton = ({
         }
       }}
     >
-      <TooltipProvider>
-        <Tooltip delayDuration={250}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-5 px-2 py-1 text-xs"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Move to...
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent>
-            Move this activity to another category{' '}
-            {getTimeRangeDescription(selectedHour, selectedDay, viewMode, startDateMs, endDateMs)}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip delayDuration={250}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-5 px-2 py-1 text-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Move to...
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          Move this activity to another category{' '}
+          {getTimeRangeDescription(selectedHour, selectedDay, viewMode, startDateMs, endDateMs)}
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-        {otherCategories.map((targetCat) => (
+        {activeCategories.map((targetCat) => (
           <DropdownMenuItem
             key={targetCat._id}
             onClick={(e) => {

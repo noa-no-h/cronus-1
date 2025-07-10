@@ -1,17 +1,17 @@
 import { endOfDay, startOfDay } from 'date-fns'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ActivityEventSuggestion } from 'shared'
-import { useAuth } from '../../contexts/AuthContext'
-import { useManualEntry } from '../../hooks/useManualEntry'
-import { useTimeSelection } from '../../hooks/useTimeSelection'
-import { hexToRgba } from '../../lib/colors'
+import { useAuth } from '../../../contexts/AuthContext'
+import { useManualEntry } from '../../../hooks/useManualEntry'
+import { useTimeSelection } from '../../../hooks/useTimeSelection'
+import { hexToRgba } from '../../../lib/colors'
 import {
   convertYToTime,
   getTimelineSegmentsForDay,
   type DaySegment,
   type TimeBlock
-} from '../../lib/dayTimelineHelpers'
-import { trpc } from '../../utils/trpc'
+} from '../../../lib/dayTimelineHelpers'
+import { trpc } from '../../../utils/trpc'
 import { CreateEntryModal } from './CreateEntryModal'
 import { EventSegments } from './EventSegments'
 import { TimelineGrid } from './TimelineGrid'
@@ -106,7 +106,8 @@ const DayTimeline = ({
     (startTime, endTime) => {
       openNewEntryModal(startTime, endTime)
     },
-    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving
+    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving,
+    dayForEntries
   )
 
   const { data: suggestions, refetch: refetchSuggestions } = trpc.suggestions.list.useQuery(

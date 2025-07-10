@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useDarkMode } from '../../hooks/useDarkMode'
@@ -8,9 +8,9 @@ import type { TimeBlock } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
-import CalendarZoomControls from './CalendarZoomControls'
-import DayTimeline from './DayTimeline'
-import WeekView from './WeekView'
+import CalendarZoomControls from './DayTimeline/CalendarZoomControls'
+import DayTimeline from './DayTimeline/DayTimeline'
+import WeekView from './WeekView/WeekView'
 
 interface CalendarWidgetProps {
   selectedDate: Date
@@ -26,6 +26,7 @@ interface CalendarWidgetProps {
   onDaySelect: (day: Date | null) => void
   weekViewMode: 'stacked' | 'grouped'
   onWeekViewModeChange: (mode: 'stacked' | 'grouped') => void
+  isLoading?: boolean
 }
 
 const CalendarWidget = ({
@@ -40,7 +41,8 @@ const CalendarWidget = ({
   selectedDay,
   onDaySelect,
   weekViewMode,
-  onWeekViewModeChange
+  onWeekViewModeChange,
+  isLoading = false
 }: CalendarWidgetProps): JSX.Element => {
   const currentTime = useCurrentTime()
   const isDarkMode = useDarkMode()
@@ -215,7 +217,7 @@ const CalendarWidget = ({
   return (
     <div
       className={`relative flex select-none flex-col bg-card border-1 border border-border rounded-lg ${
-        viewMode === 'week' ? 'h-96' : 'h-full'
+        viewMode === 'week' ? 'h-[30rem]' : 'h-full'
       }`}
     >
       <CalendarWidgetHeader
@@ -241,6 +243,7 @@ const CalendarWidget = ({
             selectedDate={selectedDate}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
+            isLoading={isLoading}
           />
         ) : (
           <DayTimeline

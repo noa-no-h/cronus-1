@@ -91,7 +91,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
-          <img src={icon} alt="Cronus" className="w-24 h-24 mx-auto rounded-lg shadow-lg" />
+          <img
+            src={icon}
+            alt="Cronus"
+            className="w-24 h-24 mx-auto rounded-lg drop-shadow-lg border border-gray-200"
+          />
           <div className="text-7xl mb-6">Cronus</div>
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             We&apos;ll help you stay focused and track your productivity throughout the day.

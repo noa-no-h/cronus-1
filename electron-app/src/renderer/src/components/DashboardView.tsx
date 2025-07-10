@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
 import type { ReactElement } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
+import { useDarkMode } from '../hooks/useDarkMode'
 import { REFRESH_EVENTS_INTERVAL_MS } from '../lib/constants'
 import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
+import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductiveHoursChart'
+import WeekBreakdown from './CalendarWidget/WeekView/WeekBreakdown'
+import { WeeklyProductivity } from './CalendarWidget/WeekView/WeeklyProductivity'
 import { TutorialModal } from './TutorialModal'
-import { WeekOverWeekComparison } from './CalendarWidget/WeekOverWeekComparison'
-import { ProductivityTrendChart } from './CalendarWidget/ProductivityTrendChart'
-import { TotalTimeLoggedChart } from './CalendarWidget/TotalTimeLoggedChart'
-import { useDarkMode } from '../hooks/useDarkMode'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -64,6 +64,7 @@ const convertCalendarEventToBlock = (event: CalendarEvent): ProcessedEventBlock 
     isProductive: undefined,
     originalEvent: {
       _id: event.id,
+      userId: 'calendar',
       ownerName: 'Google Calendar',
       title: event.summary,
       url: undefined,
@@ -125,26 +126,26 @@ export function DashboardView({
         setStartDateMs(startOfDay.getTime())
         setEndDateMs(endOfDay.getTime())
       } else {
-        // Week view - get data for last 4 weeks
-        const endOfCurrentWeek = new Date(selectedDate)
-        const dayOfWeek = endOfCurrentWeek.getDay()
-        const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
-        endOfCurrentWeek.setDate(endOfCurrentWeek.getDate() + daysToSunday)
-        endOfCurrentWeek.setHours(23, 59, 59, 999)
+        // Week view - get data for the 4 weeks ending with the selected date's week
+        const endOfWeek = new Date(selectedDate)
+        // Adjust to the end of the week (Sunday)
+        endOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay() + 7)
+        endOfWeek.setHours(23, 59, 59, 999)
 
-        const startOfFourWeeksAgo = new Date(endOfCurrentWeek)
-        startOfFourWeeksAgo.setDate(startOfFourWeeksAgo.getDate() - 28) // Go back 4 weeks
-        startOfFourWeeksAgo.setHours(0, 0, 0, 0)
+        const startOfFourWeeks = new Date(selectedDate)
+        // Go back to the Monday of the week 3 weeks prior
+        startOfFourWeeks.setDate(selectedDate.getDate() - selectedDate.getDay() - 3 * 7 + 1)
+        startOfFourWeeks.setHours(0, 0, 0, 0)
 
         console.log('Date range for fetching:', {
-          start: startOfFourWeeksAgo.toISOString(),
-          end: endOfCurrentWeek.toISOString(),
+          start: startOfFourWeeks.toISOString(),
+          end: endOfWeek.toISOString(),
           viewMode,
           selectedDate: selectedDate.toISOString()
         })
 
-        setStartDateMs(startOfFourWeeksAgo.getTime())
-        setEndDateMs(endOfCurrentWeek.getTime())
+        setStartDateMs(startOfFourWeeks.getTime())
+        setEndDateMs(endOfWeek.getTime())
       }
     }
 
@@ -290,6 +291,17 @@ export function DashboardView({
     setSelectedDay(day)
   }
 
+  const handleDaySelectAndSwitch = (day: Date | null): void => {
+    if (day) {
+      setSelectedDate(day)
+      setViewMode('day')
+      setSelectedHour(null) // Reset hour selection
+      setSelectedDay(null) // Reset day selection in week context
+    } else {
+      setSelectedDay(null)
+    }
+  }
+
   return (
     <div
       className={`flex-1 flex flex-row overflow-hidden min-h-0 px-2 pb-2 space-x-2 ${className}`}
@@ -327,25 +339,35 @@ export function DashboardView({
           selectedHour={selectedHour}
           onHourSelect={handleHourSelect}
           selectedDay={selectedDay}
-          onDaySelect={handleDaySelect}
+          onDaySelect={handleDaySelectAndSwitch}
           weekViewMode={weekViewMode}
           onWeekViewModeChange={setWeekViewMode}
+          isLoading={isLoadingEvents}
         />
         {viewMode === 'week' && (
-          <WeekOverWeekComparison
+          <WeekBreakdown
+            processedEvents={trackedProcessedEvents}
+            isDarkMode={isDarkMode}
+            isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
+          />
+        )}
+        {viewMode === 'week' && (
+          <WeeklyProductivity
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
             weekViewMode={weekViewMode}
+            isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
           />
         )}
         {viewMode === 'week' && (
           <ProductivityTrendChart
             processedEvents={trackedProcessedEvents}
             isDarkMode={isDarkMode}
+            isLoading={isLoadingEvents}
+            viewingDate={selectedDate}
           />
-        )}
-        {viewMode === 'week' && (
-          <TotalTimeLoggedChart processedEvents={trackedProcessedEvents} isDarkMode={isDarkMode} />
         )}
       </div>
       <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />

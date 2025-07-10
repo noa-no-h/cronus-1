@@ -5,16 +5,13 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
       <main className="pt-16 tablet:pt-[90px] px-4 tablet:px-12 desktop:px-[180px] py-12">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl tablet:text-4xl font-bold text-primary mb-8">Privacy Policy</h1>
-
           <div className="prose prose-lg max-w-none text-primary space-y-6">
             <p className="text-lg text-primary-80">
               Last updated: {new Date().toLocaleDateString()}
             </p>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Information We Collect</h2>
               <p>
@@ -29,7 +26,6 @@ export default function PrivacyPage() {
                 <li>Device information (such as your operating system and application usage)</li>
               </ul>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">How We Use Information</h2>
               <p>We use the information we collect to:</p>
@@ -40,7 +36,6 @@ export default function PrivacyPage() {
                 <li>Protect Cronus and our users</li>
               </ul>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Third-Party Services</h2>
               <p>
@@ -71,14 +66,12 @@ export default function PrivacyPage() {
                 service.
               </p>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">
-                Google API Services User Data Policy Compliance
+                Google API Services and Limited Use Disclosure
               </h2>
               <p>
-                Cronus&apos;s use and transfer of information received from Google APIs will adhere
-                to the{' '}
+                The use of information received from Google APIs will adhere to the{' '}
                 <a
                   href="https://developers.google.com/terms/api-services-user-data-policy"
                   target="_blank"
@@ -87,12 +80,42 @@ export default function PrivacyPage() {
                 >
                   Google API Services User Data Policy
                 </a>
-                , including the Limited Use requirements. We only use your Google data to provide
-                and improve our services, and we never sell or share your data with third parties
-                except as necessary to operate and enhance Cronus.
+                , including the Limited Use requirements.
               </p>
+              <p className="mt-4">
+                <strong>Limited Use Disclosure:</strong> Our application&apos;s use of information
+                received from Google Workspace APIs will adhere to{' '}
+                <a
+                  href="https://developers.google.com/workspace/workspace-api-user-data-developer-policy#limited-use"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Google&apos;s Limited Use requirements
+                </a>
+                . The use of information received from Google Workspace APIs will adhere to the
+                Limited Use requirements. Specifically, we affirm that:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>
+                  We only use Google user data to provide and improve our time tracking and
+                  productivity analysis services.
+                </li>
+                <li>We do not use Google user data for serving advertisements.</li>
+                <li>
+                  We do not allow humans to read Google user data unless:
+                  <ul className="list-disc pl-6 mt-2">
+                    <li>We have your explicit consent</li>
+                    <li>It is necessary for security purposes</li>
+                    <li>It is required to comply with applicable laws</li>
+                  </ul>
+                </li>
+                <li>
+                  We do not sell Google user data or share it with third parties except as necessary
+                  to provide and improve our services.
+                </li>
+              </ul>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Information Sharing</h2>
               <p>
@@ -101,7 +124,6 @@ export default function PrivacyPage() {
                 for advertising or marketing purposes.
               </p>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Data Security</h2>
               <p>
@@ -110,7 +132,6 @@ export default function PrivacyPage() {
                 reputable third-party services that maintain their own security practices.
               </p>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Data Retention</h2>
               <p>
@@ -119,7 +140,6 @@ export default function PrivacyPage() {
                 personal information, we securely delete or anonymize it.
               </p>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Your Rights</h2>
               <p>You have the right to:</p>
@@ -131,13 +151,11 @@ export default function PrivacyPage() {
                 <li>Request data portability</li>
               </ul>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Contact Us</h2>
               <p>If you have any questions about this Privacy Policy, please contact us at:</p>
               <p>Email: wallawitsch@gmail.com</p>
             </section>
-
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Changes to This Policy</h2>
               <p>
@@ -149,7 +167,6 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

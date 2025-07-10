@@ -6,7 +6,7 @@ import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 
-const DistractionSoundSettings = () => {
+export const DistractionSoundSettings = () => {
   const { token } = useAuth()
   const [playDistractionSound, setPlayDistractionSound] = useState(true)
   const [distractionSoundInterval, setDistractionSoundInterval] = useState(30) // in seconds
@@ -179,5 +179,3 @@ const DistractionSoundSettings = () => {
     </Card>
   )
 }
-
-export default DistractionSoundSettings

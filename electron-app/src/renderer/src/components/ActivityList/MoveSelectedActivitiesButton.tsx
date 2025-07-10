@@ -30,18 +30,23 @@ export const MoveSelectedActivitiesButton = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {otherCategories.map((targetCat) => (
-          <DropdownMenuItem
-            key={targetCat._id}
-            onClick={() => handleMove(targetCat._id)}
-            disabled={isMoving}
-          >
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: targetCat.color }} />
-              {targetCat.name}
-            </span>
-          </DropdownMenuItem>
-        ))}
+        {otherCategories
+          .filter((c) => !c.isArchived)
+          .map((targetCat) => (
+            <DropdownMenuItem
+              key={targetCat._id}
+              onClick={() => handleMove(targetCat._id)}
+              disabled={isMoving}
+            >
+              <span className="flex items-center gap-2">
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: targetCat.color }}
+                />
+                {targetCat.name}
+              </span>
+            </DropdownMenuItem>
+          ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddNewCategory}>
           <span className="flex items-center gap-2">
