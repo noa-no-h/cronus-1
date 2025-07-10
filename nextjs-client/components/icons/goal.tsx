@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react';
+import { cn } from '~/lib/cn';
 
-export function Goal({ className = 'text-icon-muted', ...props }: ComponentProps<'svg'>) {
+export function Goal({ className, ...props }: ComponentProps<'svg'>) {
   return (
     <svg
       width="24"
@@ -8,7 +9,7 @@ export function Goal({ className = 'text-icon-muted', ...props }: ComponentProps
       viewBox="0 0 24 25"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
+      className={cn('text-icon-muted',className)}
       {...props}
     >
       <g clipPath="url(#clip0_234_698)">
