@@ -35,7 +35,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               'text-primary',
               'p-8 desktop:py-9 desktop:px-[56px]',
               'border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300',
-              'w-full tablet:w-[357px] desktop:w-[464px]'
+              'w-full tablet:w-[400px] desktop:w-[470px]'
             )}
           >
             <h5 className="flex items-center gap-1.5">
@@ -59,7 +59,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Goal className="size-6 text-icon-muted" />
+                <Goal className="size-6 text-accent/80" />
                 Goal-aware distraction nudging
               </li>
               <li
@@ -69,7 +69,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <List className="size-6 text-icon-muted" />
+                <List className="size-6 text-accent/80" />
                 Passive + contextual
               </li>
               <li
@@ -79,7 +79,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'gap-6 tablet:gap-4 desktop:gap-6'
                 )}
               >
-                <Device className="size-6 text-icon-muted" />
+                <Device className="size-6 text-accent/80" />
                 Cross-device analysis
               </li>
               <li
@@ -90,7 +90,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
                   'whitespace-nowrap'
                 )}
               >
-                <Pencil className="size-6 text-icon-muted" />
+                <Pencil className="size-6 text-accent/80" />
                 Clean, proactive design
               </li>
             </ul>
@@ -100,7 +100,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
             className={cn(
               'bg-zinc-50 text-primary',
               'p-8 desktop:py-9 desktop:px-14',
-              'w-full tablet:w-[357px] desktop:w-[464px]'
+              'w-full tablet:w-[400px] desktop:w-[470px]'
             )}
           >
             <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-8 whitespace-nowrap">

@@ -11,7 +11,7 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
   return (
     <section
       className={cn(
-        'bg-zinc-100 overflow-hidden',
+        'bg-zinc-100/50 overflow-hidden',
         'py-16 tablet:py-30',
         'space-y-20 tablet:space-y-30',
         'flex flex-col items-center',

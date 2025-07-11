@@ -2,20 +2,27 @@ import Link from 'next/link';
 import { NavigationMenu } from 'radix-ui';
 import { cn } from '~/lib/cn';
 
+const NavbarItem = ({ href, children }: { href: string; children: React.ReactNode }) => {
+  return (
+    <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-neutral-300 tablet:border-b-0">
+      <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
+        <Link
+          href={href}
+          className="text-sm tablet:text-base text-primary/80 hover:text-primary/50 transition-colors font-normal"
+        >
+          {children}
+        </Link>
+      </NavigationMenu.Link>
+    </NavigationMenu.Item>
+  );
+};
+
 export function Navbar({ className }: { className?: string }) {
   return (
     <NavigationMenu.Root>
       <NavigationMenu.List className={cn('flex items-center', 'text-sm', className)}>
-        <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-neutral-300 tablet:border-b-0">
-          <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
-            <Link
-              href="/blog"
-              className="text-primary hover:text-primary/60 transition-colors font-semibold"
-            >
-              Blog
-            </Link>
-          </NavigationMenu.Link>
-        </NavigationMenu.Item>
+        <NavbarItem href="/blog">Blog</NavbarItem>
+        <NavbarItem href="/about">About</NavbarItem>
 
         {/* <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-[#CDCDCD] tablet:border-b-0">
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
