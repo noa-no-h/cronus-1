@@ -7,11 +7,11 @@ export function Clock() {
   return (
     <div
       className={cn(
-        'absolute inset-x-0 top-[240px] tablet:top-[180px] desktop:top-[120px]',
+        'absolute inset-x-0 top-[220px] tablet:top-[180px] desktop:top-[120px]',
         'h-full rotate-x-[72deg] translate-y-[-320px] text-accent/70'
       )}
     >
-      <div className="absolute top-0 inset-x-0 left-1/2 -translate-x-1/2 z-10 w-[1800px] h-[1000px] bg-gradient-to-t from-transparent to-white" />
+      <div className="absolute top-0 inset-x-0 left-1/2 -translate-x-1/2 z-10 w-[1800px] h-[1000px] bg-gradient-to-t from-transparent to-white/90" />
       <ClockScale className="w-[722px] tablet:w-[1172px] absolute left-1/2 -translate-x-1/2 animate-[spin_222s_linear_infinite]" />
     </div>
   );
