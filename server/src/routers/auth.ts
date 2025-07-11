@@ -47,6 +47,9 @@ const findOrCreateUserAndOnboard = async (payload: TokenPayload): Promise<IUser>
 
     try {
       const firstName = payload.name ? payload.name.split(' ')[0] : '';
+      const lastName = payload.name ? payload.name.split(' ').slice(1).join(' ') : '';
+
+      // Send welcome email to new user
       await loops.sendTransactionalEmail({
         transactionalId: 'cmcsc5r410gblzn0juvq2vsxb',
         email: payload.email!,
@@ -54,8 +57,40 @@ const findOrCreateUserAndOnboard = async (payload: TokenPayload): Promise<IUser>
           datavariable: firstName,
         },
       });
+
+      // Add user to Loops audience
+      await loops.createContact({
+        email: payload.email!,
+        firstName: firstName,
+        lastName: lastName,
+        source: 'Cronus App Signup',
+      } as any);
+
+      // Send notification to you about new signup to arne
+      await loops.sendTransactionalEmail({
+        transactionalId: 'cmcywrw9709mz350i5kxqllir',
+        email: 'arne.strickmann@googlemail.com',
+        dataVariables: {
+          userEmail: payload.email!,
+          userName: payload.name || 'Unknown',
+          signUpDate: new Date().toLocaleString(),
+        },
+      });
+
+      // Send notification to you about new signup to moritz
+      await loops.sendTransactionalEmail({
+        transactionalId: 'cmcywrw9709mz350i5kxqllir',
+        email: 'wallawitsch@gmail.com',
+        dataVariables: {
+          userEmail: payload.email!,
+          userName: payload.name || 'Unknown',
+          signUpDate: new Date().toLocaleString(),
+        },
+      });
+
+      console.log('✅ New user added to Loops and notifications sent:', payload.email);
     } catch (error) {
-      console.error('Loops API error:', error);
+      console.error('❌ Loops API error:', error);
     }
   }
 
