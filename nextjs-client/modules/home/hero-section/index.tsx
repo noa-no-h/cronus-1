@@ -3,21 +3,14 @@ import { TextLogo } from '~/components/logo';
 import DownloadButton from '~/components/ui/download-button';
 import { cn } from '~/lib/cn';
 
-import { TimerFrame } from './timer-frame';
+import { Clock } from './clock';
 import { LeftFrame } from './left-frame';
 import { RightFrame } from './right-frame';
-import { Clock } from './clock';
+import { TimerFrame } from './timer-frame';
 
 export function HeroSection({ className, ...props }: ComponentProps<'section'>) {
   return (
-    <section
-      className={cn(
-        'bg-zinc-200 relative overflow-hidden',
-        'pt-[62px] tablet:pt-[114px]',
-        className
-      )}
-      {...props}
-    >
+    <section className={cn('relative overflow-hidden', 'pt-16 tablet:pt-24', className)} {...props}>
       <Clock />
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">

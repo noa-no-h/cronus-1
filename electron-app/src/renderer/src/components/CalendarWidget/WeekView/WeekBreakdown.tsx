@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { hexToRgba } from '../../../lib/colors'
 import { formatDuration } from '../../../lib/timeFormatting'
 import type { ProcessedEventBlock } from '../../DashboardView'
 import { notionStyleCategoryColors } from '../../Settings/CategoryForm'
@@ -119,13 +120,13 @@ const WeekBreakdown = ({
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={80}
+              outerRadius={96}
               fill="#8884d8"
               dataKey="totalDurationMs"
               nameKey="name"
             >
               {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell key={`cell-${index}`} fill={hexToRgba(entry.color, 0.7)} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />

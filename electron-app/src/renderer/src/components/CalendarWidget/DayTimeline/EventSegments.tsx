@@ -6,7 +6,7 @@ import {
 } from '@renderer/components/ui/context-menu'
 import clsx from 'clsx'
 import { endOfDay, startOfDay } from 'date-fns'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import React from 'react'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../../../lib/colors'
 import { type DaySegment } from '../../../lib/dayTimelineHelpers'
@@ -150,7 +150,7 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
         const zIndexClass = isCalendarEvent ? 'z-20' : 'z-10'
 
         const segmentDiv = (
-          <motion.div
+          <div
             data-is-segment="true"
             className={clsx(
               'group transition-all overflow-hidden',
@@ -174,14 +174,6 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
                   ? 0.5
                   : 1
             }}
-            initial={{ opacity: 0, x: -4 }}
-            animate={{ opacity: 0.8, x: 0 }}
-            exit={{ opacity: 0, x: -4 }}
-            transition={{
-              delay: index * 0.04,
-              duration: 0.2,
-              ease: [0.16, 1, 0.3, 1]
-            }}
             onMouseDown={(e) => {
               if (canInteract) {
                 onMoveStart(segment, e)
@@ -197,15 +189,12 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
             <TimelineSegmentContent segment={segment} isDarkMode={isDarkMode} />
             {canInteract && (
               <>
-                <motion.div
+                <div
                   className="absolute top-0 left-0 right-0 h-4 -translate-y-1/2 cursor-row-resize z-30 group"
                   onMouseDown={(e) => {
                     e.stopPropagation()
                     onResizeStart(segment, 'top', e)
                   }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.04 + 0.1 }}
                 >
                   <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="w-4 h-3 flex flex-col justify-between">
@@ -213,16 +202,13 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
                       <div className="w-full h-[2px] bg-gray-400 dark:bg-gray-500 rounded-full" />
                     </div>
                   </div>
-                </motion.div>
-                <motion.div
+                </div>
+                <div
                   className="absolute bottom-0 left-0 right-0 h-4 translate-y-1/2 cursor-row-resize z-30 group"
                   onMouseDown={(e) => {
                     e.stopPropagation()
                     onResizeStart(segment, 'bottom', e)
                   }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.04 + 0.1 }}
                 >
                   <div className="flex items-center justify-center h-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="w-4 h-3 flex flex-col justify-between">
@@ -230,10 +216,10 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
                       <div className="w-full h-[2px] bg-gray-400 dark:bg-gray-500 rounded-full" />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </>
             )}
-          </motion.div>
+          </div>
         )
 
         const content = (

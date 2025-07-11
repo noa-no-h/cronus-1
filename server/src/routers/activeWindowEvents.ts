@@ -23,8 +23,6 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
-    console.log('input in create activeWindowEventsRouter:', input);
-
     const decodedToken = verifyToken(input.token);
     const userId = decodedToken.userId;
 
@@ -220,6 +218,7 @@ export const activeWindowEventsRouter = router({
           new: true,
         });
         if (!updatedEvent) {
+          console.error(`Attempted to update a manual event that was not found. ID: ${id}`);
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
         }
         return updatedEvent.toObject() as ActiveWindowEvent;
@@ -319,6 +318,7 @@ export const activeWindowEventsRouter = router({
       try {
         const deletedEvent = await ActiveWindowEventModel.findByIdAndDelete(id);
         if (!deletedEvent) {
+          console.error(`Attempted to delete a manual event that was not found. ID: ${id}`);
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
         }
         return { success: true };

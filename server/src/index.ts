@@ -71,18 +71,6 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
-
-// Use JSON parser for all non-webhook routes
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/webhooks/stripe') {
-    next();
-  } else {
-    express.json({ limit: '5mb' })(req, res, next);
-  }
-});
-
 // Simple webhook handler
 app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'] as string;
@@ -127,6 +115,9 @@ app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), asyn
     res.status(400).send(`Webhook Error: ${err.message}`);
   }
 });
+
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 // Use the sitemap router
 app.use(sitemapRouter);

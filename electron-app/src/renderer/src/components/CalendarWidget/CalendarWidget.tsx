@@ -49,8 +49,10 @@ const CalendarWidget = ({
   const [wasSetToToday, setWasSetToToday] = useState(false)
   const width = useWindowWidth()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [hourHeight, setHourHeight] = useState(4) // Default: 64px -> 4rem
+  const [hourHeight, setHourHeight] = useState(5) // Default: 80px -> 5rem
   const { token } = useAuth()
+  const [animationDirection, setAnimationDirection] = useState<'prev' | 'next' | 'none'>('none')
+
   const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery(
     { token: token || '' },
     { enabled: !!token }
@@ -154,6 +156,7 @@ const CalendarWidget = ({
   )
 
   const handlePrev = () => {
+    setAnimationDirection('prev')
     const newDate = new Date(selectedDate)
     const delta = viewMode === 'week' ? 7 : 1
     newDate.setDate(newDate.getDate() - delta)
@@ -161,6 +164,7 @@ const CalendarWidget = ({
   }
 
   const handleNext = () => {
+    setAnimationDirection('next')
     const newDate = new Date(selectedDate)
     const delta = viewMode === 'week' ? 7 : 1
     newDate.setDate(newDate.getDate() + delta)
@@ -174,6 +178,11 @@ const CalendarWidget = ({
     if (newDate <= today) {
       onDateChange(newDate)
     }
+  }
+
+  const handleDateSelect = (date: Date) => {
+    setAnimationDirection('none')
+    onDateChange(date)
   }
 
   const handleZoomIn = () => {
@@ -231,7 +240,7 @@ const CalendarWidget = ({
         onViewModeChange={onViewModeChange}
         weekViewMode={weekViewMode}
         setWeekViewMode={onWeekViewModeChange}
-        onDateSelect={onDateChange}
+        onDateSelect={handleDateSelect}
       />
 
       <div className="flex-grow overflow-auto" ref={scrollContainerRef}>
@@ -257,6 +266,7 @@ const CalendarWidget = ({
             isDarkMode={isDarkMode}
             hourHeight={hourHeight}
             scrollContainerRef={scrollContainerRef}
+            animationDirection={animationDirection}
           />
         )}
       </div>
