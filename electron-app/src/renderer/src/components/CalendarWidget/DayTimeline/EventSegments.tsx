@@ -222,46 +222,51 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
           </div>
         )
 
-        const content = (
-          <ContextMenu>
-            <ContextMenuTrigger>{segmentDiv}</ContextMenuTrigger>
+        if (isGroupedCalendarEvent) {
+          return (
+            <ContextMenu key={segment._id || `${segment.startTime}-${segment.name}`}>
+              <ContextMenuTrigger>
+                <MultiCalendarEventTooltip events={segment.groupedEvents!}>
+                  {segmentDiv}
+                </MultiCalendarEventTooltip>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
+                  Delete Segment
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        }
+
+        if (isCalendarEvent) {
+          return (
+            <ContextMenu key={segment._id || `${segment.startTime}-${segment.name}`}>
+              <ContextMenuTrigger>
+                <CalendarEventTooltip event={segment.originalEvent}>
+                  {segmentDiv}
+                </CalendarEventTooltip>
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
+                  Delete Segment
+                </ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>
+          )
+        }
+
+        return (
+          <ContextMenu key={segment._id || `${segment.startTime}-${segment.name}`}>
+            <ContextMenuTrigger>
+              <TimelineSegmentTooltip segment={segment}>{segmentDiv}</TimelineSegmentTooltip>
+            </ContextMenuTrigger>
             <ContextMenuContent>
               <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
                 Delete Segment
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-        )
-
-        if (isGroupedCalendarEvent) {
-          return (
-            <MultiCalendarEventTooltip
-              key={segment._id || `${segment.startTime}-${segment.name}`}
-              events={segment.groupedEvents!}
-            >
-              {content}
-            </MultiCalendarEventTooltip>
-          )
-        }
-
-        if (isCalendarEvent) {
-          return (
-            <CalendarEventTooltip
-              key={segment._id || `${segment.startTime}-${segment.name}`}
-              event={segment.originalEvent}
-            >
-              {content}
-            </CalendarEventTooltip>
-          )
-        }
-
-        return (
-          <TimelineSegmentTooltip
-            key={segment._id || `${segment.startTime}-${segment.name}`}
-            segment={segment}
-          >
-            {content}
-          </TimelineSegmentTooltip>
         )
       })}
     </AnimatePresence>
