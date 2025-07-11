@@ -334,9 +334,16 @@ export function MainAppContent(): React.ReactElement {
     }
   }, [])
 
-  // auto open mini timer when onboarding is completed and the user is authenticated
+  // Auto-show floating window only after user completes onboarding and is authenticated
   useEffect(() => {
-    if (isAuthenticated && !showOnboarding && window.electron?.ipcRenderer) {
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    if (
+      isAuthenticated &&
+      !showOnboarding &&
+      hasCompletedOnboarding &&
+      window.electron?.ipcRenderer
+    ) {
       window.electron.ipcRenderer.send('show-floating-window')
     }
   }, [isAuthenticated, showOnboarding])
