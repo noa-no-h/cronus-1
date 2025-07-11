@@ -11,6 +11,7 @@ import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
+import dominik from './dominikfink.jpeg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -63,14 +64,21 @@ const testimonials = [
     content:
       'Cronus has completely transformed how I manage my time by automatically tracking my work and distractions with impressive accuracy - really helped me getting more done.',
   },
+  {
+    name: 'Dominik Fink',
+    title: 'Product Manager',
+    avatar: dominik,
+    content:
+      'As a PM, context switching is constant — meetings, docs, Slack, planning. Cronus helps me protect focus time and make better use of deep work hours.',
+  },
 ];
 
-const data = [...testimonials,...testimonials].map((item,idx) => ({index:idx,...item}) )
+const data = [...testimonials, ...testimonials].map((item, idx) => ({ index: idx, ...item }));
 
 export function TestimonialsSection({ className, ...props }: ComponentProps<'section'>) {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true });
-  
+
   const [emblaRef] = useEmblaCarousel(
     {
       loop: true,
@@ -88,9 +96,12 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
     ]
   );
 
-
   return (
-    <section ref={sectionRef} className={cn('bg-zinc-100 py-16 tablet:py-30 desktop:py-40', className)} {...props}>
+    <section
+      ref={sectionRef}
+      className={cn('bg-zinc-100 py-16 tablet:py-30 desktop:py-40', className)}
+      {...props}
+    >
       <h3 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
         What our users are saying
       </h3>
