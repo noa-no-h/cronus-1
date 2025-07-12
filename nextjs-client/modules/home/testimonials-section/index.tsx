@@ -4,6 +4,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useInView } from 'framer-motion';
 import { useRef, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
+import dominik from './dominikfink.jpeg';
 import freddy from './freddy-feldmeier.png';
 import koii from './koii-benvenutto.jpeg';
 import leander from './leander-maerkisch.png';
@@ -11,7 +12,6 @@ import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
-import dominik from './dominikfink.jpeg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -20,7 +20,7 @@ const testimonials = [
     title: 'Head of Growth at Runpod',
     avatar: luke,
     content:
-      'I thought I was working 12-hour days, but Cronus showed me the reality. After a gym session and lunch, I was surprised to see three hours had passed. Understanding where my time truly goes allows me to re-allocate it, work more, and be more productive.',
+      'I thought I was working 12-hour days, but Cronus showed me the reality. After a gym session and lunch, I was surprised to see three hours had passed.',
   },
   {
     name: 'Leander Märkisch',
