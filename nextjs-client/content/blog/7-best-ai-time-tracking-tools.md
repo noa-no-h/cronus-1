@@ -1,6 +1,6 @@
 ---
 title: '7 Best AI Time Tracking Tools'
-excerpt: 'A list of the best AI time tracking tools for 2025.'
+excerpt: 'A list of the best AI time tracking tools for 2025. Includes Cronus, Rize, RescueTime, Early (Timeular), Memtime, Timely, and ManicTime.'
 date: '2025-07-09'
 category: 'Product'
 readTime: '4 min read'
@@ -19,7 +19,7 @@ Here's a clear breakdown of their strengths and weaknesses based on real user ex
 
 ## 1. Cronus: Smart, Free, and Truly AI-Powered
 
-Cronus distinguishes itself by genuinely leveraging AI to understand your tasks. It uses local OCR and sophisticated AI models to automatically differentiate between productive tasks and distractions—meaning no rigid keyword rules.
+Cronus distinguishes itself by genuinely leveraging AI to understand your tasks. It uses local OCR and sophisticated AI models to automatically differentiate between productive tasks and distractions—meaning no rigid keyword rules. Cronus is the only true "AI time tracking" tool that we could find. It is truly automatic and categorizes all your time without your input.
 
 It's completely free (affordable pricing planned), has a sleek interface with a mini-timer to help you stay focused and gamify productivity. A mobile app that integrates both desktop and mobile screen time is in development. Instead of clunky reports, Cronus provides AI-driven insights and subtle nudges to help you focus on what matters. Cronus even pulls in your calendar events with AI to log offline time (e.g. meetings or lunch) automatically, or you can add manual entries in one click.
 
@@ -61,7 +61,17 @@ Memtime advertises automatic time tracking but, in practice, still requires exte
 
 We also found online discussions about concerning billing practices and customer service, with users reporting aggressive tactics like debt collection notices for expired subscriptions plus hefty fees[^2](https://www.reddit.com/r/Autotask/comments/1isc7mj/comment/mpgsnds/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button).
 
-## 6. ManicTime: Powerful, but Dated
+## 6. Timely: Sophisticated but Manual
+
+Timely offers a sophisticated approach to time tracking with its cloud-based Memory app that runs in the background, capturing your activities across applications, websites, and meetings. The calendar-style interface is visually appealing and makes it easy to visualize how your day was spent.
+
+The standout feature is Timely's AI-powered suggestions, which analyze your tracked activities and propose how time should be categorized across projects and tasks. This can be genuinely helpful for reconstructing your day, especially when working across multiple clients or projects.
+
+However, Timely doesn't implement true automatic time tracking. Each AI suggestion requires manual review and approval, meaning you're still doing significant work to categorize your time entries. The Memory app also runs separately from the main interface, creating a somewhat fragmented workflow.
+
+While Timely has a decent activity tracking and offers good integrations with project management tools, users seeking truly hands-off time tracking may find the manual approval process counterproductive to their workflow.
+
+## 7. ManicTime: Powerful, but Dated
 
 Founded in Slovenia in 2007, ManicTime is a long-standing player in the time-tracking space, and its interface shows its age. Its main strength is its on-premise solution, giving privacy-conscious enterprises full control over their data.
 
@@ -69,7 +79,7 @@ While marketed as "automatic," this only applies to activity _recording_. Users 
 
 ![ManicTime Interface](/blog/manictimer-dashboard.png)
 
-## 7. Toggl Tracker: Robust but Fully Manual (Honorable Mention)
+## 8. Toggl Tracker: Robust but Fully Manual (Honorable Mention)
 
 Toggl Tracker excels in manual time tracking with robust reporting and billing features. However, it offers no automation or AI-driven insights. It demands constant manual input, and users find it challenging to quickly visualize past activities without detailed interaction with the UI.
 
