@@ -1,14 +1,23 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NavigationMenu } from 'radix-ui';
 import { cn } from '~/lib/cn';
 
 const NavbarItem = ({ href, children }: { href: string; children: React.ReactNode }) => {
+  const pathname = usePathname();
+  const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+
   return (
     <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-neutral-300 tablet:border-b-0">
       <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
         <Link
           href={href}
-          className="text-sm tablet:text-base text-primary/80 hover:text-primary/50 transition-colors font-normal"
+          className={cn(
+            'text-sm tablet:text-base transition-colors font-normal',
+            isActive ? 'text-blue-600 font-medium' : 'text-primary/80 hover:text-primary/50'
+          )}
         >
           {children}
         </Link>

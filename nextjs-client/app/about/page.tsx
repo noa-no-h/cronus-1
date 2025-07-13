@@ -73,18 +73,17 @@ export default function AboutPage() {
     <div className="min-h-screen">
       <Header />
 
-      <main className="bg-white pt-16 tablet:pt-[90px]">
-        <section
-          className={cn(
-            'bg-white text-primary',
-            'py-16 tablet:py-40',
-            'px-4 tablet:px-12 desktop:px-[180px]'
-          )}
-        >
-          <div className="max-w-4xl mx-auto">
-            <h1 className="font-semibold text-3xl tablet:text-4xl desktop:text-5xl tracking-[-0.03em] text-center mb-12 tablet:mb-20">
-              Our Team
-            </h1>
+      <main className="bg-white tablet:pt-[90px]">
+        <section className="pt-[30px] pb-20 bg-white">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-serif md:text-5xl font-bold text-primary mb-4">
+                Our Team
+              </h1>
+              <p className="text-xl text-primary-80 max-w-2xl mx-auto">
+                We work hard so you can be more productive.
+              </p>
+            </div>
 
             <div className="space-y-8 tablet:space-y-12">
               {teamMembers.map((member) => (
