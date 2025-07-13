@@ -10,7 +10,8 @@ import { ScrollPreventAnimation } from './scroll-prevent-animation';
 const cardClassnames = cn(
   'pt-10 tablet:pt-16 desktop:pt-[54px]',
   'bg-zinc-50 rounded-2xl overflow-hidden',
-  'border-[0.5px] border-neutral-300'
+  'border-[0.5px] border-neutral-300',
+  'flex flex-col'
 );
 
 export function FeaturesSection({ className, ...props }: ComponentProps<'section'>) {
@@ -36,7 +37,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         )}
       >
         <li className={cardClassnames}>
-          <div className="px-6 tablet:px-8">
+          <div className="px-6 tablet:px-8 grow">
             <h4 className="tracking-[-0.03em] font-semibold text-xl tablet:text-2xl">
               Calendar AI or manual tracking
             </h4>
@@ -50,7 +51,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         </li>
 
         <li className={cardClassnames}>
-          <div className="px-6 tablet:px-8">
+          <div className="px-6 tablet:px-8 grow">
             <h4 className="tracking-[-0.03em] font-semibold text-xl tablet:text-2xl">
               Smart nudges
             </h4>
@@ -63,7 +64,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
         </li>
 
         <li className={cardClassnames}>
-          <div className="px-6 tablet:px-8">
+          <div className="px-6 tablet:px-8 grow">
             <h4 className="tracking-[-0.03em] font-semibold text-xl tablet:text-2xl">
               Mobile tracking
             </h4>
@@ -75,8 +76,8 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
           <Image src={mobileTrackingPng} alt="Mobile tracking" />
         </li>
 
-        <li className={cn(cardClassnames, 'flex flex-col')}>
-          <div className="px-6 tablet:px-8">
+        <li className={cardClassnames}>
+          <div className="px-6 tablet:px-8 grow">
             <h4 className="tracking-[-0.03em] font-semibold text-xl tablet:text-2xl">
               Doom scroll prevention
             </h4>
