@@ -43,9 +43,9 @@ The dashboard is packed with charts and automatic categorization of activities (
 
 ![RescueTime Interface](/blog/rescuetime-web-dashboard.png)
 
-RescueTime has a mobile app, but unfortunately, data from mobile and desktop devices remain siloed, hindering a unified productivity view. It's MacOs app is only a re-packaged version of the mobile app.
+RescueTime has a mobile app, but unfortunately, data from mobile and desktop devices remain siloed, hindering a unified productivity view. Its macOS app is only a re-packaged version of the mobile app.
 
-![h Mobile App](/blog/rescuetime-macos-app.png#wp=50)
+![RescueTime Mobile App](/blog/rescuetime-macos-app.png#wp=50)
 
 ## 4. Early (Timeular): Semi-Automated and Privacy-Focused
 
@@ -69,7 +69,7 @@ The standout feature is Timely's AI-powered suggestions, which analyze your trac
 
 However, Timely doesn't implement true automatic time tracking. Each AI suggestion requires manual review and approval, meaning you're still doing significant work to categorize your time entries. The Memory app also runs separately from the main interface, creating a somewhat fragmented workflow.
 
-While Timely has a decent activity tracking and offers good integrations with project management tools, users seeking truly hands-off time tracking may find the manual approval process counterproductive to their workflow.
+While Timely has decent activity tracking and offers good integrations with project management tools, users seeking truly hands-off time tracking may find the manual approval process counterproductive to their workflow.
 
 ## 7. ManicTime: Powerful, but Dated
 
@@ -85,7 +85,7 @@ Toggl Tracker excels in manual time tracking with robust reporting and billing f
 
 ![Toggl Interface](/blog/toggl-macos-app.png#wp=50)
 
-However, they do show the activity-block in the MacOS app that can be used to retroactivily figure out what you were doing when you were not using the app.
+However, they do show the activity-block in the macOS app that can be used to retroactively figure out what you were doing when you were not using the app.
 
 ![Toggl Activity Block](/blog/toggl-activity.png#wp=70)
 
