@@ -23,6 +23,7 @@ export function Navbar({ className }: { className?: string }) {
       <NavigationMenu.List className={cn('flex items-center', 'text-sm', className)}>
         <NavbarItem href="/blog">Blog</NavbarItem>
         <NavbarItem href="/about">About</NavbarItem>
+        <NavbarItem href="/teams">Teams</NavbarItem>
 
         {/* <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-[#CDCDCD] tablet:border-b-0">
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">
