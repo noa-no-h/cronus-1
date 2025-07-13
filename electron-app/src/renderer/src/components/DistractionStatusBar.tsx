@@ -347,9 +347,6 @@ const DistractionStatusBar = ({
               <EditIcon size={14} className="ml-1 flex-shrink-0" />
             )}
           </div>
-          {(isLoadingCategory || isLoadingUserCategories || isLoadingTodayEvents) && categoryId && (
-            <div className="text-xs text-muted-foreground mt-0.5">Updating...</div>
-          )}
         </div>
       </div>
       <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
