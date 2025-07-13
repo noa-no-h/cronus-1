@@ -224,35 +224,23 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
 
         if (isGroupedCalendarEvent) {
           return (
-            <ContextMenu key={segment._id || `${segment.startTime}-${segment.name}`}>
-              <ContextMenuTrigger>
-                <MultiCalendarEventTooltip events={segment.groupedEvents!}>
-                  {segmentDiv}
-                </MultiCalendarEventTooltip>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
-                  Delete Segment
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+            <MultiCalendarEventTooltip
+              key={segment._id || `${segment.startTime}-${segment.name}`}
+              events={segment.groupedEvents!}
+            >
+              {segmentDiv}
+            </MultiCalendarEventTooltip>
           )
         }
 
         if (isCalendarEvent) {
           return (
-            <ContextMenu key={segment._id || `${segment.startTime}-${segment.name}`}>
-              <ContextMenuTrigger>
-                <CalendarEventTooltip event={segment.originalEvent}>
-                  {segmentDiv}
-                </CalendarEventTooltip>
-              </ContextMenuTrigger>
-              <ContextMenuContent>
-                <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
-                  Delete Segment
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+            <CalendarEventTooltip
+              key={segment._id || `${segment.startTime}-${segment.name}`}
+              event={segment.originalEvent}
+            >
+              {segmentDiv}
+            </CalendarEventTooltip>
           )
         }
 
