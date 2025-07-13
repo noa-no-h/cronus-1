@@ -16,13 +16,18 @@ export interface TimeBlock {
   onReject?: (e: React.MouseEvent) => void
 }
 
+export interface ActivityBlock {
+  duration: number
+  block: TimeBlock
+}
+
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
 
 interface TimelineSlot {
   startMinute: number
   endMinute: number
   mainActivity: TimeBlock | null
-  allActivities: Record<string, { duration: number; block: TimeBlock }>
+  allActivities: Record<string, ActivityBlock>
 }
 
 export interface EnrichedTimelineSegment extends TimeBlock {
@@ -31,7 +36,7 @@ export interface EnrichedTimelineSegment extends TimeBlock {
   endMinute: number
   heightPercentage: number
   topPercentage: number
-  allActivities: Record<string, { duration: number; block: TimeBlock }>
+  allActivities: Record<string, ActivityBlock>
   type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
 }
 
@@ -52,7 +57,7 @@ function createTimelineSlots(timeBlocks: TimeBlock[], hourStart: Date): Timeline
   for (let i = 0; i < slotsPerHour; i++) {
     const slotStart = new Date(hourStart.getTime() + i * SLOT_DURATION_MINUTES * 60 * 1000)
     const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MINUTES * 60 * 1000)
-    const activitiesInSlot: Record<string, { duration: number; block: TimeBlock }> = {}
+    const activitiesInSlot: Record<string, ActivityBlock> = {}
 
     timeBlocks.forEach((block) => {
       const blockStart = block.startTime
@@ -278,7 +283,7 @@ export function getTimelineSegmentsForDay(
   for (let i = 0; i < slotsInDay; i++) {
     const slotStart = new Date(dayStart.getTime() + i * SLOT_DURATION_MINUTES * 60 * 1000)
     const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MINUTES * 60 * 1000)
-    const activitiesInSlot: Record<string, { duration: number; block: TimeBlock }> = {}
+    const activitiesInSlot: Record<string, ActivityBlock> = {}
 
     otherBlocks.forEach((block) => {
       const blockStart = block.startTime
@@ -329,8 +334,15 @@ export function getTimelineSegmentsForDay(
       const top = (startMinutes / totalMinutesInDay) * timelineHeight
       const height = (durationMinutes / totalMinutesInDay) * timelineHeight
 
+      // Create correct start/end times for the aggregated segment
+      const startTime = new Date(dayStart.getTime() + startMinutes * 60000)
+      const endTime = new Date(dayStart.getTime() + (startMinutes + durationMinutes) * 60000)
+
       return {
         ...block,
+        // override the start and end times to be the correct start and end times for the aggregated segment
+        startTime,
+        endTime,
         startMinute: slot.startMinute,
         endMinute: slot.endMinute,
         heightPercentage: (durationMinutes / totalMinutesInDay) * 100,

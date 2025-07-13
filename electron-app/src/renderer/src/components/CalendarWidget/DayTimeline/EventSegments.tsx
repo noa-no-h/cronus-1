@@ -96,22 +96,10 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
   const handleDeleteSegment = (segment: DaySegment) => {
     if (!token) return
 
-    const dayStart = startOfDay(dayForEntries)
-    const startTime = new Date(dayStart.getTime() + segment.startMinute * 60000)
-    const endTime = new Date(dayStart.getTime() + segment.endMinute * 60000)
-
-    console.log(
-      'deleting segment from',
-      startTime.toISOString(),
-      'to',
-      endTime.toISOString(),
-      'full segment',
-      JSON.stringify(segment, null, 2)
-    )
     deleteEventsMutation.mutate({
       token: token,
-      startDateMs: startTime.getTime(),
-      endDateMs: endTime.getTime()
+      startDateMs: segment.startTime.getTime(),
+      endDateMs: segment.endTime.getTime()
     })
   }
 
