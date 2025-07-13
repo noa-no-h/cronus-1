@@ -9,11 +9,11 @@ import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
 import CalendarZoomControls from './DayTimeline/CalendarZoomControls'
-import DayTimeline from './DayTimeline/DayTimeline'
+import { DayTimeline } from './DayTimeline/DayTimeline'
 import { ProductivityTrendChart } from './WeekView/ProductiveHoursChart'
 import WeekBreakdown from './WeekView/WeekBreakdown'
-import WeekView from './WeekView/WeekView'
 import { WeeklyProductivity } from './WeekView/WeeklyProductivity'
+import WeekProductivityBarChart from './WeekView/WeekProductivityBarChart'
 
 interface CalendarWidgetProps {
   selectedDate: Date
@@ -250,13 +250,13 @@ const CalendarWidget = ({
         {viewMode === 'week' ? (
           <div className="flex flex-col gap-4">
             <div className="h-[30rem] overflow-auto">
-              <WeekView
-                processedEvents={trackedEvents || []}
+              <WeekProductivityBarChart
+                processedEvents={trackedEvents}
+                weekViewMode={weekViewMode}
                 selectedDay={selectedDay}
                 onDaySelect={onDaySelect}
                 selectedDate={selectedDate}
                 isDarkMode={isDarkMode}
-                weekViewMode={weekViewMode}
                 isLoading={isLoading}
               />
             </div>

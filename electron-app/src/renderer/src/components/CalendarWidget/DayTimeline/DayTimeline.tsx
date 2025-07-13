@@ -32,7 +32,7 @@ interface DayTimelineProps {
   animationDirection: 'prev' | 'next' | 'none'
 }
 
-const DayTimeline = ({
+export const DayTimeline = ({
   trackedTimeBlocks,
   googleCalendarTimeBlocks,
   currentTime,
@@ -470,7 +470,7 @@ const DayTimeline = ({
           x: { type: 'spring', stiffness: 300, damping: 30 },
           opacity: { duration: 0.2 }
         }}
-        className="flex-1"
+        className="flex-1 border border-border rounded-b-lg bg-card"
       >
         <div
           ref={timelineContainerRef}
@@ -567,5 +567,3 @@ const DayTimeline = ({
     </AnimatePresence>
   )
 }
-
-export default DayTimeline

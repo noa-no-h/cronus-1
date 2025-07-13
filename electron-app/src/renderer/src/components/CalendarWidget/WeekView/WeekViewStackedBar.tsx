@@ -1,7 +1,7 @@
 import { getDarkerColor, processColor } from '../../../lib/colors'
 import { formatDuration } from '../../../lib/timeFormatting'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
-import type { CategoryTotal } from './WeekView'
+import type { CategoryTotal } from './WeekProductivityBarChart'
 
 export interface WeekViewStackedBarProps {
   categories: CategoryTotal[]

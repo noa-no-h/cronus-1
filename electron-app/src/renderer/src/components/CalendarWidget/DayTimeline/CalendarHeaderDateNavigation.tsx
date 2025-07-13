@@ -58,7 +58,7 @@ export const CalendarHeaderDateNavigation = ({
                 )}
 
                 {selectedDate.toDateString() === new Date().toDateString() && (
-                  <span className="text-xs font-medium px-1 py-0.5 dark:bg-blue-900/80 bg-blue-100 text-blue-700 dark:text-blue-300 rounded-md">
+                  <span className="text-xs font-medium px-1 py-0.5 dark:bg-blue-900/80 bg-blue-100 text-blue-700 dark:text-blue-300 rounded-sm">
                     Today
                   </span>
                 )}
