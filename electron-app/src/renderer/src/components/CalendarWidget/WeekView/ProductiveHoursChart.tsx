@@ -33,7 +33,7 @@ export function ProductivityTrendChart({
     console.log('isLoading in ProductivityTrendChart', isLoading)
 
     return (
-      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+      <div className="border border-border rounded-lg bg-card p-4">
         {/* Title Skeleton */}
         <Skeleton className="h-6 w-56 mb-4" />
         {/* Chart Skeleton */}
@@ -242,7 +242,7 @@ export function ProductivityTrendChart({
   } satisfies ChartConfig
 
   return (
-    <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+    <div className="border border-border rounded-lg bg-card p-4">
       <div className="flex items-center gap-2 mb-2">
         <h3 className="text-lg font-semibold text-foreground">Productive Hours</h3>
       </div>

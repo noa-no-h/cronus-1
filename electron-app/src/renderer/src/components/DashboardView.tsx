@@ -8,9 +8,6 @@ import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
-import { ProductivityTrendChart } from './CalendarWidget/WeekView/ProductiveHoursChart'
-import WeekBreakdown from './CalendarWidget/WeekView/WeekBreakdown'
-import { WeeklyProductivity } from './CalendarWidget/WeekView/WeeklyProductivity'
 import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {
@@ -344,31 +341,6 @@ export function DashboardView({
           onWeekViewModeChange={setWeekViewMode}
           isLoading={isLoadingEvents}
         />
-        {viewMode === 'week' && (
-          <WeekBreakdown
-            processedEvents={trackedProcessedEvents}
-            isDarkMode={isDarkMode}
-            isLoading={isLoadingEvents}
-            viewingDate={selectedDate}
-          />
-        )}
-        {viewMode === 'week' && (
-          <WeeklyProductivity
-            processedEvents={trackedProcessedEvents}
-            isDarkMode={isDarkMode}
-            weekViewMode={weekViewMode}
-            isLoading={isLoadingEvents}
-            viewingDate={selectedDate}
-          />
-        )}
-        {viewMode === 'week' && (
-          <ProductivityTrendChart
-            processedEvents={trackedProcessedEvents}
-            isDarkMode={isDarkMode}
-            isLoading={isLoadingEvents}
-            viewingDate={selectedDate}
-          />
-        )}
       </div>
       <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
     </div>

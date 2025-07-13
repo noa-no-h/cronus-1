@@ -211,7 +211,7 @@ const WeekView = ({
 
   return (
     <TooltipProvider>
-      <div className="flex-1 h-full flex flex-col">
+      <div className="flex-1 h-full flex flex-col border border-border rounded-b-lg bg-card">
         <div className="grid grid-cols-7 h-full">
           {weekData.map(
             (

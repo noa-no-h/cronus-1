@@ -10,7 +10,10 @@ import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
 import CalendarZoomControls from './DayTimeline/CalendarZoomControls'
 import DayTimeline from './DayTimeline/DayTimeline'
+import { ProductivityTrendChart } from './WeekView/ProductiveHoursChart'
+import WeekBreakdown from './WeekView/WeekBreakdown'
 import WeekView from './WeekView/WeekView'
+import { WeeklyProductivity } from './WeekView/WeeklyProductivity'
 
 interface CalendarWidgetProps {
   selectedDate: Date
@@ -225,8 +228,8 @@ const CalendarWidget = ({
 
   return (
     <div
-      className={`relative flex select-none flex-col bg-card border-1 border border-border rounded-lg ${
-        viewMode === 'week' ? 'h-[30rem]' : 'h-full'
+      className={`relative flex select-none flex-col bg-card ${
+        viewMode === 'week' ? '' : 'h-full'
       }`}
     >
       <CalendarWidgetHeader
@@ -245,15 +248,39 @@ const CalendarWidget = ({
 
       <div className="flex-grow overflow-auto" ref={scrollContainerRef}>
         {viewMode === 'week' ? (
-          <WeekView
-            processedEvents={trackedEvents || []}
-            selectedDay={selectedDay}
-            onDaySelect={onDaySelect}
-            selectedDate={selectedDate}
-            isDarkMode={isDarkMode}
-            weekViewMode={weekViewMode}
-            isLoading={isLoading}
-          />
+          <div className="flex flex-col gap-4">
+            <div className="h-[30rem] overflow-auto">
+              <WeekView
+                processedEvents={trackedEvents || []}
+                selectedDay={selectedDay}
+                onDaySelect={onDaySelect}
+                selectedDate={selectedDate}
+                isDarkMode={isDarkMode}
+                weekViewMode={weekViewMode}
+                isLoading={isLoading}
+              />
+            </div>
+
+            <WeekBreakdown
+              processedEvents={trackedEvents}
+              isDarkMode={isDarkMode}
+              isLoading={isLoading}
+              viewingDate={selectedDate}
+            />
+            <WeeklyProductivity
+              processedEvents={trackedEvents}
+              isDarkMode={isDarkMode}
+              weekViewMode={weekViewMode}
+              isLoading={isLoading}
+              viewingDate={selectedDate}
+            />
+            <ProductivityTrendChart
+              processedEvents={trackedEvents}
+              isDarkMode={isDarkMode}
+              isLoading={isLoading}
+              viewingDate={selectedDate}
+            />
+          </div>
         ) : (
           <DayTimeline
             trackedTimeBlocks={trackedTimeBlocks}

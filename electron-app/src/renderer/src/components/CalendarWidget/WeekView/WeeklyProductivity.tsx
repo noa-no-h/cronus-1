@@ -119,7 +119,7 @@ export function WeeklyProductivity({
 
   if (isLoading) {
     return (
-      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+      <div className="border border-border rounded-lg bg-card p-4">
         <Skeleton className="h-6 w-40 mb-4" />
         <div className="h-40 flex flex-col mt-4">
           <div className="grid grid-cols-4 gap-2 h-28">
@@ -144,7 +144,7 @@ export function WeeklyProductivity({
 
   return (
     <TooltipProvider>
-      <div className="border border-border rounded-lg bg-card p-4 mb-3 mt-3">
+      <div className="border border-border rounded-lg bg-card p-4">
         <h3 className="text-lg font-semibold text-foreground">Weekly Productivity</h3>
 
         {/* Bar Chart Section */}

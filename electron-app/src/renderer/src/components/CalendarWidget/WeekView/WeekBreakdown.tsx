@@ -111,7 +111,7 @@ const WeekBreakdown = ({
   }
 
   return (
-    <div className="p-4 border border-border rounded-lg bg-card mb-3 mt-3 flex items-center gap-4">
+    <div className="p-4 border border-border rounded-lg bg-card flex items-center gap-4">
       <div className="w-1/2 h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
