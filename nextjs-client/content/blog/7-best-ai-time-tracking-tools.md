@@ -69,6 +69,8 @@ The standout feature is Timely's AI-powered suggestions, which analyze your trac
 
 However, Timely doesn't implement true automatic time tracking. Each AI suggestion requires manual review and approval, meaning you're still doing significant work to categorize your time entries. The Memory app also runs separately from the main interface, creating a somewhat fragmented workflow.
 
+![Timely Interface](/blog/timely-dashboard.png)
+
 While Timely has decent activity tracking and offers good integrations with project management tools, users seeking truly hands-off time tracking may find the manual approval process counterproductive to their workflow.
 
 ## 7. ManicTime: Powerful, but Dated

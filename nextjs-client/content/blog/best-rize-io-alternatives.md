@@ -87,6 +87,8 @@ Timely offers a more sophisticated approach than Rize with its cloud-based Memor
 **The Timely reality:**
 While Timely's AI suggestions are more intelligent than Rize's rule-based system, the tool still requires substantial manual work. Users seeking truly hands-off time tracking will find the constant need for approval counterproductive. The sophisticated features come at the cost of simplicity and ease of use.
 
+![Timely Interface](/blog/timely-dashboard.png)
+
 The Memory app captures activities well, but the disconnect between data collection and the main interface creates an unnecessarily complex workflow that many users find frustrating.
 
 ## Why Cronus is the Clear Choice
