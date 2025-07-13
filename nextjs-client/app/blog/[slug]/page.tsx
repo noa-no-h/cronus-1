@@ -60,17 +60,12 @@ export default async function BlogPostPage({ params }: Props) {
 
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
-              <span className="text-sm border-accent text-white px-3 py-1 rounded-full">
-                {post.category}
-              </span>
+              <span className="text-sm text-primary-80">{post.category}</span>
+              <span className="text-sm text-primary-80">•</span>
               <span className="text-sm text-primary-80">{post.date}</span>
               <span className="text-sm text-primary-80">•</span>
               <span className="text-sm text-primary-80">{post.readTime}</span>
             </div>
-
-            <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
-              {post.title}
-            </h1>
           </div>
 
           <MarkdownRenderer content={post.content || ''} />

@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
+import { Button } from '~/components/ui/button';
 import DemoBookingModal from '~/components/ui/demo-booking-modal';
 import { cn } from '~/lib/cn';
 
@@ -34,12 +35,9 @@ export function TeamsHero({ className, ...props }: ComponentProps<'section'>) {
         </div>
 
         <div className="flex flex-col tablet:flex-row gap-4 tablet:gap-6 items-center">
-          <button
-            onClick={() => setIsDemoModalOpen(true)}
-            className="px-8 py-4 text-base font-semibold text-accent border-2 border-accent hover:bg-accent hover:text-white transition-colors rounded-md"
-          >
+          <Button onClick={() => setIsDemoModalOpen(true)} size="lg" variant="primary">
             Schedule Demo
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-8 text-sm text-gray-500 mt-8">

@@ -1,7 +1,7 @@
 ---
 title: 'Best Rize.io Alternatives in 2025'
 excerpt: 'Looking to switch from Rize? Here are the top 3 alternatives in 2025, including why Cronus is the clear winner for AI-powered time tracking.'
-date: '2025-01-15'
+date: '2025-07-13'
 category: 'Product'
 readTime: '6 min read'
 featured: true

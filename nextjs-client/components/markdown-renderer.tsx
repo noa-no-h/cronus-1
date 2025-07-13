@@ -11,7 +11,9 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl font-bold text-primary mt-8 mb-6">{children}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight mt-8 mb-6">
+              {children}
+            </h1>
           ),
           h2: ({ children }) => (
             <h2 className="text-2xl font-semibold text-primary mt-8 mb-4">{children}</h2>
