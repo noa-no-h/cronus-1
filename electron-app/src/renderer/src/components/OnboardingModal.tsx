@@ -2,7 +2,8 @@ import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
-import icon from './../assets/icon.png'
+import LogoWithText from './../assets/logo-with-text-light-mode.png'
+
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
@@ -91,14 +92,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
-          <img
-            src={icon}
-            alt="Cronus"
-            className="w-24 h-24 mx-auto rounded-lg drop-shadow-lg border border-gray-200"
-          />
-          <div className="text-7xl mb-6">Cronus</div>
+          <img src={LogoWithText} alt="Cronus" className="h-24 mx-auto" />
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            We&apos;ll help you stay focused and track your productivity throughout the day.
+            Understand where your time went and reduce distractions.
           </p>
         </div>
       )
@@ -398,7 +394,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           <div className="space-y-6">
             <div className="w-full bg-muted/60 rounded-full h-2 ">
               <div
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-700 ease-out"
+                className="bg-gradient-to-r from-[#213BF7] to-[#8593FB] h-2 rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               />
             </div>
