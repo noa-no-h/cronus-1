@@ -1,8 +1,10 @@
 import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useDarkMode } from '../hooks/useDarkMode'
 import { trpc } from '../utils/trpc'
-import LogoWithText from './../assets/logo-with-text-light-mode.png'
+import LogoWithTextDark from './../assets/logo-with-text-dark-mode.png'
+import LogoWithTextLight from './../assets/logo-with-text-light-mode.png'
 
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
@@ -22,6 +24,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
   const { token } = useAuth()
+  const isDarkMode = useDarkMode()
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
@@ -92,7 +95,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       title: 'Welcome!',
       content: (
         <div className="text-center space-y-6">
-          <img src={LogoWithText} alt="Cronus" className="h-24 mx-auto" />
+          <img
+            src={isDarkMode ? LogoWithTextDark : LogoWithTextLight}
+            alt="Cronus"
+            className="h-24 mx-auto"
+          />
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             Understand where your time went and reduce distractions.
           </p>
