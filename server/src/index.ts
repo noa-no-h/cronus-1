@@ -9,6 +9,7 @@ import Stripe from 'stripe';
 import { UserModel } from './models/user';
 import { calendarRouter } from './routers/calendar';
 import sitemapRouter from './routes/sitemap';
+import waitlistExpressRouter from './routes/waitlist';
 import { startSuggestionCronJob } from './services/cron/suggestionScheduler';
 import { publicProcedure, router } from './trpc';
 
@@ -121,6 +122,7 @@ app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 // Use the sitemap router
 app.use(sitemapRouter);
+app.use(waitlistExpressRouter);
 
 // tRPC middleware
 app.use(

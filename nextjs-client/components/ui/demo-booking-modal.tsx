@@ -23,7 +23,7 @@ export default function DemoBookingModal({ isOpen, onClose }: DemoBookingModalPr
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/teams-waitlist', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams-waitlist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

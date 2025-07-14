@@ -1,11 +1,11 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { trackDownloadStart } from '~/lib/analytics';
-import { Input } from './input';
 import { Button } from './button';
-import Image from 'next/image';
+import { Input } from './input';
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/windows-waitlist', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/windows-waitlist`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
