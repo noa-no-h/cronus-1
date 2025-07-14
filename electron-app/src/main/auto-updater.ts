@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 let mainWindow: BrowserWindow | null = null
-let dailyUpdateTimer: NodeJS.Timeout | null = null
+let updateTimer: NodeJS.Timeout | null = null
 
 export function initializeAutoUpdater(window: BrowserWindow): void {
   mainWindow = window
@@ -54,7 +54,10 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   }, 3000)
 
   // Setup daily timer for users who keep app open
-  setupDailyUpdateCheck()
+  // setupDailyUpdateCheck()
+
+  // Setup hourly timer for users who keep app open
+  setupHourlyUpdateCheck()
 }
 
 function checkForUpdatesIfNeeded(trigger: string): void {
@@ -66,8 +69,8 @@ function checkForUpdatesIfNeeded(trigger: string): void {
     `🔍 Update check (${trigger}): ${hoursSinceLastCheck === 999 ? 'never checked before' : hoursSinceLastCheck.toFixed(1) + ' hours ago'}`
   )
 
-  // Check if it's been more than 20 hours since last check, or never checked
-  if (hoursSinceLastCheck >= 20) {
+  // Check if it's been more than 1 hour since last check, or never checked
+  if (hoursSinceLastCheck >= 1) {
     console.log(`✅ Triggering update check (${trigger})`)
     saveLastCheckTime(now)
     autoUpdater.checkForUpdates().catch((error) => {
@@ -80,35 +83,58 @@ function checkForUpdatesIfNeeded(trigger: string): void {
   }
 }
 
-function setupDailyUpdateCheck(): void {
+// function setupDailyUpdateCheck(): void {
+//   // Clear any existing timer
+//   if (updateTimer) {
+//     clearTimeout(updateTimer)
+//     updateTimer = null
+//   }
+
+//   const now = new Date()
+//   const next3AM = new Date()
+
+//   // 3 AM
+//   next3AM.setHours(3, 0, 0, 0)
+
+//   // If it's already past 3 AM today, schedule for tomorrow
+//   if (now.getHours() >= 3) {
+//     next3AM.setDate(next3AM.getDate() + 1)
+//   }
+
+//   const msUntil3AM = next3AM.getTime() - now.getTime()
+
+//   console.log(`📅 Next daily update check scheduled for: ${next3AM.toLocaleString()}`)
+
+//   updateTimer = setTimeout(() => {
+//     console.log('🔄 Daily update check triggered at 3 AM')
+//     checkForUpdatesIfNeeded('daily_timer')
+
+//     // Reschedule for next day
+//     setupDailyUpdateCheck()
+//   }, msUntil3AM)
+// }
+
+function setupHourlyUpdateCheck(): void {
   // Clear any existing timer
-  if (dailyUpdateTimer) {
-    clearTimeout(dailyUpdateTimer)
-    dailyUpdateTimer = null
+  if (updateTimer) {
+    clearTimeout(updateTimer)
+    updateTimer = null
   }
 
-  const now = new Date()
-  const next3AM = new Date()
+  // Schedule next check in 1 hour (3600000 ms)
+  const msUntilNextHour = 3600000
 
-  // 3 AM
-  next3AM.setHours(3, 0, 0, 0)
+  console.log(
+    `�� Next hourly update check scheduled for: ${new Date(Date.now() + msUntilNextHour).toLocaleString()}`
+  )
 
-  // If it's already past 3 AM today, schedule for tomorrow
-  if (now.getHours() >= 3) {
-    next3AM.setDate(next3AM.getDate() + 1)
-  }
+  updateTimer = setTimeout(() => {
+    console.log('🔄 Hourly update check triggered')
+    checkForUpdatesIfNeeded('hourly_timer')
 
-  const msUntil3AM = next3AM.getTime() - now.getTime()
-
-  console.log(`📅 Next daily update check scheduled for: ${next3AM.toLocaleString()}`)
-
-  dailyUpdateTimer = setTimeout(() => {
-    console.log('🔄 Daily update check triggered at 3 AM')
-    checkForUpdatesIfNeeded('daily_timer')
-
-    // Reschedule for next day
-    setupDailyUpdateCheck()
-  }, msUntil3AM)
+    // Reschedule for next hour
+    setupHourlyUpdateCheck()
+  }, msUntilNextHour)
 }
 
 function getLastCheckTime(): number {
@@ -152,9 +178,9 @@ export function registerAutoUpdaterHandlers(): void {
 }
 
 export function cleanupAutoUpdater(): void {
-  if (dailyUpdateTimer) {
-    clearTimeout(dailyUpdateTimer)
-    dailyUpdateTimer = null
-    console.log('🧹 Daily update timer cleaned up')
+  if (updateTimer) {
+    clearTimeout(updateTimer)
+    updateTimer = null
+    console.log('🧹 Hourly update timer cleaned up')
   }
 }
