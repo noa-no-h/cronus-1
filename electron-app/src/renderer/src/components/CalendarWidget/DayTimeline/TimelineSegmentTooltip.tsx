@@ -124,29 +124,31 @@ export const TimelineSegmentTooltip = ({ segment, children }: TimelineSegmentToo
                             ease: [0.16, 1, 0.3, 1],
                             height: { duration: 0.3 }
                           }}
-                          className="ml-4 mt-1 space-y-1 border-l border-border pl-2 overflow-hidden"
+                          className="ml-4 mt-1 space-y-1 border-l border-border pl-2"
                         >
-                          {shortActivities.map(([key, data], index) => (
-                            <motion.div
-                              key={key}
-                              className="flex items-center justify-between text-xs opacity-80"
-                              initial={{ opacity: 0, x: -4 }}
-                              animate={{ opacity: 0.8, x: 0 }}
-                              transition={{
-                                delay: index * 0.04,
-                                duration: 0.2,
-                                ease: [0.16, 1, 0.3, 1]
-                              }}
-                            >
-                              <div className="flex items-center space-x-2 truncate">
-                                <ActivityIcon url={data.block.url} appName={key} size={10} />
-                                <span className="truncate">{key}</span>
-                              </div>
-                              <span className="flex-shrink-0 text-muted-foreground pl-2">
-                                {formatDuration(data.duration)}
-                              </span>
-                            </motion.div>
-                          ))}
+                          <div className="space-y-1 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 rounded-md dark:scrollbar-track-gray-800 dark:scrollbar-thumb-gray-600">
+                            {shortActivities.map(([key, data], index) => (
+                              <motion.div
+                                key={key}
+                                className="flex items-center justify-between text-xs opacity-80"
+                                initial={{ opacity: 0, x: -4 }}
+                                animate={{ opacity: 0.8, x: 0 }}
+                                transition={{
+                                  delay: index * 0.04,
+                                  duration: 0.2,
+                                  ease: [0.16, 1, 0.3, 1]
+                                }}
+                              >
+                                <div className="flex items-center space-x-2 truncate">
+                                  <ActivityIcon url={data.block.url} appName={key} size={10} />
+                                  <span className="truncate">{key}</span>
+                                </div>
+                                <span className="flex-shrink-0 text-muted-foreground pl-2">
+                                  {formatDuration(data.duration)}
+                                </span>
+                              </motion.div>
+                            ))}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
