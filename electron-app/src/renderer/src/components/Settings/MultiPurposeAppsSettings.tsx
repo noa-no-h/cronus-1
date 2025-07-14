@@ -79,7 +79,7 @@ export const MultiPurposeAppsSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {apps.map((app, index) => (
             <div key={index} className="flex items-center gap-2">
               <Input
@@ -93,7 +93,7 @@ export const MultiPurposeAppsSettings = () => {
               </Button>
             </div>
           ))}
-          <Button onClick={handleAddNew} variant="outline">
+          <Button onClick={handleAddNew} variant="outline" className="md:col-span-2">
             Add New App
           </Button>
         </div>
