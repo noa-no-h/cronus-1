@@ -4,6 +4,8 @@ import { cn } from '~/lib/cn';
 import { Logo, TextLogo } from '../logo';
 // import { Navbar } from '../navbar/navbar';
 import Link from 'next/link';
+import { Close } from '../icons/close';
+import { Menu } from '../icons/menu';
 import { Navbar } from '../navbar/navbar';
 import DownloadButton from '../ui/download-button';
 
@@ -27,9 +29,9 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
           <TextLogo className="w-[114px] text-black" />
         </Link>
         {/* Commented out burger menu until we have navigation content */}
-        {/* <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
+        <div className="tablet:hidden size-5" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <Close /> : <Menu />}
-        </div> */}
+        </div>
       </div>
 
       <div
@@ -40,9 +42,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
         )}
       >
         <Navbar
-          className={cn(
-            'bg-zinc-200 flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0'
-          )}
+          className={cn('bg-white flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0')}
         />
         <DownloadButton className="hidden tablet:flex shrink-0" location="header_navbar" />
       </div>
