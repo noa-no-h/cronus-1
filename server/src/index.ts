@@ -64,6 +64,8 @@ app.use(
     origin: [
       'http://localhost:3000',
       'https://whatdidyougetdonetoday.ai',
+      'https://cronushq.com',
+      'https://whatdidyougetdonetoday-ai-client.onrender.com',
       'https://PROJECT_SERVER_DOMAIN',
     ],
     credentials: true,
