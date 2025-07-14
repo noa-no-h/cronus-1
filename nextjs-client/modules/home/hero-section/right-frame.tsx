@@ -91,7 +91,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           <g clipPath="url(#clip2_131_1574)" stroke="#E6E6E6" strokeWidth={0.5}>
             <path d="M56 52h355M56 87h355M56 122h355M56 157h355M56 192h355" />
           </g>
-          <rect x={60} y={56} width={347} height={62} rx={4} fill="#ECECFF" />
+          <rect x={60} y={56} width={347} height={62} rx={4} fill="#E9F3FF" />
           <path
             d="M80.92 86.489l1.364 1.56 1.836 1.173.32-2.723-.32-2.662-1.87 1.03-1.33 1.622z"
             fill="#00832D"
@@ -120,7 +120,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           />
           <path
             d="M60 130a4 4 0 0 1 4-4h339a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H64a4 4 0 0 1-4-4v-19z"
-            fill="#ECECFF"
+            fill="#E9F3FF"
           />
           <g clipPath="url(#clip3_131_1574)">
             <path
@@ -179,7 +179,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           <g clipPath="url(#clip5_131_1574)" stroke="#E6E6E6" strokeWidth={0.5}>
             <path d="M56 192h380M56 227h380M56 262h380M56 297h380M56 332h380" />
           </g>
-          <rect x={60} y={196} width={347} height={62} rx={4} fill="#ECECFF" />
+          <rect x={60} y={196} width={347} height={62} rx={4} fill="#E9F3FF" />
           <path
             d="M74 224.333l4.002-4h7.33a.67.67 0 0 1 .668.662v12.01a.662.662 0 0 1-.662.662H74.662a.667.667 0 0 1-.662-.672v-8.662zm4.667-3L75 225h3.667v-3.667z"
             fill="#000"
@@ -214,7 +214,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           />
           <path
             d="M60 270a4 4 0 0 1 4-4h339a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H64a4 4 0 0 1-4-4v-19z"
-            fill="#ECECFF"
+            fill="#E9F3FF"
           />
           <path
             d="M74 276.833l4.002-4h7.33a.67.67 0 0 1 .668.662v12.01a.662.662 0 0 1-.662.662H74.662a.667.667 0 0 1-.662-.672v-8.662zm4.667-3L75 277.5h3.667v-3.667z"
@@ -292,7 +292,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           </g>
           <path
             d="M60 340a4 4 0 0 1 4-4h339a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H64a4 4 0 0 1-4-4v-19z"
-            fill="#ECECFF"
+            fill="#E9F3FF"
           />
           <path
             d="M74 346.833l4.002-4h7.33a.67.67 0 0 1 .668.662v12.01a.662.662 0 0 1-.662.662H74.662a.667.667 0 0 1-.662-.672v-8.662zm4.667-3L75 347.5h3.667v-3.667z"
@@ -328,7 +328,7 @@ export function RightFrame(props: ComponentProps<'svg'>) {
           />
           <path
             d="M60 375a4 4 0 0 1 4-4h339a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H64a4 4 0 0 1-4-4v-19z"
-            fill="#ECECFF"
+            fill="#E9F3FF"
           />
           <path
             d="M74 381.833l4.002-4h7.33a.67.67 0 0 1 .668.662v12.01a.662.662 0 0 1-.662.662H74.662a.667.667 0 0 1-.662-.672v-8.662zm4.667-3L75 382.5h3.667v-3.667z"
