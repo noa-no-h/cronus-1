@@ -76,7 +76,7 @@ export function Footer({ className, ...props }: ComponentProps<'footer'>) {
           <Link href={'/about'}>About us</Link>
           <Link href={'/privacy'}>Privacy Policy</Link>
           <Link href={'/terms'}>Terms of Service</Link>
-          {/* <Link href={'/contact'}>Contact us</Link> */}
+          <Link href={'https://cronus.bg.zolplay.com/'}>Brand Kit</Link>
           <Link href={'/blog'}>Blog</Link>
         </div>
       </div>
