@@ -81,7 +81,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           fill="#242437"
         />
         <path stroke="#E6E6E6" strokeWidth={0.5} d="M0 99h77.143v222H0z" />
-        <rect x={16} y={283} width={18.571} height={26} rx={4} fill="#E1E1FF" />
+        <rect x={16} y={283} width={18.571} height={26} rx={4} fill="#E9F3FF" />
         <rect
           opacity={0.4}
           x={42.572}
@@ -119,7 +119,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={60}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
@@ -166,7 +166,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={99}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
@@ -213,7 +213,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={125}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
@@ -260,7 +260,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={180}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
@@ -307,7 +307,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={44}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
@@ -354,7 +354,7 @@ export const TimeFrame = (props: React.SVGProps<SVGSVGElement>) => (
           width={18.571}
           height={35}
           rx={4}
-          fill="#E1E1FF"
+          fill="#E9F3FF"
         />
         <rect
           opacity={0.4}
