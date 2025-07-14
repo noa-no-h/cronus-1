@@ -12,6 +12,7 @@ import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
+import jona from './jona-schwarz.jpeg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -70,6 +71,13 @@ const testimonials = [
     avatar: dominik,
     content:
       'As a PM, context switching is constant — meetings, docs, Slack, planning. Cronus helps me protect focus time and make better use of deep work hours.',
+  },
+  {
+    name: 'Jonas Schwarz',
+    title: 'Software Engineer',
+    avatar: jona,
+    content:
+      'I love having an overview of how much time I work on each one of my projects and Cronus does an amazing job at it. It also helps me stay focused, seeing the distraction timer pop up gets me back to work instantly.',
   },
 ];
 
