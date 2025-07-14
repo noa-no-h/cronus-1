@@ -19,7 +19,7 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
       className={cn(
         'bg-white text-primary',
         'flex flex-col items-center',
-        'px-4 py-16 tablet:py-40 tablet:px-0',
+        'px-4 py-12 tablet:py-20 tablet:px-0',
         className
       )}
       {...props}

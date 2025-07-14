@@ -11,7 +11,7 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
     <section
       className={cn(
         'bg-white text-primary',
-        'py-16 tablet:py-40',
+        'py-12 tablet:py-20',
         'flex flex-col items-center',
         className
       )}
