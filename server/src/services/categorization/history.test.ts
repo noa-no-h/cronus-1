@@ -9,6 +9,7 @@ const mockActiveWindowEventModel = {
 };
 const mockCategoryModel = {
   findById: jest.fn(),
+  findOne: jest.fn(),
 };
 
 // Use mock.module to replace the actual models with our mocks
@@ -57,7 +58,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Mock the category validation check
-    (CategoryModel.findById as jest.Mock).mockReturnValue({
+    (CategoryModel.findOne as jest.Mock).mockReturnValue({
       lean: jest.fn().mockResolvedValue({ _id: mockRecruitingCategoryId, name: 'Recruiting' }),
     });
 
@@ -72,7 +73,10 @@ describe('checkActivityHistory', () => {
       url: activeWindow.url,
     });
     // Assert that the category check was performed
-    expect(CategoryModel.findById).toHaveBeenCalledWith(mockRecruitingCategoryId);
+    expect(CategoryModel.findOne).toHaveBeenCalledWith({
+      _id: mockRecruitingCategoryId,
+      isArchived: false,
+    });
   });
 
   test('should return category from history for a Cursor project', async () => {
@@ -99,7 +103,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Mock the category validation check
-    (CategoryModel.findById as jest.Mock).mockReturnValue({
+    (CategoryModel.findOne as jest.Mock).mockReturnValue({
       lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
     });
 
@@ -115,7 +119,10 @@ describe('checkActivityHistory', () => {
       title: { $regex: '— spellbound$', $options: 'i' },
     });
     // Assert that the category check was performed
-    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
+    expect(CategoryModel.findOne).toHaveBeenCalledWith({
+      _id: mockWorkCategoryId,
+      isArchived: false,
+    });
   });
 
   test('should return category from history for a VSCode project with complex title', async () => {
@@ -142,7 +149,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Mock the category validation check
-    (CategoryModel.findById as jest.Mock).mockReturnValue({
+    (CategoryModel.findOne as jest.Mock).mockReturnValue({
       lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
     });
 
@@ -158,7 +165,10 @@ describe('checkActivityHistory', () => {
       title: { $regex: '— whatdidyougetdonethisweek-ai$', $options: 'i' },
     });
     // Assert that the category check was performed
-    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
+    expect(CategoryModel.findOne).toHaveBeenCalledWith({
+      _id: mockWorkCategoryId,
+      isArchived: false,
+    });
   });
 
   test('should fallback to ownerName for editor if title has no project', async () => {
@@ -184,7 +194,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Mock the category validation check
-    (CategoryModel.findById as jest.Mock).mockReturnValue({
+    (CategoryModel.findOne as jest.Mock).mockReturnValue({
       lean: jest.fn().mockResolvedValue({ _id: mockWorkCategoryId, name: 'Work' }),
     });
 
@@ -197,7 +207,10 @@ describe('checkActivityHistory', () => {
       ownerName: 'Cursor',
     });
     // Assert that the category check was performed
-    expect(CategoryModel.findById).toHaveBeenCalledWith(mockWorkCategoryId);
+    expect(CategoryModel.findOne).toHaveBeenCalledWith({
+      _id: mockWorkCategoryId,
+      isArchived: false,
+    });
     expect(result?.categoryId).toBe(mockWorkCategoryId);
   });
 
@@ -234,7 +247,7 @@ describe('checkActivityHistory', () => {
       url: activeWindow.url,
     });
     // Ensure the category check was NOT performed
-    expect(CategoryModel.findById).not.toHaveBeenCalled();
+    expect(CategoryModel.findOne).not.toHaveBeenCalled();
   });
 
   test('should return null if history points to a deleted category', async () => {
@@ -260,7 +273,7 @@ describe('checkActivityHistory', () => {
     });
 
     // Mock the category validation to return null (category not found)
-    (CategoryModel.findById as jest.Mock).mockReturnValue({
+    (CategoryModel.findOne as jest.Mock).mockReturnValue({
       lean: jest.fn().mockResolvedValue(null),
     });
 
@@ -273,6 +286,9 @@ describe('checkActivityHistory', () => {
       userId: mockUserId,
       url: activeWindow.url,
     });
-    expect(CategoryModel.findById).toHaveBeenCalledWith(mockRecruitingCategoryId);
+    expect(CategoryModel.findOne).toHaveBeenCalledWith({
+      _id: mockRecruitingCategoryId,
+      isArchived: false,
+    });
   });
 });

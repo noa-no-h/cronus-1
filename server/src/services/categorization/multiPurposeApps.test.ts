@@ -10,6 +10,7 @@ const mockActiveWindowEventModel = {
 const mockCategoryModel = {
   findById: jest.fn(),
   find: jest.fn(),
+  findOne: jest.fn(),
 };
 const mockUserModel = {
   findById: jest.fn(),
@@ -105,7 +106,7 @@ describe('Multi-Purpose Apps Categorization', () => {
         lean: jest.fn().mockResolvedValue(mockPreviousEvent),
       });
 
-      (CategoryModel.findById as jest.Mock).mockReturnValue({
+      (CategoryModel.findOne as jest.Mock).mockReturnValue({
         lean: jest.fn().mockResolvedValue({ _id: mockSocialCategoryId, name: 'Friends & Social' }),
       });
 
@@ -120,7 +121,10 @@ describe('Multi-Purpose Apps Categorization', () => {
         ownerName: 'Beeper Desktop',
         userId: mockUserId,
       });
-      expect(CategoryModel.findById).toHaveBeenCalledWith(mockSocialCategoryId);
+      expect(CategoryModel.findOne).toHaveBeenCalledWith({
+        _id: mockSocialCategoryId,
+        isArchived: false,
+      });
     });
   });
 

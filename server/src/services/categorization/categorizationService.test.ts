@@ -1,15 +1,4 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-  mock,
-  test,
-} from 'bun:test';
+import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
 import { readFileSync } from 'fs';
 import mongoose from 'mongoose';
 import path from 'path';
@@ -101,7 +90,10 @@ describe('categorizeActivity', () => {
       );
       expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
       expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-      expect(CategoryModel.find).toHaveBeenCalledWith({ userId: mockUserId });
+      expect(CategoryModel.find).toHaveBeenCalledWith({
+        userId: mockUserId,
+        isArchived: { $ne: true },
+      });
     };
 
     // --- Test Data ---
@@ -316,38 +308,5 @@ describe('categorizeActivity', () => {
         expectedCategoryName: workCategory.name,
       });
     }, 30000);
-  });
-});
-
-describe('categorizeActivity with multi-purpose apps', () => {
-  let userId: string;
-
-  beforeAll(async () => {
-    const { UserModel } = await import('../../models/user');
-    const user = new UserModel({
-      email: 'test@example.com',
-      name: 'Test User',
-      multiPurposeApps: ['Chrome', 'iTerm2'],
-    });
-    await user.save();
-    userId = user._id.toString();
-
-    const { CategoryModel } = await import('../../models/category');
-    const categories = [
-      { userId, name: 'Work', isProductive: true, color: '#4caf50', isDefault: false },
-      { userId, name: 'Communication', isProductive: false, color: '#2196f3', isDefault: false },
-    ];
-    await CategoryModel.insertMany(categories);
-  });
-
-  afterAll(async () => {
-    const { UserModel } = await import('../../models/user');
-    await UserModel.deleteMany({});
-    const { CategoryModel } = await import('../../models/category');
-    await CategoryModel.deleteMany({});
-  });
-
-  it('should return Uncategorized if ownerName is a multi-purpose app and no specific rule matches', async () => {
-    // Test implementation
   });
 });
