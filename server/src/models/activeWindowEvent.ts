@@ -7,6 +7,8 @@ export interface IActiveWindowEvent extends Omit<ActiveWindowEvent, '_id'>, Docu
   lastCategorizationAt?: Date;
   oldCategoryId?: string;
   oldCategoryReasoning?: string;
+  llmSummary?: string;
+  oldLlmSummary?: string;
 }
 
 const activeWindowEventSchema = new Schema(
@@ -21,6 +23,7 @@ const activeWindowEventSchema = new Schema(
     content: { type: String },
     categoryId: { type: String, required: false, index: true },
     categoryReasoning: { type: String, required: false },
+    llmSummary: { type: String, required: false },
     timestamp: { type: Number, required: true, default: Date.now, index: true },
     screenshotS3Url: { type: String, required: false },
     durationMs: { type: Number, required: false },
@@ -31,6 +34,7 @@ const activeWindowEventSchema = new Schema(
     lastCategorizationAt: { type: Date, required: false },
     oldCategoryId: { type: String, required: false },
     oldCategoryReasoning: { type: String, required: false },
+    oldLlmSummary: { type: String, required: false },
   },
   { timestamps: true }
 );

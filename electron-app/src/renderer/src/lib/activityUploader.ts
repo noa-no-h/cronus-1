@@ -6,21 +6,6 @@ import { deleteLocalFile } from './s3Uploader'
 
 const CONTENT_CHAR_CUTOFF = 2000
 
-// Create a tRPC client for use outside of React components
-const trpcClient = createTRPCProxyClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001/trpc',
-      headers() {
-        const token = localStorage.getItem('accessToken')
-        return {
-          Authorization: token ? `Bearer ${token}` : ''
-        }
-      }
-    })
-  ]
-})
-
 // Define the type for the mutateAsync function we expect
 interface MutateAsyncFunction {
   (variables: any): Promise<any>

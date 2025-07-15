@@ -10,6 +10,8 @@ export interface ActivityItem {
   originalUrl?: string
   categoryReasoning?: string | null
   oldCategoryReasoning?: string | null
+  llmSummary?: string | null
+  oldLlmSummary?: string | null
   lastCategorizationAt?: Date
 }
 
@@ -131,6 +133,8 @@ export const processActivityEvents = (
       originalUrl,
       categoryReasoning: block.originalEvent.categoryReasoning ?? undefined,
       oldCategoryReasoning: block.originalEvent.oldCategoryReasoning ?? undefined,
+      llmSummary: block.originalEvent.llmSummary ?? undefined,
+      oldLlmSummary: block.originalEvent.oldLlmSummary ?? undefined,
       lastCategorizationAt: block.originalEvent.lastCategorizationAt
     })
   }

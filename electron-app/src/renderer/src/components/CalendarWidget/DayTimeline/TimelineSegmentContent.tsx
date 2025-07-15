@@ -54,6 +54,7 @@ const TimelineSegmentContent = ({ segment, isDarkMode }: TimelineSegmentContentP
         'w-full h-full flex flex-row justify-between space-x-2 overflow-hidden px-2 flex-grow'
       )}
       style={{ color: textColor }}
+      title={segment.originalEvent?.llmSummary || segment.originalEvent?.categoryReasoning || ''}
     >
       <div
         className={clsx(

@@ -14,6 +14,7 @@ const getProjectNameFromTitle = (title: string): string | null => {
 interface HistoryResult {
   categoryId: string;
   categoryReasoning: string | null;
+  llmSummary: string | null;
 }
 
 export async function checkActivityHistory(
@@ -69,7 +70,7 @@ export async function checkActivityHistory(
 
     const lastEventWithSameIdentifier = await ActiveWindowEventModel.findOne(queryCondition)
       .sort({ timestamp: -1 })
-      .select('categoryId categoryReasoning')
+      .select('categoryId categoryReasoning llmSummary')
       .lean();
 
     if (lastEventWithSameIdentifier && lastEventWithSameIdentifier.categoryId) {
@@ -84,6 +85,7 @@ export async function checkActivityHistory(
         return {
           categoryId,
           categoryReasoning: (lastEventWithSameIdentifier.categoryReasoning as string) || null,
+          llmSummary: (lastEventWithSameIdentifier.llmSummary as string) || null,
         };
       }
     }

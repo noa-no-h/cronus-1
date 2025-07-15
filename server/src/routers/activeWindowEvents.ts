@@ -34,6 +34,7 @@ export const activeWindowEventsRouter = router({
     const categorizationResult = await categorizeActivity(userId, activityDetails);
     const categoryId = categorizationResult.categoryId;
     const categoryReasoning = categorizationResult.categoryReasoning;
+    const llmSummary = categorizationResult.llmSummary;
 
     const eventToSave: ActiveWindowEvent = {
       userId,
@@ -48,6 +49,7 @@ export const activeWindowEventsRouter = router({
       screenshotS3Url,
       categoryId, // Add categoryId from categorization service
       categoryReasoning,
+      llmSummary,
       lastCategorizationAt: categoryId ? new Date() : undefined,
     };
 
@@ -407,8 +409,10 @@ export const activeWindowEventsRouter = router({
             $set: {
               oldCategoryId: '$categoryId',
               oldCategoryReasoning: '$categoryReasoning',
+              oldLlmSummary: '$llmSummary',
               categoryId: newCategoryId,
               categoryReasoning: 'Updated manually',
+              llmSummary: null,
               lastCategorizationAt: new Date(),
             },
           },

@@ -159,6 +159,11 @@ export const ActivityListItem = ({
             <li>
               <strong className="text-primary">Type:</strong> {activity.itemType}
             </li>
+            {activity.llmSummary && (
+              <li className="whitespace-normal break-all">
+                <strong className="text-primary">Summary:</strong> {activity.llmSummary}
+              </li>
+            )}
             {activity.categoryReasoning && (
               <li className="whitespace-normal break-all">
                 <strong className="text-primary">Reasoning:</strong> {activity.categoryReasoning}
