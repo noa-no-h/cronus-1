@@ -197,7 +197,8 @@ export function CategoryManagementSettings(): JSX.Element {
           <div>
             <CardTitle className="text-xl">Manage Categories</CardTitle>
             <CardDescription>
-              Organize your activities by creating and managing categories.
+              Create from scratch or from templates. Ensure there is no overlap between categories
+              e.g. archive "Work" after you crate more specific work/project categories.
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
