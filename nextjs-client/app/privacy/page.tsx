@@ -150,6 +150,12 @@ export default function PrivacyPage() {
                 <li>Object to processing of your personal information</li>
                 <li>Request data portability</li>
               </ul>
+              <p>
+                To exercise any of these rights, please contact us at the email address provided in
+                the &quot;Contact Us&quot; section. We will process your request in accordance with
+                applicable data protection laws. When you request data portability, we will provide
+                your data in a structured and machine-readable format.
+              </p>
             </section>
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Contact Us</h2>
