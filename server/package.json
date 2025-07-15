@@ -11,7 +11,7 @@
     "node:start": "node ./dist_tsc/index.js",
     "test": "rm -rf ./dist && bun test",
     "test:categorization": "bun test src/services/categorization/categorizationService.test.ts",
-    "test:reset_categories": "bun test src/services/category-resetting/reset_categories.test.ts",
+    "test:reset_categories": "bun test src/services/category-resetting/resetCategories.test.ts",
     "test:history": "bun test src/services/categorization/history.test.ts",
     "script:reset-activity-events": "bun run src/seeder/activity-events-reset.ts",
     "script:reset-activity-events:prod": "NODE_ENV=production bun run src/seeder/activity-events-reset.ts",
