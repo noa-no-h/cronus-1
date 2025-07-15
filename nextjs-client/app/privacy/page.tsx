@@ -9,9 +9,18 @@ export default function PrivacyPage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl tablet:text-4xl font-bold text-primary mb-8">Privacy Policy</h1>
           <div className="prose prose-lg max-w-none text-primary space-y-6">
-            <p className="text-lg text-primary-80">
+            <p className="text-md text-primary-80">
               Last updated: {new Date().toLocaleDateString()}
             </p>
+
+            <div className="rounded-lg border bg-muted p-4 not-prose">
+              <p className="text-sm text-muted-foreground">
+                <strong className="text-foreground">TL;DR:</strong> We are GDPR compliant, aligning
+                with one of the world&apos;s most protective data privacy laws. This ensures your
+                data is handled with the highest standard of care, transparency, and security.
+              </p>
+            </div>
+
             <section className="space-y-4">
               <h2 className="text-2xl font-semibold text-primary">Information We Collect</h2>
               <p>

@@ -1,11 +1,9 @@
 import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import gdprlogoblue from '../assets/gdpr-logo-blue.svg'
 import { useAuth } from '../contexts/AuthContext'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { trpc } from '../utils/trpc'
-import LogoWithTextDark from './../assets/logo-with-text-dark-mode.png'
-import LogoWithTextLight from './../assets/logo-with-text-light-mode.png'
-
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
@@ -92,16 +90,23 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const baseSteps = [
     {
       id: 'welcome',
-      title: 'Welcome!',
+      title: 'We care about your privacy',
       content: (
         <div className="text-center space-y-6">
-          <img
-            src={isDarkMode ? LogoWithTextDark : LogoWithTextLight}
-            alt="Cronus"
-            className="h-24 mx-auto"
-          />
-          <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Understand where your time went and reduce distractions.
+          <img src={gdprlogoblue} alt="GDPR Logo" className="h-32 mx-auto" />
+          <p className="text-md text-muted-foreground max-w-md mx-auto leading-relaxed">
+            To categorize your activity, we periodically take screenshots of your active window and
+            use OCR to extract text. The screenshot is deleted immediately. The extracted text is
+            processed to analyze your activity. For more details, please read our{' '}
+            <a
+              href="https://cronushq.com/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Privacy Policy
+            </a>
+            .
           </p>
         </div>
       )
@@ -139,7 +144,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               All data is processed locally on your device. For more information, please refer to
               our{' '}
               <a
-                // TODO: add privacy policy link
                 href="https://cronushq.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -213,7 +217,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
               For more information on how we handle your data, please refer to our{' '}
               <a
-                href="https://getcronus.app/privacy"
+                href="https://cronushq.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
@@ -384,6 +388,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const isAccessibilityStep = currentStepData?.id === 'accessibility'
   const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
   const isLastStep = currentStep === steps.length - 1
+  const isWelcomeStep = currentStepData?.id === 'welcome'
 
   return (
     <>
@@ -476,6 +481,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                       </div>
                     ) : isLastStep ? (
                       'Get Started!'
+                    ) : isWelcomeStep ? (
+                      'Accept'
                     ) : (
                       'Next'
                     )}

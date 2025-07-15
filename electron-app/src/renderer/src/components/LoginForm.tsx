@@ -1,16 +1,23 @@
 import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
 import { useCallback, useEffect, useState } from 'react'
-import { APP_NAME, APP_USP } from '../App'
+import { APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
+import LogoWithTextDark from '../assets/logo-with-text-dark-mode.png'
+import LogoWithTextLight from '../assets/logo-with-text-light-mode.png'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { cn } from '../lib/utils'
-import IconImage from '../assets/icon.png'
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
 }
 
 export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
+  const { theme } = useTheme()
+  const isDarkMode =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
   // Common state
   const [googleClientId, setGoogleClientId] = useState<string | null>(null)
   const [isDev, setIsDev] = useState(false)
@@ -129,21 +136,18 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       )}
       {...props}
     >
-      <div className="w-full max-w-md mx-auto rounded-lg p-8">
+      <div className="w-full max-w-lg mx-auto rounded-lg p-8">
         <div className="text-center">
-          <div className="mb-6 flex justify-center">
+          <div className="mb-2 flex flex-col items-center justify-center">
             <img
-              src={IconImage}
-              alt="Cronus Logo"
-              className="w-14 h-14 drop-shadow-lg rounded-lg border border-gray-200"
+              src={isDarkMode ? LogoWithTextDark : LogoWithTextLight}
+              alt="Cronus"
+              className="h-24 mx-auto"
             />
+            {isDev && <p className="text-xs text-muted-foreground mt-2">dev mode</p>}
           </div>
 
-          <h1 className="text-2xl font-semibold">
-            Welcome to {APP_NAME} {isDev ? '(Dev Mode)' : ''}
-          </h1>
-          <p className="text-sm text-muted-foreground mb-6">{APP_USP}</p>
-          <p className="text-sm mb-6 text-muted-foreground">Sign in with your Google account</p>
+          <p className="text-lg text-muted-foreground mb-6">{APP_USP}</p>
         </div>
         <div className="flex justify-center">{renderLoginButton()}</div>
       </div>

@@ -17,7 +17,7 @@ import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { trpc } from './utils/trpc'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
-export const APP_USP = 'The first context and goal-aware distraction and productivity tracker.'
+export const APP_USP = 'The first context-aware, AI distraction and time tracker.'
 
 export interface ActivityToRecategorize {
   identifier: string
