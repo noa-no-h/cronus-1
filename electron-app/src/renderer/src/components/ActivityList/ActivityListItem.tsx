@@ -3,7 +3,7 @@ import React from 'react'
 import { Category as SharedCategory } from 'shared'
 import { ActivityItem, ProcessedCategory } from '../../lib/activityProcessing'
 import { formatDuration } from '../../lib/timeFormatting'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { ActivityIcon } from './ActivityIcon'
 import { MoveActivityButton } from './MoveActivityButton'
 
@@ -78,7 +78,7 @@ export const ActivityListItem = ({
   }
 
   return (
-    <TooltipProvider>
+    <>
       <Tooltip>
         <div
           key={uniqueKey}
@@ -161,17 +161,17 @@ export const ActivityListItem = ({
             </li>
             {activity.llmSummary && (
               <li className="whitespace-normal break-all">
-                <strong className="text-primary">Summary:</strong> {activity.llmSummary}
+                <strong className="text-primary">AI Summary:</strong> {activity.llmSummary}
               </li>
             )}
             {activity.categoryReasoning && (
               <li className="whitespace-normal break-all">
-                <strong className="text-primary">Reasoning:</strong> {activity.categoryReasoning}
+                <strong className="text-primary">AI Reasoning:</strong> {activity.categoryReasoning}
               </li>
             )}
             {activity.oldCategoryReasoning && (
               <li className="whitespace-normal break-all">
-                <strong className="text-primary">Old Reasoning:</strong>{' '}
+                <strong className="text-primary">Old AI Reasoning:</strong>{' '}
                 {activity.oldCategoryReasoning}
               </li>
             )}
@@ -184,6 +184,6 @@ export const ActivityListItem = ({
           </ul>
         </TooltipContent>
       </Tooltip>
-    </TooltipProvider>
+    </>
   )
 }

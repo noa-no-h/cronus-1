@@ -8,7 +8,11 @@ const openai = new OpenAI(); // Ensure OPENAI_API_KEY is set
 // NEW Zod schema for LLM output: Expecting the name of one of the user's categories
 const CategoryChoiceSchema = z.object({
   chosenCategoryName: z.string(),
-  summary: z.string().describe('A short summary of the activity. Max 10 words.'),
+  summary: z
+    .string()
+    .describe(
+      'A short summary of what the user is seeing. DO NOT conjecture about what they might be doing. Max 10 words.'
+    ),
   reasoning: z
     .string()
     .describe(

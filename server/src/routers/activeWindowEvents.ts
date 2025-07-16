@@ -53,8 +53,6 @@ export const activeWindowEventsRouter = router({
       lastCategorizationAt: categoryId ? new Date() : undefined,
     };
 
-    // console.log('eventToSave in create activeWindowEventsRouter:', eventToSave);
-
     try {
       const savedEvent = await ActiveWindowEventModel.create(eventToSave);
       return savedEvent.toObject() as ActiveWindowEvent;
@@ -90,7 +88,11 @@ export const activeWindowEventsRouter = router({
             $gte: startDateMs,
             $lt: endDateMs,
           },
-        }).sort({ timestamp: 1 });
+        })
+          .select(
+            'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs'
+          )
+          .sort({ timestamp: 1 });
 
         return events.map((event) => event.toObject() as ActiveWindowEvent);
       } catch (error) {
