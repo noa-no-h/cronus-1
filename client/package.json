@@ -47,18 +47,20 @@
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.54.2",
     "react-markdown": "^10.1.0",
+    "react-remove-scroll": "^2.7.1",
     "react-router-dom": "^6.22.0",
     "react-scripts": "^5.0.1",
     "react-simple-typewriter": "^5.0.1",
     "serve": "^14.2.1",
+    "tslib": "^2.8.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.2",
     "zod": "^3.24.1"
   },
   "scripts": {
-    "dev": "craco start",
+    "dev": "NODE_OPTIONS=--max-old-space-size=4096 craco start",
     "start": "serve -s build",
-    "build": "NODE_ENV=production craco build",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 NODE_ENV=production craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },

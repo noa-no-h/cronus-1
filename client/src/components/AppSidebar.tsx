@@ -23,13 +23,6 @@ import {
   SidebarTrigger,
 } from './ui/sidebar';
 
-// Example items to demonstrate sidebar functionality
-const sidebarExampleItems = [
-  { id: '1', name: 'Example Item 1' },
-  { id: '2', name: 'Example Item 2' },
-  { id: '3', name: 'Example Item 3' },
-];
-
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,51 +80,21 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Example Items</SidebarGroupLabel>
+          <SidebarGroupLabel>Statistics</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {sidebarExampleItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    asChild
-                    onClick={() => navigate(`/items/${item.id}`)}
-                    isActive={location.pathname === `/items/${item.id}`}
-                    className="relative group/item cursor-pointer flex w-full items-center"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <span className="block truncate">{item.name}</span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover/item:opacity-100 group-hover/item:bg-background absolute right-1"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => alert('Share functionality not implemented in template')}
-                          >
-                            <Share className="mr-2 h-4 w-4" />
-                            <span>Share</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() =>
-                              alert('Delete functionality not implemented in template')
-                            }
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  onClick={() => navigate('/active-user-statistics')}
+                  isActive={location.pathname === '/active-user-statistics'}
+                  className="relative group/item cursor-pointer flex w-full items-center"
+                >
+                  <div className="flex-1 min-w-0">
+                    <span className="block truncate">Active user statistics</span>
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -29,6 +29,7 @@ import { s3Router } from './routers/s3Router';
 import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
+import { statisticsRouter } from './routers/statistics';
 
 // Export types used in router signatures
 export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
@@ -44,6 +45,7 @@ export const appRouter = router({
   calendar: calendarRouter,
   suggestions: suggestionsRouter,
   waitlist: waitlistRouter,
+  statistics: statisticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

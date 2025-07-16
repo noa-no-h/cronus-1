@@ -16,9 +16,11 @@ import SettingsPage from './components/SettingsPage';
 import { ThemeProvider } from './components/theme-provider';
 import WaitlistFormPage from './components/WaitlistFormPage';
 import { createTrpcClient, trpc } from './utils/trpc';
+import { ActiveUserStatisticsPage } from './components/ActiveUserStatisticsPage';
+import { AppLayout } from './components/AppLayout';
 
 export const defaultPage = '/home';
-export const LINK_TO_WAITLIST = true; // Toggle this to control the flow after login
+export const LINK_TO_WAITLIST = false; // Toggle this to control the flow after login
 
 // Existing ProtectedRoute component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,9 +38,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    if (!isLoading && userData?.isWaitlisted) {
-      navigate('/waitlist-form');
-    }
+    // if (!isLoading && userData?.isWaitlisted) {
+    //   navigate('/waitlist-form');
+    // }
   }, [userData, isLoading, navigate]);
 
   if (isLoading) {
@@ -91,6 +93,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/active-user-statistics"
+            element={
+              <ProtectedRoute>
+                <ActiveUserStatisticsPage />
               </ProtectedRoute>
             }
           />

@@ -61,14 +61,14 @@ const WaitlistFormPage: React.FC = () => {
   }, [userData]);
 
   // If user is already waitlisted, show the submitted message
-  if (userData?.isWaitlisted) {
-    return (
-      <div className="max-w-md mx-auto text-center py-12">
-        <h2 className="text-2xl font-bold mb-4">Thank You!</h2>
-        <p className="mb-4">You've been added to our waitlist. We'll be in touch soon!</p>
-      </div>
-    );
-  }
+  // if (userData?.isWaitlisted) {
+  //   return (
+  //     <div className="max-w-md mx-auto text-center py-12">
+  //       <h2 className="text-2xl font-bold mb-4">Thank You!</h2>
+  //       <p className="mb-4">You've been added to our waitlist. We'll be in touch soon!</p>
+  //     </div>
+  //   );
+  // }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
