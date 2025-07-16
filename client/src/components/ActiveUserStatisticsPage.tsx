@@ -25,7 +25,7 @@ export function ActiveUserStatisticsPage() {
         ['Email', 'First Name', 'Name'].join(',') +
         '\n' +
         users
-          .map((u) => {
+          .map((u: any) => {
             const firstName = u.name?.split(' ')[0] || '';
             return [u.email, firstName, u.name]
               .map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`)
