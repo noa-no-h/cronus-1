@@ -40,7 +40,8 @@ export function TeamsHero({ className, ...props }: ComponentProps<'section'>) {
           </Button>
         </div>
 
-        <div className="flex items-center gap-8 text-sm text-gray-500 mt-8">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 sm:gap-8 text-sm text-gray-500 mt-8 w-full justify-center">
+          {' '}
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span>+28 mins recovered daily</span>

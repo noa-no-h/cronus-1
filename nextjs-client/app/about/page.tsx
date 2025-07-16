@@ -77,7 +77,7 @@ export default function AboutPage() {
         <section className="pt-[30px] pb-20 bg-white">
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-serif md:text-5xl font-bold text-primary mb-4">
+              <h1 className="text-4xl font-serif md:text-5xl pt-20 font-bold text-primary mb-4">
                 Our Team
               </h1>
               <p className="text-xl text-primary-80 max-w-2xl mx-auto">
