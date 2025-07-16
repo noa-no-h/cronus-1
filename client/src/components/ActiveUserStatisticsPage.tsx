@@ -1,5 +1,5 @@
 import { AppLayout } from './AppLayout';
-import { trpc } from '../lib/trpc';
+import { trpc } from '../utils/trpc';
 import { Button } from './ui/button';
 
 export function ActiveUserStatisticsPage() {
