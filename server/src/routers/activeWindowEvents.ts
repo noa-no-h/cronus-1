@@ -6,6 +6,7 @@ import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { categorizeActivity } from '../services/categorization/categorizationService';
 import { publicProcedure, router } from '../trpc';
 import { verifyToken } from './auth';
+import { isTitleInformative, generateActivitySummary } from '../services/categorization/llm';
 
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
@@ -23,6 +24,7 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
+    console.log('[Router] Received create event:', input);
     const decodedToken = verifyToken(input.token);
     const userId = decodedToken.userId;
 
@@ -30,6 +32,20 @@ export const activeWindowEventsRouter = router({
     const { windowId, ownerName, type, browser, title, url, content, timestamp, screenshotS3Url } =
       input;
     const activityDetails = { ownerName, type, browser, title, url, content }; // Pass only necessary fields
+
+    // LLM logic for title evaluation/generation
+    let generatedTitle: string | undefined = undefined;
+    try {
+      // 1. Evaluate if the title is informative
+      const informative = await isTitleInformative(title);
+
+      // 2. If not, generate a summary
+      if (!informative) {
+        generatedTitle = await generateActivitySummary(activityDetails);
+      }
+    } catch (err) {
+      console.error('LLM title evaluation/generation failed:', err);
+    }
 
     const categorizationResult = await categorizeActivity(userId, activityDetails);
     const categoryId = categorizationResult.categoryId;
@@ -47,6 +63,7 @@ export const activeWindowEventsRouter = router({
       content,
       timestamp,
       screenshotS3Url,
+      generatedTitle,
       categoryId, // Add categoryId from categorization service
       categoryReasoning,
       llmSummary,
