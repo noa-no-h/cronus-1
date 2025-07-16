@@ -92,6 +92,7 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 TASK:
 Look at the CURRENT ACTIVITY through the lens of the user's PROJECTS AND GOALS.
 Which of the USER'S CATEGORIES best supports their stated objectives?
+If the activity doesn't neatly fit into any of the other categories it's likely a distraction.
 Respond with the category name and your reasoning.
           `,
     },
