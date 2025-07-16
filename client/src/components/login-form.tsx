@@ -37,12 +37,27 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
   };
 
+  const { data: userData } = trpc.auth.getUser.useQuery(
+    { token: localStorage.getItem('accessToken') || '' },
+    {
+      enabled: !!localStorage.getItem('accessToken'),
+    }
+  );
+
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (token && userData) {
+      // Admin dashboard access restriction for existing tokens
+      const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      if (!allowedEmails.includes(userData.email)) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        alert('Access denied: This admin dashboard is restricted to authorized users only.');
+        return;
+      }
       window.location.href = defaultPage;
     }
-  }, []);
+  }, [userData]);
 
   const googleLoginMutation = trpc.auth.googleLogin.useMutation();
 
@@ -54,6 +69,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         const response = await googleLoginMutation.mutateAsync({
           credential: credentialResponse.credential,
         });
+
+        // Admin dashboard access restriction
+        const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+        if (!allowedEmails.includes(response.user.email)) {
+          alert('Access denied: This admin dashboard is restricted to authorized users only.');
+          return;
+        }
 
         // Store tokens with both the new and old keys
         localStorage.setItem('accessToken', response.accessToken);
