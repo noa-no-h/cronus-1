@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 const openai = new OpenAI(); // Ensure OPENAI_API_KEY is set
 
@@ -171,7 +172,7 @@ BROWSER: ${activityDetails.browser || ''}
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
-      messages: prompt,
+      messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
@@ -179,5 +180,60 @@ BROWSER: ${activityDetails.browser || ''}
   } catch (error) {
     console.error('Error getting OpenAI summary for block:', error);
     return null;
+  }
+}
+
+export async function isTitleInformative(title: string): Promise<boolean> {
+  const prompt = [
+    {
+      role: 'system' as const,
+      content:
+        'You are an AI assistant that evaluates if a window or activity title is informative and specific about what the user was doing. Answer only "yes" or "no".',
+    },
+    {
+      role: 'user' as const,
+      content: `Title: "${title}"`,
+    },
+  ];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-2024-08-06',
+      messages: prompt as ChatCompletionMessageParam[],
+      max_tokens: 3,
+      temperature: 0,
+    });
+    const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
+    const result = answer?.startsWith('yes') ?? false;
+    return result;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function generateActivitySummary(activityData: any): Promise<string> {
+  const prompt = [
+    {
+      role: 'system' as const,
+      content: `You are an AI assistant that summarizes user activity blocks for productivity tracking. 
+      Provide a concise, short title (max 5-8 words) of what the user was doing, based on the app, window title, and context.`,
+    },
+    {
+      role: 'user' as const,
+      content: `ACTIVITY DATA: ${JSON.stringify(activityData)}`,
+    },
+  ];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-2024-08-06',
+      messages: prompt as ChatCompletionMessageParam[],
+      max_tokens: 50,
+      temperature: 0.3,
+    });
+    const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
+    return generatedTitle;
+  } catch (error) {
+    return '';
   }
 }

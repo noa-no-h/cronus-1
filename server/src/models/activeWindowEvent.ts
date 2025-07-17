@@ -24,6 +24,7 @@ const activeWindowEventSchema = new Schema(
     categoryId: { type: String, required: false, index: true },
     categoryReasoning: { type: String, required: false },
     llmSummary: { type: String, required: false },
+    generatedTitle: { type: String, required: false },
     timestamp: { type: Number, required: true, default: Date.now, index: true },
     screenshotS3Url: { type: String, required: false },
     durationMs: { type: Number, required: false },

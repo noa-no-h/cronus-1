@@ -504,6 +504,7 @@ export const DayTimeline = ({
             layout={hasGoogleCalendarEvents ? 'split' : 'full'}
             token={token}
             dayForEntries={dayForEntries}
+            googleCalendarSegments={googleCalendarDaySegments}
           />
 
           <EventSegments
@@ -520,6 +521,7 @@ export const DayTimeline = ({
             layout={hasGoogleCalendarEvents ? 'split' : 'full'}
             token={token}
             dayForEntries={dayForEntries}
+            googleCalendarSegments={googleCalendarDaySegments}
           />
 
           {hasGoogleCalendarEvents && (
