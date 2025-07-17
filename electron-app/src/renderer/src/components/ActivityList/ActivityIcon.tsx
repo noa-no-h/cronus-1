@@ -1,6 +1,7 @@
 import { cn } from '../../lib/utils'
-import { getFaviconURL, getGoogleFaviconURL } from '../../utils/favicon'
+import { getFaviconURL } from '../../utils/favicon'
 import AppIcon from '../AppIcon'
+import { useState } from 'react'
 
 interface ActivityIconProps {
   url?: string | null
@@ -9,14 +10,13 @@ interface ActivityIconProps {
   className?: string
   itemType?: 'website' | 'app' | 'other'
   color?: string
-  onFaviconError?: () => void
   showFallback?: boolean
   fallbackText?: string
 }
 
 // TODO: marge with constants array?
 const systemEventNames = [
-  '💤 System Inactive',
+  ' System Inactive',
   '⏰ System Active',
   '🔒 Screen Locked',
   '🔓 Screen Unlocked'
@@ -29,19 +29,30 @@ export function ActivityIcon({
   className,
   itemType,
   color,
-  onFaviconError,
   showFallback,
   fallbackText
 }: ActivityIconProps) {
+  const [faviconFailed, setFaviconFailed] = useState(false)
+
   const isSystemEvent = appName && systemEventNames.includes(appName)
 
   if (isSystemEvent) {
     return <div style={{ width: size, height: size }} className={cn('flex-shrink-0', className)} />
   }
 
-  const effectiveItemType = itemType || (url ? 'website' : appName ? 'app' : 'other')
+  // Determine the effective item type - check for empty URLs
+  let effectiveItemType = itemType
+  if (!effectiveItemType) {
+    if (url && url.trim() !== '') {
+      effectiveItemType = 'website'
+    } else if (appName) {
+      effectiveItemType = 'app'
+    } else {
+      effectiveItemType = 'other'
+    }
+  }
 
-  if (effectiveItemType === 'website' && url) {
+  if (effectiveItemType === 'website' && url && url.trim() !== '') {
     if (showFallback) {
       return (
         <div
@@ -55,39 +66,61 @@ export function ActivityIcon({
         </div>
       )
     }
+
+    // Show simple colored circle if favicon failed
+    if (faviconFailed) {
+      return (
+        <div
+          className={cn(
+            'flex items-center justify-center bg-blue-500 text-white rounded-full flex-shrink-0',
+            className
+          )}
+          style={{ width: size, height: size }}
+        >
+          <span style={{ fontSize: size * 0.5 }}>🌐</span>
+        </div>
+      )
+    }
+
+    // Try favicon once, fallback to simple icon if it fails
     return (
       <img
         src={getFaviconURL(url)}
         className={cn('rounded flex-shrink-0', className)}
         style={{ width: size, height: size }}
-        onError={(e) => {
-          const target = e.currentTarget
-          const fallbackSrc = getGoogleFaviconURL(url)
-
-          if (target.src !== fallbackSrc) {
-            target.src = fallbackSrc
-          } else if (onFaviconError) {
-            onFaviconError()
-          } else {
-            target.style.display = 'none'
-          }
+        onError={() => {
+          setFaviconFailed(true)
         }}
         alt={appName || 'favicon'}
       />
     )
   }
 
-  if (effectiveItemType === 'app' && appName) {
-    return <AppIcon appName={appName} size={size} className={cn('flex-shrink-0', className)} />
+  // For manual entries (type: 'other') - show simple colored circle with letter
+  if (effectiveItemType === 'other' && color) {
+    // For manual entries, use the first letter of the actual entry name
+    const displayName = appName || fallbackText || 'M'
+    const firstLetter = displayName.charAt(0).toUpperCase()
+
+    return (
+      <div
+        className={cn('flex items-center justify-center rounded-full flex-shrink-0', className)}
+        style={{
+          backgroundColor: color,
+          width: size,
+          height: size
+        }}
+      >
+        <span style={{ fontSize: size * 0.4, color: 'white', fontWeight: 'bold' }}>
+          {firstLetter}
+        </span>
+      </div>
+    )
   }
 
-  if (effectiveItemType === 'other' && color) {
-    return (
-      <span
-        className={cn('rounded-full flex-shrink-0', className)}
-        style={{ backgroundColor: color, width: size, height: size }}
-      ></span>
-    )
+  // Only use AppIcon for real apps (not manual entries)
+  if (effectiveItemType === 'app' && appName) {
+    return <AppIcon appName={appName} size={size} className={cn('flex-shrink-0', className)} />
   }
 
   return <div style={{ width: size, height: size }} className={cn('flex-shrink-0', className)} />

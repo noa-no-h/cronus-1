@@ -27,6 +27,7 @@ interface Addon {
   hasPermissionsForContentExtraction: () => boolean
   requestPermission: (permissionType: number) => void
   captureScreenshotAndOCRForCurrentWindow: () => any
+  getAppIconPath: (appName: string) => string | null
 }
 
 const isDevelopment = !app.isPackaged
@@ -87,6 +88,15 @@ class NativeWindows {
    */
   public setPermissionDialogsEnabled(enabled: boolean): void {
     addon.setPermissionDialogsEnabled(enabled)
+  }
+
+  /**
+   * Gets the icon path for a specific app
+   * @param appName The name of the app
+   * @returns The path to the icon file, or null if not found
+   */
+  public getAppIconPath(appName: string): string | null {
+    return addon.getAppIconPath(appName)
   }
 
   /**

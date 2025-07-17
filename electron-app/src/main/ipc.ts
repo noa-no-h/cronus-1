@@ -25,6 +25,10 @@ export function registerIpcHandlers(
     }
   })
 
+  ipcMain.handle('get-app-icon-path', (_event, appName: string) => {
+    return nativeWindows.getAppIconPath(appName)
+  })
+
   ipcMain.on('hide-floating-window', () => {
     if (windows.floatingWindow && windows.floatingWindow.isVisible()) {
       windows.floatingWindow.hide()

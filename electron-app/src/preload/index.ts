@@ -85,7 +85,9 @@ const api = {
   },
   captureScreenshotAndOCR: () => ipcRenderer.invoke('capture-screenshot-and-ocr'),
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
-  getBuildDate: () => ipcRenderer.invoke('get-build-date')
+  getBuildDate: () => ipcRenderer.invoke('get-build-date'),
+  getAppIconPath: (appName: string): Promise<string | null> =>
+    ipcRenderer.invoke('get-app-icon-path', appName)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

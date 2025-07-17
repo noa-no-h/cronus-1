@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 // Import icons
 import cursorIcon from '../assets/icons/cursor.png'
@@ -22,6 +22,8 @@ interface AppIconProps {
 
 const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' }) => {
   const [iconError, setIconError] = useState(false)
+  const [nativeIconDataUrl, setNativeIconDataUrl] = useState<string | null>(null)
+  const [isLoadingNativeIcon, setIsLoadingNativeIcon] = useState(false)
 
   const iconMap: { [key: string]: string } = {
     Cursor: cursorIcon,
@@ -39,7 +41,7 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     Settings: settingsIcon
   }
 
-  // Try to find exact match or partial match
+  // Try to find exact match or partial match in curated icons
   let iconSrc = iconMap[appName]
 
   if (!iconSrc && !iconError) {
@@ -52,6 +54,39 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     }
   }
 
+  // Load native icon if no curated icon found
+  useEffect(() => {
+    if (!iconSrc && !nativeIconDataUrl && !isLoadingNativeIcon) {
+      setIsLoadingNativeIcon(true)
+      window.api
+        .getAppIconPath(appName)
+        .then((path) => {
+          if (path) {
+            // Convert file path to data URL to avoid CSP issues
+            window.api
+              .readFile(path)
+              .then((fileData) => {
+                if (fileData) {
+                  // Convert the file data to a data URL
+                  const base64 = btoa(String.fromCharCode(...new Uint8Array(fileData)))
+                  const dataUrl = `data:image/png;base64,${base64}`
+                  setNativeIconDataUrl(dataUrl)
+                }
+              })
+              .catch((error) => {
+                console.error('Failed to read icon file:', error)
+              })
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to get native icon for', appName, error)
+        })
+        .finally(() => {
+          setIsLoadingNativeIcon(false)
+        })
+    }
+  }, [appName, iconSrc, nativeIconDataUrl, isLoadingNativeIcon])
+
   // Show curated icon if available
   if (iconSrc && !iconError) {
     return (
@@ -62,8 +97,33 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
         height={size}
         className={`rounded-sm ${className}`}
         onError={() => setIconError(true)}
-        // onLoad={() => console.log(`✅ Loaded icon for ${appName}`)}
       />
+    )
+  }
+
+  // Show native icon if available
+  if (nativeIconDataUrl) {
+    return (
+      <img
+        src={nativeIconDataUrl}
+        alt={`${appName} icon`}
+        width={size}
+        height={size}
+        className={`rounded-sm ${className}`}
+        onError={() => setNativeIconDataUrl(null)}
+      />
+    )
+  }
+
+  // Show loading state while fetching native icon
+  if (isLoadingNativeIcon) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-200 rounded-sm ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
     )
   }
 
