@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
 # Ultra-isolated build script - complete workspace isolation
 
 echo "🚀 Starting ultra-isolated build..."
@@ -50,10 +53,14 @@ npm run build
 
 # Copy build back to original location
 echo "📦 Copying build back to original location..."
-cp -r build/* $OLDPWD/build/ 2>/dev/null || mkdir -p $OLDPWD/build && cp -r build/* $OLDPWD/build/
+# Create build dir in original location if it doesn't exist
+mkdir -p "$OLDPWD/build"
+# Copy contents of temp build dir to original build dir
+cp -r build/. "$OLDPWD/build/"
+
 
 # Cleanup
-cd $OLDPWD
+cd "$OLDPWD"
 rm -rf "$TEMP_DIR"
 
 echo "✅ Ultra-isolated build completed successfully!" 
