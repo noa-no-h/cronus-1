@@ -6,6 +6,7 @@ import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
 import BlogPage from './app/blog/BlogPage';
 import BlogPostPage from './app/blog/BlogPostPage';
+import { ActiveUserStatisticsPage } from './components/ActiveUserStatisticsPage';
 import DownloadPage from './components/DownloadPage';
 import ElectronCallbackPage from './components/ElectronCallbackPage';
 import HomePage from './components/HomePage';
@@ -16,11 +17,12 @@ import SettingsPage from './components/SettingsPage';
 import { ThemeProvider } from './components/theme-provider';
 import WaitlistFormPage from './components/WaitlistFormPage';
 import { createTrpcClient, trpc } from './utils/trpc';
-import { ActiveUserStatisticsPage } from './components/ActiveUserStatisticsPage';
-import { AppLayout } from './components/AppLayout';
 
 export const defaultPage = '/home';
 export const LINK_TO_WAITLIST = false; // Toggle this to control the flow after login
+
+// log the .env variables
+console.log('🔍 .env variables:', import.meta.env);
 
 // Existing ProtectedRoute component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
