@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "resolutions": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^8.35.0",
@@ -43,7 +45,6 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",
-    "posthog-js": "^1.234.10",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.8",
     "react-dom": "^18.2.0",
