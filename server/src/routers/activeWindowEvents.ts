@@ -42,7 +42,6 @@ export const activeWindowEventsRouter = router({
         (!title ||
           title.trim() === '' ||
           title === 'Untitled' ||
-          title === 'New Tab' ||
           title === ownerName ||
           title.length < 3);
 
