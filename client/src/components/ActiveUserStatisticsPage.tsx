@@ -20,11 +20,13 @@ export function ActiveUserStatisticsPage() {
     isLoading: todayLoading,
     error: todayError,
   } = trpc.statistics.getActiveUserCountToday.useQuery();
+
   const {
     data: yesterdayData,
     isLoading: yesterdayLoading,
     error: yesterdayError,
   } = trpc.statistics.getActiveUserCountYesterday.useQuery();
+
   const {
     data: lastWeekData,
     isLoading: lastWeekLoading,
@@ -63,6 +65,8 @@ export function ActiveUserStatisticsPage() {
     isLoading: kpisLoading,
     error: kpisError,
   } = trpc.statistics.getKPIs.useQuery();
+
+  console.log('🔍 test');
 
   const handleDownload = async (refetchFunction: any, filename: string, isFetching: boolean) => {
     if (isFetching) return;
