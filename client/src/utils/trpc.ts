@@ -1,11 +1,11 @@
 import { httpBatchLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
-import type { AppRouter } from '../../../server/src';
+import type { AppRouter } from '../../../server/src/index';
 import { refreshAccessToken } from '../lib/auth';
 
-const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
+const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
-export const trpc = createTRPCReact<AppRouter>();
+export const trpc = createTRPCReact<AppRouter>({});
 
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;

@@ -1,8 +1,10 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '../../../server/src/index';
 
-// Import or define serverUrl
-const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
+function getBaseUrl() {
+  const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+  return serverUrl;
+}
 
 export async function refreshAccessToken() {
   console.log('🔄 refreshAccessToken called');
@@ -18,7 +20,7 @@ export async function refreshAccessToken() {
     const client = createTRPCProxyClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: `${serverUrl}/trpc`,
+          url: `${getBaseUrl()}/trpc`,
         }),
       ],
     });
