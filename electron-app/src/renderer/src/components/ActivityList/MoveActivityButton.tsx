@@ -96,7 +96,11 @@ export const MoveActivityButton = ({
           {getTimeRangeDescription(selectedHour, selectedDay, viewMode, startDateMs, endDateMs)}
         </TooltipContent>
       </Tooltip>
-      <DropdownMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+      <DropdownMenuContent
+        collisionPadding={{ top: 40 }}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        {' '}
         {activeCategories.map((targetCat) => (
           <DropdownMenuItem
             key={targetCat._id}
