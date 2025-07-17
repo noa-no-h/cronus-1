@@ -148,14 +148,32 @@ export function ActiveUserStatisticsPage() {
             <p className="text-2xl font-bold text-green-900">{kpisData?.activeUsersThisWeek}</p>
           </div>
           <div className="p-4 border rounded-lg bg-purple-50">
-            <h3 className="text-sm font-medium text-purple-600">Signups to Active Ratio</h3>
-            <p className="text-2xl font-bold text-purple-900">{kpisData?.signupsToActiveRatio}</p>
+            <h3 className="text-sm font-medium text-purple-600">Signup to Active Conversion</h3>
+            <p className="text-2xl font-bold text-purple-900">{kpisData?.conversionRate}%</p>
           </div>
           <div className="p-4 border rounded-lg bg-orange-50">
-            <h3 className="text-sm font-medium text-orange-600">Ratio This Week</h3>
-            <p className="text-2xl font-bold text-orange-900">
-              {kpisData?.signupsToActiveRatioThisWeek}
-            </p>
+            <h3 className="text-sm font-medium text-orange-600">New User Share</h3>
+            <p className="text-2xl font-bold text-orange-900">{kpisData?.newUserShare}%</p>
+          </div>
+        </div>
+
+        {/* Additional KPIs Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 border rounded-lg bg-teal-50">
+            <h3 className="text-sm font-medium text-teal-600">7-Day User Retention</h3>
+            <p className="text-2xl font-bold text-teal-900">{kpisData?.weeklyRetentionRate}%</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-indigo-50">
+            <h3 className="text-sm font-medium text-indigo-600">New User Activation (7d)</h3>
+            <p className="text-2xl font-bold text-indigo-900">{kpisData?.newUserActivationRate}%</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-pink-50">
+            <h3 className="text-sm font-medium text-pink-600">WoW Signup Growth</h3>
+            <p className="text-2xl font-bold text-pink-900">{kpisData?.signupGrowthRate}%</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-yellow-50">
+            <h3 className="text-sm font-medium text-yellow-600">Avg Events per User</h3>
+            <p className="text-2xl font-bold text-yellow-900">{kpisData?.avgEventsPerUser}</p>
           </div>
         </div>
 
