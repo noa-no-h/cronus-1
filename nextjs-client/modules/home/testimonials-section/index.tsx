@@ -73,7 +73,7 @@ const testimonials = [
       'As a PM, context switching is constant — meetings, docs, Slack, planning. Cronus helps me protect focus time and make better use of deep work hours.',
   },
   {
-    name: 'Jonas Schwarz',
+    name: 'Jona Schwarz',
     title: 'Software Engineer',
     avatar: jona,
     content:

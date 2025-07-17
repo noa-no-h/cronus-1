@@ -41,23 +41,20 @@ const categorySchema: Schema = new Schema<ICategoryDoc>(
   {
     timestamps: true,
     toJSON: {
-      // virtuals: true, // Not strictly needed if we manually handle _id and don't rely on virtual 'id'
-      transform: function (doc: ICategoryDoc, ret) {
+      transform: function (doc: ICategoryDoc, ret: any) {
         ret._id = doc._id.toString();
         ret.userId = doc.userId.toString();
-        delete ret.__v; // Remove version key
-        delete ret.id; // Remove Mongoose's default virtual 'id' if it appears
+        delete (ret as any).__v; // Remove version key
+        delete (ret as any).id; // Remove Mongoose's default virtual 'id' if it appears
         return ret;
       },
     },
     toObject: {
-      // Keep toObject consistent for simplicity, though toJSON is usually primary for APIs
-      // virtuals: true,
-      transform: function (doc: ICategoryDoc, ret) {
+      transform: function (doc: ICategoryDoc, ret: any) {
         ret._id = doc._id.toString();
         ret.userId = doc.userId.toString();
-        delete ret.__v;
-        delete ret.id;
+        delete (ret as any).__v;
+        delete (ret as any).id;
         return ret;
       },
     },
