@@ -24,25 +24,37 @@ const activeWindowEventInputSchema = z.object({
 
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
-    console.log('[Router] Received create event:', input);
+    // console.log('[Router] Received create event:', input);
     const decodedToken = verifyToken(input.token);
     const userId = decodedToken.userId;
 
     // Destructure relevant details from input for categorization
     const { windowId, ownerName, type, browser, title, url, content, timestamp, screenshotS3Url } =
       input;
-    const activityDetails = { ownerName, type, browser, title, url, content }; // Pass only necessary fields
+    const activityDetails = { ownerName, type, browser, title, url, content };
 
     // LLM logic for title evaluation/generation
     let generatedTitle: string | undefined = undefined;
     try {
-      // 1. Evaluate if the title is informative
-      const informative = await isTitleInformative(title);
+      // Only generate titles for desktop apps with uninformative titles
+      const shouldGenerateTitle =
+        type === 'window' &&
+        (!title ||
+          title.trim() === '' ||
+          title === 'Untitled' ||
+          title === 'New Tab' ||
+          title === ownerName ||
+          title.length < 3);
 
-      // 2. If not, generate a summary
-      if (!informative) {
-        generatedTitle = await generateActivitySummary(activityDetails);
-        console.log('[Router] Final generated title:', generatedTitle);
+      if (shouldGenerateTitle) {
+        // Evaluate if the title is informative
+        const informative = await isTitleInformative(title || '');
+
+        // If not, generate a summary
+        if (!informative) {
+          generatedTitle = await generateActivitySummary(activityDetails);
+          console.log('[Router] Final generated title:', generatedTitle);
+        }
       }
     } catch (err) {
       console.error('LLM title evaluation/generation failed:', err);

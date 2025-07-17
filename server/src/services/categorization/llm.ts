@@ -182,8 +182,6 @@ BROWSER: ${activityDetails.browser || ''}
 }
 
 export async function isTitleInformative(title: string): Promise<boolean> {
-  console.log('[LLM] Checking if title is informative:', title);
-
   const prompt = [
     {
       role: 'system' as const,
@@ -197,32 +195,21 @@ export async function isTitleInformative(title: string): Promise<boolean> {
   ];
 
   try {
-    console.log('[LLM] About to call OpenAI...');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 3,
       temperature: 0,
     });
-    console.log('[LLM] OpenAI response received:', response.choices[0]?.message?.content);
     const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
     const result = answer?.startsWith('yes') ?? false;
     return result;
   } catch (error) {
-    console.error('[LLM] ERROR in isTitleInformative:', error);
-    console.error('[LLM] Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      response: error.response,
-    });
     return false;
   }
 }
 
 export async function generateActivitySummary(activityData: any): Promise<string> {
-  console.log('[LLM] Generating activity summary:', activityData);
-
   const prompt = [
     {
       role: 'system' as const,
@@ -236,7 +223,6 @@ export async function generateActivitySummary(activityData: any): Promise<string
   ];
 
   try {
-    console.log('[LLM] About to call OpenAI for summary...');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
       messages: prompt as ChatCompletionMessageParam[],
@@ -244,15 +230,8 @@ export async function generateActivitySummary(activityData: any): Promise<string
       temperature: 0.3,
     });
     const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
-    console.log('[LLM] Generated title result:', generatedTitle);
     return generatedTitle;
   } catch (error) {
-    console.error('[LLM] ERROR in generateActivitySummary:', error);
-    console.error('[LLM] Error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-    });
     return '';
   }
 }
