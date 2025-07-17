@@ -4,6 +4,7 @@
 #import <napi.h>
 #import "./activeWindowObserver.h"
 #import "./permissionManager.h"
+#import "./iconUtils.h"
 
 void StartActiveWindowObserverMethod(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
@@ -73,6 +74,26 @@ void RequestPermissionMethod(const Napi::CallbackInfo& info) {
   }];
 }
 
+Napi::Value GetAppIconPathMethod(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  
+  if (info.Length() < 1 || !info[0].IsString()) {
+    Napi::TypeError::New(env, "Expected string argument for app name").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+  
+  std::string appName = info[0].As<Napi::String>().Utf8Value();
+  NSString *nsAppName = [NSString stringWithUTF8String:appName.c_str()];
+  
+  NSString *iconPath = getAppIconPath(nsAppName);
+  
+  if (iconPath) {
+    return Napi::String::New(env, [iconPath UTF8String]);
+  } else {
+    return env.Null();
+  }
+}
+
 Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "startActiveWindowObserver"),
               Napi::Function::New(env, StartActiveWindowObserverMethod));
@@ -90,6 +111,8 @@ Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {
               Napi::Function::New(env, HasPermissionsForContentExtractionMethod));
   exports.Set(Napi::String::New(env, "requestPermission"),
               Napi::Function::New(env, RequestPermissionMethod));
+  exports.Set(Napi::String::New(env, "getAppIconPath"),
+              Napi::Function::New(env, GetAppIconPathMethod));
   return exports;
 }
 
