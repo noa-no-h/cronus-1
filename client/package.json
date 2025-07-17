@@ -4,7 +4,10 @@
   "private": true,
   "resolutions": {
     "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.35.0",
+    "@typescript-eslint/parser": "^8.35.0",
+    "eslint": "^8.56.0"
   },
   "dependencies": {
     "@craco/craco": "^7.1.0",
@@ -67,8 +70,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {
@@ -90,7 +92,6 @@
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "craco-fast-refresh": "^1.0.1",
     "html-entities": "^2.3.3",
     "lucide-react": "^0.474.0",
     "postcss": "^8.4.31",
