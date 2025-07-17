@@ -113,11 +113,34 @@ export function verifyToken(token: string): { userId: string } {
     return decoded;
   } catch (error) {
     console.error('Token verification error:', error);
-    // Make sure to throw a specific error that can be handled in the middleware
-    const authError = new Error('Invalid or expired token');
-    // @ts-ignore - Adding custom property to Error
-    authError.code = 'UNAUTHORIZED';
-    throw authError;
+
+    // Preserve the original JWT error information for better handling
+    if (error instanceof jwt.TokenExpiredError) {
+      const authError = new Error('Token has expired');
+      authError.name = 'TokenExpiredError';
+      // @ts-ignore - Adding custom property to Error
+      authError.code = 'UNAUTHORIZED';
+      throw authError;
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      const authError = new Error('Invalid or malformed token');
+      authError.name = 'JsonWebTokenError';
+      // @ts-ignore - Adding custom property to Error
+      authError.code = 'UNAUTHORIZED';
+      throw authError;
+    } else if (error instanceof jwt.NotBeforeError) {
+      const authError = new Error('Token not active yet');
+      authError.name = 'NotBeforeError';
+      // @ts-ignore - Adding custom property to Error
+      authError.code = 'UNAUTHORIZED';
+      throw authError;
+    } else {
+      // Generic JWT error
+      const authError = new Error('Invalid or expired token');
+      authError.name = 'TokenError';
+      // @ts-ignore - Adding custom property to Error
+      authError.code = 'UNAUTHORIZED';
+      throw authError;
+    }
   }
 }
 

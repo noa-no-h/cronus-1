@@ -30,14 +30,43 @@ export const createTrpcClient = () =>
           // console.log('🔍 Making request with token:', localStorage.getItem('accessToken'));
           const response = await fetch(url, options);
 
-          // Check for 401 Unauthorized or token-related errors
-          if (
-            response.status === 401 ||
-            (response.status === 500 &&
-              (url.toString().includes('token') ||
-                url.toString().includes('jwt expired') || // Add check for jwt expired
-                url.toString().includes('TokenExpiredError'))) // Add check for TokenExpiredError
-          ) {
+          // Check for authentication errors
+          let shouldRefresh = false;
+
+          if (response.status === 401) {
+            shouldRefresh = true;
+          } else if (response.status === 500) {
+            // For 500 errors, check if they're JWT-related
+            const urlStr = url.toString();
+            if (
+              urlStr.includes('token') ||
+              urlStr.includes('jwt expired') ||
+              urlStr.includes('TokenExpiredError')
+            ) {
+              shouldRefresh = true;
+            }
+          }
+
+          // Also check response body for JWT errors
+          if (!shouldRefresh && (response.status === 400 || response.status === 500)) {
+            try {
+              const responseClone = response.clone();
+              const responseText = await responseClone.text();
+
+              if (
+                responseText.includes('TokenExpiredError') ||
+                responseText.includes('jwt expired') ||
+                responseText.includes('Invalid or expired token') ||
+                responseText.includes('UNAUTHORIZED')
+              ) {
+                shouldRefresh = true;
+              }
+            } catch (e) {
+              // If we can't read the response body, continue with original logic
+            }
+          }
+
+          if (shouldRefresh) {
             console.log(`⚠️ Received ${response.status} error - Token likely expired or invalid`);
             if (!isRefreshing) {
               console.log('🔄 Starting token refresh process');

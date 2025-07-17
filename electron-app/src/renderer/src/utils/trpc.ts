@@ -27,20 +27,60 @@ export const createTrpcClient = () =>
         fetch: async (url, options = {}) => {
           const response = await fetch(url, options)
 
-          if (
-            response.status === 401 ||
-            (response.status === 500 &&
-              (url.toString().includes('token') ||
-                url.toString().includes('jwt expired') ||
-                url.toString().includes('TokenExpiredError')))
-          ) {
+          // Check for authentication errors
+          let shouldRefresh = false
+
+          if (response.status === 401) {
+            shouldRefresh = true
+          } else if (response.status === 500) {
+            // For 500 errors, check if they're JWT-related
+            const urlStr = url.toString()
+            if (
+              urlStr.includes('token') ||
+              urlStr.includes('jwt expired') ||
+              urlStr.includes('TokenExpiredError')
+            ) {
+              shouldRefresh = true
+            }
+          }
+
+          // Also check response body for JWT errors
+          if (!shouldRefresh && (response.status === 400 || response.status === 500)) {
+            try {
+              const responseClone = response.clone()
+              const responseText = await responseClone.text()
+
+              if (
+                responseText.includes('TokenExpiredError') ||
+                responseText.includes('jwt expired') ||
+                responseText.includes('Invalid or expired token') ||
+                responseText.includes('UNAUTHORIZED')
+              ) {
+                shouldRefresh = true
+              }
+            } catch (e) {
+              // If we can't read the response body, continue with original logic
+            }
+          }
+
+          if (shouldRefresh) {
+            console.log(`⚠️ Received ${response.status} error - Token likely expired or invalid`)
             if (!isRefreshing) {
+              console.log('🔄 Starting token refresh process')
               isRefreshing = true
               refreshPromise = refreshAccessToken()
+            } else {
+              console.log('⏳ Another refresh already in progress, waiting for it to complete')
             }
 
             try {
               const newToken = await refreshPromise
+              console.log(
+                '✅ Token refresh successful, got new token:',
+                newToken ? newToken.substring(0, 15) + '...' : 'none'
+              )
+              console.log('🔁 Retrying original request')
+              // Retry the original request with new token
               const newOptions = {
                 ...options,
                 headers: {

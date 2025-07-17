@@ -135,13 +135,24 @@ app.use(
     router: appRouter,
     onError({ error, path }) {
       console.error(`Error in tRPC path ${path}:`, error);
+
       // Convert auth errors to 401 responses
-      if (
+      const isAuthError =
         error.code === 'UNAUTHORIZED' ||
         error.message?.includes('token') ||
-        error.message?.includes('jwt expired') || // Add explicit check for jwt expired
-        error.name === 'TokenExpiredError' // Add check for TokenExpiredError
-      ) {
+        error.message?.includes('jwt expired') ||
+        error.message?.includes('Invalid or expired token') ||
+        error.name === 'TokenExpiredError' ||
+        error.name === 'JsonWebTokenError' ||
+        error.name === 'NotBeforeError' ||
+        // Check if it's a JWT verification error
+        (error.message?.includes('jwt') &&
+          (error.message.includes('expired') ||
+            error.message.includes('invalid') ||
+            error.message.includes('malformed')));
+
+      if (isAuthError) {
+        console.log('🔒 Converting auth error to 401 status:', error.message);
         // @ts-expect-error - httpStatus is not in the type but is used by the adapter
         error.httpStatus = 401;
       }
