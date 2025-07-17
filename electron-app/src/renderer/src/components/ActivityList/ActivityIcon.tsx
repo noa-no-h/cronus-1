@@ -98,8 +98,7 @@ export function ActivityIcon({
 
   // For manual entries (type: 'other') - show simple colored circle with letter
   if (effectiveItemType === 'other' && color) {
-    // For manual entries, use the first letter of the actual entry name
-    const displayName = appName || fallbackText || 'M'
+    const displayName = fallbackText || appName || 'M'
     const firstLetter = displayName.charAt(0).toUpperCase()
 
     return (
@@ -119,7 +118,7 @@ export function ActivityIcon({
   }
 
   // Only use AppIcon for real apps (not manual entries)
-  if (effectiveItemType === 'app' && appName) {
+  if (effectiveItemType === 'app' && appName && itemType !== 'other') {
     return <AppIcon appName={appName} size={size} className={cn('flex-shrink-0', className)} />
   }
 
