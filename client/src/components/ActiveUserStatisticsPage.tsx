@@ -1,6 +1,18 @@
 import { AppLayout } from './AppLayout';
 import { trpc } from '../utils/trpc';
 import { Button } from './ui/button';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from 'recharts';
+import { format } from 'date-fns';
 
 export function ActiveUserStatisticsPage() {
   const {
@@ -33,6 +45,24 @@ export function ActiveUserStatisticsPage() {
     trpc.statistics.getActiveUsersLastWeek.useQuery(undefined, {
       enabled: false,
     });
+
+  const {
+    data: signupsGrowthData,
+    isLoading: signupsGrowthLoading,
+    error: signupsGrowthError,
+  } = trpc.statistics.getSignupsGrowthChart.useQuery();
+
+  const {
+    data: activeWindowEventsData,
+    isLoading: activeWindowEventsLoading,
+    error: activeWindowEventsError,
+  } = trpc.statistics.getActiveWindowEventsChart.useQuery();
+
+  const {
+    data: kpisData,
+    isLoading: kpisLoading,
+    error: kpisError,
+  } = trpc.statistics.getKPIs.useQuery();
 
   const handleDownload = async (refetchFunction: any, filename: string, isFetching: boolean) => {
     if (isFetching) return;
@@ -69,23 +99,111 @@ export function ActiveUserStatisticsPage() {
     }
   };
 
-  if (todayLoading || yesterdayLoading || lastWeekLoading) {
+  if (
+    todayLoading ||
+    yesterdayLoading ||
+    lastWeekLoading ||
+    signupsGrowthLoading ||
+    activeWindowEventsLoading ||
+    kpisLoading
+  ) {
     return <AppLayout>Loading...</AppLayout>;
   }
 
-  if (todayError || yesterdayError || lastWeekError) {
-    const error = todayError || yesterdayError || lastWeekError;
+  if (
+    todayError ||
+    yesterdayError ||
+    lastWeekError ||
+    signupsGrowthError ||
+    activeWindowEventsError ||
+    kpisError
+  ) {
+    const error =
+      todayError ||
+      yesterdayError ||
+      lastWeekError ||
+      signupsGrowthError ||
+      activeWindowEventsError ||
+      kpisError;
     return <AppLayout>Error: {error?.message}</AppLayout>;
   }
 
   return (
     <AppLayout>
-      <div className="p-4">
-        <h1 className="text-2xl font-bold mb-6">Active User Statistics</h1>
+      <div className="p-4 space-y-8">
+        <h1 className="text-3xl font-bold mb-6">Active User Statistics Dashboard</h1>
 
+        {/* KPIs Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 border rounded-lg bg-blue-50">
+            <h3 className="text-sm font-medium text-blue-600">Signups This Week</h3>
+            <p className="text-2xl font-bold text-blue-900">{kpisData?.signupsThisWeek}</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-green-50">
+            <h3 className="text-sm font-medium text-green-600">Active Users This Week</h3>
+            <p className="text-2xl font-bold text-green-900">{kpisData?.activeUsersThisWeek}</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-purple-50">
+            <h3 className="text-sm font-medium text-purple-600">Signups to Active Ratio</h3>
+            <p className="text-2xl font-bold text-purple-900">{kpisData?.signupsToActiveRatio}</p>
+          </div>
+          <div className="p-4 border rounded-lg bg-orange-50">
+            <h3 className="text-sm font-medium text-orange-600">Ratio This Week</h3>
+            <p className="text-2xl font-bold text-orange-900">
+              {kpisData?.signupsToActiveRatioThisWeek}
+            </p>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Signups Growth Chart */}
+          <div className="p-6 border rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">Signups Growth (Last 30 Days)</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={signupsGrowthData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+                />
+                <YAxis />
+                <Tooltip labelFormatter={(value) => format(new Date(value), 'MMM dd, yyyy')} />
+                <Line
+                  type="monotone"
+                  dataKey="signups"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Active Window Events Chart */}
+          <div className="p-6 border rounded-lg">
+            <h2 className="text-xl font-semibold mb-4">Activity Events Per Day (Last 30 Days)</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={activeWindowEventsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) => format(new Date(value), 'MMM dd')}
+                />
+                <YAxis />
+                <Tooltip labelFormatter={(value) => format(new Date(value), 'MMM dd, yyyy')} />
+                <Bar dataKey="events" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Existing Active Users Section */}
         <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">Active Users Data</h2>
+
           <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Today</h2>
+            <h3 className="text-lg font-semibold mb-2">Today</h3>
             <p className="mb-4">Number of active users today: {todayData?.count}</p>
             <Button
               onClick={() =>
@@ -98,7 +216,7 @@ export function ActiveUserStatisticsPage() {
           </div>
 
           <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Yesterday</h2>
+            <h3 className="text-lg font-semibold mb-2">Yesterday</h3>
             <p className="mb-4">Number of active users yesterday: {yesterdayData?.count}</p>
             <Button
               onClick={() =>
@@ -115,7 +233,7 @@ export function ActiveUserStatisticsPage() {
           </div>
 
           <div className="p-4 border rounded-lg">
-            <h2 className="text-lg font-semibold mb-2">Last 7 Days</h2>
+            <h3 className="text-lg font-semibold mb-2">Last 7 Days</h3>
             <p className="mb-4">Number of active users in the last 7 days: {lastWeekData?.count}</p>
             <Button
               onClick={() =>
