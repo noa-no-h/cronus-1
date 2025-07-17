@@ -88,10 +88,12 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 - Activity: Browsing Instagram profile. Goal: "Find dream wife". Categories: "Find Dream Wife", "Social Media Distraction". Correct Category: "Find Dream Wife".
 - Activity: Twitter DMs about user research. Goal: "Build novel productivity software". Categories: "Product Management", "Distraction". Correct Category: "Product Management".
 - Activity: Watching random entertainment on YouTube. Goal: "Finish coding new feature". Categories: "Work", "Distraction". Correct Category: "Distraction".
+- Activity: Drafting emails for unrelated side project. Goal: "Working on new social app". Categories: "Work Communication", "Distraction". Correct Category: "Distraction".
 
 TASK:
 Look at the CURRENT ACTIVITY through the lens of the user's PROJECTS AND GOALS.
 Which of the USER'S CATEGORIES best supports their stated objectives?
+If the activity is unrelated to the user's stated projects and goals, it should be categorized as "Distraction" regardless of the activity type.
 If the activity doesn't neatly fit into any of the other categories it's likely a distraction.
 Respond with the category name and your reasoning.
           `,
