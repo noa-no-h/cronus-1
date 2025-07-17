@@ -40,6 +40,130 @@ describe('categorizeActivity edge cases', () => {
     jest.restoreAllMocks();
   });
 
+  // Helper function to create template categories
+  const createTemplateCategories = (userId: string) => [
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Coding',
+      description: 'Writing or reviewing code, debugging, working in IDEs or terminals',
+      color: '#3B82F6',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Design',
+      description: 'Working in design tools like Figma or Illustrator on UX/UI or visual assets',
+      color: '#8B5CF6',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Product Management',
+      description: 'Planning features, writing specs, managing tickets, reviewing user feedback',
+      color: '#10B981',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Growth & Marketing',
+      description: 'Working on campaigns, analytics, user acquisition, SEO or outreach',
+      color: '#EAB308',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Work Communication',
+      description: 'Responding to emails, Slack, Notion, meetings or async updates',
+      color: '#0EA5E9',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Distraction',
+      description: 'Scrolling social media, browsing unrelated content, or idle clicking',
+      color: '#EC4899',
+      isProductive: false,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Dating',
+      description: 'Using dating apps, messaging, browsing profiles, or going on dates',
+      color: '#F43F5E',
+      isProductive: false,
+      isDefault: false,
+      isLikelyToBeOffline: true,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Eating & Shopping',
+      description: 'Eating meals, cooking, groceries, or online/in-person shopping',
+      color: '#D97706',
+      isProductive: false,
+      isDefault: false,
+      isLikelyToBeOffline: true,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Sport & Health',
+      description: 'Exercising, walking, gym, sports, wellness, etc.',
+      color: '#6366F1',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: true,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Friends & Social',
+      description: 'Spending time with friends or socializing in person or online',
+      color: '#A855F7',
+      isProductive: false,
+      isDefault: false,
+      isLikelyToBeOffline: true,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Planning & Reflection',
+      description: 'Journaling, reflecting on goals, or reviewing personal plans',
+      color: '#84CC16',
+      isProductive: true,
+      isDefault: false,
+      isLikelyToBeOffline: false,
+    },
+    {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userId,
+      name: 'Commuting',
+      description: 'Traveling to or from work, errands, or social events',
+      color: '#6B7280',
+      isProductive: false,
+      isDefault: false,
+      isLikelyToBeOffline: true,
+    },
+  ];
+
   test('should categorize viewing a stock portfolio as Distraction if no Investing category exists', async () => {
     // Arrange: Mock history check to fail, simulating the LLM pathway
     (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
@@ -48,140 +172,7 @@ describe('categorizeActivity edge cases', () => {
       lean: jest.fn().mockResolvedValue(null),
     });
 
-    // Template categories (copied from CategoryTemplateList.tsx) + Distraction
-    const templateCategories = [
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Contracting for XYZ',
-        description:
-          'Working on a project for Contractor work for XYZ including meetings, emails, etc. related to that project',
-        color: '#22C55E',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Coding',
-        description: 'Writing or reviewing code, debugging, working in IDEs or terminals',
-        color: '#3B82F6',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Design',
-        description: 'Working in design tools like Figma or Illustrator on UX/UI or visual assets',
-        color: '#8B5CF6',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Product Management',
-        description: 'Planning features, writing specs, managing tickets, reviewing user feedback',
-        color: '#10B981',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Growth & Marketing',
-        description: 'Working on campaigns, analytics, user acquisition, SEO or outreach',
-        color: '#EAB308',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Work Communication',
-        description: 'Responding to emails, Slack, Notion, meetings or async updates',
-        color: '#0EA5E9',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Distraction',
-        description: 'Scrolling social media, browsing unrelated content, or idle clicking',
-        color: '#EC4899',
-        isProductive: false,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Dating',
-        description: 'Using dating apps, messaging, browsing profiles, or going on dates',
-        color: '#F43F5E',
-        isProductive: false,
-        isDefault: false,
-        isLikelyToBeOffline: true,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Eating & Shopping',
-        description: 'Eating meals, cooking, groceries, or online/in-person shopping',
-        color: '#D97706',
-        isProductive: false,
-        isDefault: false,
-        isLikelyToBeOffline: true,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Sport & Health',
-        description: 'Exercising, walking, gym, sports, wellness, etc.',
-        color: '#6366F1',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: true,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Friends & Social',
-        description: 'Spending time with friends or socializing in person or online',
-        color: '#A855F7',
-        isProductive: false,
-        isDefault: false,
-        isLikelyToBeOffline: true,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Planning & Reflection',
-        description: 'Journaling, reflecting on goals, or reviewing personal plans',
-        color: '#84CC16',
-        isProductive: true,
-        isDefault: false,
-        isLikelyToBeOffline: false,
-      },
-      {
-        _id: new mongoose.Types.ObjectId().toString(),
-        userId: mockUserId,
-        name: 'Commuting',
-        description: 'Traveling to or from work, errands, or social events',
-        color: '#6B7280',
-        isProductive: false,
-        isDefault: false,
-        isLikelyToBeOffline: true,
-      },
-    ];
+    const templateCategories = createTemplateCategories(mockUserId);
 
     (UserModel.findById as jest.Mock).mockReturnValue({
       select: jest.fn().mockReturnThis(),
@@ -211,6 +202,11 @@ describe('categorizeActivity edge cases', () => {
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
+    // Log the LLM outputs for inspection
+    console.log('Full result object:', result);
+    console.log('LLM Summary:', result.llmSummary);
+    console.log('Category Reasoning:', result.categoryReasoning);
+
     // Assert
     const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
     const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
@@ -224,4 +220,233 @@ describe('categorizeActivity edge cases', () => {
       isArchived: { $ne: true },
     });
   });
+
+  test('should categorize audiobook project negotiation as Distraction rather than Growth & Marketing', async () => {
+    // Arrange: Mock history check to fail, simulating the LLM pathway
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    const templateCategories = createTemplateCategories(mockUserId);
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue({
+        userProjectsAndGoals:
+          "I'm working on Cronus - The ai time/distraction tracker software. I'm working on improving the app and getting the first few 1000 users. Might include going on reddit or X to post but most likely any x visit is a distraction.",
+      }),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(templateCategories),
+    });
+
+    const audiobookContent = `Audiobook Translation Rights Inquiry v
+• More "mit der Tür ins Haus" friendly
+The email now focuses on gauging interest rather than making a formal request, which
+should feel less overwhelming for someone who doesn't know you yet.
+M Okay, but this is extremely short. I do like that you abbreviated Bol etc. Let's also mention
+that I was extremely excited and immediately read the German version when it came out. In
+the second paragraph, let's mention that I would it's my initiative what I want to lead the
+project, which I don't think is apparent here from this text. But yeah, keep it very concise.
+Revised Email to David Deutsch
+Document • Version 2
+Dear David,
+n0S 50 0x29 BoT 1n 2021,
+I've added the detail about your excitement for the German version and clarified that this is
+your personal initiative that you want to lead. Still kept it concise while making your passion
+and ownership clear!
+ok now it sounds weirdly explicit/redundant/akward. I think that came more natural in the
+first version
+Revised Email to David Deutsch
+Document • Version 3
+Dear David
+You're right - "I'd want to lead this project myself" flows much more naturally than the
+redundant "This is my initiative - I want to lead the project myself." Much cleaner now!
+Retry v
+Claude can make mistakes. Please double-check responses.`;
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Claude',
+      title: 'Audiobook Project Negotiation Challenges - Claude',
+      url: 'https://claude.ai/chat/7a8acbe1-0cc3-4b5b-ae85-39cfabd97398',
+      content: audiobookContent,
+      type: 'browser',
+      browser: 'chrome',
+    };
+
+    // Act
+    const result = await categorizeActivity(mockUserId, activeWindow);
+
+    // Log the LLM outputs for inspection
+    console.log('Audiobook test - Full result object:', result);
+    console.log('Audiobook test - LLM Summary:', result.llmSummary);
+    console.log('Audiobook test - Category Reasoning:', result.categoryReasoning);
+
+    // Assert
+    const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
+    const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
+    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
+      distractionCategory?.name ?? 'Expected Category Not Found'
+    );
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
+    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
+    expect(CategoryModel.find).toHaveBeenCalledWith({
+      userId: mockUserId,
+      isArchived: { $ne: true },
+    });
+  }, 30000); // Increased timeout for LLM call
+
+  test('should categorize browsing X/Twitter as Distraction despite user goals mentioning X for outreach', async () => {
+    // Arrange: Mock history check to fail, simulating the LLM pathway
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    const templateCategories = createTemplateCategories(mockUserId);
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue({
+        userProjectsAndGoals:
+          "I'm working on Cronus - The ai time/distraction tracker software. I'm working on improving the app and getting the first few 1000 users. Might include going on reddit or X to post but most likely any x visit is a distraction.",
+      }),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(templateCategories),
+    });
+
+    const xContent = `i Home
+• Explore
+Notifications
+• Messages
+• Grok
+X Premium
+Lists
+Bookmarks
+Jobs
+¿ Communities
+ty Verified Orgs
+¿ Profile
+More
+Post
+For you
+Following
+Al
+frontier 2022
+Machine Learning
+Accelera
+Q Search
+• What's happening?
+Post
+Show 31 posts
+Michael Truell € 0 @mntruell • Jul 15
+g...
+A conversation with @patrickc on old programming languages, software at
+industrial scale, and Al's effect on economics/biology/Patrick's daily life.
+00:15 - Why Patrick wrote his first startup in Smalltalk
+03:35 - LISP chatbots
+06:09 - Good ideas from esoteric programming
+Show more
+09210111
+27:18 / 50:15
+72
+17 185
+• 1.8K
+Ill 206K
+Today's News
+→
+Trump Denounces Epstein Files as 'Hoax' Amid Calls for
+Transparency
+5 hours ago • News • 236K posts
+Trump Announces Coca-Cola to Use Cane Sugar in US
+3 hours ago • News • 59K posts
+Senate Debates Defunding NPR and PBS
+7 hours ago • News • 90K posts
+Show more
+Norgard + @BrianNorgard • 5h
+Reasonable people don't build successful companies.
+• 15.
+179
+© 154
+Ill 9.1K
+Get Free Ad Credit
+Upgrade to Verified Organizations to get free
+ad credit & a suite of business growth tools.
+Learn more
+Upgrade to Premium+
+Enjoy additional benefits, zero ads and the
+largest reply prioritization.
+Upgrade to Premium+
+Your Premium subscription is
+expiring!
+Keep the best of X. Blue checkmark, Reply
+boost, increased Grok limits and much more.
+7 Renew subscription
+What's happening
+Politics • Trending
+#EpsteinClientList
+11.6K posts
+..
+Trending in United States
+azzi fudd
+...
+Politics • Trending
+Maurene Comey
+28.8K posts
+..
+Show more
+Who to follow
+Ely Hahami &
+@ElyHahami
+Follow
+Sarah Wang &
+@sarahdingwang
+Follow
+Psyho
+@FakePsyho
+Follow
+Show more
+Terms of Service Privacy Policy Cookie Policy ||
+Accessibility | Adsinfo | More... © 2025 X Corp.`;
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'X',
+      title: 'Home / X',
+      url: 'https://x.com/home',
+      content: xContent,
+      type: 'browser',
+      browser: 'chrome',
+    };
+
+    // Act
+    const result = await categorizeActivity(mockUserId, activeWindow);
+
+    // Log the LLM outputs for inspection
+    console.log('X browsing test - Full result object:', result);
+    console.log('X browsing test - LLM Summary:', result.llmSummary);
+    console.log('X browsing test - Category Reasoning:', result.categoryReasoning);
+
+    // Assert
+    const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
+    const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
+    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
+      distractionCategory?.name ?? 'Expected Category Not Found'
+    );
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
+    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
+    expect(CategoryModel.find).toHaveBeenCalledWith({
+      userId: mockUserId,
+      isArchived: { $ne: true },
+    });
+  }, 30000); // Increased timeout for LLM call
 });
