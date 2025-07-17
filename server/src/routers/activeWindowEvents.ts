@@ -42,6 +42,7 @@ export const activeWindowEventsRouter = router({
       // 2. If not, generate a summary
       if (!informative) {
         generatedTitle = await generateActivitySummary(activityDetails);
+        console.log('[Router] Final generated title:', generatedTitle);
       }
     } catch (err) {
       console.error('LLM title evaluation/generation failed:', err);
@@ -107,7 +108,7 @@ export const activeWindowEventsRouter = router({
           },
         })
           .select(
-            'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs'
+            'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs generatedTitle'
           )
           .sort({ timestamp: 1 });
 

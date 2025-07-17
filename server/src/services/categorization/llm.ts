@@ -197,16 +197,25 @@ export async function isTitleInformative(title: string): Promise<boolean> {
   ];
 
   try {
+    console.log('[LLM] About to call OpenAI...');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 3,
       temperature: 0,
     });
+    console.log('[LLM] OpenAI response received:', response.choices[0]?.message?.content);
     const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
-    return answer?.startsWith('yes') ?? false;
+    const result = answer?.startsWith('yes') ?? false;
+    return result;
   } catch (error) {
-    console.error('Error evaluating title informativeness:', error);
+    console.error('[LLM] ERROR in isTitleInformative:', error);
+    console.error('[LLM] Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      response: error.response,
+    });
     return false;
   }
 }
@@ -218,7 +227,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
     {
       role: 'system' as const,
       content: `You are an AI assistant that summarizes user activity blocks for productivity tracking. 
-Provide a concise, one-line summary of what the user was likely doing in this time block, based on the app, window title, content, and any available context. This is an app for tracking the users productivity, distractions, and how they spent their time.`,
+      Provide a concise, short title (max 5-8 words) of what the user was doing, based on the app, window title, and context.`,
     },
     {
       role: 'user' as const,
@@ -227,15 +236,23 @@ Provide a concise, one-line summary of what the user was likely doing in this ti
   ];
 
   try {
+    console.log('[LLM] About to call OpenAI for summary...');
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
-    return response.choices[0]?.message?.content?.trim() || '';
+    const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
+    console.log('[LLM] Generated title result:', generatedTitle);
+    return generatedTitle;
   } catch (error) {
-    console.error('Error generating activity summary:', error);
+    console.error('[LLM] ERROR in generateActivitySummary:', error);
+    console.error('[LLM] Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+    });
     return '';
   }
 }
