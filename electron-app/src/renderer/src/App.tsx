@@ -387,6 +387,12 @@ export function MainAppContent(): React.ReactElement {
             allCategories={allCategories}
             onSave={handleSaveRecategorize}
             isLoading={updateActivityCategoryMutation.isLoading || isLoadingAllCategories}
+            onAddNewCategory={() => {
+              setIsRecategorizeDialogOpen(false)
+              setRecategorizeTarget(null)
+              setIsSettingsOpen(true)
+              setFocusOn('categories')
+            }}
           />
         )}
       </div>
