@@ -1,26 +1,35 @@
 #!/bin/bash
 
-# Simple standalone client build script
+# Nuclear option: completely ignore workspace resolution
 
-echo "🚀 Starting standalone client build..."
+echo "🚀 Starting nuclear workspace-free build..."
 
-# Remove any workspace artifacts
-rm -rf node_modules package-lock.json yarn.lock .yarnrc.yml
+# Remove ALL workspace artifacts
+rm -rf node_modules package-lock.json yarn.lock .yarnrc.yml .pnpm-lock.yaml
 
-# Create .npmrc to prevent workspace resolution
+# Create aggressive .npmrc that ignores workspace completely
 cat > .npmrc << EOF
 legacy-peer-deps=true
 audit-level=none
 fund=false
 progress=false
 workspaces=false
+ignore-workspace-root-check=true
+prefer-offline=false
+cache=false
 EOF
 
-# Install dependencies
-echo "📦 Installing dependencies..."
-npm install --legacy-peer-deps --no-audit --no-fund
+# Install dependencies with nuclear flags
+echo "📦 Installing dependencies with nuclear flags..."
+npm install \
+  --ignore-workspace-root-check \
+  --legacy-peer-deps \
+  --no-audit \
+  --no-fund \
+  --force \
+  --no-optional
 
-# Build the app with increased memory and disabled type checking
+# Build the app
 echo "🏗️  Building application..."
 SKIP_PREFLIGHT_CHECK=true \
 TSC_COMPILE_ON_ERROR=true \
@@ -34,4 +43,4 @@ npm run build
 # Cleanup
 rm -f .npmrc
 
-echo "✅ Build completed successfully!" 
+echo "✅ Nuclear build completed!" 
