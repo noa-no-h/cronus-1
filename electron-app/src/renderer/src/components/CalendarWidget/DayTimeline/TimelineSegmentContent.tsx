@@ -82,17 +82,6 @@ const TimelineSegmentContent = ({ segment, isDarkMode }: TimelineSegmentContentP
                 ? `${segment.name} (${segment.categoryName})`
                 : segment.originalEvent?.generatedTitle || segment.description || segment.name}
             </span>
-            {isLarge &&
-              isTitleNotMeaningful(segment) &&
-              segment.originalEvent?.categoryReasoning && (
-                <span
-                  className="block text-xs text-muted-foreground mt-0.5 truncate"
-                  style={{ fontStyle: 'italic' }}
-                  title={segment.originalEvent.categoryReasoning}
-                >
-                  {segment.originalEvent.categoryReasoning}
-                </span>
-              )}
           </>
         )}
       </div>
