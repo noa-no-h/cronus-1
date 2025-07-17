@@ -1,3 +1,4 @@
+import { PlusCircle } from 'lucide-react'
 import React from 'react'
 import { Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
@@ -12,6 +13,7 @@ interface RecategorizeDialogProps {
   allCategories: Category[]
   onSave: (newCategoryId: string) => void
   isLoading: boolean
+  onAddNewCategory: () => void
 }
 
 const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
@@ -20,7 +22,8 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
   activityTarget,
   allCategories,
   onSave,
-  isLoading
+  isLoading,
+  onAddNewCategory
 }) => {
   if (!activityTarget) {
     return null
@@ -33,7 +36,7 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
   }
 
   const availableCategories = allCategories.filter(
-    (cat) => cat._id !== activityTarget.currentCategoryId
+    (cat) => cat._id !== activityTarget.currentCategoryId && !cat.isArchived
   )
 
   return (
@@ -87,11 +90,33 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
                   {cat.name}
                 </Button>
               ))}
+              <Button
+                variant="outline"
+                onClick={onAddNewCategory}
+                disabled={isLoading}
+                size="sm"
+                className="border-2 border-dashed border-muted-foreground/50 hover:border-muted-foreground"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" />
+                Create new category
+              </Button>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No other categories available to move to.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                No other categories available to move to.
+              </p>
+              <Button
+                variant="outline"
+                onClick={onAddNewCategory}
+                disabled={isLoading}
+                size="sm"
+                className="border-2 border-dashed border-muted-foreground/50 hover:border-muted-foreground"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" />
+                Create new category
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>

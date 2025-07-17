@@ -449,4 +449,107 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
       isArchived: { $ne: true },
     });
   }, 30000); // Increased timeout for LLM call
+
+  test('should categorize Brighter-related email as Brighter rather than Other work', async () => {
+    // Arrange: Mock history check to fail, simulating the LLM pathway
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    // Simon's actual categories
+    const simonCategories = [
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Other work',
+        description:
+          'Other coding projects, misc life admin, personal email (sberensnyc@gmail.com), random chatgpt',
+        color: '#22C55E',
+        isProductive: true,
+        isDefault: true,
+        isLikelyToBeOffline: false,
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Distraction',
+        description:
+          'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
+        color: '#EC4899',
+        isProductive: false,
+        isDefault: true,
+        isLikelyToBeOffline: false,
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Health',
+        description:
+          'Function health, nucleus, one medical, circle health, exercising, gym, blood tests, cooking, food related things, forkable, doordash, chatgpt (related to health)',
+        color: '#6366F1',
+        isProductive: true,
+        isDefault: false,
+        isLikelyToBeOffline: true,
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Brighter',
+        description:
+          'Brighter lamp company, company emails (simon@getbrighter.co), chatgpt (related to brighter), firmware, whatsapp (with feston or eric beam or ravi), digikey, mouser, notion',
+        color: '#F97316',
+        isProductive: true,
+        isDefault: false,
+        isLikelyToBeOffline: false,
+      },
+    ];
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue({
+        userProjectsAndGoals:
+          "I have 3 main goals: 1. sell my lighting brand (Brighter) which makes the world's brightest floor lamp 2. learn ML so I can get a job at a big lab 3. Fix/improve my health so I have more energy, focus, and stamina in my work",
+      }),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(simonCategories),
+    });
+
+    const emailContent = `BB Mail Chat Meet M Tradewinds <> Brighter Lamp Current Order | McMaster-Cal X 2 Simon Berens - Calendar - We X + → mail.google.com/mail/u/0/#inbox/FMfcgzQZTVmrvkwzMJbcHDDXPJMVISWQ Accounting Gmail / Compose Inbox Starred Snoozed Sent Drafts More Labels v More + Search mail Jacob Dinkins Director of Business Development 317-381-1167 - Cell jdinkins@tradewinds.net| www.tradewinds.net Book time with Jacob Dinkins: 30 minutes From: Simon Berens <simon@getbrighter.co> Sent: Tuesday, July 1, 2025 5:12 PM ..• [Message clipped] View entire message One attachment • Scanned by Gmail © por Get.Brighter.pdf 245 KB| 4 Here you go. Thanks, you too! Have a great weekend too! 4 Reply « Reply all → Forward • Active v | Ca Work Google S 5 of 872 +`;
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Google Chrome',
+      title: 'Tradewinds <> Brighter Lamp - simon@getbrighter.co - Simon Berens Mail',
+      url: 'https://mail.google.com/mail/u/0/#inbox/FMfcgzQZTVmrvkwzMJbcHDDXPJMVlSWQ',
+      content: emailContent,
+      type: 'browser',
+      browser: 'chrome',
+    };
+
+    // Act
+    const result = await categorizeActivity(mockUserId, activeWindow);
+
+    // Log the LLM outputs for inspection
+    console.log('Brighter email test - Full result object:', result);
+    console.log('Brighter email test - LLM Summary:', result.llmSummary);
+    console.log('Brighter email test - Category Reasoning:', result.categoryReasoning);
+
+    // Assert
+    const brighterCategory = simonCategories.find((c) => c.name === 'Brighter');
+    const receivedCategory = simonCategories.find((c) => c._id === result.categoryId);
+    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
+      brighterCategory?.name ?? 'Expected Category Not Found'
+    );
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
+    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
+    expect(CategoryModel.find).toHaveBeenCalledWith({
+      userId: mockUserId,
+      isArchived: { $ne: true },
+    });
+  }, 30000); // Increased timeout for LLM call
 });
