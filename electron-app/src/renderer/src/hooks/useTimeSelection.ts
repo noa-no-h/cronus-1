@@ -34,17 +34,27 @@ export const useTimeSelection = (
   }
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isEnabled || !timelineContainerRef.current) return
+    if (!isEnabled) {
+      return
+    }
+
+    if (!timelineContainerRef.current) {
+      return
+    }
 
     // Do not start a drag if clicking on an existing segment or its children
     const target = e.target as HTMLElement
-    if (target.closest('[data-is-segment="true"]')) {
+    const closestSegment = target.closest('[data-is-segment="true"]')
+    if (closestSegment) {
       return
     }
 
     const startY = getRelativeY(e.clientY)
     const startPos = yToTime(startY)
-    if (!startPos) return
+
+    if (!startPos) {
+      return
+    }
 
     setDragState({
       isSelecting: true,
@@ -61,6 +71,7 @@ export const useTimeSelection = (
       if (!prev.startPos) return prev
       const currentY = getRelativeY(e.clientY)
       const isDragging = prev.isDragging || Math.abs(currentY - prev.startPos.y) > 5 // 5px threshold
+
       return { ...prev, isDragging, currentPos: { y: currentY } }
     })
   }
@@ -82,11 +93,13 @@ export const useTimeSelection = (
       // Only prevent future selection if dayForEntries is today
       const now = new Date()
       const isToday = dayForEntries.toDateString() === now.toDateString()
+
       if (isToday) {
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const selectionDate = new Date(today)
         selectionDate.setHours(selectionEnd.hour, selectionEnd.minute, 0, 0)
+
         if (selectionDate > now) {
           toast({
             title: 'Cannot schedule in the future',
@@ -98,10 +111,11 @@ export const useTimeSelection = (
         }
       }
 
-      if (
+      const isValidSelection =
         selectionEnd.hour * 60 + selectionEnd.minute >
         selectionStart.hour * 60 + selectionStart.minute
-      ) {
+
+      if (isValidSelection) {
         onSelectionEnd(
           { hour: selectionStart.hour, minute: selectionStart.minute },
           { hour: selectionEnd.hour, minute: selectionEnd.minute }
@@ -116,7 +130,6 @@ export const useTimeSelection = (
     if (dragState.isSelecting && dragState.isDragging) {
       handleMouseUp(e)
     } else if (dragState.isSelecting) {
-      // If we are not dragging, just cancel it
       resetDragState()
     }
   }

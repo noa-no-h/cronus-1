@@ -264,7 +264,11 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
               <TimelineSegmentTooltip segment={segment}>{segmentDiv}</TimelineSegmentTooltip>
             </ContextMenuTrigger>
             <ContextMenuContent>
-              <ContextMenuItem onClick={() => handleDeleteSegment(segment)}>
+              <ContextMenuItem
+                onClick={(e) => {
+                  handleDeleteSegment(segment)
+                }}
+              >
                 Delete Segment
               </ContextMenuItem>
             </ContextMenuContent>
