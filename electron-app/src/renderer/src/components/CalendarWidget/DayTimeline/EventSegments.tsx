@@ -30,6 +30,30 @@ interface EventSegmentsProps {
   layout: 'full' | 'split'
   token: string | null
   dayForEntries: Date
+  googleCalendarSegments?: DaySegment[]
+}
+
+const getSegmentLayout = (
+  segment: DaySegment,
+  googleCalendarSegments: DaySegment[] = [],
+  isCalendarEvent: boolean
+) => {
+  // Calendar events should always use split layout
+  if (isCalendarEvent) {
+    return 'split'
+  }
+
+  // Check if there are any Google Calendar events that overlap with this segment
+  const hasOverlappingCalendarEvents = googleCalendarSegments.some((calendarSegment) => {
+    const segmentStart = segment.startTime.getTime()
+    const segmentEnd = segment.endTime.getTime()
+    const calendarStart = calendarSegment.startTime.getTime()
+    const calendarEnd = calendarSegment.endTime.getTime()
+
+    return segmentStart < calendarEnd && segmentEnd > calendarStart
+  })
+
+  return hasOverlappingCalendarEvents ? 'split' : 'full'
 }
 
 export const EventSegments: React.FC<EventSegmentsProps> = ({
@@ -45,7 +69,8 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
   type,
   layout,
   token,
-  dayForEntries
+  dayForEntries,
+  googleCalendarSegments = []
 }) => {
   const utils = trpc.useUtils()
   const deleteEventsMutation = trpc.activeWindowEvents.deleteEventsInDateRange.useMutation({
@@ -120,11 +145,12 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
 
         const suggestionBorderColor = textColor || (isDarkMode ? '#4b5563' : '#d1d5db') // gray-600 or gray-300
 
+        const segmentLayout = getSegmentLayout(segment, googleCalendarSegments, isCalendarEvent)
         const positionClasses =
-          layout === 'full'
-            ? `absolute left-[67px] right-1 rounded-md` // Full width
+          segmentLayout === 'full'
+            ? `absolute left-[67px] right-1 rounded-md`
             : isCalendarEvent
-              ? 'absolute left-2/3 right-1 rounded-md' // Split, right half
+              ? 'absolute left-2/3 right-1 rounded-md'
               : `absolute left-[67px] right-1/3 mr-2 rounded-md` // Split, left half
 
         // If an hour is selected, only show segments that are part of that hour

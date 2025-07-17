@@ -80,7 +80,7 @@ const TimelineSegmentContent = ({ segment, isDarkMode }: TimelineSegmentContentP
             <span className="truncate text-xs font-medium text-left leading-tight min-w-0">
               {segment.isSuggestion
                 ? `${segment.name} (${segment.categoryName})`
-                : segment.description || segment.name}
+                : segment.originalEvent?.generatedTitle || segment.description || segment.name}
             </span>
             {isLarge &&
               isTitleNotMeaningful(segment) &&

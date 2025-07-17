@@ -36,6 +36,7 @@ export interface ActiveWindowEvent extends ActiveWindowDetails {
   categoryReasoning?: string | null;
   llmSummary?: string | null;
   lastCategorizationAt?: Date;
+  generatedTitle?: string | null;
   oldCategoryId?: string | null;
   oldCategoryReasoning?: string | null;
   oldLlmSummary?: string | null;
