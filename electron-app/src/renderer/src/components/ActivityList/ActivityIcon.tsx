@@ -16,7 +16,7 @@ interface ActivityIconProps {
 
 // TODO: marge with constants array?
 const systemEventNames = [
-  ' System Inactive',
+  '💤 System Inactive',
   '⏰ System Active',
   '🔒 Screen Locked',
   '🔓 Screen Unlocked'
