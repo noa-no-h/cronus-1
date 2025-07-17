@@ -115,18 +115,6 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
     )
   }
 
-  // Show loading state while fetching native icon
-  if (isLoadingNativeIcon) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-200 rounded-sm ${className}`}
-        style={{ width: size, height: size }}
-      >
-        <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
   // Fallback: Letter with app-specific colors
   const getAppColor = (name: string): string => {
     const colors = {
