@@ -50,7 +50,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#3B82F6',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -60,7 +59,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#8B5CF6',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -70,7 +68,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#10B981',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -80,7 +77,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#EAB308',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -90,7 +86,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#0EA5E9',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -100,7 +95,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#EC4899',
       isProductive: false,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -110,7 +104,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#F43F5E',
       isProductive: false,
       isDefault: false,
-      isLikelyToBeOffline: true,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -120,7 +113,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#D97706',
       isProductive: false,
       isDefault: false,
-      isLikelyToBeOffline: true,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -130,7 +122,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#6366F1',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: true,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -140,7 +131,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#A855F7',
       isProductive: false,
       isDefault: false,
-      isLikelyToBeOffline: true,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -150,7 +140,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#84CC16',
       isProductive: true,
       isDefault: false,
-      isLikelyToBeOffline: false,
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -160,7 +149,6 @@ describe('categorizeActivity edge cases', () => {
       color: '#6B7280',
       isProductive: false,
       isDefault: false,
-      isLikelyToBeOffline: true,
     },
   ];
 
@@ -469,7 +457,6 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#22C55E',
         isProductive: true,
         isDefault: true,
-        isLikelyToBeOffline: false,
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -480,7 +467,6 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#EC4899',
         isProductive: false,
         isDefault: true,
-        isLikelyToBeOffline: false,
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -491,7 +477,6 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#6366F1',
         isProductive: true,
         isDefault: false,
-        isLikelyToBeOffline: true,
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -502,7 +487,6 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#F97316',
         isProductive: true,
         isDefault: false,
-        isLikelyToBeOffline: false,
       },
     ];
 

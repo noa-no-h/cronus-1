@@ -17,112 +17,98 @@ export const templateCategories: ComparableCategory[] = [
       'Working on a project for Contractor work for XYZ including meetings, emails, etc. related to that project',
     color: '#22C55E',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Coding',
     description: 'Writing or reviewing code, debugging, working in IDEs or terminals',
     color: '#3B82F6',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Design',
     description: 'Working in design tools like Figma or Illustrator on UX/UI or visual assets',
     color: '#8B5CF6',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Product Management',
     description: 'Planning features, writing specs, managing tickets, reviewing user feedback',
     color: '#10B981',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Fundraising',
     description: 'Pitching to investors, refining decks, writing emails or grant applications',
     color: '#F97316',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Growth & Marketing',
     description: 'Working on campaigns, analytics, user acquisition, SEO or outreach',
     color: '#EAB308',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Work Communication',
     description: 'Responding to emails, Slack, Notion, meetings or async updates',
     color: '#0EA5E9',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Distraction',
     description: 'Scrolling social media, browsing unrelated content, or idle clicking',
     color: '#EC4899',
     isProductive: false,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Dating',
     description: 'Using dating apps, messaging, browsing profiles, or going on dates',
     color: '#F43F5E',
     isProductive: false,
-    isDefault: false,
-    isLikelyToBeOffline: true
+    isDefault: false
   },
   {
     name: 'Eating & Shopping',
     description: 'Eating meals, cooking, groceries, or online/in-person shopping',
     color: '#D97706',
     isProductive: false,
-    isDefault: false,
-    isLikelyToBeOffline: true
+    isDefault: false
   },
   {
     name: 'Sport & Health',
     description: 'Exercising, walking, gym, sports, wellness, etc.',
     color: '#6366F1',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: true
+    isDefault: false
   },
   {
     name: 'Friends & Social',
     description: 'Spending time with friends or socializing in person or online',
     color: '#A855F7',
     isProductive: false,
-    isDefault: false,
-    isLikelyToBeOffline: true
+    isDefault: false
   },
   {
     name: 'Planning & Reflection',
     description: 'Journaling, reflecting on goals, or reviewing personal plans',
     color: '#84CC16',
     isProductive: true,
-    isDefault: false,
-    isLikelyToBeOffline: false
+    isDefault: false
   },
   {
     name: 'Commuting',
     description: 'Traveling to or from work, errands, or social events',
     color: '#6B7280',
     isProductive: false,
-    isDefault: false,
-    isLikelyToBeOffline: true
+    isDefault: false
   }
 ]
 

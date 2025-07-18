@@ -51,7 +51,6 @@ export interface Category {
   isProductive: boolean;
   isDefault: boolean; // Whether this is a default category
   isArchived?: boolean;
-  isLikelyToBeOffline?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

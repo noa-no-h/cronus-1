@@ -7,7 +7,6 @@ import { Label } from '../ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 import { IsProductiveTooltip } from './IsProductiveTooltip'
 
 export const notionStyleCategoryColors = [
@@ -90,9 +89,6 @@ export function CategoryForm({
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
-  const [isLikelyToBeOffline, setIsLikelyToBeOffline] = useState(
-    initialData?.isLikelyToBeOffline || false
-  )
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,7 +103,6 @@ export function CategoryForm({
       description,
       color,
       isProductive,
-      isLikelyToBeOffline,
       isDefault: initialData?.isDefault ?? false
     })
   }
@@ -164,35 +159,6 @@ export function CategoryForm({
             <span className="text-red-500">*</span>
           </div>
         </div>
-      </div>
-
-      <div>
-        <Label>Behavior</Label>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center space-x-2 mt-1 cursor-help">
-                <Switch
-                  id="isLikelyToBeOffline"
-                  checked={isLikelyToBeOffline}
-                  onCheckedChange={setIsLikelyToBeOffline}
-                />
-                <Label
-                  htmlFor="isLikelyToBeOffline"
-                  className="text-foreground text-sm font-medium"
-                >
-                  Likely Offline
-                </Label>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                Enable this for a category that is likely to be offline, such as commuting or
-                exercising.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
 
       {error && <p className="text-sm text-destructive-foreground">{error}</p>}

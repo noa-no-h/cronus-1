@@ -3,7 +3,7 @@ import { Category } from './types'; // Ensure Category is imported from shared/t
 // Type for comparison, using only the properties relevant for checking against defaults
 export type ComparableCategory = Pick<
   Category,
-  'name' | 'description' | 'color' | 'isProductive' | 'isDefault' | 'isLikelyToBeOffline'
+  'name' | 'description' | 'color' | 'isProductive' | 'isDefault'
 >;
 
 // This function is for backend use or when defaults NEED a userId
@@ -16,7 +16,6 @@ export const defaultCategoriesData = (userId: string) => [
     color: '#22C55E', // Blue
     isProductive: true,
     isDefault: true,
-    isLikelyToBeOffline: false,
   },
   {
     userId,
@@ -26,7 +25,6 @@ export const defaultCategoriesData = (userId: string) => [
     color: '#EC4899', // Red
     isProductive: false,
     isDefault: true,
-    isLikelyToBeOffline: false,
   },
 ];
 
@@ -39,7 +37,6 @@ export const defaultComparableCategories: ComparableCategory[] = [
     color: '#22C55E',
     isProductive: true,
     isDefault: true,
-    isLikelyToBeOffline: false,
   },
   {
     name: 'Distraction',
@@ -48,6 +45,5 @@ export const defaultComparableCategories: ComparableCategory[] = [
     color: '#EC4899',
     isProductive: false,
     isDefault: true,
-    isLikelyToBeOffline: false,
   },
 ];
