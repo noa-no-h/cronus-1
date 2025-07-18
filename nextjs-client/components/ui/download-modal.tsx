@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { trackDownloadStart } from '~/lib/analytics';
 import { Button } from './button';
 import { Input } from './input';
@@ -15,6 +16,11 @@ interface DownloadModalProps {
 const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleDownload = (url: string, type: 'arm64' | 'x64') => {
     // Track actual download start
@@ -69,7 +75,11 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
     intelUrl: 'https://cronusnewupdates.s3.amazonaws.com/Cronus-latest-x64.dmg',
   };
 
-  return (
+  if (!isClient) {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -164,7 +174,8 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.getElementById('modal-root')!
   );
 };
 

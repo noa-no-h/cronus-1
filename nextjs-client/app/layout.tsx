@@ -9,7 +9,7 @@ const sans = Inter({
 
 const serif = Hedvig_Letters_Serif({
   variable: '--font-serif',
-  subsets: ['latin']
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   description:
     'Cronus is an AI-powered time tracking tool that helps you understand how you spend your time.',
   metadataBase: new URL('https://cronushq.com'),
+  openGraph: {
+    url: 'https://cronus.so',
+    siteName: 'Cronus',
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export const viewport: Viewport = {
@@ -24,6 +30,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: 'white',
 };
 
 export default function RootLayout({
@@ -36,7 +43,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
       </head>
-      <body className={`${sans.variable} ${serif.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${sans.variable} ${serif.variable} font-sans antialiased`}>
+        {children}
+        <div id="modal-root" />
+      </body>
     </html>
   );
 }
