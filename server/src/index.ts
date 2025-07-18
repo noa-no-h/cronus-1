@@ -11,7 +11,7 @@ import { calendarRouter } from './routers/calendar';
 import sitemapRouter from './routes/sitemap';
 import waitlistExpressRouter from './routes/waitlist';
 import { startSuggestionCronJob } from './services/cron/suggestionScheduler';
-import { publicProcedure, router } from './trpc';
+import { createContext, publicProcedure, router } from './trpc';
 
 // Export tRPC utilities
 export { publicProcedure, router };
@@ -134,6 +134,7 @@ app.use(
   '/trpc',
   trpcExpress.createExpressMiddleware({
     router: appRouter,
+    createContext,
     onError({ error, path }) {
       console.error(`Error in tRPC path ${path}:`, error);
 

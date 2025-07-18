@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { safeVerifyToken } from '../lib/authUtils';
+import { isVersionOutdated } from '../lib/versionUtils';
 import { UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
 
@@ -212,6 +213,126 @@ export const userRouter = router({
       return {
         success: true,
         multiPurposeApps: updatedUser.multiPurposeApps,
+      };
+    }),
+
+  // Admin endpoint to query users by version
+  getUsersByVersion: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        minimumVersion: z.string().optional().default('1.7.0'),
+        includeNoVersion: z.boolean().optional().default(true),
+      })
+    )
+    .query(async ({ input }) => {
+      const decoded = safeVerifyToken(input.token);
+      const user = await UserModel.findById(decoded.userId);
+
+      // Simple admin check - only allow specific emails
+      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      if (!user || !adminEmails.includes(user.email)) {
+        throw new Error('Access denied: Admin privileges required');
+      }
+
+      const query: any = {};
+
+      if (input.includeNoVersion) {
+        // Find users with outdated versions OR no version recorded
+        query.$or = [
+          { clientVersion: { $exists: false } },
+          { clientVersion: null },
+          { clientVersion: '' },
+        ];
+      }
+
+      // Add users with versions older than minimum
+      const allUsers = await UserModel.find(
+        {
+          clientVersion: { $exists: true, $ne: null },
+          $and: [{ clientVersion: { $ne: '' } }],
+        },
+        'email name clientVersion clientVersionLastUpdated createdAt'
+      ).lean();
+
+      const outdatedUsers = allUsers.filter(
+        (u) => u.clientVersion && isVersionOutdated(u.clientVersion, input.minimumVersion)
+      );
+
+      // Get users with no version info if requested
+      let usersWithoutVersion: any[] = [];
+      if (input.includeNoVersion) {
+        usersWithoutVersion = await UserModel.find(
+          {
+            $or: [
+              { clientVersion: { $exists: false } },
+              { clientVersion: null },
+              { clientVersion: '' },
+            ],
+          },
+          'email name createdAt'
+        ).lean();
+      }
+
+      return {
+        outdatedUsers: outdatedUsers.map((u) => ({
+          id: u._id.toString(),
+          email: u.email,
+          name: u.name,
+          clientVersion: u.clientVersion,
+          lastVersionUpdate: u.clientVersionLastUpdated,
+          createdAt: u.createdAt,
+        })),
+        usersWithoutVersion: usersWithoutVersion.map((u) => ({
+          id: u._id.toString(),
+          email: u.email,
+          name: u.name,
+          clientVersion: null,
+          createdAt: u.createdAt,
+        })),
+        summary: {
+          totalOutdated: outdatedUsers.length,
+          totalWithoutVersion: usersWithoutVersion.length,
+          minimumVersion: input.minimumVersion,
+        },
+      };
+    }),
+
+  // Endpoint to get version statistics
+  getVersionStats: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decoded = safeVerifyToken(input.token);
+      const user = await UserModel.findById(decoded.userId);
+
+      // Simple admin check
+      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      if (!user || !adminEmails.includes(user.email)) {
+        throw new Error('Access denied: Admin privileges required');
+      }
+
+      const versionStats = await UserModel.aggregate([
+        {
+          $group: {
+            _id: '$clientVersion',
+            count: { $sum: 1 },
+            lastSeen: { $max: '$clientVersionLastUpdated' },
+          },
+        },
+        {
+          $sort: { count: -1 },
+        },
+      ]);
+
+      const totalUsers = await UserModel.countDocuments();
+
+      return {
+        versionBreakdown: versionStats.map((stat) => ({
+          version: stat._id || 'Unknown',
+          userCount: stat.count,
+          lastSeen: stat.lastSeen,
+        })),
+        totalUsers,
       };
     }),
 });

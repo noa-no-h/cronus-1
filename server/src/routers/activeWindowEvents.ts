@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
-import { safeVerifyToken } from '../lib/authUtils';
+import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { categorizeActivity } from '../services/categorization/categorizationService';
 import { generateActivitySummary, isTitleInformative } from '../services/categorization/llm';
@@ -23,9 +23,9 @@ const activeWindowEventInputSchema = z.object({
 });
 
 export const activeWindowEventsRouter = router({
-  create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
+  create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input, ctx }) => {
     // console.log('[Router] Received create event:', input);
-    const decodedToken = safeVerifyToken(input.token);
+    const decodedToken = safeVerifyTokenWithVersionTracking(input.token, ctx.userAgent);
     const userId = decodedToken.userId;
 
     // Destructure relevant details from input for categorization
@@ -379,7 +379,7 @@ export const activeWindowEventsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId, token } = input;
-      const decodedToken = safeVerifyToken(token);
+      const decodedToken = safeVerifyTokenWithVersionTracking(token, ctx.userAgent);
       const userId = decodedToken.userId;
 
       const filter: FilterQuery<ActiveWindowEvent> = {
@@ -473,9 +473,9 @@ export const activeWindowEventsRouter = router({
         endDateMs: z.number(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { token, startDateMs, endDateMs } = input;
-      const decodedToken = safeVerifyToken(token);
+      const decodedToken = safeVerifyTokenWithVersionTracking(token, ctx.userAgent);
       const userId = decodedToken.userId;
 
       const filter: FilterQuery<ActiveWindowEvent> = {

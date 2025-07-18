@@ -26,6 +26,8 @@ export interface IUser extends Document {
   };
   isWaitlisted: boolean;
   tokenVersion: number;
+  clientVersion?: string;
+  clientVersionLastUpdated?: Date;
   electronAppSettings: {
     calendarZoomLevel: number;
     theme: 'light' | 'dark' | 'system';
@@ -84,6 +86,8 @@ const userSchema = new Schema({
     type: Number,
     default: 0,
   },
+  clientVersion: { type: String },
+  clientVersionLastUpdated: { type: Date },
   electronAppSettings: {
     calendarZoomLevel: {
       type: Number,

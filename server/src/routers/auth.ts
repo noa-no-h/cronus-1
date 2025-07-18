@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import { LoopsClient } from 'loops';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
-import { safeVerifyToken } from '../lib/authUtils';
+import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
 import { CategoryModel } from '../models/category';
 import { IUser, UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
@@ -204,8 +204,8 @@ export const authRouter = router({
       }
     }),
 
-  getUser: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const decoded = safeVerifyToken(input.token);
+  getUser: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input, ctx }) => {
+    const decoded = safeVerifyTokenWithVersionTracking(input.token, ctx.userAgent);
     const user = await UserModel.findById(decoded.userId);
 
     if (!user) {
