@@ -188,7 +188,7 @@ export async function isTitleInformative(title: string): Promise<boolean> {
     {
       role: 'system' as const,
       content:
-        'You are an AI assistant that evaluates if a window or activity title is informative and specific about what the user was doing. Answer only "yes" or "no".',
+        'You are an AI assistant that evaluates if a window or activity title is informative and specific about what the user was doing. Answer only "yes" or "no". Only rendering the name of an application is not informative.',
     },
     {
       role: 'user' as const,
@@ -216,7 +216,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
     {
       role: 'system' as const,
       content: `You are an AI assistant that summarizes user activity blocks for productivity tracking. 
-      Provide a concise, short title (max 5-8 words) of what the user was doing, based on the app, window title, and context. You can include details about the content that you have about the activity. Be detailed, yet concise. The goal is to represent the activity in a way that is easy to understand and use for the user and make it easy for them to understand what they did during that activity block.`,
+      Provide a concise, short title (max 5-8 words) of what the user was doing, based on the app, window title, and context. You can include details about the content that you have about the activity. Be detailed, yet concise. The goal is to represent the activity in a way that is easy to understand and use for the user and make it easy for them to understand what they did during that activity block. It should not be just one or two words.`,
     },
     {
       role: 'user' as const,
