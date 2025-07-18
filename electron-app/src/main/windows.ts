@@ -29,6 +29,7 @@ export function createFloatingWindow(
     transparent: true,
     resizable: false,
     maximizable: false,
+    fullscreenable: false,
     show: false,
     type: process.platform === 'darwin' ? 'panel' : 'normal',
     webPreferences: {
@@ -55,6 +56,12 @@ export function createFloatingWindow(
     if (main && !main.isDestroyed()) {
       main.webContents.send('floating-window-visibility-changed', false)
     }
+  })
+
+  // Prevent full screen mode
+  floatingWindow.on('enter-full-screen', () => {
+    console.log('Preventing floating window from entering full screen mode')
+    floatingWindow.setFullScreen(false)
   })
 
   if (process.platform === 'darwin') {
