@@ -36,7 +36,7 @@ export const TimelineOverlays: React.FC<TimelineOverlaysProps> = ({
         <div
           className={clsx(
             `absolute left-[67px] rounded-md z-20 pointer-events-none`,
-            hasGoogleCalendarEvents ? 'right-1/3 mr-2' : 'right-1'
+            previewState.hasOverlappingCalendarEvents ? 'right-1/3 mr-2' : 'right-1'
           )}
           style={{
             top: `${previewState.top}px`,

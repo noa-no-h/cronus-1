@@ -78,6 +78,7 @@ export const DayTimeline = ({
     top: number
     height: number
     backgroundColor: string
+    hasOverlappingCalendarEvents: boolean
   } | null>(null)
 
   const {
@@ -279,10 +280,20 @@ export const DayTimeline = ({
         newTop = Math.min(newTop, entry.top + entry.height - 5)
       }
 
+      const hasOverlappingCalendarEvents = googleCalendarDaySegments.some((calendarSegment) => {
+        const entryStart = entry.startTime.getTime()
+        const entryEnd = entry.endTime.getTime()
+        const calendarStart = calendarSegment.startTime.getTime()
+        const calendarEnd = calendarSegment.endTime.getTime()
+
+        return entryStart < calendarEnd && entryEnd > calendarStart
+      })
+
       setPreviewState({
         top: newTop,
         height: newHeight,
-        backgroundColor: segmentBackgroundColor(entry)
+        backgroundColor: segmentBackgroundColor(entry),
+        hasOverlappingCalendarEvents
       })
     } else if (
       movingState.isMoving &&
@@ -305,10 +316,20 @@ export const DayTimeline = ({
         const snappedDeltaY = deltaMinutes * pixelsPerMinute
         const newTop = initialTop + snappedDeltaY
 
+        const hasOverlappingCalendarEvents = googleCalendarDaySegments.some((calendarSegment) => {
+          const entryStart = entry.startTime.getTime()
+          const entryEnd = entry.endTime.getTime()
+          const calendarStart = calendarSegment.startTime.getTime()
+          const calendarEnd = calendarSegment.endTime.getTime()
+
+          return entryStart < calendarEnd && entryEnd > calendarStart
+        })
+
         setPreviewState({
           top: newTop,
           height: entry.height,
-          backgroundColor: segmentBackgroundColor(entry)
+          backgroundColor: segmentBackgroundColor(entry),
+          hasOverlappingCalendarEvents
         })
       }
     } else {
