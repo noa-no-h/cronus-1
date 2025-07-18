@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
 import { useDarkMode } from '../hooks/useDarkMode'
+import { useWindowFocus } from '../hooks/useWindowFocus'
 import { REFRESH_EVENTS_INTERVAL_MS } from '../lib/constants'
 import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
@@ -101,6 +102,17 @@ export function DashboardView({
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
 
+  const isWindowFocused = useWindowFocus()
+
+  // Adaptive polling intervals based on window focus
+  const getPollingInterval = (baseInterval: number): number => {
+    if (!isWindowFocused) {
+      // When unfocused, reduce frequency to 2-3 minutes
+      return Math.min(baseInterval * 4, 180000) // Max 3 minutes
+    }
+    return baseInterval
+  }
+
   useEffect(() => {
     // Check if user has seen the tutorial
     const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
@@ -189,7 +201,7 @@ export function DashboardView({
       {
         enabled: !!token && startDateMs !== null && endDateMs !== null,
         refetchOnWindowFocus: true,
-        refetchInterval: REFRESH_EVENTS_INTERVAL_MS
+        refetchInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
       }
     )
 
@@ -202,7 +214,7 @@ export function DashboardView({
     {
       enabled: !!token && startDateMs !== null && endDateMs !== null,
       refetchOnWindowFocus: true,
-      refetchInterval: REFRESH_EVENTS_INTERVAL_MS
+      refetchInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
     }
   )
 
@@ -298,6 +310,14 @@ export function DashboardView({
       setSelectedDay(null)
     }
   }
+
+  useEffect(() => {
+    console.log('🔍 Dashboard polling interval:', {
+      isWindowFocused,
+      baseInterval: REFRESH_EVENTS_INTERVAL_MS,
+      actualInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
+    })
+  }, [isWindowFocused])
 
   return (
     <div

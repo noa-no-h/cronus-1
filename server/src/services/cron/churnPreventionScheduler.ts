@@ -10,7 +10,7 @@ export function startChurnPreventionCronJob() {
 
   baker.add({
     name: 'churn-prevention-email',
-    cron: '0 12 * * *', // Run daily at 12 PM
+    cron: '@daily', // Run daily (cronbake will pick a time)
     callback: async () => {
       console.log('📧 [CHURN PREVENTION] Running churn prevention email job...');
 
