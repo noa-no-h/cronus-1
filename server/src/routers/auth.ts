@@ -125,14 +125,14 @@ export const authRouter = router({
         const accessToken = jwt.sign(
           { userId: user._id },
           process.env.AUTH_SECRET || 'fallback-secret',
-          { expiresIn: '7d' }
+          { expiresIn: '365d' }
         );
 
         // Generate refresh token (long-lived)
         const refreshToken = jwt.sign(
           { userId: user._id, version: user.tokenVersion }, // add tokenVersion to user model
           process.env.REFRESH_SECRET || 'refresh-secret',
-          { expiresIn: '14d' }
+          { expiresIn: '365d' }
         );
 
         return {
@@ -287,7 +287,7 @@ export const authRouter = router({
         const accessToken = jwt.sign(
           { userId: user._id },
           process.env.AUTH_SECRET || 'fallback-secret',
-          { expiresIn: '7d' }
+          { expiresIn: '365d' }
         );
 
         return { accessToken };
@@ -375,12 +375,12 @@ export const authRouter = router({
         const accessToken = jwt.sign(
           { userId: user._id },
           process.env.AUTH_SECRET || 'fallback-secret',
-          { expiresIn: '7d' }
+          { expiresIn: '365d' }
         );
         const refreshToken = jwt.sign(
           { userId: user._id, version: user.tokenVersion },
           process.env.REFRESH_SECRET || 'refresh-secret',
-          { expiresIn: '14d' }
+          { expiresIn: '365d' }
         );
 
         return {
