@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import { safeVerifyToken } from '../lib/authUtils';
 import { UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
-import { verifyToken } from './auth';
 
 export const userRouter = router({
   updateElectronAppSettings: publicProcedure
@@ -17,7 +17,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const updateData: any = {};
@@ -61,7 +61,7 @@ export const userRouter = router({
   getElectronAppSettings: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const user = await UserModel.findById(userId).select('electronAppSettings').lean();
@@ -93,7 +93,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const updatedUser = await UserModel.findByIdAndUpdate(
@@ -115,7 +115,7 @@ export const userRouter = router({
   getUserProjectsAndGoals: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const user = await UserModel.findById(userId).select('userProjectsAndGoals');
@@ -128,7 +128,7 @@ export const userRouter = router({
     }),
 
   getUserGoals: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const decoded = verifyToken(input.token);
+    const decoded = safeVerifyToken(input.token);
     const userId = decoded.userId;
 
     const user = await UserModel.findById(userId).select('userProjectsAndGoals');
@@ -148,7 +148,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const goalsContent = input.goals || input.userProjectsAndGoals;
@@ -176,7 +176,7 @@ export const userRouter = router({
   getMultiPurposeApps: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const user = await UserModel.findById(userId).select('multiPurposeApps').lean();
@@ -196,7 +196,7 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decoded = verifyToken(input.token);
+      const decoded = safeVerifyToken(input.token);
       const userId = decoded.userId;
 
       const updatedUser = await UserModel.findByIdAndUpdate(

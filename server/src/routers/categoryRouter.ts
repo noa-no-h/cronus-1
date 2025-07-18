@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { CategoryModel } from '../models/category';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
+import { safeVerifyToken } from '../lib/authUtils';
 import { publicProcedure, router } from '../trpc';
-import { verifyToken } from './auth';
 
 const objectIdToStringSchema = z
   .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))
@@ -37,7 +37,7 @@ export const categoryRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
       const { name, description, color, isProductive, isDefault = false } = input;
 
@@ -65,7 +65,7 @@ export const categoryRouter = router({
     .input(z.object({ token: z.string() }))
     .output(z.array(categorySchema))
     .query(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
       const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
       return categories.map((cat) => cat.toJSON());
@@ -89,7 +89,7 @@ export const categoryRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
       const { id, ...updateData } = input;
 
@@ -130,7 +130,7 @@ export const categoryRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
       const { id } = input;
 
@@ -145,7 +145,7 @@ export const categoryRouter = router({
   resetToDefault: publicProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
       await resetCategoriesToDefault(userId);
       return { success: true };
@@ -161,7 +161,7 @@ export const categoryRouter = router({
       })
     )
     .query(async ({ input }) => {
-      verifyToken(input.token);
+      safeVerifyToken(input.token);
       const { categoryId } = input;
 
       const category = await CategoryModel.findById(categoryId);

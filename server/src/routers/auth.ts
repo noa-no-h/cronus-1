@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { LoopsClient } from 'loops';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
+import { safeVerifyToken } from '../lib/authUtils';
 import { CategoryModel } from '../models/category';
 import { IUser, UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
@@ -102,46 +103,6 @@ export interface ExportUsageResponse {
   message?: string;
   currentUsage?: number;
   limit?: number;
-}
-
-// Helper function to verify token and return user ID
-export function verifyToken(token: string): { userId: string } {
-  try {
-    const decoded = jwt.verify(token, process.env.AUTH_SECRET || 'fallback-secret') as {
-      userId: string;
-    };
-    return decoded;
-  } catch (error) {
-    console.error('Token verification error:', error);
-
-    // Preserve the original JWT error information for better handling
-    if (error instanceof jwt.TokenExpiredError) {
-      const authError = new Error('Token has expired');
-      authError.name = 'TokenExpiredError';
-      // @ts-ignore - Adding custom property to Error
-      authError.code = 'UNAUTHORIZED';
-      throw authError;
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      const authError = new Error('Invalid or malformed token');
-      authError.name = 'JsonWebTokenError';
-      // @ts-ignore - Adding custom property to Error
-      authError.code = 'UNAUTHORIZED';
-      throw authError;
-    } else if (error instanceof jwt.NotBeforeError) {
-      const authError = new Error('Token not active yet');
-      authError.name = 'NotBeforeError';
-      // @ts-ignore - Adding custom property to Error
-      authError.code = 'UNAUTHORIZED';
-      throw authError;
-    } else {
-      // Generic JWT error
-      const authError = new Error('Invalid or expired token');
-      authError.name = 'TokenError';
-      // @ts-ignore - Adding custom property to Error
-      authError.code = 'UNAUTHORIZED';
-      throw authError;
-    }
-  }
 }
 
 export const authRouter = router({
@@ -244,69 +205,59 @@ export const authRouter = router({
     }),
 
   getUser: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    try {
-      const decoded = verifyToken(input.token);
+    const decoded = safeVerifyToken(input.token);
+    const user = await UserModel.findById(decoded.userId);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      hasSubscription: user.hasSubscription,
+      isWaitlisted: user.isWaitlisted,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+    } satisfies User;
+  }),
+
+  checkAndIncrementExportUsage: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }): Promise<ExportUsageResponse> => {
+      const decoded = safeVerifyToken(input.token);
       const user = await UserModel.findById(decoded.userId);
 
       if (!user) {
         throw new Error('User not found');
       }
 
-      return {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        picture: user.picture,
-        hasSubscription: user.hasSubscription,
-        isWaitlisted: user.isWaitlisted,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
-      } satisfies User;
-    } catch (error) {
-      console.error('Get user error:', error);
-      throw error; // Use the original error to preserve code/status
-    }
-  }),
+      // If user has subscription, allow unlimited usage
+      if (user.hasSubscription) {
+        return { canExport: true };
+      }
 
-  checkAndIncrementExportUsage: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .mutation(async ({ input }): Promise<ExportUsageResponse> => {
-      try {
-        const decoded = verifyToken(input.token);
-        const user = await UserModel.findById(decoded.userId);
-
-        if (!user) {
-          throw new Error('User not found');
-        }
-
-        // If user has subscription, allow unlimited usage
-        if (user.hasSubscription) {
-          return { canExport: true };
-        }
-
-        // For free users, check usage limit
-        const FREE_EXPORT_LIMIT = 4;
-        if (user.exportActionUsageCount >= FREE_EXPORT_LIMIT) {
-          return {
-            canExport: false,
-            message: "You've reached the free export limit. Upgrade to Pro for unlimited exports.",
-            currentUsage: user.exportActionUsageCount,
-            limit: FREE_EXPORT_LIMIT,
-          };
-        }
-
-        // Increment usage count
-        user.exportActionUsageCount += 1;
-        await user.save();
-
+      // For free users, check usage limit
+      const FREE_EXPORT_LIMIT = 4;
+      if (user.exportActionUsageCount >= FREE_EXPORT_LIMIT) {
         return {
-          canExport: true,
+          canExport: false,
+          message: "You've reached the free export limit. Upgrade to Pro for unlimited exports.",
           currentUsage: user.exportActionUsageCount,
           limit: FREE_EXPORT_LIMIT,
         };
-      } catch (error) {
-        console.error('Check export usage error:', error);
-        throw new Error('Failed to check export usage');
       }
+
+      // Increment usage count
+      user.exportActionUsageCount += 1;
+      await user.save();
+
+      return {
+        canExport: true,
+        currentUsage: user.exportActionUsageCount,
+        limit: FREE_EXPORT_LIMIT,
+      };
     }),
 
   // Add new refresh token endpoint
@@ -349,22 +300,17 @@ export const authRouter = router({
   markOnboardingComplete: publicProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ input }) => {
-      try {
-        const decoded = verifyToken(input.token);
-        const user = await UserModel.findById(decoded.userId);
+      const decoded = safeVerifyToken(input.token);
+      const user = await UserModel.findById(decoded.userId);
 
-        if (!user) {
-          throw new Error('User not found');
-        }
-
-        user.hasCompletedOnboarding = true;
-        await user.save();
-
-        return { success: true };
-      } catch (error) {
-        console.error('Mark onboarding complete error:', error);
-        throw new Error('Failed to mark onboarding as complete');
+      if (!user) {
+        throw new Error('User not found');
       }
+
+      user.hasCompletedOnboarding = true;
+      await user.save();
+
+      return { success: true };
     }),
 
   exchangeGoogleCode: publicProcedure

@@ -2,11 +2,11 @@ import { TRPCError } from '@trpc/server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
+import { safeVerifyToken } from '../lib/authUtils';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { categorizeActivity } from '../services/categorization/categorizationService';
+import { generateActivitySummary, isTitleInformative } from '../services/categorization/llm';
 import { publicProcedure, router } from '../trpc';
-import { verifyToken } from './auth';
-import { isTitleInformative, generateActivitySummary } from '../services/categorization/llm';
 
 // Zod schema for input validation
 const activeWindowEventInputSchema = z.object({
@@ -25,7 +25,7 @@ const activeWindowEventInputSchema = z.object({
 export const activeWindowEventsRouter = router({
   create: publicProcedure.input(activeWindowEventInputSchema).mutation(async ({ input }) => {
     // console.log('[Router] Received create event:', input);
-    const decodedToken = verifyToken(input.token);
+    const decodedToken = safeVerifyToken(input.token);
     const userId = decodedToken.userId;
 
     // Destructure relevant details from input for categorization
@@ -98,7 +98,7 @@ export const activeWindowEventsRouter = router({
     .input(z.object({ token: z.string(), startDateMs: z.number(), endDateMs: z.number() }))
     .query(async ({ input }) => {
       try {
-        const decodedToken = verifyToken(input.token);
+        const decodedToken = safeVerifyToken(input.token);
         const userId = decodedToken.userId;
 
         // Input times are already UTC milliseconds representing the user's local day/week boundaries
@@ -138,7 +138,7 @@ export const activeWindowEventsRouter = router({
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
       try {
-        const decodedToken = verifyToken(input.token);
+        const decodedToken = safeVerifyToken(input.token);
         const userId = decodedToken.userId;
 
         const latestEvent = await ActiveWindowEventModel.findOne({
@@ -181,7 +181,7 @@ export const activeWindowEventsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       const { name, categoryId, startTime, endTime } = input;
@@ -227,7 +227,7 @@ export const activeWindowEventsRouter = router({
     )
     .mutation(async ({ input }) => {
       const { token, id, name, categoryId, startTime, durationMs } = input;
-      verifyToken(token);
+      safeVerifyToken(token);
 
       if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new TRPCError({
@@ -267,7 +267,7 @@ export const activeWindowEventsRouter = router({
   getManualEntryHistory: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       try {
@@ -346,7 +346,7 @@ export const activeWindowEventsRouter = router({
     .input(z.object({ token: z.string(), id: z.string() }))
     .mutation(async ({ input }) => {
       const { token, id } = input;
-      verifyToken(token);
+      safeVerifyToken(token);
 
       try {
         const deletedEvent = await ActiveWindowEventModel.findByIdAndDelete(id);
@@ -379,7 +379,7 @@ export const activeWindowEventsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const { startDateMs, endDateMs, activityIdentifier, itemType, newCategoryId, token } = input;
-      const decodedToken = verifyToken(token);
+      const decodedToken = safeVerifyToken(token);
       const userId = decodedToken.userId;
 
       const filter: FilterQuery<ActiveWindowEvent> = {
@@ -475,7 +475,7 @@ export const activeWindowEventsRouter = router({
     )
     .mutation(async ({ input }) => {
       const { token, startDateMs, endDateMs } = input;
-      const decodedToken = verifyToken(token);
+      const decodedToken = safeVerifyToken(token);
       const userId = decodedToken.userId;
 
       const filter: FilterQuery<ActiveWindowEvent> = {

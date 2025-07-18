@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { endOfDay, startOfDay } from 'date-fns';
 import { z } from 'zod';
+import { safeVerifyToken } from '../lib/authUtils';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
 import { ActivityEventSuggestionModel } from '../models/activityEventSuggestion';
 import { ICategoryDoc } from '../models/category';
@@ -10,7 +11,6 @@ import {
   generateSuggestionsForUser,
 } from '../services/suggestions/suggestionGenerationService';
 import { publicProcedure, router } from '../trpc';
-import { verifyToken } from './auth';
 
 export const suggestionsRouter = router({
   list: publicProcedure
@@ -22,7 +22,7 @@ export const suggestionsRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       const suggestions = await ActivityEventSuggestionModel.find({
@@ -49,7 +49,7 @@ export const suggestionsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       const suggestion = await ActivityEventSuggestionModel.findOne({
@@ -96,7 +96,7 @@ export const suggestionsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       const result = await ActivityEventSuggestionModel.updateOne(
@@ -122,7 +122,7 @@ export const suggestionsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const decodedToken = verifyToken(input.token);
+      const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
 
       const day = new Date(input.date);
