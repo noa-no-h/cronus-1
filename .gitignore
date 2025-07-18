@@ -47,6 +47,7 @@ my-app*
 # Electron app specific
 electron-app/dist/
 electron-app/out/
+electron-app/node_modules/
 
 **/.eslintcache
 electron-app/src/native-modules/**/bin/
