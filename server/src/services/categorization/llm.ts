@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
+import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 const openai = new OpenAI(); // Ensure OPENAI_API_KEY is set
 
@@ -90,6 +90,7 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 - Activity: Twitter DMs about user research. Goal: "Build novel productivity software". Categories: "Product Management", "Distraction". Correct Category: "Product Management".
 - Activity: Watching random entertainment on YouTube. Goal: "Finish coding new feature". Categories: "Work", "Distraction". Correct Category: "Distraction".
 - Activity: Drafting emails for unrelated side project. Goal: "Working on new social app". Categories: "Work Communication", "Distraction". Correct Category: "Distraction".
+- Activity: Adjusting System Settings and view Cronus. Goal: "Finish my biophysics PHD etc". Categories: "Work", "Distraction". Correct Category: "Work".
 
 TASK:
 Look at the CURRENT ACTIVITY through the lens of the user's PROJECTS AND GOALS.
