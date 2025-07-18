@@ -1,5 +1,4 @@
 import { is } from '@electron-toolkit/utils'
-import * as Sentry from '@sentry/electron/main'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import fs from 'fs/promises'
 import { join } from 'path'
@@ -303,14 +302,14 @@ export function registerIpcHandlers(
     return { action: 'deny' }
   })
 
-  ipcMain.handle(
-    'set-sentry-user',
-    (
-      _event,
-      userData: { id: string; email: string; username: string; subscription: boolean } | null
-    ) => {
-      Sentry.setUser(userData)
-      logMainToFile('Sentry user context updated', { userId: userData?.id, email: userData?.email })
-    }
-  )
+  // ipcMain.handle(
+  //   'set-sentry-user',
+  //   (
+  //     _event,
+  //     userData: { id: string; email: string; username: string; subscription: boolean } | null
+  //   ) => {
+  //     Sentry.setUser(userData)
+  //     logMainToFile('Sentry user context updated', { userId: userData?.id, email: userData?.email })
+  //   }
+  // )
 }

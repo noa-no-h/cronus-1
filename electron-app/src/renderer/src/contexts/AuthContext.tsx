@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/electron/renderer'
 import { usePostHog } from 'posthog-js/react'
 import { createContext, JSX, ReactNode, useContext, useEffect, useState } from 'react'
 import { User } from 'shared/dist/types.js'
@@ -87,19 +86,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         user_id: userData.id
       })
 
-      // Set user context in Sentry (renderer process)
-      Sentry.setUser({
-        id: userData.id,
-        email: userData.email,
-        username: userData.name
-      })
+      // // Set user context in Sentry (renderer process)
+      // Sentry.setUser({
+      //   id: userData.id,
+      //   email: userData.email,
+      //   username: userData.name
+      // })
 
-      // Set user context in Sentry (main process)
-      window.api.setSentryUser({
-        id: userData.id,
-        email: userData.email,
-        username: userData.name
-      })
+      // // Set user context in Sentry (main process)
+      // window.api.setSentryUser({
+      //   id: userData.id,
+      //   email: userData.email,
+      //   username: userData.name
+      // })
     }
     setJustLoggedIn(true)
     setIsLoading(false)
@@ -115,11 +114,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
 
     posthog?.reset()
 
-    // Clear user context from Sentry (renderer process)
-    Sentry.setUser(null)
+    // // Clear user context from Sentry (renderer process)
+    // Sentry.setUser(null)
 
-    // Clear user context from Sentry (main process)
-    window.api.setSentryUser(null)
+    // // Clear user context from Sentry (main process)
+    // window.api.setSentryUser(null)
 
     if (currentToken) {
       window.dispatchEvent(

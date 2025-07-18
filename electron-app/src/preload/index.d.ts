@@ -86,7 +86,7 @@ declare global {
       getAppVersion: () => Promise<string>
       getBuildDate: () => Promise<string>
       getAppIconPath: (appName: string) => Promise<string | null>
-      setSentryUser: (userData: { id: string; email: string; username: string; subscription: boolean } | null) => Promise<void>
+      // setSentryUser: (userData: { id: string; email: string; username: string; subscription: boolean } | null) => Promise<void>
     }
     floatingApi: FloatingWindowApi
   }

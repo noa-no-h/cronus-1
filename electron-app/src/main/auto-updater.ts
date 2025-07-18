@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/electron/main'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import * as fs from 'fs'
@@ -31,7 +30,7 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
 
   autoUpdater.on('error', (err) => {
     console.error('Auto-updater error:', err)
-    Sentry.captureException(err)
+    // Sentry.captureException(err)
     mainWindow?.webContents.send('update-status', {
       status: 'error',
       error: err.message
@@ -78,7 +77,7 @@ function checkForUpdatesIfNeeded(trigger: string): void {
     saveLastCheckTime(now)
     autoUpdater.checkForUpdates().catch((error) => {
       console.error('Update check failed:', error)
-      Sentry.captureException(error)
+      // Sentry.captureException(error)
     })
   } else {
     console.log(
@@ -182,7 +181,7 @@ export function registerAutoUpdaterHandlers(): void {
       return autoUpdater.downloadUpdate()
     } catch (error) {
       console.error('Error downloading update:', error)
-      Sentry.captureException(error)
+      // Sentry.captureException(error)
       throw error
     }
   })
