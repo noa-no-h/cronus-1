@@ -30,7 +30,7 @@ export const SelectionBox: React.FC<SelectionBoxProps> = ({
     <div
       className={clsx(
         'absolute bg-blue-500/30 border-2 border-blue-500 rounded-md z-10 pointer-events-none left-[67px]',
-        hasGoogleCalendarEvents ? 'right-1/3 mr-2' : 'right-1'
+        'right-1'
       )}
       style={{
         top: `${top + 1}px`,
