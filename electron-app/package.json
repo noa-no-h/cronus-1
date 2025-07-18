@@ -116,6 +116,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-oauth/google": "^0.12.1",
+    "@sentry/electron": "^6.8.0",
     "@trpc/client": "^10.45.2",
     "@trpc/react-query": "^10.45.2",
     "@types/color": "^4.2.0",

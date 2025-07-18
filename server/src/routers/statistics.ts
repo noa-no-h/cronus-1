@@ -151,6 +151,32 @@ export const statisticsRouter = router({
     return eventsByDay;
   }),
 
+  getCumulativeSignupsChart: publicProcedure.query(async () => {
+    const thirtyDaysAgo = subDays(startOfDay(new Date()), 30);
+    const today = new Date();
+
+    const days = eachDayOfInterval({ start: thirtyDaysAgo, end: today });
+
+    const cumulativeSignupsByDay = await Promise.all(
+      days.map(async (day) => {
+        const endOfDayTimestamp = startOfDay(subDays(day, -1)).getTime();
+
+        const count = await UserModel.countDocuments({
+          createdAt: {
+            $lt: new Date(endOfDayTimestamp),
+          },
+        });
+
+        return {
+          date: format(day, 'yyyy-MM-dd'),
+          cumulativeSignups: count,
+        };
+      })
+    );
+
+    return cumulativeSignupsByDay;
+  }),
+
   getKPIs: publicProcedure.query(async () => {
     const now = new Date();
     const startOfThisWeek = startOfWeek(now, { weekStartsOn: 1 });

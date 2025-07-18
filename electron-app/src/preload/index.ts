@@ -87,7 +87,10 @@ const api = {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getBuildDate: () => ipcRenderer.invoke('get-build-date'),
   getAppIconPath: (appName: string): Promise<string | null> =>
-    ipcRenderer.invoke('get-app-icon-path', appName)
+    ipcRenderer.invoke('get-app-icon-path', appName),
+  setSentryUser: (
+    userData: { id: string; email: string; username: string; subscription: boolean } | null
+  ) => ipcRenderer.invoke('set-sentry-user', userData)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

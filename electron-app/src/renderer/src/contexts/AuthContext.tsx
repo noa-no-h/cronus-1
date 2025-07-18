@@ -1,8 +1,9 @@
+import * as Sentry from '@sentry/electron/renderer'
+import { usePostHog } from 'posthog-js/react'
 import { createContext, JSX, ReactNode, useContext, useEffect, useState } from 'react'
 import { User } from 'shared/dist/types.js'
 import { exchangeGoogleCodeForTokens } from '../lib/auth'
 import { trpc } from '../utils/trpc'
-import { usePostHog } from 'posthog-js/react'
 
 interface AuthContextType {
   user: User | null
@@ -83,9 +84,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       posthog?.identify(userData.email, {
         email: userData.email,
         name: userData.name,
-        user_id: userData.id,
-        has_subscription: userData.hasSubscription,
-        has_completed_onboarding: userData.hasCompletedOnboarding
+        user_id: userData.id
+      })
+
+      // Set user context in Sentry (renderer process)
+      Sentry.setUser({
+        id: userData.id,
+        email: userData.email,
+        username: userData.name
+      })
+
+      // Set user context in Sentry (main process)
+      window.api.setSentryUser({
+        id: userData.id,
+        email: userData.email,
+        username: userData.name
       })
     }
     setJustLoggedIn(true)
@@ -101,6 +114,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     setIsLoading(false)
 
     posthog?.reset()
+
+    // Clear user context from Sentry (renderer process)
+    Sentry.setUser(null)
+
+    // Clear user context from Sentry (main process)
+    window.api.setSentryUser(null)
 
     if (currentToken) {
       window.dispatchEvent(

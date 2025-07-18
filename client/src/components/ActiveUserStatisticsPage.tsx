@@ -61,6 +61,12 @@ export function ActiveUserStatisticsPage() {
   } = trpc.statistics.getActiveWindowEventsChart.useQuery();
 
   const {
+    data: cumulativeSignupsData,
+    isLoading: cumulativeSignupsLoading,
+    error: cumulativeSignupsError,
+  } = trpc.statistics.getCumulativeSignupsChart.useQuery();
+
+  const {
     data: kpisData,
     isLoading: kpisLoading,
     error: kpisError,
@@ -109,6 +115,7 @@ export function ActiveUserStatisticsPage() {
     lastWeekLoading ||
     signupsGrowthLoading ||
     activeWindowEventsLoading ||
+    cumulativeSignupsLoading ||
     kpisLoading
   ) {
     return <AppLayout>Loading...</AppLayout>;
@@ -120,6 +127,7 @@ export function ActiveUserStatisticsPage() {
     lastWeekError ||
     signupsGrowthError ||
     activeWindowEventsError ||
+    cumulativeSignupsError ||
     kpisError
   ) {
     const error =
@@ -128,6 +136,7 @@ export function ActiveUserStatisticsPage() {
       lastWeekError ||
       signupsGrowthError ||
       activeWindowEventsError ||
+      cumulativeSignupsError ||
       kpisError;
     return <AppLayout>Error: {error?.message}</AppLayout>;
   }
@@ -218,6 +227,26 @@ export function ActiveUserStatisticsPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* Cumulative Signups Chart */}
+        <div className="p-6 border rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">Cumulative Signups (Last 30 Days)</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={cumulativeSignupsData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tickFormatter={(value) => format(new Date(value), 'MMM dd')} />
+              <YAxis />
+              <Tooltip labelFormatter={(value) => format(new Date(value), 'MMM dd, yyyy')} />
+              <Line
+                type="monotone"
+                dataKey="cumulativeSignups"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={{ fill: '#8b5cf6' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Existing Active Users Section */}
