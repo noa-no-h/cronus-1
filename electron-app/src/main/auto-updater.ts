@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -9,14 +10,19 @@ let updateTimer: NodeJS.Timeout | null = null
 export function initializeAutoUpdater(window: BrowserWindow): void {
   mainWindow = window
 
+  autoUpdater.logger = log
+  log.transports.file.level = 'info'
+
   autoUpdater.autoDownload = false
-  autoUpdater.autoInstallOnAppQuit = true
+  autoUpdater.autoInstallOnAppQuit = false
 
   autoUpdater.on('checking-for-update', () => {
+    log.info('Checking for update...')
     mainWindow?.webContents.send('update-status', { status: 'checking' })
   })
 
   autoUpdater.on('update-available', (info) => {
+    log.info('Update available.', info)
     mainWindow?.webContents.send('update-status', {
       status: 'available',
       version: info.version,
@@ -25,11 +31,12 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   })
 
   autoUpdater.on('update-not-available', () => {
+    log.info('Update not available.')
     mainWindow?.webContents.send('update-status', { status: 'not-available' })
   })
 
   autoUpdater.on('error', (err) => {
-    console.error('Auto-updater error:', err)
+    log.error('Auto-updater error:', err)
     // Sentry.captureException(err)
     mainWindow?.webContents.send('update-status', {
       status: 'error',
@@ -38,6 +45,7 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
+    log.info(`Download progress: ${progressObj.percent}%`)
     mainWindow?.webContents.send('update-status', {
       status: 'downloading',
       progress: progressObj.percent
@@ -45,6 +53,7 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   })
 
   autoUpdater.on('update-downloaded', () => {
+    log.info('Update downloaded.')
     mainWindow?.webContents.send('update-status', { status: 'downloaded' })
   })
 
@@ -67,20 +76,20 @@ function checkForUpdatesIfNeeded(trigger: string): void {
   const now = Date.now()
   const hoursSinceLastCheck = lastCheckTime === 0 ? 999 : (now - lastCheckTime) / (1000 * 60 * 60)
 
-  console.log(
+  log.info(
     `🔍 Update check (${trigger}): ${hoursSinceLastCheck === 999 ? 'never checked before' : hoursSinceLastCheck.toFixed(1) + ' hours ago'}`
   )
 
   // Check if it's been more than 1 hour since last check, or never checked
   if (hoursSinceLastCheck >= 1) {
-    console.log(`✅ Triggering update check (${trigger})`)
+    log.info(`✅ Triggering update check (${trigger})`)
     saveLastCheckTime(now)
     autoUpdater.checkForUpdates().catch((error) => {
-      console.error('Update check failed:', error)
+      log.error('Update check failed:', error)
       // Sentry.captureException(error)
     })
   } else {
-    console.log(
+    log.info(
       `⏸️ Skipping update check - checked ${hoursSinceLastCheck.toFixed(1)} hours ago (${trigger})`
     )
   }
@@ -127,12 +136,12 @@ function setupHourlyUpdateCheck(): void {
   // Schedule next check in 1 hour (3600000 ms)
   const msUntilNextHour = 3600000
 
-  console.log(
-    `�� Next hourly update check scheduled for: ${new Date(Date.now() + msUntilNextHour).toLocaleString()}`
+  log.info(
+    `📅 Next hourly update check scheduled for: ${new Date(Date.now() + msUntilNextHour).toLocaleString()}`
   )
 
   updateTimer = setTimeout(() => {
-    console.log('🔄 Hourly update check triggered')
+    log.info('🔄 Hourly update check triggered')
     checkForUpdatesIfNeeded('hourly_timer')
 
     // Reschedule for next hour
@@ -151,7 +160,7 @@ function getLastCheckTime(): number {
       return config.lastUpdateCheckTime || 0
     }
   } catch (error) {
-    console.error('Failed to read last check time:', error)
+    log.error('Failed to read last check time:', error)
   }
   return 0
 }
@@ -163,15 +172,15 @@ function saveLastCheckTime(timestamp: number): void {
 
     const config = { lastUpdateCheckTime: timestamp }
     fs.writeFileSync(updateConfigPath, JSON.stringify(config, null, 2))
-    console.log(`💾 Saved last update check time: ${new Date(timestamp).toLocaleString()}`)
+    log.info(`💾 Saved last update check time: ${new Date(timestamp).toLocaleString()}`)
   } catch (error) {
-    console.error('Failed to save last check time:', error)
+    log.error('Failed to save last check time:', error)
   }
 }
 
 export function registerAutoUpdaterHandlers(): void {
   ipcMain.handle('check-for-updates', () => {
-    console.log('🖱️ Manual update check requested')
+    log.info('🖱️ Manual update check requested')
     const now = Date.now()
     saveLastCheckTime(now)
     return autoUpdater.checkForUpdates()
@@ -180,18 +189,21 @@ export function registerAutoUpdaterHandlers(): void {
     try {
       return autoUpdater.downloadUpdate()
     } catch (error) {
-      console.error('Error downloading update:', error)
+      log.error('Error downloading update:', error)
       // Sentry.captureException(error)
       throw error
     }
   })
-  ipcMain.handle('install-update', () => autoUpdater.quitAndInstall())
+  ipcMain.handle('install-update', () => {
+    log.info('Requesting to quit and install update.')
+    autoUpdater.quitAndInstall()
+  })
 }
 
 export function cleanupAutoUpdater(): void {
   if (updateTimer) {
     clearTimeout(updateTimer)
     updateTimer = null
-    console.log('🧹 Hourly update timer cleaned up')
+    log.info('🧹 Hourly update timer cleaned up')
   }
 }
