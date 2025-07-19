@@ -365,11 +365,12 @@ export function MainAppContent(): React.ReactElement {
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-auto">
-          {isSettingsOpen ? (
-            <SettingsPage onResetOnboarding={handleResetOnboarding} />
-          ) : (
+          <div className={`flex-1 flex-col min-h-0 ${isSettingsOpen ? 'hidden' : 'flex'}`}>
             <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
-          )}
+          </div>
+          <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
+            <SettingsPage onResetOnboarding={handleResetOnboarding} />
+          </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
         <UpdateNotification />

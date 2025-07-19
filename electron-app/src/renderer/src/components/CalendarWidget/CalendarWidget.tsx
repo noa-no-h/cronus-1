@@ -293,7 +293,6 @@ const CalendarWidget = ({
             isDarkMode={isDarkMode}
             hourHeight={hourHeight}
             scrollContainerRef={scrollContainerRef}
-            animationDirection={animationDirection}
           />
         )}
       </div>

@@ -5,8 +5,8 @@ import { extractClientVersion } from './versionUtils';
 
 function verifyToken(token: string): { userId: string } {
   try {
-    console.log('Server time check for JWT verification:', new Date().toISOString());
-    console.log('Token:', token);
+    // console.log('Server time check for JWT verification:', new Date().toISOString());
+    // console.log('Token:', token);
 
     const decoded = jwt.verify(token, process.env.AUTH_SECRET || 'fallback-secret') as {
       userId: string;

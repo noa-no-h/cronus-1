@@ -1,9 +1,9 @@
 import { Calendar, CheckCircle } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { trpc } from '../utils/trpc'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { trpc } from '../utils/trpc'
 
 export const CalendarIntegrationSettings = () => {
   const { token } = useAuth()
