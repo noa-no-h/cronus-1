@@ -25,13 +25,13 @@ router.post('/api/windows-waitlist', async (req, res) => {
 
 router.post('/api/teams-waitlist', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, companyName, teamSize, additionalInfo } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+    if (!email || !companyName || !teamSize) {
+      return res.status(400).json({ error: 'Email, company name, and team size are required' });
     }
 
-    await TeamsWaitlist.create({ email });
+    await TeamsWaitlist.create({ email, companyName, teamSize, additionalInfo });
     return res.json({ success: true });
   } catch (error: unknown) {
     if (error instanceof Error && error.message.includes('E11000')) {
