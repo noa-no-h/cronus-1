@@ -62,10 +62,6 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
     return (
       <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2 pl-2">
         <div className="flex items-center">
-          <span
-            className="mr-2 h-3 w-3 flex-shrink-0 rounded-full"
-            style={{ backgroundColor: category.color }}
-          ></span>
           <h3 className="text-md font-semibold text-foreground">{category.name.toUpperCase()}</h3>
         </div>
         {showMoveButton ? (
@@ -82,11 +78,14 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
   return (
     <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
       <div className="flex items-center ml-1">
-        <span
-          className="mr-2 h-4 w-4 flex-shrink-0 rounded-full"
-          style={{ backgroundColor: category.color }}
-        ></span>
-        <h3 className="text-md font-semibold text-primary">{category.name}</h3>
+        <div
+          className="px-3 py-1 rounded-md text-sm font-medium text-white transition-all overflow-hidden"
+          style={{
+            backgroundColor: `${category.color}80`
+          }}
+        >
+          {category.name}
+        </div>
       </div>
       {showMoveButton ? (
         renderButtons()
