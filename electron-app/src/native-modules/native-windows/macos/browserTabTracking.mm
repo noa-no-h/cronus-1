@@ -92,7 +92,7 @@
         [_browserTabCheckTimer release];
         _browserTabCheckTimer = nil;
     }
-    _browserTabCheckTimer = [[NSTimer scheduledTimerWithTimeInterval:1.5
+    _browserTabCheckTimer = [[NSTimer scheduledTimerWithTimeInterval:10.0
                                                                 target:self
                                                               selector:@selector(performBrowserTabCheck)
                                                               userInfo:nil
