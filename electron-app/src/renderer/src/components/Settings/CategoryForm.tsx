@@ -8,9 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
 import { IsProductiveTooltip } from './IsProductiveTooltip'
+import { EmojiPickerComponent } from './EmojiPicker'
 
 export const notionStyleCategoryColors = [
-  '#3B82F6', // Blue - defualt productive
+  '#3B82F6', // Blue - default productive
   '#EC4899', // Pink - default unproductive
   '#A855F7', // Purple
   '#F97316', // Orange
@@ -27,6 +28,19 @@ export const notionStyleCategoryColors = [
 interface CategoryColorPickerProps {
   selectedColor: string
   onColorChange: (color: string) => void
+}
+
+const getDefaultEmojiForCategory = (categoryName: string): string => {
+  switch (categoryName.toLowerCase()) {
+    case 'work':
+      return '💼'
+    case 'distraction':
+      return '🎮'
+    case 'uncategorized':
+      return '❓'
+    default:
+      return '📁'
+  }
 }
 
 function CategoryColorPicker({
@@ -86,6 +100,9 @@ export function CategoryForm({
     initialData?.color ||
       notionStyleCategoryColors[Math.floor(Math.random() * notionStyleCategoryColors.length)]
   )
+  const [emoji, setEmoji] = useState(
+    initialData?.emoji || getDefaultEmojiForCategory(initialData?.name || '')
+  )
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
@@ -102,6 +119,7 @@ export function CategoryForm({
       name,
       description,
       color,
+      emoji,
       isProductive,
       isDefault: initialData?.isDefault ?? false
     })
@@ -123,6 +141,7 @@ export function CategoryForm({
           required
         />
       </div>
+
       <div>
         <Label
           htmlFor="categoryDescription"
@@ -142,15 +161,15 @@ export function CategoryForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label>Type</Label>
-          <IsProductiveTooltip>
-            <div className="flex items-center space-x-2 mt-1 cursor-help">
-              <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
-              <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
-                {isProductive ? 'Productive' : 'Unproductive'}
-              </Label>
-            </div>
-          </IsProductiveTooltip>
+          <Label>Emoji</Label>
+          <div className="flex items-center space-x-2 mt-1">
+            <EmojiPickerComponent
+              selectedEmoji={emoji}
+              onEmojiSelect={setEmoji}
+              disabled={isSaving}
+            />
+            <span className="text-sm text-muted-foreground">Choose an emoji for this category</span>
+          </div>
         </div>
         <div>
           <Label>Color</Label>
@@ -159,6 +178,18 @@ export function CategoryForm({
             <span className="text-red-500">*</span>
           </div>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Type</Label>
+        <IsProductiveTooltip>
+          <div className="flex items-center space-x-2 mt-1 cursor-help">
+            <Switch id="isProductive" checked={isProductive} onCheckedChange={setIsProductive} />
+            <Label htmlFor="isProductive" className="text-foreground text-sm font-medium">
+              {isProductive ? 'Productive' : 'Unproductive'}
+            </Label>
+          </div>
+        </IsProductiveTooltip>
       </div>
 
       {error && <p className="text-sm text-destructive-foreground">{error}</p>}
