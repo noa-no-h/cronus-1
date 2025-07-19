@@ -26,23 +26,39 @@ interface CategoryListItemProps {
   isUpdating: boolean
 }
 
+const getDefaultEmojiForCategory = (categoryName: string): string => {
+  switch (categoryName.toLowerCase()) {
+    case 'work':
+      return '💼'
+    case 'distraction':
+      return '🎮'
+    case 'uncategorized':
+      return '❓'
+    default:
+      return '📁'
+  }
+}
+
 export function CategoryListItem({
   category,
   onEdit,
-  onDelete,
   onToggleProductive,
   onToggleArchive,
   isDeleting,
   isUpdating
 }: CategoryListItemProps): JSX.Element {
+  const categoryEmoji = category.emoji || getDefaultEmojiForCategory(category.name)
+
   return (
-    <div className="divide-border border rounded-lg px-4 py-4 sm:px-6 hover:bg-accent transition-colors">
+    <div
+      className="divide-border border rounded-lg px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
+      style={{
+        backgroundColor: `${category.color}50`
+      }}
+    >
       <div className="flex items-center justify-between gap-x-4">
         <div className="flex items-center flex-1 min-w-0">
-          <span
-            style={{ backgroundColor: category.color }}
-            className="w-4 h-4 rounded-full mr-3 flex-shrink-0 border border-border"
-          ></span>
+          <span className="text-lg mr-3 flex-shrink-0">{categoryEmoji}</span>
           <div className="flex-1 min-w-0">
             <p className="text-md font-medium text-foreground truncate">{category.name}</p>
             {category.description && (
@@ -101,23 +117,6 @@ export function CategoryListItem({
                 )}
                 <span>{category.isArchived ? 'Unarchive' : 'Archive'}</span>
               </DropdownMenuItem>
-              {/* <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  alert(
-                    'Deleting categories is not implemented yet. We are planning to add this and a smart activity-recategorization feature next :)'
-                  )
-                }}
-                disabled={isDeleting}
-                className="flex items-center text-destructive focus:text-destructive cursor-pointer"
-              >
-                {isDeleting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 size={18} className="mr-2" />
-                )}
-                <span>Delete</span>
-              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
