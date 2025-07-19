@@ -25,7 +25,6 @@ import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
 import { categoryRouter } from './routers/categoryRouter';
 import { paymentsRouter } from './routers/payments';
-import { s3Router } from './routers/s3Router';
 import { statisticsRouter } from './routers/statistics';
 import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
@@ -40,7 +39,6 @@ export const appRouter = router({
   auth: authRouter,
   payments: paymentsRouter,
   activeWindowEvents: activeWindowEventsRouter,
-  s3: s3Router,
   user: userRouter,
   category: categoryRouter,
   calendar: calendarRouter,
