@@ -8,8 +8,6 @@ import {
 } from 'lucide-react'
 import { JSX } from 'react'
 import { Category } from 'shared/types'
-import { useDarkMode } from '../../hooks/useDarkMode'
-import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -17,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
+import { CategoryItemDisplay } from './CategoryItemDisplay'
 
 interface CategoryListItemProps {
   category: Category
@@ -37,51 +36,16 @@ export function CategoryListItem({
   isUpdating
 }: CategoryListItemProps): JSX.Element {
   const categoryEmoji = category.emoji
-  const isDarkMode = useDarkMode()
-
-  // Calculate text color based on category color and theme
-  const textColor = category.color
-    ? isDarkMode
-      ? getLighterColor(category.color, 0.9)
-      : getDarkerColor(category.color, 0.6)
-    : undefined
-  // Use lighter color for background
-  const backgroundColor = category.color
-    ? isDarkMode
-      ? hexToRgba(category.color, 0.3)
-      : hexToRgba(category.color, 0.1)
-    : undefined
-
   console.log('category emoji in list item', categoryEmoji)
-
   return (
-    <div
-      className="divide-border border rounded-lg p-2 hover:bg-accent transition-colors"
-      style={{
-        backgroundColor: category.isArchived ? 'transparent' : backgroundColor
-      }}
-    >
-      <div className="flex items-center justify-between gap-x-4">
-        <div className="flex items-center flex-1 min-w-0">
-          <span className="text-lg mr-3 flex-shrink-0">{categoryEmoji}</span>
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-md font-medium truncate"
-              style={{ color: category.isArchived ? 'text-muted-foreground' : textColor }}
-            >
-              {category.name}
-            </p>
-            {category.description && (
-              <p
-                className="text-sm truncate"
-                style={{ color: category.isArchived ? 'text-muted-foreground' : textColor }}
-              >
-                {category.description}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex-shrink-0 flex items-center space-x-1 sm:space-x-2">
+    <CategoryItemDisplay
+      name={category.name}
+      description={category.description}
+      color={category.color}
+      emoji={category.emoji}
+      isArchived={category.isArchived}
+      actions={
+        <>
           <Button
             variant="ghost"
             size="icon"
@@ -134,8 +98,8 @@ export function CategoryListItem({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   )
 }

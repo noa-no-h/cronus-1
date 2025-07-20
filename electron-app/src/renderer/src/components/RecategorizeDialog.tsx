@@ -2,6 +2,8 @@ import { PlusCircle } from 'lucide-react'
 import React from 'react'
 import { Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
+import { useDarkMode } from '../hooks/useDarkMode'
+import { getDarkerColor, getLighterColor, hexToRgba } from '../lib/colors'
 import { ActivityIcon } from './ActivityList/ActivityIcon'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
@@ -25,6 +27,8 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
   isLoading,
   onAddNewCategory
 }) => {
+  const isDarkMode = useDarkMode()
+
   if (!activityTarget) {
     return null
   }
@@ -41,28 +45,30 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Re-categorize Activity</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="flex flex-col gap-2">
-            <div className="pt-2">
-              Change target:{' '}
+            <div className="pt-2 flex items-center">
+              <span className="text-muted-foreground mr-2 flex-shrink-0">Change target:</span>
               <ActivityIcon
                 url={activityTarget.originalUrl}
                 appName={activityTarget.identifier}
                 size={16}
-                className="inline-block align-middle"
+                className="inline-block align-middle mr-2 flex-shrink-0"
                 itemType={activityTarget.originalUrl ? 'website' : 'app'}
                 color={activityTarget.currentCategoryColor}
                 showFallback={false}
                 fallbackText={activityTarget.identifier.charAt(0).toUpperCase()}
-              />{' '}
-              <strong className="text-primary">{activityTarget.nameToDisplay}</strong>
+              />
+              <div className="truncate w-80">
+                <strong className="text-primary ">{activityTarget.nameToDisplay}</strong>
+              </div>
             </div>
-            <div>
+            <div className="text-muted-foreground">
               Currently categorized as{' '}
               <span
                 className="w-4 h-4 rounded-full inline-block align-middle mr-1 mb-[4px]"
@@ -76,21 +82,6 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
             <h4 className="mb-3 text-sm font-medium text-muted-foreground">Move to Category:</h4>
             {availableCategories.length > 0 ? (
               <div className="flex flex-wrap items-start gap-2">
-                {availableCategories.map((cat) => (
-                  <Button
-                    key={cat._id}
-                    variant={'outline'}
-                    onClick={() => handleCategorySelectAndSave(cat._id)}
-                    disabled={isLoading}
-                    size="sm"
-                    style={{
-                      borderColor: cat.color
-                    }}
-                    className={`border-2 hover:bg-[${cat.color}]/10`}
-                  >
-                    {cat.name}
-                  </Button>
-                ))}
                 <Button
                   variant="outline"
                   onClick={onAddNewCategory}
@@ -101,6 +92,36 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
                   <PlusCircle className="w-4 h-4 mr-1" />
                   Create new category
                 </Button>
+                {availableCategories.map((cat) => {
+                  const textColor = cat.color
+                    ? isDarkMode
+                      ? getLighterColor(cat.color, 0.8)
+                      : getDarkerColor(cat.color, 0.6)
+                    : undefined
+                  // Use lighter color for background
+                  const backgroundColor = cat.color
+                    ? isDarkMode
+                      ? hexToRgba(cat.color, 0.3)
+                      : hexToRgba(cat.color, 0.1)
+                    : undefined
+
+                  return (
+                    <Button
+                      key={cat._id}
+                      variant={'outline'}
+                      onClick={() => handleCategorySelectAndSave(cat._id)}
+                      disabled={isLoading}
+                      size="sm"
+                      style={{
+                        backgroundColor,
+                        color: textColor
+                      }}
+                      className={`hover:opacity-80`}
+                    >
+                      {cat.emoji} {cat.name}
+                    </Button>
+                  )
+                })}
               </div>
             ) : (
               <div className="space-y-2">
