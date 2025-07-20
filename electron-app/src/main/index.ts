@@ -102,6 +102,20 @@ function App() {
         mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
           handleAppUrl(url, window)
         )
+      } else {
+        // If there are windows (like the floating window), show the main window
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.show()
+          mainWindow.focus()
+          if (mainWindow.isMinimized()) {
+            mainWindow.restore()
+          }
+        } else {
+          // Main window doesn't exist, recreate it
+          mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
+            handleAppUrl(url, window)
+          )
+        }
       }
     })
   }

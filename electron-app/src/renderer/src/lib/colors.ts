@@ -47,7 +47,10 @@ export const getDarkerColor = (hex: string, amount = 0.5): string => {
 
 export const getLighterColor = (hex: string, amount = 0.5): string => {
   try {
-    return Color(hex).lighten(amount).string()
+    // Mix with white to create a lighter version
+    const color = Color(hex)
+    const white = Color('#FFFFFF')
+    return color.mix(white, amount).string()
   } catch (e) {
     return '#FFFFFF' // fallback to white
   }

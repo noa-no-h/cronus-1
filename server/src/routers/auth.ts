@@ -5,6 +5,7 @@ import { LoopsClient } from 'loops';
 import { defaultCategoriesData } from 'shared/categories';
 import { z } from 'zod';
 import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
+import { extractClientVersion, isVersionOutdated } from '../lib/versionUtils';
 import { CategoryModel } from '../models/category';
 import { IUser, UserModel } from '../models/user';
 import { publicProcedure, router } from '../trpc';
@@ -16,7 +17,10 @@ const googleClient = new OAuth2Client(
 
 const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
 
-const findOrCreateUserAndOnboard = async (payload: TokenPayload): Promise<IUser> => {
+const findOrCreateUserAndOnboard = async (
+  payload: TokenPayload,
+  userAgent?: string
+): Promise<IUser> => {
   let user = await UserModel.findOne({ googleId: payload.sub });
 
   if (!user) {
@@ -44,7 +48,11 @@ const findOrCreateUserAndOnboard = async (payload: TokenPayload): Promise<IUser>
       ],
     });
 
-    await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
+    const clientVersion = extractClientVersion(userAgent);
+    if (!clientVersion || isVersionOutdated(clientVersion, '1.7.5')) {
+      // We now create categories during the onboarding
+      await CategoryModel.insertMany(defaultCategoriesData(user._id.toString()));
+    }
 
     try {
       const firstName = payload.name ? payload.name.split(' ')[0] : '';
@@ -108,7 +116,7 @@ export interface ExportUsageResponse {
 export const authRouter = router({
   googleLogin: publicProcedure
     .input(z.object({ credential: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         // Verify Google token
         const ticket = await googleClient.verifyIdToken({
@@ -119,7 +127,7 @@ export const authRouter = router({
         const payload = ticket.getPayload();
         if (!payload) throw new Error('No payload');
 
-        const user = await findOrCreateUserAndOnboard(payload);
+        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent);
 
         // Generate access token (short-lived)
         const accessToken = jwt.sign(
@@ -320,7 +328,7 @@ export const authRouter = router({
         isDesktopFlow: z.boolean().optional().default(false),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         console.log('Attempting to exchange code:', {
           code: input.code,
@@ -359,7 +367,7 @@ export const authRouter = router({
         if (!payload) throw new Error('No payload');
 
         // Find or create user (reuse your existing logic)
-        const user = await findOrCreateUserAndOnboard(payload);
+        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent);
 
         if (hasCalendarScope && tokens.access_token) {
           user.googleAccessToken = tokens.access_token;

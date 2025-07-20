@@ -6,6 +6,7 @@ import { getEmojiForCategory } from '../services/categorization/llm';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
 import { safeVerifyToken } from '../lib/authUtils';
+import { getOpenAICategorySuggestion } from '../services/categorization/llm';
 import { publicProcedure, router } from '../trpc';
 
 const objectIdToStringSchema = z
@@ -65,6 +66,34 @@ export const categoryRouter = router({
       return category.toJSON();
     }),
 
+  createCategories: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        categories: z.array(
+          z.object({
+            name: z.string(),
+            description: z.string(),
+            color: z.string(),
+            isProductive: z.boolean(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decodedToken = safeVerifyToken(input.token);
+      const userId = decodedToken.userId;
+      const { categories } = input;
+
+      const categoryDocs = categories.map((category) => ({
+        ...category,
+        userId,
+      }));
+
+      await CategoryModel.insertMany(categoryDocs);
+      return { success: true };
+    }),
+
   getCategories: publicProcedure
     .input(z.object({ token: z.string() }))
     .output(z.array(categorySchema))
@@ -94,6 +123,13 @@ export const categoryRouter = router({
       }
       return categories.map((cat) => cat.toJSON());
     }),
+
+  hasCategories: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
+    const decodedToken = safeVerifyToken(input.token);
+    const userId = decodedToken.userId;
+    const count = await CategoryModel.countDocuments({ userId });
+    return count > 0;
+  }),
 
   updateCategory: publicProcedure
     .input(
@@ -165,6 +201,40 @@ export const categoryRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
       return category.toJSON();
+    }),
+
+  generateAiCategories: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        goals: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      safeVerifyToken(input.token);
+      const { goals } = input;
+
+      const suggestedCategories = await getOpenAICategorySuggestion(goals);
+
+      return suggestedCategories;
+    }),
+
+  deleteRecentlyCreatedCategories: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .mutation(async ({ input }) => {
+      const decodedToken = safeVerifyToken(input.token);
+      const userId = decodedToken.userId;
+
+      // one day ago
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      await CategoryModel.deleteMany({
+        userId,
+        createdAt: { $gte: oneDayAgo },
+        isDefault: { $ne: true },
+      });
+
+      return { success: true };
     }),
 
   resetToDefault: publicProcedure

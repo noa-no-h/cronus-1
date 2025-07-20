@@ -1,4 +1,4 @@
-import { ChevronDown, FolderPlus, PlusCircle, Rows } from 'lucide-react'
+import { ChevronDown, FolderPlus, MoreHorizontal, PlusCircle, Rows } from 'lucide-react'
 import { JSX, useEffect, useState } from 'react'
 import { defaultComparableCategories } from 'shared/categories'
 import { Category } from 'shared/dist/types.js'
@@ -73,6 +73,16 @@ export function CategoryManagementSettings(): JSX.Element {
     }
   })
 
+  const deleteRecentMutation = trpc.category.deleteRecentlyCreatedCategories.useMutation({
+    onSuccess: () => {
+      utils.category.getCategories.invalidate({ token: token || '' })
+      alert('Recently created categories have been deleted.')
+    },
+    onError: (err) => {
+      alert(`Error deleting recent categories: ${err.message}`)
+    }
+  })
+
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTemplateViewOpen, setIsTemplateViewOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
@@ -131,6 +141,16 @@ export function CategoryManagementSettings(): JSX.Element {
     }
   }
 
+  const handleDeleteRecent = async () => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    if (window.confirm('Are you sure you want to delete recently created categories?')) {
+      await deleteRecentMutation.mutateAsync({ token })
+    }
+  }
+
   const handleSaveCategory = async (
     data: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>
   ) => {
@@ -179,6 +199,24 @@ export function CategoryManagementSettings(): JSX.Element {
     })
   }
 
+  const handleArchiveAll = async () => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    if (window.confirm('Are you sure you want to archive all categories?')) {
+      // Archive all active categories
+      const activeCategories = categories?.filter((c) => !c.isArchived) || []
+      for (const category of activeCategories) {
+        await updateMutation.mutateAsync({
+          id: category._id,
+          isArchived: true,
+          token
+        })
+      }
+    }
+  }
+
   if (!token && !isLoading) {
     return (
       <div className="p-4 text-center text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-md">
@@ -211,24 +249,43 @@ export function CategoryManagementSettings(): JSX.Element {
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            {!areCategoriesMatchingDefaults && categories && (
-              <Button
-                onClick={handleResetToDefault}
-                variant="outline"
-                className="text-sm font-medium"
-                disabled={
-                  !token ||
-                  isFormOpen ||
-                  isTemplateViewOpen ||
-                  resetToDefaultMutation.isLoading ||
-                  createMutation.isLoading ||
-                  updateMutation.isLoading ||
-                  deleteMutation.isLoading
-                }
-              >
-                Reset to Default
-              </Button>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" disabled={isFormOpen || isTemplateViewOpen}>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={handleDeleteRecent}
+                  disabled={
+                    !token ||
+                    deleteRecentMutation.isLoading ||
+                    createMutation.isLoading ||
+                    updateMutation.isLoading ||
+                    deleteMutation.isLoading
+                  }
+                  className="text-red-500"
+                >
+                  Delete Created in last 24 hours
+                </DropdownMenuItem>
+                {!areCategoriesMatchingDefaults && (
+                  <DropdownMenuItem
+                    onClick={handleArchiveAll}
+                    disabled={
+                      !token ||
+                      resetToDefaultMutation.isLoading ||
+                      createMutation.isLoading ||
+                      updateMutation.isLoading ||
+                      deleteMutation.isLoading ||
+                      !categories?.some((c) => !c.isArchived)
+                    }
+                  >
+                    Archive All Categories
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

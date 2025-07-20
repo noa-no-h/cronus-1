@@ -2,8 +2,8 @@ import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import gdprlogoblue from '../assets/gdpr-logo-blue.svg'
 import { useAuth } from '../contexts/AuthContext'
-import { useDarkMode } from '../hooks/useDarkMode'
 import { trpc } from '../utils/trpc'
+import { AiCategoryCustomization } from './Settings/AiCategoryCustomization'
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
@@ -21,8 +21,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
+  const [userGoals, setUserGoals] = useState('')
+  const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
   const { token } = useAuth()
-  const isDarkMode = useDarkMode()
+  const createCategoriesMutation = trpc.category.createCategories.useMutation()
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
@@ -33,6 +35,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const { data: userProjectsAndGoals, isLoading: isLoadingGoals } =
     trpc.user.getUserProjectsAndGoals.useQuery({ token: token || '' }, { enabled: !!token })
+  const { data: hasCategories, isLoading: isLoadingHasCategories } =
+    trpc.category.hasCategories.useQuery({ token: token || '' }, { enabled: !!token })
 
   const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
 
@@ -115,6 +119,17 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'goals',
       title: '',
       content: <GoalInputForm onboardingMode={true} onComplete={handleGoalsComplete} />
+    },
+    {
+      id: 'ai-categories',
+      title: 'Customize Your Categories',
+      content: (
+        <AiCategoryCustomization
+          onComplete={handleCategoriesComplete}
+          goals={userGoals}
+          onLoadingChange={setIsAiCategoriesLoading}
+        />
+      )
     },
     {
       id: 'accessibility',
@@ -279,10 +294,30 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     if (step.id === 'goals' && hasExistingGoals) {
       return false
     }
+
+    if (step.id === 'ai-categories' && hasCategories) {
+      return false
+    }
+
     return true
   })
 
-  function handleGoalsComplete() {
+  function handleGoalsComplete(goals: string) {
+    setUserGoals(goals)
+    handleNext()
+  }
+
+  async function handleCategoriesComplete(categories: any[]) {
+    if (token && categories.length > 0) {
+      try {
+        await createCategoriesMutation.mutateAsync({
+          token,
+          categories
+        })
+      } catch (error) {
+        console.error('Failed to save categories:', error)
+      }
+    }
     handleNext()
   }
 
@@ -375,7 +410,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }, 500)
   }
 
-  if (isLoadingGoals) {
+  if (isLoadingGoals || isLoadingHasCategories) {
     return (
       <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
@@ -385,6 +420,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const currentStepData = steps[currentStep]
   const isGoalStep = currentStepData?.id === 'goals'
+  const isAiCategoriesStep = currentStepData?.id === 'ai-categories'
   const isAccessibilityStep = currentStepData?.id === 'accessibility'
   const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
   const isLastStep = currentStep === steps.length - 1
@@ -414,7 +450,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               {currentStepData?.content}
             </div>
 
-            {!isGoalStep && (
+            {!isGoalStep && !isAiCategoriesStep && !isAiCategoriesLoading && (
               <div className="flex justify-center gap-4 items-center">
                 {/* Back button - only show if not on first slide */}
                 {currentStep > 0 ? (
