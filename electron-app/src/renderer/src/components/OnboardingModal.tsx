@@ -2,8 +2,8 @@ import { CheckCircle, Loader2, Shield, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import gdprlogoblue from '../assets/gdpr-logo-blue.svg'
 import { useAuth } from '../contexts/AuthContext'
-import { useDarkMode } from '../hooks/useDarkMode'
 import { trpc } from '../utils/trpc'
+import { AiCategoryCustomization } from './Settings/AiCategoryCustomization'
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
@@ -21,8 +21,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isRequestingScreenRecording, setIsRequestingScreenRecording] = useState(false)
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
+  const [userGoals, setUserGoals] = useState('')
   const { token } = useAuth()
-  const isDarkMode = useDarkMode()
+  const createCategoriesMutation = trpc.category.createCategories.useMutation()
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
@@ -115,6 +116,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'goals',
       title: '',
       content: <GoalInputForm onboardingMode={true} onComplete={handleGoalsComplete} />
+    },
+    {
+      id: 'ai-categories',
+      title: 'Customize Your Categories',
+      content: <AiCategoryCustomization onComplete={handleCategoriesComplete} goals={userGoals} />
     },
     {
       id: 'accessibility',
@@ -276,13 +282,29 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   ]
 
   const steps = baseSteps.filter((step) => {
-    if (step.id === 'goals' && hasExistingGoals) {
-      return false
-    }
+    // TODO: temporarily disabled this to work on the goal input ux
+    // if (step.id === 'goals' && hasExistingGoals) {
+    //   return false
+    // }
     return true
   })
 
-  function handleGoalsComplete() {
+  function handleGoalsComplete(goals: string) {
+    setUserGoals(goals)
+    handleNext()
+  }
+
+  async function handleCategoriesComplete(categories: any[]) {
+    if (token && categories.length > 0) {
+      try {
+        await createCategoriesMutation.mutateAsync({
+          token,
+          categories
+        })
+      } catch (error) {
+        console.error('Failed to save categories:', error)
+      }
+    }
     handleNext()
   }
 

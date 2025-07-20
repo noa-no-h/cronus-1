@@ -8,7 +8,7 @@ import { Textarea } from '../ui/textarea'
 
 interface GoalInputFormProps {
   onboardingMode?: boolean
-  onComplete?: () => void
+  onComplete?: (goals: string) => void
   shouldFocus?: boolean
 }
 
@@ -48,7 +48,7 @@ const GoalInputForm = ({
 
       // Call onComplete if in onboarding mode
       if (onboardingMode && onComplete) {
-        onComplete()
+        onComplete(userProjectsAndGoals)
       }
     },
     onError: (error) => {
@@ -140,8 +140,9 @@ const GoalInputForm = ({
       <CardHeader>
         <CardTitle className="text-card-foreground">Explain your current work & goals</CardTitle>
         <CardDescription>
-          Describe projects you are working on. What's your job? What are you doing? Provide as much
-          context as possible to help our ai differentiate between your activities.
+          Describe projects you are working on. What's your job? What are you doing? Any major side
+          projects/hobbies? Provide as much context as possible to help our ai differentiate between
+          your activities.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
