@@ -211,6 +211,7 @@ IMPORTANT: Prefer using the provided template categories when they broadly cover
 For example:
 - If a user's goal is to "build the windows version of the app", the existing "Coding" category is a better choice than creating a new, highly specific "Windows Development" category.
 - If a user is a "CPA", they might need new categories like "Bookkeeping", "Tax", and "Consulting", since these are not in the template list.
+- Don't litterally use XYZ but fill in the name of the specific company, project, client, etc.
 
 Here are some good default categories that work for many people:
 - name: Contracting for XYZ, description: Working on a project for Contractor work for XYZ including meetings, emails, etc. related to that project

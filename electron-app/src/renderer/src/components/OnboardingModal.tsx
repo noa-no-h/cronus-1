@@ -22,6 +22,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [hasRequestedScreenRecording, setHasRequestedScreenRecording] = useState(false)
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
   const [userGoals, setUserGoals] = useState('')
+  const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
   const { token } = useAuth()
   const createCategoriesMutation = trpc.category.createCategories.useMutation()
 
@@ -120,7 +121,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     {
       id: 'ai-categories',
       title: 'Customize Your Categories',
-      content: <AiCategoryCustomization onComplete={handleCategoriesComplete} goals={userGoals} />
+      content: (
+        <AiCategoryCustomization
+          onComplete={handleCategoriesComplete}
+          goals={userGoals}
+          onLoadingChange={setIsAiCategoriesLoading}
+        />
+      )
     },
     {
       id: 'accessibility',
@@ -407,6 +414,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const currentStepData = steps[currentStep]
   const isGoalStep = currentStepData?.id === 'goals'
+  const isAiCategoriesStep = currentStepData?.id === 'ai-categories'
   const isAccessibilityStep = currentStepData?.id === 'accessibility'
   const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
   const isLastStep = currentStep === steps.length - 1
@@ -436,7 +444,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
               {currentStepData?.content}
             </div>
 
-            {!isGoalStep && (
+            {!isGoalStep && !isAiCategoriesStep && !isAiCategoriesLoading && (
               <div className="flex justify-center gap-4 items-center">
                 {/* Back button - only show if not on first slide */}
                 {currentStep > 0 ? (

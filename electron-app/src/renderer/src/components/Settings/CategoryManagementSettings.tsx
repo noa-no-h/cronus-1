@@ -190,6 +190,24 @@ export function CategoryManagementSettings(): JSX.Element {
     })
   }
 
+  const handleArchiveAll = async () => {
+    if (!token) {
+      alert('Authentication token not found. Please log in again.')
+      return
+    }
+    if (window.confirm('Are you sure you want to archive all categories?')) {
+      // Archive all active categories
+      const activeCategories = categories?.filter((c) => !c.isArchived) || []
+      for (const category of activeCategories) {
+        await updateMutation.mutateAsync({
+          id: category._id,
+          isArchived: true,
+          token
+        })
+      }
+    }
+  }
+
   if (!token && !isLoading) {
     return (
       <div className="p-4 text-center text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-md">
@@ -240,20 +258,21 @@ export function CategoryManagementSettings(): JSX.Element {
                   }
                   className="text-red-500"
                 >
-                  Delete Recently Created
+                  Delete Created in last 24 hours
                 </DropdownMenuItem>
                 {!areCategoriesMatchingDefaults && (
                   <DropdownMenuItem
-                    onClick={handleResetToDefault}
+                    onClick={handleArchiveAll}
                     disabled={
                       !token ||
                       resetToDefaultMutation.isLoading ||
                       createMutation.isLoading ||
                       updateMutation.isLoading ||
-                      deleteMutation.isLoading
+                      deleteMutation.isLoading ||
+                      !categories?.some((c) => !c.isArchived)
                     }
                   >
-                    Reset to Default
+                    Archive All Categories
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
