@@ -100,6 +100,13 @@ export const categoryRouter = router({
       return categories.map((cat) => cat.toJSON());
     }),
 
+  hasCategories: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
+    const decodedToken = safeVerifyToken(input.token);
+    const userId = decodedToken.userId;
+    const count = await CategoryModel.countDocuments({ userId });
+    return count > 0;
+  }),
+
   updateCategory: publicProcedure
     .input(
       z.object({

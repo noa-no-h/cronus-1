@@ -35,6 +35,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const { data: userProjectsAndGoals, isLoading: isLoadingGoals } =
     trpc.user.getUserProjectsAndGoals.useQuery({ token: token || '' }, { enabled: !!token })
+  const { data: hasCategories, isLoading: isLoadingHasCategories } =
+    trpc.category.hasCategories.useQuery({ token: token || '' }, { enabled: !!token })
 
   const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
 
@@ -289,10 +291,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   ]
 
   const steps = baseSteps.filter((step) => {
-    // TODO: temporarily disabled this to work on the goal input ux
-    // if (step.id === 'goals' && hasExistingGoals) {
-    //   return false
-    // }
+    if (step.id === 'goals' && hasExistingGoals) {
+      return false
+    }
+
+    if (step.id === 'ai-categories' && hasCategories) {
+      return false
+    }
+
     return true
   })
 
@@ -404,7 +410,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }, 500)
   }
 
-  if (isLoadingGoals) {
+  if (isLoadingGoals || isLoadingHasCategories) {
     return (
       <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
