@@ -3,6 +3,8 @@ import { XIcon } from 'lucide-react'
 import React from 'react'
 import { Category as SharedCategory } from 'shared'
 import type { ProcessedCategory } from '../../lib/activityProcessing'
+import { getDarkerColor, getLighterColor } from '../../lib/colors'
+import { useDarkMode } from '../../hooks/useDarkMode'
 import { Button } from '../ui/button'
 import { MoveSelectedActivitiesButton } from './MoveSelectedActivitiesButton'
 
@@ -20,11 +22,11 @@ interface CategorySectionHeaderProps {
 const getDefaultEmojiForCategory = (categoryName: string): string => {
   switch (categoryName.toLowerCase()) {
     case 'work':
-      return '💼'
+      return '📈'
     case 'distraction':
-      return '🎮'
+      return '📉'
     case 'uncategorized':
-      return '❓'
+      return '📊'
     default:
       return '📁'
   }
@@ -40,6 +42,8 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
   handleClearSelection,
   onAddNewCategory
 }) => {
+  const isDarkMode = useDarkMode()
+
   const showMoveButton =
     isAnyActivitySelected &&
     otherCategories &&
@@ -50,6 +54,13 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
 
   // Get emoji for the category
   const categoryEmoji = category.emoji || getDefaultEmojiForCategory(category.name)
+
+  // Calculate text color based on category color and theme - same logic as other components
+  const textColor = category.color
+    ? isDarkMode
+      ? getLighterColor(category.color, 0.8)
+      : getDarkerColor(category.color, 0.6)
+    : undefined
 
   const renderButtons = () => {
     if (!showMoveButton) return null
@@ -79,7 +90,9 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
       <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2 pl-2">
         <div className="flex items-center">
           <span className="mr-2 text-lg">{categoryEmoji}</span>
-          <h3 className="text-md font-semibold text-foreground">{category.name.toUpperCase()}</h3>
+          <h3 className="text-md font-semibold" style={{ color: textColor }}>
+            {category.name.toUpperCase()}
+          </h3>
         </div>
         {showMoveButton ? (
           renderButtons()
@@ -96,9 +109,10 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
     <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
       <div className="flex items-center ml-1">
         <div
-          className="px-3 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2 text-black dark:text-white"
+          className="px-3 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2"
           style={{
-            backgroundColor: `${category.color}50`
+            backgroundColor: `${category.color}50`,
+            color: textColor
           }}
         >
           <span className="text-base">{categoryEmoji}</span>
