@@ -1,5 +1,5 @@
 import { Check, Loader2 } from 'lucide-react'
-import { JSX, useState } from 'react'
+import { JSX, useState, useEffect } from 'react'
 import { Category } from 'shared/dist/types.js'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -33,13 +33,40 @@ interface CategoryColorPickerProps {
 const getDefaultEmojiForCategory = (categoryName: string): string => {
   switch (categoryName.toLowerCase()) {
     case 'work':
-      return '💼'
+      return '💻'
     case 'distraction':
-      return '🎮'
+      return '👀'
     case 'uncategorized':
       return '❓'
+
+    case 'contracting for xyz':
+      return '📋'
+    case 'coding':
+      return '💻'
+    case 'design':
+      return '🎨'
+    case 'product management':
+      return '📊'
+    case 'fundraising':
+      return '💰'
+    case 'growth & marketing':
+      return '📈'
+    case 'work communication':
+      return '💬'
+    case 'dating':
+      return '💕'
+    case 'eating & shopping':
+      return '🍔'
+    case 'sport & health':
+      return '🏃'
+    case 'friends & social':
+      return '👥'
+    case 'planning & reflection':
+      return '📝'
+    case 'commuting':
+      return '🚗'
     default:
-      return '📁'
+      return '📊'
   }
 }
 
@@ -107,6 +134,13 @@ export function CategoryForm({
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!initialData?.emoji && name.trim()) {
+      const newEmoji = getDefaultEmojiForCategory(name)
+      setEmoji(newEmoji)
+    }
+  }, [name, initialData?.emoji])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

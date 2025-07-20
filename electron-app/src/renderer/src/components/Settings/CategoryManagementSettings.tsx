@@ -34,6 +34,7 @@ export function CategoryManagementSettings(): JSX.Element {
       utils.category.getCategories.invalidate({ token: token || '' })
       setIsFormOpen(false)
       setEditingCategory(null)
+      setTemplateData(null)
     },
     onError: (err) => {
       alert(`Error creating category: ${err.message}`)
@@ -44,6 +45,7 @@ export function CategoryManagementSettings(): JSX.Element {
       utils.category.getCategories.invalidate({ token: token || '' })
       setIsFormOpen(false)
       setEditingCategory(null)
+      setTemplateData(null)
     },
     onError: (err) => {
       alert(`Error updating category: ${err.message}`)
@@ -63,6 +65,7 @@ export function CategoryManagementSettings(): JSX.Element {
       utils.category.getCategories.invalidate({ token: token || '' })
       setIsFormOpen(false) // Close form if open
       setEditingCategory(null) // Clear editing state
+      setTemplateData(null)
       alert('Categories have been reset to default.')
     },
     onError: (err) => {
@@ -73,6 +76,10 @@ export function CategoryManagementSettings(): JSX.Element {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isTemplateViewOpen, setIsTemplateViewOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [templateData, setTemplateData] = useState<Omit<
+    Category,
+    '_id' | 'userId' | 'createdAt' | 'updatedAt'
+  > | null>(null)
   const [areCategoriesMatchingDefaults, setAreCategoriesMatchingDefaults] = useState(false)
 
   useEffect(() => {
@@ -86,6 +93,7 @@ export function CategoryManagementSettings(): JSX.Element {
 
   const handleAddNew = () => {
     setEditingCategory(null)
+    setTemplateData(null)
     setIsFormOpen(true)
   }
 
@@ -95,6 +103,7 @@ export function CategoryManagementSettings(): JSX.Element {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category)
+    setTemplateData(null)
     setIsFormOpen(true)
   }
 
@@ -139,11 +148,11 @@ export function CategoryManagementSettings(): JSX.Element {
   const handleAddFromTemplate = async (
     data: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>
   ) => {
-    if (!token) {
-      alert('Authentication token not found. Please log in again.')
-      return
-    }
-    await createMutation.mutateAsync({ ...data, token })
+    // Instead of directly creating, pass the template data to the form
+    setTemplateData(data)
+    setEditingCategory(null)
+    setIsTemplateViewOpen(false)
+    setIsFormOpen(true)
   }
 
   const handleToggleProductive = async (category: Category) => {
@@ -255,11 +264,12 @@ export function CategoryManagementSettings(): JSX.Element {
           )}
           {isFormOpen && (
             <CategoryForm
-              initialData={editingCategory || undefined}
+              initialData={editingCategory || templateData || undefined}
               onSave={handleSaveCategory}
               onCancel={() => {
                 setIsFormOpen(false)
                 setEditingCategory(null)
+                setTemplateData(null)
               }}
               isSaving={createMutation.isLoading || updateMutation.isLoading}
             />
