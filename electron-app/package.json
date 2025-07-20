@@ -134,6 +134,7 @@
     "electron-app": "^1.0.0",
     "electron-log": "^5.4.1",
     "electron-updater": "^6.6.2",
+    "emoji-picker-react": "^4.13.2",
     "framer-motion": "^12.12.2",
     "fs-extra": "^11.3.0",
     "graceful-fs": "^4.2.11",

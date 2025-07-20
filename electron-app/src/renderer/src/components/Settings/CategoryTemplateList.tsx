@@ -1,7 +1,9 @@
 import { PlusCircle } from 'lucide-react'
 import { ComparableCategory } from 'shared/categories'
 import { Category } from 'shared/dist/types'
+import { useDarkMode } from '../../hooks/useDarkMode'
 import { Button } from '../ui/button'
+import { CategoryItemDisplay } from './CategoryItemDisplay'
 
 type CategoryTemplateListProps = {
   onAdd: (category: Omit<Category, '_id' | 'userId' | 'createdAt' | 'updatedAt'>) => void
@@ -16,6 +18,7 @@ export const templateCategories: ComparableCategory[] = [
     description:
       'Working on a project for Contractor work for XYZ including meetings, emails, etc. related to that project',
     color: '#22C55E',
+    emoji: '💼',
     isProductive: true,
     isDefault: false
   },
@@ -23,6 +26,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Coding',
     description: 'Writing or reviewing code, debugging, working in IDEs or terminals',
     color: '#3B82F6',
+    emoji: '💻',
     isProductive: true,
     isDefault: false
   },
@@ -30,6 +34,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Design',
     description: 'Working in design tools like Figma or Illustrator on UX/UI or visual assets',
     color: '#8B5CF6',
+    emoji: '🎨',
     isProductive: true,
     isDefault: false
   },
@@ -37,6 +42,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Product Management',
     description: 'Planning features, writing specs, managing tickets, reviewing user feedback',
     color: '#10B981',
+    emoji: '📅',
     isProductive: true,
     isDefault: false
   },
@@ -44,6 +50,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Fundraising',
     description: 'Pitching to investors, refining decks, writing emails or grant applications',
     color: '#F97316',
+    emoji: '📈',
     isProductive: true,
     isDefault: false
   },
@@ -51,6 +58,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Growth & Marketing',
     description: 'Working on campaigns, analytics, user acquisition, SEO or outreach',
     color: '#EAB308',
+    emoji: '🚀',
     isProductive: true,
     isDefault: false
   },
@@ -58,6 +66,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Work Communication',
     description: 'Responding to emails, Slack, Notion, meetings or async updates',
     color: '#0EA5E9',
+    emoji: '💬',
     isProductive: true,
     isDefault: false
   },
@@ -65,6 +74,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Distraction',
     description: 'Scrolling social media, browsing unrelated content, or idle clicking',
     color: '#EC4899',
+    emoji: '딴',
     isProductive: false,
     isDefault: false
   },
@@ -72,6 +82,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Dating',
     description: 'Using dating apps, messaging, browsing profiles, or going on dates',
     color: '#F43F5E',
+    emoji: '❤️',
     isProductive: false,
     isDefault: false
   },
@@ -79,6 +90,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Eating & Shopping',
     description: 'Eating meals, cooking, groceries, or online/in-person shopping',
     color: '#D97706',
+    emoji: '🍔',
     isProductive: false,
     isDefault: false
   },
@@ -86,6 +98,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Sport & Health',
     description: 'Exercising, walking, gym, sports, wellness, etc.',
     color: '#6366F1',
+    emoji: '💪',
     isProductive: true,
     isDefault: false
   },
@@ -93,6 +106,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Friends & Social',
     description: 'Spending time with friends or socializing in person or online',
     color: '#A855F7',
+    emoji: '🎉',
     isProductive: false,
     isDefault: false
   },
@@ -100,6 +114,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Planning & Reflection',
     description: 'Journaling, reflecting on goals, or reviewing personal plans',
     color: '#84CC16',
+    emoji: '📝',
     isProductive: true,
     isDefault: false
   },
@@ -107,6 +122,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Commuting',
     description: 'Traveling to or from work, errands, or social events',
     color: '#6B7280',
+    emoji: '🚗',
     isProductive: false,
     isDefault: false
   }
@@ -133,26 +149,27 @@ export function CategoryTemplateList({
       </div>
       <div className="space-y-4 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {availableTemplates.map((template) => (
-            <div
-              key={template.name}
-              className="border border-border rounded-lg p-4 flex flex-row gap-2 justify-between items-center"
-            >
-              <div className="grow">
-                <div className="flex items-center mb-2">
-                  <span
-                    className="w-4 h-4 rounded-full mr-2"
-                    style={{ backgroundColor: template.color }}
-                  ></span>
-                  <h3 className="font-semibold">{template.name}</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-              </div>
-              <Button variant="ghost" onClick={() => onAdd(template)} size="sm" disabled={isSaving}>
-                <PlusCircle size={16} />
-              </Button>
-            </div>
-          ))}
+          {availableTemplates.map((template) => {
+            return (
+              <CategoryItemDisplay
+                key={template.name}
+                name={template.name}
+                description={template.description}
+                color={template.color}
+                emoji={template.emoji}
+                actions={
+                  <Button
+                    variant="ghost"
+                    onClick={() => onAdd(template)}
+                    size="sm"
+                    disabled={isSaving}
+                  >
+                    <PlusCircle size={16} />
+                  </Button>
+                }
+              />
+            )
+          })}
         </div>
         {availableTemplates.length === 0 && (
           <div className="text-center py-8 px-4 bg-muted/50 rounded-lg border border-dashed border-border">
