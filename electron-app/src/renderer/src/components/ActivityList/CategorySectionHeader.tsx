@@ -26,9 +26,40 @@ const getDefaultEmojiForCategory = (categoryName: string): string => {
     case 'distraction':
       return '📉'
     case 'uncategorized':
+      return '❓'
+    // Template categories - Contracting & Project Work
+    case 'contracting for xyz':
+      return '📋'
+    case 'coding':
+      return '💻'
+    case 'design':
+      return '��'
+    case 'product management':
       return '📊'
+    case 'fundraising':
+      return '💰'
+    case 'growth & marketing':
+      return '📈'
+    case 'work communication':
+      return '💬'
+
+    // Personal & Social
+    case 'dating':
+      return '💕'
+    case 'eating & shopping':
+      return '��'
+    case 'sport & health':
+      return '��'
+    case 'friends & social':
+      return '👥'
+    case 'planning & reflection':
+      return '📝'
+    case 'commuting':
+      return '🚗'
+
+    // Default fallback
     default:
-      return '📁'
+      return '📊'
   }
 }
 
