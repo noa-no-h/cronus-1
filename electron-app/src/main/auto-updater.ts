@@ -133,11 +133,11 @@ function setupHourlyUpdateCheck(): void {
     updateTimer = null
   }
 
-  // Schedule next check in 1 hour (3600000 ms)
-  const msUntilNextHour = 3600000
+  // Schedule next check in 5 minutes (3600000 ms)
+  const msUntilFiveMinutes = 300000
 
   log.info(
-    `📅 Next hourly update check scheduled for: ${new Date(Date.now() + msUntilNextHour).toLocaleString()}`
+    `📅 Next hourly update check scheduled for: ${new Date(Date.now() + msUntilFiveMinutes).toLocaleString()}`
   )
 
   updateTimer = setTimeout(() => {
@@ -146,7 +146,7 @@ function setupHourlyUpdateCheck(): void {
 
     // Reschedule for next hour
     setupHourlyUpdateCheck()
-  }, msUntilNextHour)
+  }, msUntilFiveMinutes)
 }
 
 function getLastCheckTime(): number {
