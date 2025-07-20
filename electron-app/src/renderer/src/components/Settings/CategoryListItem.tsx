@@ -15,6 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
+import { getLighterColor, getDarkerColor } from '../../lib/colors'
+import { useDarkMode } from '../../hooks/useDarkMode'
 
 interface CategoryListItemProps {
   category: Category
@@ -47,22 +49,38 @@ export function CategoryListItem({
   isDeleting,
   isUpdating
 }: CategoryListItemProps): JSX.Element {
-  const categoryEmoji = category.emoji || getDefaultEmojiForCategory(category.name)
+  const categoryEmoji = category.emoji
+  const isDarkMode = useDarkMode()
+
+  // Calculate text color based on category color and theme
+  const textColor = category.color
+    ? isDarkMode
+      ? getLighterColor(category.color, 0.8)
+      : getDarkerColor(category.color, 0.6)
+    : undefined
+  // Use lighter color for background
+  const backgroundColor = category.color ? getLighterColor(category.color, 0.85) : undefined
+
+  console.log('category emoji in list item', categoryEmoji)
 
   return (
     <div
       className="divide-border border rounded-lg px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
       style={{
-        backgroundColor: `${category.color}50`
+        backgroundColor: backgroundColor
       }}
     >
       <div className="flex items-center justify-between gap-x-4">
         <div className="flex items-center flex-1 min-w-0">
           <span className="text-lg mr-3 flex-shrink-0">{categoryEmoji}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-md font-medium text-foreground truncate">{category.name}</p>
+            <p className="text-md font-medium truncate" style={{ color: textColor }}>
+              {category.name}
+            </p>
             {category.description && (
-              <p className="text-sm text-muted-foreground truncate">{category.description}</p>
+              <p className="text-sm truncate" style={{ color: textColor }}>
+                {category.description}
+              </p>
             )}
           </div>
         </div>

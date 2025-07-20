@@ -1,8 +1,8 @@
+import EmojiPicker, { Categories, EmojiClickData, Theme } from 'emoji-picker-react'
+import { Smile } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { Smile } from 'lucide-react'
-import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
 
 interface EmojiPickerProps {
   selectedEmoji: string
@@ -38,15 +38,15 @@ export function EmojiPickerComponent({
           searchPlaceholder="Search emojis..."
           autoFocusSearch={true}
           categories={[
-            'suggested',
-            'smileys_people',
-            'animals_nature',
-            'food_drink',
-            'travel_places',
-            'activities',
-            'objects',
-            'symbols',
-            'flags'
+            { category: Categories.SUGGESTED, name: 'Recently Used' },
+            { category: Categories.SMILEYS_PEOPLE, name: 'Smileys & People' },
+            { category: Categories.ANIMALS_NATURE, name: 'Animals & Nature' },
+            { category: Categories.FOOD_DRINK, name: 'Food & Drink' },
+            { category: Categories.TRAVEL_PLACES, name: 'Travel & Places' },
+            { category: Categories.ACTIVITIES, name: 'Activities' },
+            { category: Categories.OBJECTS, name: 'Objects' },
+            { category: Categories.SYMBOLS, name: 'Symbols' },
+            { category: Categories.FLAGS, name: 'Flags' }
           ]}
           previewConfig={{
             showPreview: false

@@ -48,9 +48,9 @@ export interface Category {
   name: string;
   description?: string;
   color: string; // Hex color code, e.g., "#FF5733"
-  emoji?: string; // Add emoji support
+  emoji?: string;
   isProductive: boolean;
-  isDefault: boolean; // Whether this is a default category
+  isDefault: boolean;
   isArchived?: boolean;
   createdAt: Date;
   updatedAt: Date;

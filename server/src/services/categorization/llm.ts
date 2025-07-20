@@ -239,3 +239,42 @@ export async function generateActivitySummary(activityData: any): Promise<string
     return '';
   }
 }
+
+/**
+ * Suggest a single emoji for a category using OpenAI.
+ * @param name The category name
+ * @param description The category description (optional)
+ * @returns The suggested emoji as a string, or null if failed
+ */
+export async function getEmojiForCategory(
+  name: string,
+  description?: string
+): Promise<string | null> {
+  const prompt = [
+    {
+      role: 'system' as const,
+      content: `You are an AI assistant that suggests a single emoji for a category. Respond with only the emoji, no text.`,
+    },
+    {
+      role: 'user' as const,
+      content: `Suggest a single emoji (just the emoji, no text) for a category with the following details.\nName: ${name}\nDescription: ${description || ''}`,
+    },
+  ];
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-2024-08-06',
+      messages: prompt,
+      max_tokens: 4,
+      temperature: 0,
+    });
+    const emoji = response.choices[0]?.message?.content?.trim() || null;
+    // Basic validation: must be a single unicode emoji character (or short sequence)
+    if (emoji && emoji.length <= 4) {
+      return emoji;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting emoji for category:', error);
+    return null;
+  }
+}

@@ -1,5 +1,5 @@
 import { Check, Loader2 } from 'lucide-react'
-import { JSX, useState, useEffect } from 'react'
+import { JSX, useState } from 'react'
 import { Category } from 'shared/dist/types.js'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -7,8 +7,8 @@ import { Label } from '../ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
-import { IsProductiveTooltip } from './IsProductiveTooltip'
 import { EmojiPickerComponent } from './EmojiPicker'
+import { IsProductiveTooltip } from './IsProductiveTooltip'
 
 export const notionStyleCategoryColors = [
   '#3B82F6', // Blue - default productive
@@ -28,46 +28,6 @@ export const notionStyleCategoryColors = [
 interface CategoryColorPickerProps {
   selectedColor: string
   onColorChange: (color: string) => void
-}
-
-const getDefaultEmojiForCategory = (categoryName: string): string => {
-  switch (categoryName.toLowerCase()) {
-    case 'work':
-      return '💻'
-    case 'distraction':
-      return '👀'
-    case 'uncategorized':
-      return '❓'
-
-    case 'contracting for xyz':
-      return '📋'
-    case 'coding':
-      return '💻'
-    case 'design':
-      return '🎨'
-    case 'product management':
-      return '📊'
-    case 'fundraising':
-      return '💰'
-    case 'growth & marketing':
-      return '📈'
-    case 'work communication':
-      return '💬'
-    case 'dating':
-      return '💕'
-    case 'eating & shopping':
-      return '🍔'
-    case 'sport & health':
-      return '🏃'
-    case 'friends & social':
-      return '👥'
-    case 'planning & reflection':
-      return '📝'
-    case 'commuting':
-      return '🚗'
-    default:
-      return '📊'
-  }
 }
 
 function CategoryColorPicker({
@@ -127,25 +87,20 @@ export function CategoryForm({
     initialData?.color ||
       notionStyleCategoryColors[Math.floor(Math.random() * notionStyleCategoryColors.length)]
   )
-  const [emoji, setEmoji] = useState(
-    initialData?.emoji || getDefaultEmojiForCategory(initialData?.name || '')
-  )
+  const [emoji, setEmoji] = useState(initialData?.emoji || '')
   const [isProductive, setIsProductive] = useState(
     initialData?.isProductive === undefined ? true : initialData.isProductive
   )
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (!initialData?.emoji && name.trim()) {
-      const newEmoji = getDefaultEmojiForCategory(name)
-      setEmoji(newEmoji)
-    }
-  }, [name, initialData?.emoji])
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {
       setError('Name is required.')
+      return
+    }
+    if (!emoji) {
+      setError('Emoji is required.')
       return
     }
     setError('')
@@ -195,7 +150,9 @@ export function CategoryForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label>Emoji</Label>
+          <Label>
+            Emoji <span className="text-red-500">*</span>
+          </Label>
           <div className="flex items-center space-x-2 mt-1">
             <EmojiPickerComponent
               selectedEmoji={emoji}

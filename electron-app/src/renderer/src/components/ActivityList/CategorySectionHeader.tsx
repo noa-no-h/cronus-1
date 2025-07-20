@@ -2,9 +2,9 @@ import { formatDuration } from '@renderer/lib/timeFormatting'
 import { XIcon } from 'lucide-react'
 import React from 'react'
 import { Category as SharedCategory } from 'shared'
+import { useDarkMode } from '../../hooks/useDarkMode'
 import type { ProcessedCategory } from '../../lib/activityProcessing'
 import { getDarkerColor, getLighterColor } from '../../lib/colors'
-import { useDarkMode } from '../../hooks/useDarkMode'
 import { Button } from '../ui/button'
 import { MoveSelectedActivitiesButton } from './MoveSelectedActivitiesButton'
 
@@ -17,50 +17,6 @@ interface CategorySectionHeaderProps {
   handleMoveSelected?: (targetCategoryId: string) => void
   handleClearSelection?: () => void
   onAddNewCategory?: () => void
-}
-
-const getDefaultEmojiForCategory = (categoryName: string): string => {
-  switch (categoryName.toLowerCase()) {
-    case 'work':
-      return '📈'
-    case 'distraction':
-      return '📉'
-    case 'uncategorized':
-      return '❓'
-    // Template categories - Contracting & Project Work
-    case 'contracting for xyz':
-      return '📋'
-    case 'coding':
-      return '💻'
-    case 'design':
-      return '��'
-    case 'product management':
-      return '📊'
-    case 'fundraising':
-      return '💰'
-    case 'growth & marketing':
-      return '📈'
-    case 'work communication':
-      return '💬'
-
-    // Personal & Social
-    case 'dating':
-      return '💕'
-    case 'eating & shopping':
-      return '��'
-    case 'sport & health':
-      return '��'
-    case 'friends & social':
-      return '👥'
-    case 'planning & reflection':
-      return '📝'
-    case 'commuting':
-      return '🚗'
-
-    // Default fallback
-    default:
-      return '📊'
-  }
 }
 
 export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
@@ -84,7 +40,7 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
     onAddNewCategory
 
   // Get emoji for the category
-  const categoryEmoji = category.emoji || getDefaultEmojiForCategory(category.name)
+  const categoryEmoji = category.emoji
 
   // Calculate text color based on category color and theme - same logic as other components
   const textColor = category.color
@@ -92,6 +48,8 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
       ? getLighterColor(category.color, 0.8)
       : getDarkerColor(category.color, 0.6)
     : undefined
+  // Use lighter color for background
+  const backgroundColor = category.color ? getLighterColor(category.color, 0.85) : undefined
 
   const renderButtons = () => {
     if (!showMoveButton) return null
@@ -142,7 +100,7 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
         <div
           className="px-3 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2"
           style={{
-            backgroundColor: `${category.color}50`,
+            backgroundColor: backgroundColor,
             color: textColor
           }}
         >

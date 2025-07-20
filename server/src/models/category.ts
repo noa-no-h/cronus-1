@@ -8,7 +8,7 @@ export interface ICategoryDoc extends Document {
   name: SharedCategory['name'];
   description?: SharedCategory['description'];
   color: SharedCategory['color'];
-  emoji?: SharedCategory['emoji']; // Add emoji field
+  emoji?: SharedCategory['emoji'];
   isProductive: SharedCategory['isProductive'];
   isDefault: SharedCategory['isDefault'];
   isArchived: boolean;
@@ -33,7 +33,7 @@ const categorySchema: Schema = new Schema<ICategoryDoc>(
         message: (props: any) => `${props.value} is not a valid hex color!`,
       },
     },
-    emoji: { type: String, trim: true, maxlength: 10 }, // Add emoji field to schema
+    emoji: { type: String, trim: true, maxlength: 10 },
     isProductive: { type: Boolean, required: true, default: true },
     isDefault: { type: Boolean, required: true, default: false },
     isArchived: { type: Boolean, default: false },
