@@ -4,7 +4,7 @@ import React from 'react'
 import { Category as SharedCategory } from 'shared'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import type { ProcessedCategory } from '../../lib/activityProcessing'
-import { getDarkerColor, getLighterColor } from '../../lib/colors'
+import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { Button } from '../ui/button'
 import { MoveSelectedActivitiesButton } from './MoveSelectedActivitiesButton'
 
@@ -49,7 +49,11 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
       : getDarkerColor(category.color, 0.6)
     : undefined
   // Use lighter color for background
-  const backgroundColor = category.color ? getLighterColor(category.color, 0.85) : undefined
+  const backgroundColor = category.color
+    ? isDarkMode
+      ? hexToRgba(category.color, 0.3)
+      : hexToRgba(category.color, 0.1)
+    : undefined
 
   const renderButtons = () => {
     if (!showMoveButton) return null
@@ -98,7 +102,7 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
     <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
       <div className="flex items-center ml-1">
         <div
-          className="px-3 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2"
+          className="px-2 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2"
           style={{
             backgroundColor: backgroundColor,
             color: textColor

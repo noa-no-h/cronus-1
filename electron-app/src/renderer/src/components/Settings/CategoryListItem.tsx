@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import { JSX } from 'react'
 import { Category } from 'shared/types'
+import { useDarkMode } from '../../hooks/useDarkMode'
+import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -15,8 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '../ui/dropdown-menu'
-import { getLighterColor, getDarkerColor } from '../../lib/colors'
-import { useDarkMode } from '../../hooks/useDarkMode'
 
 interface CategoryListItemProps {
   category: Category
@@ -26,19 +26,6 @@ interface CategoryListItemProps {
   onToggleArchive: (category: Category) => void
   isDeleting: boolean
   isUpdating: boolean
-}
-
-const getDefaultEmojiForCategory = (categoryName: string): string => {
-  switch (categoryName.toLowerCase()) {
-    case 'work':
-      return '💼'
-    case 'distraction':
-      return '🎮'
-    case 'uncategorized':
-      return '❓'
-    default:
-      return '📁'
-  }
 }
 
 export function CategoryListItem({
@@ -55,30 +42,40 @@ export function CategoryListItem({
   // Calculate text color based on category color and theme
   const textColor = category.color
     ? isDarkMode
-      ? getLighterColor(category.color, 0.8)
+      ? getLighterColor(category.color, 0.9)
       : getDarkerColor(category.color, 0.6)
     : undefined
   // Use lighter color for background
-  const backgroundColor = category.color ? getLighterColor(category.color, 0.85) : undefined
+  const backgroundColor = category.color
+    ? isDarkMode
+      ? hexToRgba(category.color, 0.3)
+      : hexToRgba(category.color, 0.1)
+    : undefined
 
   console.log('category emoji in list item', categoryEmoji)
 
   return (
     <div
-      className="divide-border border rounded-lg px-4 py-4 sm:px-6 hover:bg-accent transition-colors"
+      className="divide-border border rounded-lg p-2 hover:bg-accent transition-colors"
       style={{
-        backgroundColor: backgroundColor
+        backgroundColor: category.isArchived ? 'transparent' : backgroundColor
       }}
     >
       <div className="flex items-center justify-between gap-x-4">
         <div className="flex items-center flex-1 min-w-0">
           <span className="text-lg mr-3 flex-shrink-0">{categoryEmoji}</span>
           <div className="flex-1 min-w-0">
-            <p className="text-md font-medium truncate" style={{ color: textColor }}>
+            <p
+              className="text-md font-medium truncate"
+              style={{ color: category.isArchived ? 'text-muted-foreground' : textColor }}
+            >
               {category.name}
             </p>
             {category.description && (
-              <p className="text-sm truncate" style={{ color: textColor }}>
+              <p
+                className="text-sm truncate"
+                style={{ color: category.isArchived ? 'text-muted-foreground' : textColor }}
+              >
                 {category.description}
               </p>
             )}
