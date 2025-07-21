@@ -311,13 +311,13 @@ export function DashboardView({
     }
   }
 
-  useEffect(() => {
-    console.log('🔍 Dashboard polling interval:', {
-      isWindowFocused,
-      baseInterval: REFRESH_EVENTS_INTERVAL_MS,
-      actualInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
-    })
-  }, [isWindowFocused])
+  // useEffect(() => {
+  //   console.log('🔍 Dashboard polling interval:', {
+  //     isWindowFocused,
+  //     baseInterval: REFRESH_EVENTS_INTERVAL_MS,
+  //     actualInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
+  //   })
+  // }, [isWindowFocused])
 
   return (
     <div
