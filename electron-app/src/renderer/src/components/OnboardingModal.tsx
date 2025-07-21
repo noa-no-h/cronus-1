@@ -253,15 +253,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           )}
 
           {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 w-full dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-left text-blue-800 dark:text-blue-200">
                 <div className="font-semibold pb-1">Next steps:</div>
-                <br />
-                1. Go to System Preferences → Security & Privacy → Privacy
-                <br />
-                2. Click &quot;Screen & System Audio Recording&quot; on the left
-                <br />
-                3. Check the box next to &quot;Cronus&quot; to enable access
+                <ul className="list-disc list-inside">
+                  <li>Go to System Preferences → Security & Privacy → Privacy</li>
+                  <li>Click &quot;Screen & System Audio Recording&quot; on the left</li>
+                  <li>Check the box next to &quot;Cronus&quot; to enable access</li>
+                </ul>
               </p>
             </div>
           )}
