@@ -24,6 +24,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
   const posthog = usePostHog()
+  const trpcUtils = trpc.useContext()
   const {
     data: _fetchedUser,
     error: _userError,
@@ -130,6 +131,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         })
       )
     }
+    trpcUtils.invalidate()
   }
 
   const loginWithGoogleCode = async (code: string, isDesktopFlow: boolean) => {

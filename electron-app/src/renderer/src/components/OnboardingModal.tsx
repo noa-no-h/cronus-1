@@ -38,6 +38,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const { data: hasCategories, isLoading: isLoadingHasCategories } =
     trpc.category.hasCategories.useQuery({ token: token || '' }, { enabled: !!token })
 
+  useEffect(() => {
+    if (!isLoadingGoals) {
+      console.log('Fetched user projects and goals:', userProjectsAndGoals)
+    }
+    if (!isLoadingHasCategories) {
+      console.log('Fetched user categories:', hasCategories)
+    }
+  }, [userProjectsAndGoals, isLoadingGoals])
+
   const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
 
   // Check permission status when on accessibility step

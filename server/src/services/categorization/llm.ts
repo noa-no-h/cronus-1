@@ -210,6 +210,7 @@ IMPORTANT: Prefer using the provided template categories when they broadly cover
 
 For example:
 - If a user's goal is to "build the windows version of the app", the existing "Coding" category is a better choice than creating a new, highly specific "Windows Development" category.
+- No need to only use the default categories. For ex. if someone says they have drawing as a hobby, they might need a "Drawing" category (in that case we dont use the "Design" category).
 - If a user is a "CPA", they might need new categories like "Bookkeeping", "Tax", and "Consulting", since these are not in the template list.
 - Don't litterally use XYZ but fill in the name of the specific company, project, client, etc.
 
@@ -228,6 +229,8 @@ Here are some good default categories that work for many people:
 - name: Friends & Social, description: Spending time with friends or socializing in person or online
 - name: Planning & Reflection, description: Journaling, reflecting on goals, or reviewing personal plans
 - name: Commuting, description: Traveling to or from work, errands, or social events
+
+For the color, use Notion-style color like #3B82F6, #EC4899, #A855F7, #F97316, #CA8A04, #10B981, #06B6D4, #6B7280, #8B5CF6, #D946EF, #F59E0B, #22C55E, etc.
 
 Respond with a list of suggested categories in the format requested.`,
     },
