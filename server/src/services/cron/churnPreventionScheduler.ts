@@ -12,7 +12,11 @@ export function startChurnPreventionCronJob() {
     name: 'churn-prevention-email',
     cron: '@daily', // Run daily (cronbake will pick a time)
     callback: async () => {
-      console.log('📧 [CHURN PREVENTION] Running churn prevention email job...');
+      const processId = process.pid;
+      const timestamp = new Date().toISOString();
+      console.log(
+        `📧 [CHURN PREVENTION] Running churn prevention email job... (PID: ${processId}, Time: ${timestamp})`
+      );
 
       try {
         // Don't send churn emails on weekends - people might just be taking a break
@@ -26,57 +30,70 @@ export function startChurnPreventionCronJob() {
 
         const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 24 hours ago
 
-        // Find users who have never been sent a churn email
-        const users = await UserModel.find({
-          lastChurnEmailSent: { $exists: false },
-        }).lean();
-
-        console.log(`[CHURN PREVENTION] Found ${users.length} users to check for inactivity.`);
-
         let emailsSent = 0;
-        let usersChecked = 0;
+        const maxEmailsToSend = 50; // Safety break to avoid infinite loops
 
-        for (const user of users) {
+        // Atomically find and update users to prevent race conditions
+        while (emailsSent < maxEmailsToSend) {
+          const userToProcess = await UserModel.findOneAndUpdate(
+            { lastChurnEmailSent: { $exists: false } },
+            { $set: { lastChurnEmailSent: new Date() } },
+            { new: true }
+          );
+
+          if (!userToProcess) {
+            console.log('[CHURN PREVENTION] No more users to process.');
+            break; // No users left to process
+          }
+
+          console.log(
+            `[CHURN PREVENTION] Processing user ${userToProcess.email} (lastChurnEmailSent: ${userToProcess.lastChurnEmailSent})`
+          );
+
+          // Check if the user has been active in the last 24 hours
+          const recentActivity = await ActiveWindowEventModel.findOne({
+            userId: userToProcess._id.toString(),
+            timestamp: { $gte: oneDayAgo },
+          }).lean();
+
+          if (recentActivity) {
+            console.log(
+              `[CHURN PREVENTION] User ${userToProcess.email} has recent activity, skipping email.`
+            );
+            continue; // Skip to the next user
+          }
+
+          // User hasn't been active, send the email
           try {
-            usersChecked++;
-
-            // Check if user has had any activity in the last 24 hours
-            const recentActivity = await ActiveWindowEventModel.findOne({
-              userId: user._id.toString(),
-              timestamp: { $gte: oneDayAgo },
-            }).lean();
-
-            if (recentActivity) {
-              // User has recent activity, skip
-              continue;
-            }
-
-            // User hasn't been active in the last 24 hours
-            // Send churn prevention email
-            const firstName = user.name ? user.name.split(' ')[0] : '';
+            const firstName = userToProcess.name ? userToProcess.name.split(' ')[0] : '';
+            console.log(
+              `[CHURN PREVENTION] Sending email to ${userToProcess.email} (${firstName}) - no activity in 24h`
+            );
 
             await loops.sendTransactionalEmail({
               transactionalId: 'cmd82afmp0yv4yx0iywbgtg7d',
-              email: user.email,
+              email: userToProcess.email,
               dataVariables: {
                 datavariable: firstName,
               },
             });
 
-            // Update user's lastChurnEmailSent timestamp
-            await UserModel.findByIdAndUpdate(user._id, {
-              lastChurnEmailSent: new Date(),
-            });
-
             emailsSent++;
-            console.log(`[CHURN PREVENTION] Sent churn prevention email to ${user.email}`);
+            console.log(`[CHURN PREVENTION] Sent churn prevention email to ${userToProcess.email}`);
           } catch (error) {
-            console.error(`[CHURN PREVENTION] Error processing user ${user.email}:`, error);
+            console.error(
+              `[CHURN PREVENTION] Error sending email to ${userToProcess.email}:`,
+              error
+            );
+            // Revert the lastChurnEmailSent field if the email fails, so we can retry
+            await UserModel.findByIdAndUpdate(userToProcess._id, {
+              $unset: { lastChurnEmailSent: '' },
+            });
           }
         }
 
         console.log(
-          `[CHURN PREVENTION] Checked ${usersChecked} users, sent ${emailsSent} churn prevention emails.`
+          `[CHURN PREVENTION] Finished processing, sent ${emailsSent} churn prevention emails.`
         );
       } catch (error) {
         console.error('[CHURN PREVENTION] Error in churn prevention job:', error);
