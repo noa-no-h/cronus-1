@@ -1,17 +1,24 @@
-import React, { useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
 import { UpdateStatus } from '../../../shared/update'
 import { useTheme } from '../contexts/ThemeContext'
 import { toast } from '../hooks/use-toast'
 import { useDarkMode } from '../hooks/useDarkMode'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { ToastAction } from './ui/toast'
 
-export function UpdateNotification(): React.JSX.Element | null {
-  // Changed return type
+export function UpdateNotification(): React.JSX.Element {
   const { theme } = useTheme()
   const isDarkMode = useDarkMode()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastRef = useRef<any>(null)
+  const [isRestarting, setIsRestarting] = useState(false)
 
   useEffect(() => {
     const handleUpdateStatus = (status: UpdateStatus): void => {
@@ -48,13 +55,8 @@ export function UpdateNotification(): React.JSX.Element | null {
 
       if (status.status === 'downloaded') {
         const handleRestart = (): void => {
-          toast({
-            title: 'Restarting...',
-            description: 'The application will now restart to apply the update.'
-          })
-          setTimeout(() => {
-            window.api.installUpdate()
-          }, 1000) // Give toast time to appear
+          setIsRestarting(true)
+          window.api.installUpdate()
         }
 
         if (toastRef.current) {
@@ -111,5 +113,19 @@ export function UpdateNotification(): React.JSX.Element | null {
     return cleanup
   }, [theme, isDarkMode])
 
-  return null
+  return (
+    <AlertDialog open={isRestarting}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update in Progress</AlertDialogTitle>
+          <AlertDialogDescription>
+            Restarting to apply the update. Please wait...
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }
