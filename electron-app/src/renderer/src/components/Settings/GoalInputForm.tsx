@@ -140,7 +140,7 @@ const GoalInputForm = ({
       <CardHeader>
         <CardTitle className="text-card-foreground">Explain your current work & goals</CardTitle>
         <CardDescription>
-          What is your job? What are your hobbies/projects? Details help our AI differentiate
+          What is your job? What are your hobbies and projects? Details help our AI differentiate
           between your activities and distractions.
         </CardDescription>
       </CardHeader>

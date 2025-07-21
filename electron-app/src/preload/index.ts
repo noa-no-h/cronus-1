@@ -1,6 +1,7 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
 import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+import { UpdateStatus } from '../shared/update'
 
 // Permission types and status enums (match the native layer)
 export enum PermissionType {
@@ -78,8 +79,8 @@ const api = {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),
-  onUpdateStatus: (callback: (status: any) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, status: any) => callback(status)
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, status: UpdateStatus) => callback(status)
     ipcRenderer.on('update-status', listener)
     return () => ipcRenderer.removeListener('update-status', listener)
   },

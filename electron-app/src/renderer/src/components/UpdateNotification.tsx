@@ -1,25 +1,31 @@
-import { useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+import { UpdateStatus } from '../../../shared/update'
 import { useTheme } from '../contexts/ThemeContext'
 import { toast } from '../hooks/use-toast'
 import { useDarkMode } from '../hooks/useDarkMode'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { ToastAction } from './ui/toast'
-import React from 'react'
 
-export function UpdateNotification(): React.JSX.Element | null {
-  // Changed return type
+export function UpdateNotification(): React.JSX.Element {
   const { theme } = useTheme()
   const isDarkMode = useDarkMode()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const toastRef = useRef<any>(null)
+  const [isRestarting, setIsRestarting] = useState(false)
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleUpdateStatus = (status: any): void => {
+    const handleUpdateStatus = (status: UpdateStatus): void => {
       if (status.status === 'available') {
         toastRef.current = toast({
           title: 'Update Available',
-          description: `Version ${status.version} found. Downloading automatically...`
+          description: `Version ${status.info.version} found. Downloading automatically...`
         })
 
         setTimeout(() => {
@@ -28,7 +34,7 @@ export function UpdateNotification(): React.JSX.Element | null {
       }
 
       if (status.status === 'downloading') {
-        const progressNumber = parseFloat(status.progress) || 0
+        const progressNumber = status.progress.percent
         const isComplete = progressNumber >= 100
         const progressDisplay = progressNumber.toFixed(0)
 
@@ -48,16 +54,40 @@ export function UpdateNotification(): React.JSX.Element | null {
       }
 
       if (status.status === 'downloaded') {
+        const handleRestart = (): void => {
+          setIsRestarting(true)
+          window.api.installUpdate()
+        }
+
         if (toastRef.current) {
           toastRef.current.update({
             title: 'Update Ready',
             description: 'Update downloaded successfully. Restart to apply the update.',
+            duration: Infinity,
             action: (
               <ToastAction asChild altText="Restart Now">
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => window.api.installUpdate()}
+                  onClick={handleRestart}
+                  className={isDarkMode ? 'text-white' : 'text-black'}
+                >
+                  Restart Now
+                </Button>
+              </ToastAction>
+            )
+          })
+        } else {
+          toastRef.current = toast({
+            title: 'Update Ready',
+            description: 'Update downloaded successfully. Restart to apply the update.',
+            duration: Infinity,
+            action: (
+              <ToastAction asChild altText="Restart Now">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleRestart}
                   className={isDarkMode ? 'text-white' : 'text-black'}
                 >
                   Restart Now
@@ -72,7 +102,7 @@ export function UpdateNotification(): React.JSX.Element | null {
         if (toastRef.current) {
           toastRef.current.update({
             title: 'Update Error',
-            description: status.error,
+            description: status.error.message,
             variant: 'destructive'
           })
         }
@@ -83,5 +113,19 @@ export function UpdateNotification(): React.JSX.Element | null {
     return cleanup
   }, [theme, isDarkMode])
 
-  return null
+  return (
+    <AlertDialog open={isRestarting}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update in Progress</AlertDialogTitle>
+          <AlertDialogDescription>
+            Restarting to apply the update. This can take up to 30 seconds. Please wait...
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="flex justify-center items-center py-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }

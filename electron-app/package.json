@@ -1,6 +1,6 @@
 {
   "name": "Cronus",
-  "version": "1.8.2",
+  "version": "1.8.5",
   "private": true,
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -99,6 +99,7 @@
     ]
   },
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-context-menu": "^2.2.15",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",

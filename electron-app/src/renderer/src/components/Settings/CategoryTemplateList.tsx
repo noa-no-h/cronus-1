@@ -1,7 +1,6 @@
 import { PlusCircle } from 'lucide-react'
 import { ComparableCategory } from 'shared/categories'
 import { Category } from 'shared/dist/types'
-import { useDarkMode } from '../../hooks/useDarkMode'
 import { Button } from '../ui/button'
 import { CategoryItemDisplay } from './CategoryItemDisplay'
 
@@ -42,7 +41,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Product Management',
     description: 'Planning features, writing specs, managing tickets, reviewing user feedback',
     color: '#10B981',
-    emoji: '📅',
+    emoji: '📈',
     isProductive: true,
     isDefault: false
   },
@@ -50,7 +49,7 @@ export const templateCategories: ComparableCategory[] = [
     name: 'Fundraising',
     description: 'Pitching to investors, refining decks, writing emails or grant applications',
     color: '#F97316',
-    emoji: '📈',
+    emoji: '💰',
     isProductive: true,
     isDefault: false
   },
