@@ -119,7 +119,7 @@ export function UpdateNotification(): React.JSX.Element {
         <AlertDialogHeader>
           <AlertDialogTitle>Update in Progress</AlertDialogTitle>
           <AlertDialogDescription>
-            Restarting to apply the update. Please wait...
+            Restarting to apply the update. This can take up to 30 seconds. Please wait...
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex justify-center items-center py-4">
