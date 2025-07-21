@@ -10,7 +10,7 @@ import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
-// import { CalendarIntegrationSettings } from './CalendarIntegrationSettings'
+import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
@@ -66,6 +66,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
       <div className="p-2 pt-0 pb-4">
         <div className="space-y-4">
           <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
+          <GoogleCalendarSettings />
           <CategoryManagementSettings />
           <DistractionSoundSettings />
           <MultiPurposeAppsSettings />

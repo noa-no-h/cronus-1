@@ -3,6 +3,7 @@ import { createContext, JSX, ReactNode, useContext, useEffect, useState } from '
 import { User } from 'shared/dist/types.js'
 import { exchangeGoogleCodeForTokens } from '../lib/auth'
 import { trpc } from '../utils/trpc'
+import { useToast } from '../hooks/use-toast'
 
 interface AuthContextType {
   user: User | null
@@ -13,6 +14,7 @@ interface AuthContextType {
   login: (accessToken: string, refreshToken?: string, userData?: User) => void
   logout: () => void
   loginWithGoogleCode: (code: string, isDesktopFlow: boolean) => Promise<void>
+  handleCalendarAuthCode: (code: string) => Promise<void>
   resetJustLoggedIn: () => void
 }
 
@@ -24,6 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
   const posthog = usePostHog()
+  const { toast } = useToast()
   const {
     data: _fetchedUser,
     error: _userError,
@@ -54,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   }, [])
 
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
+    const handleStorageChange = (event: StorageEvent): void => {
       if (event.key === 'accessToken') {
         const newToken = event.newValue
         setToken(newToken)
@@ -72,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
   }, [refetchUser])
 
-  const login = (accessToken: string, newRefreshToken?: string, userData?: User) => {
+  const login = (accessToken: string, newRefreshToken?: string, userData?: User): void => {
     localStorage.setItem('accessToken', accessToken)
     setToken(accessToken)
     if (newRefreshToken) {
@@ -104,7 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     setIsLoading(false)
   }
 
-  const logout = () => {
+  const logout = (): void => {
     const currentToken = localStorage.getItem('accessToken')
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
@@ -132,7 +135,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     }
   }
 
-  const loginWithGoogleCode = async (code: string, isDesktopFlow: boolean) => {
+  const handleCalendarAuthCode = async (code: string): Promise<void> => {
+    try {
+      const { accessToken, refreshToken, user } = await exchangeGoogleCodeForTokens(code, true)
+      login(accessToken, refreshToken, user)
+
+      toast({
+        title: 'Calendar Connected!',
+        description: 'Your Google Calendar has been successfully connected.'
+      })
+    } catch (error) {
+      console.error('Calendar auth failed:', error)
+      toast({
+        title: 'Connection Failed',
+        description: 'Failed to connect Google Calendar. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const loginWithGoogleCode = async (code: string, isDesktopFlow: boolean): Promise<void> => {
     const { accessToken, refreshToken, user } = await exchangeGoogleCodeForTokens(
       code,
       isDesktopFlow
@@ -151,6 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         login,
         logout,
         loginWithGoogleCode,
+        handleCalendarAuthCode,
         resetJustLoggedIn: () => setJustLoggedIn(false)
       }}
     >
