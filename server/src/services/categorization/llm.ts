@@ -139,6 +139,7 @@ export async function getOpenAICategorySuggestion(
       name: 'Distraction',
       description: 'Scrolling social media, browsing unrelated content, or idle clicking',
       color: '#EC4899',
+      emoji: '🎮',
       isProductive: false,
     };
 
@@ -222,7 +223,6 @@ Here are some good default categories that work for many people:
 - name: Fundraising, description: Pitching to investors, refining decks, writing emails or grant applications
 - name: Growth & Marketing, description: Working on campaigns, analytics, user acquisition, SEO or outreach
 - name: Work Communication, description: Responding to emails, Slack, Notion, meetings or async updates
-- name: Distraction, description: Scrolling social media, browsing unrelated content, or idle clicking
 - name: Dating, description: Using dating apps, messaging, browsing profiles, or going on dates
 - name: Eating & Shopping, description: Eating meals, cooking, groceries, or online/in-person shopping
 - name: Sport & Health, description: Exercising, walking, gym, sports, wellness, etc.
@@ -230,7 +230,7 @@ Here are some good default categories that work for many people:
 - name: Planning & Reflection, description: Journaling, reflecting on goals, or reviewing personal plans
 - name: Commuting, description: Traveling to or from work, errands, or social events
 
-For the color, use Notion-style color like #3B82F6, #EC4899, #A855F7, #F97316, #CA8A04, #10B981, #06B6D4, #6B7280, #8B5CF6, #D946EF, #F59E0B, #22C55E, etc.
+For the color, use Notion-style color like #3B82F6, #A855F7, #F97316, #CA8A04, #10B981, #06B6D4, #6B7280, #8B5CF6, #D946EF, #F59E0B, #22C55E, etc. (Don't use #EC4899)
 
 Respond with a list of suggested categories in the format requested.`,
     },
