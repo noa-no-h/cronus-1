@@ -15,7 +15,7 @@ for ARCH in "${ARCHS[@]}"; do
     
     # Check if versioned files exist
     DMG_EXISTS=$(aws s3 ls "s3://$BUCKET_NAME/Cronus-$CURRENT_VERSION-$ARCH.dmg" 2>/dev/null || echo "")
-    ZIP_EXISTS=$(aws s3 ls "s3://$BUCKET_NAME/Cronus-$CURRENT_VERSION-$ARCH-mac.zip" 2>/dev/null || echo "")
+    ZIP_EXISTS=$(aws s3 ls "s3://$BUCKET_NAME/Cronus-$CURRENT_VERSION-$ARCH.zip" 2>/dev/null || echo "")
 
     if [ -n "$DMG_EXISTS" ]; then
         echo "  ✅ DMG found: Cronus-$CURRENT_VERSION-$ARCH.dmg"
@@ -27,11 +27,11 @@ for ARCH in "${ARCHS[@]}"; do
     fi
 
     if [ -n "$ZIP_EXISTS" ]; then
-        echo "  ✅ ZIP found: Cronus-$CURRENT_VERSION-$ARCH-mac.zip"
+        echo "  ✅ ZIP found: Cronus-$CURRENT_VERSION-$ARCH.zip"
         ZIP_DATE=$(echo $ZIP_EXISTS | awk '{print $1, $2}')
         echo "     Published: $ZIP_DATE"
     else
-        echo "  ❌ ZIP not found: Cronus-$CURRENT_VERSION-$ARCH-mac.zip"
+        echo "  ❌ ZIP not found: Cronus-$CURRENT_VERSION-$ARCH.zip"
         ALL_PUBLISHED=false
     fi
 

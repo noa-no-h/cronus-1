@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
+import { UpdateStatus } from '../../../shared/update'
 import { useTheme } from '../contexts/ThemeContext'
 import { toast } from '../hooks/use-toast'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { Button } from './ui/button'
 import { ToastAction } from './ui/toast'
-import React from 'react'
 
 export function UpdateNotification(): React.JSX.Element | null {
   // Changed return type
@@ -14,12 +14,11 @@ export function UpdateNotification(): React.JSX.Element | null {
   const toastRef = useRef<any>(null)
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleUpdateStatus = (status: any): void => {
+    const handleUpdateStatus = (status: UpdateStatus): void => {
       if (status.status === 'available') {
         toastRef.current = toast({
           title: 'Update Available',
-          description: `Version ${status.version} found. Downloading automatically...`
+          description: `Version ${status.info.version} found. Downloading automatically...`
         })
 
         setTimeout(() => {
@@ -28,7 +27,7 @@ export function UpdateNotification(): React.JSX.Element | null {
       }
 
       if (status.status === 'downloading') {
-        const progressNumber = parseFloat(status.progress) || 0
+        const progressNumber = status.progress.percent
         const isComplete = progressNumber >= 100
         const progressDisplay = progressNumber.toFixed(0)
 
@@ -48,6 +47,16 @@ export function UpdateNotification(): React.JSX.Element | null {
       }
 
       if (status.status === 'downloaded') {
+        const handleRestart = (): void => {
+          toast({
+            title: 'Restarting...',
+            description: 'The application will now restart to apply the update.'
+          })
+          setTimeout(() => {
+            window.api.installUpdate()
+          }, 1000) // Give toast time to appear
+        }
+
         if (toastRef.current) {
           toastRef.current.update({
             title: 'Update Ready',
@@ -57,7 +66,24 @@ export function UpdateNotification(): React.JSX.Element | null {
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => window.api.installUpdate()}
+                  onClick={handleRestart}
+                  className={isDarkMode ? 'text-white' : 'text-black'}
+                >
+                  Restart Now
+                </Button>
+              </ToastAction>
+            )
+          })
+        } else {
+          toastRef.current = toast({
+            title: 'Update Ready',
+            description: 'Update downloaded successfully. Restart to apply the update.',
+            action: (
+              <ToastAction asChild altText="Restart Now">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleRestart}
                   className={isDarkMode ? 'text-white' : 'text-black'}
                 >
                   Restart Now
@@ -72,7 +98,7 @@ export function UpdateNotification(): React.JSX.Element | null {
         if (toastRef.current) {
           toastRef.current.update({
             title: 'Update Error',
-            description: status.error,
+            description: status.error.message,
             variant: 'destructive'
           })
         }

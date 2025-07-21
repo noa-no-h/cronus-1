@@ -1,8 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
-import * as fs from 'fs'
-import * as path from 'path'
+import { UpdateStatus } from '../shared/update'
 
 let mainWindow: BrowserWindow | null = null
 let updateTimer: NodeJS.Timeout | null = null
@@ -23,38 +22,33 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
 
   autoUpdater.on('update-available', (info) => {
     log.info('Update available.', info)
-    mainWindow?.webContents.send('update-status', {
-      status: 'available',
-      version: info.version,
-      releaseNotes: info.releaseNotes
-    })
+    const payload: UpdateStatus = { status: 'available', info }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-not-available', () => {
     log.info('Update not available.')
-    mainWindow?.webContents.send('update-status', { status: 'not-available' })
+    const payload: UpdateStatus = { status: 'not-available' }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('error', (err) => {
     log.error('Auto-updater error:', err)
     // Sentry.captureException(err)
-    mainWindow?.webContents.send('update-status', {
-      status: 'error',
-      error: err.message
-    })
+    const payload: UpdateStatus = { status: 'error', error: err }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
     log.info(`Download progress: ${progressObj.percent}%`)
-    mainWindow?.webContents.send('update-status', {
-      status: 'downloading',
-      progress: progressObj.percent
-    })
+    const payload: UpdateStatus = { status: 'downloading', progress: progressObj }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-downloaded', () => {
     log.info('Update downloaded.')
-    mainWindow?.webContents.send('update-status', { status: 'downloaded' })
+    const payload: UpdateStatus = { status: 'downloaded' }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   // Check for updates on startup (only in production)
@@ -67,32 +61,16 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   // Setup daily timer for users who keep app open
   // setupDailyUpdateCheck()
 
-  // Setup hourly timer for users who keep app open
-  setupHourlyUpdateCheck()
+  // Setup a recurring timer to check for updates
+  setupRecurringUpdateCheck()
 }
 
 function checkForUpdatesIfNeeded(trigger: string): void {
-  const lastCheckTime = getLastCheckTime()
-  const now = Date.now()
-  const hoursSinceLastCheck = lastCheckTime === 0 ? 999 : (now - lastCheckTime) / (1000 * 60 * 60)
-
-  log.info(
-    `🔍 Update check (${trigger}): ${hoursSinceLastCheck === 999 ? 'never checked before' : hoursSinceLastCheck.toFixed(1) + ' hours ago'}`
-  )
-
-  // Check if it's been more than 1 hour since last check, or never checked
-  if (hoursSinceLastCheck >= 1) {
-    log.info(`✅ Triggering update check (${trigger})`)
-    saveLastCheckTime(now)
-    autoUpdater.checkForUpdates().catch((error) => {
-      log.error('Update check failed:', error)
-      // Sentry.captureException(error)
-    })
-  } else {
-    log.info(
-      `⏸️ Skipping update check - checked ${hoursSinceLastCheck.toFixed(1)} hours ago (${trigger})`
-    )
-  }
+  log.info(`✅ Triggering update check (${trigger})`)
+  autoUpdater.checkForUpdates().catch((error) => {
+    log.error(`Update check failed (${trigger}):`, error)
+    // Sentry.captureException(error)
+  })
 }
 
 // function setupDailyUpdateCheck(): void {
@@ -126,64 +104,34 @@ function checkForUpdatesIfNeeded(trigger: string): void {
 //   }, msUntil3AM)
 // }
 
-function setupHourlyUpdateCheck(): void {
+function setupRecurringUpdateCheck(): void {
   // Clear any existing timer
   if (updateTimer) {
     clearTimeout(updateTimer)
     updateTimer = null
   }
 
-  // Schedule next check in 5 minutes (3600000 ms)
+  // Schedule next check in 5 minutes (300000 ms)
   const msUntilFiveMinutes = 300000
 
   log.info(
-    `📅 Next hourly update check scheduled for: ${new Date(Date.now() + msUntilFiveMinutes).toLocaleString()}`
+    `📅 Next recurring update check scheduled for: ${new Date(Date.now() + msUntilFiveMinutes).toLocaleString()}`
   )
 
   updateTimer = setTimeout(() => {
-    log.info('🔄 Hourly update check triggered')
-    checkForUpdatesIfNeeded('hourly_timer')
+    log.info('🔄 Recurring update check triggered')
+    checkForUpdatesIfNeeded('recurring_timer')
 
-    // Reschedule for next hour
-    setupHourlyUpdateCheck()
+    // Reschedule for next interval
+    setupRecurringUpdateCheck()
   }, msUntilFiveMinutes)
-}
-
-function getLastCheckTime(): number {
-  try {
-    const userDataPath = app.getPath('userData')
-    const updateConfigPath = path.join(userDataPath, 'update-config.json')
-
-    if (fs.existsSync(updateConfigPath)) {
-      const configData = fs.readFileSync(updateConfigPath, 'utf8')
-      const config = JSON.parse(configData)
-      return config.lastUpdateCheckTime || 0
-    }
-  } catch (error) {
-    log.error('Failed to read last check time:', error)
-  }
-  return 0
-}
-
-function saveLastCheckTime(timestamp: number): void {
-  try {
-    const userDataPath = app.getPath('userData')
-    const updateConfigPath = path.join(userDataPath, 'update-config.json')
-
-    const config = { lastUpdateCheckTime: timestamp }
-    fs.writeFileSync(updateConfigPath, JSON.stringify(config, null, 2))
-    log.info(`💾 Saved last update check time: ${new Date(timestamp).toLocaleString()}`)
-  } catch (error) {
-    log.error('Failed to save last check time:', error)
-  }
 }
 
 export function registerAutoUpdaterHandlers(): void {
   ipcMain.handle('check-for-updates', () => {
     log.info('🖱️ Manual update check requested')
-    const now = Date.now()
-    saveLastCheckTime(now)
-    return autoUpdater.checkForUpdates()
+    checkForUpdatesIfNeeded('manual')
+    return true
   })
   ipcMain.handle('download-update', () => {
     try {
@@ -196,14 +144,6 @@ export function registerAutoUpdaterHandlers(): void {
   })
   ipcMain.handle('install-update', () => {
     log.info('Requesting to quit and install update.')
-    autoUpdater.quitAndInstall()
+    autoUpdater.quitAndInstall(true, true)
   })
-}
-
-export function cleanupAutoUpdater(): void {
-  if (updateTimer) {
-    clearTimeout(updateTimer)
-    updateTimer = null
-    log.info('🧹 Hourly update timer cleaned up')
-  }
 }
