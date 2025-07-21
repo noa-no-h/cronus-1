@@ -61,6 +61,7 @@ export function UpdateNotification(): React.JSX.Element | null {
           toastRef.current.update({
             title: 'Update Ready',
             description: 'Update downloaded successfully. Restart to apply the update.',
+            duration: Infinity,
             action: (
               <ToastAction asChild altText="Restart Now">
                 <Button
@@ -78,6 +79,7 @@ export function UpdateNotification(): React.JSX.Element | null {
           toastRef.current = toast({
             title: 'Update Ready',
             description: 'Update downloaded successfully. Restart to apply the update.',
+            duration: Infinity,
             action: (
               <ToastAction asChild altText="Restart Now">
                 <Button
