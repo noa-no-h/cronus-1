@@ -28,6 +28,7 @@ export function startChurnPreventionCronJob() {
           return;
         }
 
+        const fourDaysAgo = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000);
         const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 24 hours ago
 
         let emailsSent = 0;
@@ -36,7 +37,10 @@ export function startChurnPreventionCronJob() {
         // Atomically find and update users to prevent race conditions
         while (emailsSent < maxEmailsToSend) {
           const userToProcess = await UserModel.findOneAndUpdate(
-            { lastChurnEmailSent: { $exists: false } },
+            {
+              lastChurnEmailSent: { $exists: false },
+              createdAt: { $lt: fourDaysAgo },
+            },
             { $set: { lastChurnEmailSent: new Date() } },
             { new: true }
           );
