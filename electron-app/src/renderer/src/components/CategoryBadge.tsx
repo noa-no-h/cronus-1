@@ -4,20 +4,17 @@ import { useDarkMode } from '../hooks/useDarkMode'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../lib/colors'
 
 interface CategoryBadgeProps {
-  name: string
-  color: string
-  emoji?: string
+  category: {
+    name: string
+    color: string
+    emoji?: string
+  }
   className?: string
   onClear?: () => void
 }
 
-export const CategoryBadge: React.FC<CategoryBadgeProps> = ({
-  name,
-  color,
-  emoji,
-  className,
-  onClear
-}) => {
+export const CategoryBadge: React.FC<CategoryBadgeProps> = ({ category, className, onClear }) => {
+  const { name, color, emoji } = category
   const isDarkMode = useDarkMode()
 
   const textColor = color

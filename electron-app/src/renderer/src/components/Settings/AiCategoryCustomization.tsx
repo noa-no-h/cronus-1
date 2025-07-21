@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { defaultComparableCategories } from '../../../../shared/categories'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import { trpc } from '../../utils/trpc'
@@ -69,7 +70,7 @@ export function AiCategoryCustomization({
     if (selectedOption === 'ai') {
       onComplete(suggestedCategories)
     } else {
-      onComplete([])
+      onComplete(defaultComparableCategories)
     }
   }
 
@@ -99,7 +100,7 @@ export function AiCategoryCustomization({
           ) : (
             <div className="flex flex-col gap-2 mt-2">
               {suggestedCategories.map((c) => (
-                <CategoryBadge key={c.name} name={c.name} color={c.color} />
+                <CategoryBadge key={c.name} category={c} />
               ))}
             </div>
           )}
@@ -115,8 +116,8 @@ export function AiCategoryCustomization({
         >
           <span className="font-semibold">Simple Categories</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            <CategoryBadge name="Work" color="#22C55E" />
-            <CategoryBadge name="Distraction" color="#EC4899" />
+            <CategoryBadge category={{ name: 'Work', color: '#22C55E' }} />
+            <CategoryBadge category={{ name: 'Distraction', color: '#EC4899' }} />
           </div>
         </Button>
       </div>

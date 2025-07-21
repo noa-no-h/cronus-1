@@ -37,7 +37,7 @@ export const defaultComparableCategories: ComparableCategory[] = [
     description:
       'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
     color: '#22C55E',
-    emoji: '��',
+    emoji: '💼',
     isProductive: true,
     isDefault: true,
   },
@@ -46,7 +46,7 @@ export const defaultComparableCategories: ComparableCategory[] = [
     description:
       'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
     color: '#EC4899',
-    emoji: '��',
+    emoji: '🎮',
     isProductive: false,
     isDefault: true,
   },

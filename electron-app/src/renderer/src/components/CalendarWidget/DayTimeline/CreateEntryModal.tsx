@@ -308,15 +308,7 @@ export const CreateEntryModal = ({
                     {selectedCategory && (
                       <div className="flex flex-row gap-4 items-center">
                         <Label>Selected Category</Label>
-                        <CategoryBadge
-                          name={selectedCategory.name}
-                          color={selectedCategory.color}
-                          onClear={() => {
-                            setSelectedCategory(null)
-                            setInputValue(selectedCategory?.name || '')
-                            inputRef.current?.focus()
-                          }}
-                        />
+                        <CategoryBadge category={selectedCategory} />
                       </div>
                     )}
                   </div>
