@@ -210,6 +210,7 @@ IMPORTANT: Prefer using the provided template categories when they broadly cover
 
 For example:
 - If a user's goal is to "build the windows version of the app", the existing "Coding" category is a better choice than creating a new, highly specific "Windows Development" category.
+- No need to only use the default categories. For ex. if someone says they have drawing as a hobby, they might need a "Drawing" category (in that case we dont use the "Design" category).
 - If a user is a "CPA", they might need new categories like "Bookkeeping", "Tax", and "Consulting", since these are not in the template list.
 - Don't litterally use XYZ but fill in the name of the specific company, project, client, etc.
 
@@ -228,6 +229,8 @@ Here are some good default categories that work for many people:
 - name: Friends & Social, description: Spending time with friends or socializing in person or online
 - name: Planning & Reflection, description: Journaling, reflecting on goals, or reviewing personal plans
 - name: Commuting, description: Traveling to or from work, errands, or social events
+
+For the color, use Notion-style color like #3B82F6, #EC4899, #A855F7, #F97316, #CA8A04, #10B981, #06B6D4, #6B7280, #8B5CF6, #D946EF, #F59E0B, #22C55E, etc.
 
 Respond with a list of suggested categories in the format requested.`,
     },
@@ -337,5 +340,44 @@ export async function generateActivitySummary(activityData: any): Promise<string
     return generatedTitle;
   } catch (error) {
     return '';
+  }
+}
+
+/**
+ * Suggest a single emoji for a category using OpenAI.
+ * @param name The category name
+ * @param description The category description (optional)
+ * @returns The suggested emoji as a string, or null if failed
+ */
+export async function getEmojiForCategory(
+  name: string,
+  description?: string
+): Promise<string | null> {
+  const prompt = [
+    {
+      role: 'system' as const,
+      content: `You are an AI assistant that suggests a single emoji for a category. Respond with only the emoji, no text.`,
+    },
+    {
+      role: 'user' as const,
+      content: `Suggest a single emoji (just the emoji, no text) for a category with the following details.\nName: ${name}\nDescription: ${description || ''}`,
+    },
+  ];
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-2024-08-06',
+      messages: prompt,
+      max_tokens: 4,
+      temperature: 0,
+    });
+    const emoji = response.choices[0]?.message?.content?.trim() || null;
+    // Basic validation: must be a single unicode emoji character (or short sequence)
+    if (emoji && emoji.length <= 4) {
+      return emoji;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting emoji for category:', error);
+    return null;
   }
 }

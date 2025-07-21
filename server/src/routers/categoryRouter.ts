@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
+import { getEmojiForCategory } from '../services/categorization/llm';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
 import { safeVerifyToken } from '../lib/authUtils';
@@ -18,6 +19,7 @@ const categorySchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   color: z.string(),
+  emoji: z.string().optional(),
   isProductive: z.boolean(),
   isDefault: z.boolean().default(false),
   isArchived: z.boolean().optional().default(false),
@@ -33,6 +35,7 @@ export const categoryRouter = router({
         name: z.string().min(1, 'Name is required'),
         description: z.string().optional(),
         color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format (e.g., #FF5733)'),
+        emoji: z.string().optional(),
         isProductive: z.boolean(),
         isDefault: z.boolean().optional(),
       })
@@ -40,7 +43,7 @@ export const categoryRouter = router({
     .mutation(async ({ input }) => {
       const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
-      const { name, description, color, isProductive, isDefault = false } = input;
+      const { name, description, color, emoji, isProductive, isDefault = false } = input;
 
       const existingCategory = await CategoryModel.findOne({ userId, name });
       if (existingCategory) {
@@ -55,6 +58,7 @@ export const categoryRouter = router({
         name,
         description,
         color,
+        emoji,
         isProductive,
         isDefault,
       });
@@ -96,7 +100,27 @@ export const categoryRouter = router({
     .query(async ({ input }) => {
       const decodedToken = safeVerifyToken(input.token);
       const userId = decodedToken.userId;
-      const categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+      let categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+
+      // Check for categories missing an emoji
+      const categoriesToUpdate = categories.filter((cat) => !cat.emoji || cat.emoji.trim() === '');
+      if (categoriesToUpdate.length > 0) {
+        await Promise.all(
+          categoriesToUpdate.map(async (cat) => {
+            const emoji = await getEmojiForCategory(cat.name, cat.description);
+            if (emoji) {
+              cat.emoji = emoji;
+              try {
+                await cat.save();
+              } catch (err) {
+                console.error('Failed to update category with emoji:', cat.name, err);
+              }
+            }
+          })
+        );
+        // Re-fetch categories to ensure up-to-date
+        categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
+      }
       return categories.map((cat) => cat.toJSON());
     }),
 
@@ -120,6 +144,7 @@ export const categoryRouter = router({
           .string()
           .regex(/^#[0-9A-F]{6}$/i, 'Invalid color format')
           .optional(),
+        emoji: z.string().optional(),
         isProductive: z.boolean().optional(),
         isArchived: z.boolean().optional(),
       })
