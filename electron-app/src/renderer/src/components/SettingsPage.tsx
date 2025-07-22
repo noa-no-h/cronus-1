@@ -10,7 +10,7 @@ import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
-// import { CalendarIntegrationSettings } from './CalendarIntegrationSettings'
+import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
@@ -70,6 +70,7 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
         <MultiPurposeAppsSettings />
         <ThemeSwitcher />
         <OnboardingSection />
+        <GoogleCalendarSettings />
         <LogOutButtonSection />
         <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
         {showPermissions && <PermissionsStatus />}

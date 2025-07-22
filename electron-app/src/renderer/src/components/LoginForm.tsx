@@ -87,8 +87,8 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
         await loginWithGoogleCode(codeResponse.code, false)
         // console.log('DEV LOGIN (CODE): Successfully logged in via context.')
         onLoginSuccess?.()
-      } catch (error) {
-        // console.error('DEV LOGIN (CODE): loginWithGoogleCode failed:', error)
+      } catch (error: unknown) {
+        console.error('DEV LOGIN (CODE): loginWithGoogleCode failed:', error)
       }
     },
     [loginWithGoogleCode, onLoginSuccess]

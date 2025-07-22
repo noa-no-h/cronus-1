@@ -174,7 +174,7 @@ export function CategoryTemplateList({
           <div className="text-center py-8 px-4 bg-muted/50 rounded-lg border border-dashed border-border">
             <h3 className="text-sm font-medium text-foreground">All templates already added</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              You've already added all available templates.
+              You&apos;ve already added all available templates.
             </p>
           </div>
         )}
