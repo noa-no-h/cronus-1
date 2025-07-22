@@ -104,11 +104,12 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 - Activity: Drafting emails for unrelated side project. Goal: "Working on new social app". Categories: "Work Communication", "Distraction". Correct Category: "Distraction".
 - Activity: Adjusting System Settings and view Cronus. Goal: "Finish my biophysics PHD etc". Categories: "Work", "Distraction". Correct Category: "Work".
 - Activity: Staff Meeting. Goal: "CPA work". Categories: "Work", "Distraction". Correct Category: "Work".
+- Activity: Meet - HOLD for Performance Management Training. Goals: N/Y. Categories: "Work", "Distraction". Correct Category: "Work".
 
 TASK:
 Look at the CURRENT ACTIVITY through the lens of the user's PROJECTS AND GOALS.
 Which of the USER'S CATEGORIES best supports their stated objectives?
-If the activity is unrelated to the user's stated projects and goals, it should be categorized as "Distraction" regardless of the activity type.
+If the activity is unrelated to the user's stated projects and goals (if they properly set their projects/goals), it should be categorized as "Distraction" regardless of the activity type.
 If the activity doesn't neatly fit into any of the other categories it's likely a distraction.
 Respond with the category name and your reasoning.
           `,
