@@ -66,12 +66,12 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
       <div className="p-2 pt-0 pb-4">
         <div className="space-y-4">
           <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
-          <GoogleCalendarSettings />
           <CategoryManagementSettings />
           <DistractionSoundSettings />
           <MultiPurposeAppsSettings />
           <ThemeSwitcher />
           <OnboardingSection />
+          <GoogleCalendarSettings />
           <LogOutButtonSection />
           <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
           {showPermissions && <PermissionsStatus />}

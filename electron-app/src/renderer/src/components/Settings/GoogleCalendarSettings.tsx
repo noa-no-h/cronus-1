@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { Switch } from '../ui/switch'
 import googleCalendarIcon from '../../assets/icons/googlecal.png'
 
 export function GoogleCalendarSettings(): JSX.Element {
@@ -79,13 +78,6 @@ export function GoogleCalendarSettings(): JSX.Element {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Switch checked={calendarStatus?.hasAccess || false} disabled={true} />
-            <span className="text-sm font-medium">
-              {calendarStatus?.hasAccess ? 'Connected' : 'Not Connected'}
-            </span>
-          </div>
-
           {!calendarStatus?.hasAccess && (
             <Button
               onClick={handleConnectCalendar}
