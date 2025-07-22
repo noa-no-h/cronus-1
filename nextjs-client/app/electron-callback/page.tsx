@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import React, { Suspense, useEffect, useState } from 'react';
-import { Logo } from '~/components/logo';
+import { Logo, TextLogo } from '~/components/logo';
 
 const ElectronCallbackComponent: React.FC = () => {
   const [status, setStatus] = useState('Processing login...');
@@ -29,9 +29,11 @@ const ElectronCallbackComponent: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen font-sans bg-gray-100 dark:bg-gray-900">
-      <div className="p-10 bg-white rounded-xl flex flex-col items-center justify-center shadow-md dark:bg-gray-800 text-center">
-        <Logo className="w-24 h-24 mb-5" />
-        <h1 className="text-2xl mb-5 font-bold text-gray-800 dark:text-white">Cronus</h1>
+      <div className="p-14 bg-white rounded-xl flex flex-col items-center justify-center shadow-md dark:bg-gray-800 text-center">
+        <div className="flex items-center gap-2 transition-opacity mb-10 scale-200">
+          <Logo className="w-[29px] text-accent" />
+          <TextLogo className="w-[114px] text-black" />
+        </div>
         <p className="text-gray-600 dark:text-gray-300">{status}</p>
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
           You can close this window now.

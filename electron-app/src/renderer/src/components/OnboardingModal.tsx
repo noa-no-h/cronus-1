@@ -38,6 +38,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const { data: hasCategories, isLoading: isLoadingHasCategories } =
     trpc.category.hasCategories.useQuery({ token: token || '' }, { enabled: !!token })
 
+  useEffect(() => {
+    if (!isLoadingGoals) {
+      console.log('Fetched user projects and goals:', userProjectsAndGoals)
+    }
+    if (!isLoadingHasCategories) {
+      console.log('Fetched user categories:', hasCategories)
+    }
+  }, [userProjectsAndGoals, isLoadingGoals])
+
   const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
 
   // Check permission status when on accessibility step
@@ -183,7 +192,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             </div>
           )}
           {hasRequestedPermission && permissionStatus === 1 && (
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
+            <div className="w-full bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
               <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 <strong>Permission granted! You can now continue.</strong>
@@ -244,20 +253,19 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           )}
 
           {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="bg-blue-50 w-full dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-left text-blue-800 dark:text-blue-200">
                 <div className="font-semibold pb-1">Next steps:</div>
-                <br />
-                1. Go to System Preferences → Security & Privacy → Privacy
-                <br />
-                2. Click &quot;Screen & System Audio Recording&quot; on the left
-                <br />
-                3. Check the box next to &quot;Cronus&quot; to enable access
+                <ul className="list-disc list-inside">
+                  <li>Go to System Preferences → Security & Privacy → Privacy</li>
+                  <li>Click &quot;Screen & System Audio Recording&quot; on the left</li>
+                  <li>Check the box next to &quot;Cronus&quot; to enable access</li>
+                </ul>
               </p>
             </div>
           )}
           {hasRequestedScreenRecording && screenRecordingStatus === 1 && (
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
+            <div className="bg-green-50 w-full dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
               <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 mr-2" />
                 <strong>Permission granted! You can now continue.</strong>
@@ -446,7 +454,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               />
             </div>
-            <div className="min-h-[320px] flex items-center justify-center py-4">
+            <div className="min-h-[320px] flex items-center justify-center pt-4">
               {currentStepData?.content}
             </div>
 

@@ -536,4 +536,80 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
       isArchived: { $ne: true },
     });
   }, 30000); // Increased timeout for LLM call
+
+  test('should categorize substack article on robotics as Work when content is empty', async () => {
+    // Arrange: Mock history check to fail, simulating the LLM pathway
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    const dominiqueCategories = [
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Work',
+        description:
+          'Writing/editing code, reading, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
+        color: '#22C55E',
+        isProductive: true,
+        isDefault: true,
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Distraction',
+        description:
+          'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling (except if it is directly work-related)',
+        color: '#EC4899',
+        isProductive: false,
+        isDefault: true,
+      },
+    ];
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue({
+        userProjectsAndGoals:
+          "I'm working on a chess robot. Part of the work is writing code, collecting data, but also reading papers and blog posts online. Twitter/X is not work. Writing blog posts about robots or taking notes in Notion counts as work. ",
+      }),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(dominiqueCategories),
+    });
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Arc',
+      title: '(1) How to Pick a Problem - by Benjie Holson - General Robots',
+      url: 'https://generalrobots.substack.com/p/how-to-pick-a-problem',
+      content: '', // Testing with empty content
+      type: 'browser',
+      browser: 'arc',
+    };
+
+    // Act
+    const result = await categorizeActivity(mockUserId, activeWindow);
+
+    // Log the LLM outputs for inspection
+    console.log('Substack test - Full result object:', result);
+    console.log('Substack test - LLM Summary:', result.llmSummary);
+    console.log('Substack test - Category Reasoning:', result.categoryReasoning);
+
+    // Assert
+    const workCategory = dominiqueCategories.find((c) => c.name === 'Work');
+    const receivedCategory = dominiqueCategories.find((c) => c._id === result.categoryId);
+    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
+      workCategory?.name ?? 'Expected Category Not Found'
+    );
+    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
+    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
+    expect(CategoryModel.find).toHaveBeenCalledWith({
+      userId: mockUserId,
+      isArchived: { $ne: true },
+    });
+  }, 30000);
 });

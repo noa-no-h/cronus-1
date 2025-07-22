@@ -8,12 +8,12 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useCategorySelection } from '../../../hooks/useCategorySelection'
 import { TimeBlock } from '../../../lib/dayTimelineHelpers'
 import { trpc } from '../../../utils/trpc'
+import { CategoryBadge } from '../../CategoryBadge'
 import { CategoryForm } from '../../Settings/CategoryForm'
 import { Button } from '../../ui/button'
 import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { CustomCategorySelectionPopover } from './CustomCategorySelectionPopover'
-import { SelectedCategoryBadge } from './SelectedCategoryBadge'
 
 interface CreateEntryModalProps {
   isOpen: boolean
@@ -306,14 +306,10 @@ export const CreateEntryModal = ({
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     {selectedCategory && (
-                      <SelectedCategoryBadge
-                        selectedCategory={selectedCategory}
-                        onClear={() => {
-                          setSelectedCategory(null)
-                          setInputValue(selectedCategory?.name || '')
-                          inputRef.current?.focus()
-                        }}
-                      />
+                      <div className="flex flex-row gap-4 items-center">
+                        <Label>Selected Category</Label>
+                        <CategoryBadge category={selectedCategory} />
+                      </div>
                     )}
                   </div>
                 </div>

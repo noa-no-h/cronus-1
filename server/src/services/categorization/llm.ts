@@ -26,6 +26,7 @@ const SuggestedCategorySchema = z.object({
   description: z.string(),
   color: z.string().regex(/^#[0-9A-F]{6}$/i),
   isProductive: z.boolean(),
+  emoji: z.string().describe('A single emoji to represent the category.'),
 });
 
 const SuggestedCategoriesSchema = z.object({
@@ -139,6 +140,7 @@ export async function getOpenAICategorySuggestion(
       name: 'Distraction',
       description: 'Scrolling social media, browsing unrelated content, or idle clicking',
       color: '#EC4899',
+      emoji: '🎮',
       isProductive: false,
     };
 
@@ -204,30 +206,32 @@ function _buildOpenAICategorySuggestionPromptInput(userProjectsAndGoals: string)
       content: `You are an AI assistant that helps users create personalized productivity categories based on their goals.
 
 You will be given a user's goals and a list of template categories.
-Your task is to generate a list of 3-5 relevant categories tailored to the user's specific goals.
+Your task is to generate a list of 3-5 relevant categories tailored to the user's specific goals. For each category, you must suggest a name, description, color, a boolean for isProductive, and a single emoji.
 
 IMPORTANT: Prefer using the provided template categories when they broadly cover an activity. Only create a new category if no template is a good fit.
 
 For example:
 - If a user's goal is to "build the windows version of the app", the existing "Coding" category is a better choice than creating a new, highly specific "Windows Development" category.
+- No need to only use the default categories. For ex. if someone says they have drawing as a hobby, they might need a "Drawing" category (in that case we dont use the "Design" category).
 - If a user is a "CPA", they might need new categories like "Bookkeeping", "Tax", and "Consulting", since these are not in the template list.
 - Don't litterally use XYZ but fill in the name of the specific company, project, client, etc.
 
 Here are some good default categories that work for many people:
 - name: Contracting for XYZ, description: Working on a project for Contractor work for XYZ including meetings, emails, etc. related to that project
-- name: Coding, description: Writing or reviewing code, debugging, working in IDEs or terminals
-- name: Design, description: Working in design tools like Figma or Illustrator on UX/UI or visual assets
-- name: Product Management, description: Planning features, writing specs, managing tickets, reviewing user feedback
-- name: Fundraising, description: Pitching to investors, refining decks, writing emails or grant applications
-- name: Growth & Marketing, description: Working on campaigns, analytics, user acquisition, SEO or outreach
-- name: Work Communication, description: Responding to emails, Slack, Notion, meetings or async updates
-- name: Distraction, description: Scrolling social media, browsing unrelated content, or idle clicking
-- name: Dating, description: Using dating apps, messaging, browsing profiles, or going on dates
-- name: Eating & Shopping, description: Eating meals, cooking, groceries, or online/in-person shopping
-- name: Sport & Health, description: Exercising, walking, gym, sports, wellness, etc.
-- name: Friends & Social, description: Spending time with friends or socializing in person or online
-- name: Planning & Reflection, description: Journaling, reflecting on goals, or reviewing personal plans
-- name: Commuting, description: Traveling to or from work, errands, or social events
+- name: Coding, description: Writing or reviewing code, debugging, working in IDEs or terminals, emoji: 💼, isProductive: true
+- name: Design, description: Working in design tools like Figma or Illustrator on UX/UI or visual assets, emoji: 🎨
+- name: Product Management, description: Planning features, writing specs, managing tickets, reviewing user feedback, emoji: 📈, isProductive: true
+- name: Fundraising, description: Pitching to investors, refining decks, writing emails or grant applications, emoji: 💰, isProductive: true
+- name: Growth & Marketing, description: Working on campaigns, analytics, user acquisition, SEO or outreach, emoji: 🚀, isProductive: true
+- name: Work Communication, description: Responding to emails, Slack, Notion, meetings or async updates, emoji: 💬, isProductive: true
+- name: Dating, description: Using dating apps, messaging, browsing profiles, or going on dates, emoji: ❤️, isProductive: false
+- name: Eating & Shopping, description: Eating meals, cooking, groceries, or online/in-person shopping, emoji: 🍔, isProductive: false
+- name: Sport & Health, description: Exercising, walking, gym, sports, wellness, etc., emoji: 💪, isProductive: true
+- name: Friends & Social, description: Spending time with friends or socializing in person or online, emoji: 🎉, isProductive: false
+- name: Planning & Reflection, description: Journaling, reflecting on goals, or reviewing personal plans, emoji: 📝, isProductive: true
+- name: Commuting, description: Traveling to or from work, errands, or social events, emoji: 🚗, isProductive: false
+
+For the color, use Notion-style color like #3B82F6, #A855F7, #F97316, #CA8A04, #10B981, #06B6D4, #6B7280, #8B5CF6, #D946EF, #F59E0B, #22C55E, etc. (Don't use #EC4899)
 
 Respond with a list of suggested categories in the format requested.`,
     },

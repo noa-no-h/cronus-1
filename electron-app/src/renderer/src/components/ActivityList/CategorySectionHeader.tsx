@@ -5,6 +5,7 @@ import { Category as SharedCategory } from 'shared'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import type { ProcessedCategory } from '../../lib/activityProcessing'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../../lib/colors'
+import { CategoryBadge } from '../CategoryBadge'
 import { Button } from '../ui/button'
 import { MoveSelectedActivitiesButton } from './MoveSelectedActivitiesButton'
 
@@ -101,16 +102,9 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
   return (
     <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
       <div className="flex items-center ml-1">
-        <div
-          className="px-2 py-1 rounded-md text-sm font-medium transition-all overflow-hidden flex items-center gap-2"
-          style={{
-            backgroundColor: backgroundColor,
-            color: textColor
-          }}
-        >
-          <span className="text-base">{categoryEmoji}</span>
-          <span>{category.name}</span>
-        </div>
+        <CategoryBadge
+          category={{ name: category.name, color: category.color, emoji: category.emoji }}
+        />
       </div>
       {showMoveButton ? (
         renderButtons()

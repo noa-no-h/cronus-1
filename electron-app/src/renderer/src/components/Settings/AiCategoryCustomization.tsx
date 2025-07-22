@@ -1,10 +1,10 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { defaultComparableCategories } from '../../../../shared/categories'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDarkMode } from '../../hooks/useDarkMode'
-import { getDarkerColor, getLighterColor } from '../../lib/colors'
 import { trpc } from '../../utils/trpc'
-import { Badge } from '../ui/badge'
+import { CategoryBadge } from '../CategoryBadge'
 import { Button } from '../ui/button'
 
 interface AiCategoryCustomizationProps {
@@ -70,7 +70,7 @@ export function AiCategoryCustomization({
     if (selectedOption === 'ai') {
       onComplete(suggestedCategories)
     } else {
-      onComplete([])
+      onComplete(defaultComparableCategories)
     }
   }
 
@@ -100,18 +100,7 @@ export function AiCategoryCustomization({
           ) : (
             <div className="flex flex-col gap-2 mt-2">
               {suggestedCategories.map((c) => (
-                <Badge
-                  key={c.name}
-                  variant="outline"
-                  className="w-min"
-                  style={{
-                    backgroundColor: getLighterColor(c.color, 0.8),
-                    color: getDarkerColor(c.color, 0.3),
-                    borderColor: getLighterColor(c.color, 0.6)
-                  }}
-                >
-                  {c.name}
-                </Badge>
+                <CategoryBadge key={c.name} category={c} />
               ))}
             </div>
           )}
@@ -127,26 +116,8 @@ export function AiCategoryCustomization({
         >
           <span className="font-semibold">Simple Categories</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            <Badge
-              variant="outline"
-              style={{
-                backgroundColor: getLighterColor('#22C55E', 0.8),
-                color: getDarkerColor('#22C55E', 0.3),
-                borderColor: getLighterColor('#22C55E', 0.6)
-              }}
-            >
-              Work
-            </Badge>
-            <Badge
-              variant="outline"
-              style={{
-                backgroundColor: getLighterColor('#EC4899', 0.8),
-                color: getDarkerColor('#EC4899', 0.3),
-                borderColor: getLighterColor('#EC4899', 0.6)
-              }}
-            >
-              Distraction
-            </Badge>
+            <CategoryBadge category={{ name: 'Work', color: '#22C55E' }} />
+            <CategoryBadge category={{ name: 'Distraction', color: '#EC4899' }} />
           </div>
         </Button>
       </div>
