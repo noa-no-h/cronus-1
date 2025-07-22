@@ -16,7 +16,6 @@ export const MultiCalendarEventTooltip = ({ children, events }: MultiCalendarEve
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent side="right" align="start" sideOffset={10} className="w-full max-w-xs">
         <div className="flex flex-col gap-4">
-          {/* Header */}
           <div className="flex items-center gap-3">
             <img
               src={GOOGLE_CALENDAR_ICON}
@@ -30,7 +29,6 @@ export const MultiCalendarEventTooltip = ({ children, events }: MultiCalendarEve
             </div>
           </div>
 
-          {/* Events List */}
           <div className="flex max-h-60 flex-col gap-3 overflow-y-auto pr-2">
             {events.map((event) => (
               <div

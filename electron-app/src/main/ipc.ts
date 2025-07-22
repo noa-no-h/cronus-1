@@ -313,6 +313,14 @@ export function registerIpcHandlers(
     return { action: 'deny' }
   })
 
+  ipcMain.handle('on-auth-code-received', (event, code: string) => {
+    logMainToFile('Auth code received in main process', { code: code.substring(0, 10) + '...' })
+
+    if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
+      windows.mainWindow.webContents.send('auth-code-received', code)
+    }
+  })
+
   // ipcMain.handle(
   //   'set-sentry-user',
   //   (

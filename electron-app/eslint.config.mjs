@@ -26,7 +26,8 @@ export default tseslint.config(
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
       'class-methods-use-this': 'off',
-      'import/prefer-default-export': 'off'
+      'import/prefer-default-export': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off'
     }
   },
   eslintConfigPrettier

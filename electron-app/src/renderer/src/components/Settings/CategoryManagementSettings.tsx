@@ -27,7 +27,7 @@ export function CategoryManagementSettings(): JSX.Element {
   } = trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token }) as {
     data: Category[] | undefined
     isLoading: boolean
-    error: any
+    error: Error
   }
   const createMutation = trpc.category.createCategory.useMutation({
     onSuccess: () => {
