@@ -387,7 +387,7 @@ const ActivitiesByCategoryWidget = ({
                     {format(selectedDay, 'MMMM d, yyyy')}
                   </Badge>
                 ) : (
-                  'No activities recorded for this day'
+                  'No activities recorded for this day. Open Chrome or another application to start tracking.'
                 )}
               </p>
             </div>

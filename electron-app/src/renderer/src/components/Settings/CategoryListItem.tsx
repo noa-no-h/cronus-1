@@ -35,8 +35,6 @@ export function CategoryListItem({
   isDeleting,
   isUpdating
 }: CategoryListItemProps): JSX.Element {
-  const categoryEmoji = category.emoji
-  console.log('category emoji in list item', categoryEmoji)
   return (
     <CategoryItemDisplay
       name={category.name}

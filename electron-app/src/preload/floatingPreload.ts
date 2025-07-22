@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
-import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+import { Category } from 'shared/dist/types.js'
 
 // Define the structure of the data being sent
 interface FloatingStatusUpdate {
