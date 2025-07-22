@@ -1,6 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge, ipcRenderer } from 'electron'
-import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { UpdateStatus } from '../shared/update'
 
 // Permission types and status enums (match the native layer)
@@ -50,9 +50,9 @@ const api = {
   getEnvVariables: () => ipcRenderer.invoke('get-env-vars'),
   readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
   deleteFile: (filePath: string) => ipcRenderer.invoke('delete-file', filePath),
-  onDisplayRecategorizePage: (callback: (categoryDetails?: Category) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, categoryDetails?: Category) =>
-      callback(categoryDetails)
+  onDisplayRecategorizePage: (callback: (activity: ActivityToRecategorize) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, activity: ActivityToRecategorize) =>
+      callback(activity)
     ipcRenderer.on('display-recategorize-page', listener)
     // Return a cleanup function
     return () => {
@@ -92,6 +92,17 @@ const api = {
   // setSentryUser: (
   //   userData: { id: string; email: string; username: string; subscription: boolean } | null
   // ) => ipcRenderer.invoke('set-sentry-user', userData)
+}
+
+export interface ActivityToRecategorize {
+  identifier: string
+  nameToDisplay: string
+  itemType: 'app' | 'website'
+  currentCategoryId: string
+  currentCategoryName: string
+  currentCategoryColor: string
+  categoryReasoning?: string
+  originalUrl?: string
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

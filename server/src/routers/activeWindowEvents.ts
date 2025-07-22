@@ -119,6 +119,7 @@ export const activeWindowEventsRouter = router({
           },
         })
           .select(
+            // TODO: just get all this?
             'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs generatedTitle'
           )
           .sort({ timestamp: 1 });
@@ -452,9 +453,24 @@ export const activeWindowEventsRouter = router({
         console.log(
           `[EventsRouter] Updated ${result.modifiedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
         );
+
+        if (result.modifiedCount > 0) {
+          const latestUpdatedEvent = await ActiveWindowEventModel.findOne(filter).sort({
+            timestamp: -1,
+          });
+          return {
+            success: true,
+            updatedCount: result.modifiedCount,
+            latestEvent: latestUpdatedEvent
+              ? (latestUpdatedEvent.toObject() as ActiveWindowEvent)
+              : null,
+          };
+        }
+
         return {
           success: true,
           updatedCount: result.modifiedCount,
+          latestEvent: null,
         };
       } catch (error) {
         console.error('[EventsRouter] Error updating event categories:', error);

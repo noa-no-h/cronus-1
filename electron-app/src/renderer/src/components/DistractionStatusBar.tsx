@@ -108,7 +108,8 @@ const DistractionStatusBar = ({
             ...event,
             lastCategorizationAt: event.lastCategorizationAt
               ? new Date(event.lastCategorizationAt)
-              : undefined
+              : undefined,
+            categoryReasoning: event.categoryReasoning
           }
         }
       }
@@ -249,7 +250,8 @@ const DistractionStatusBar = ({
       itemType,
       activityIdentifier,
       activityName,
-      activityUrl: displayWindowInfo.url
+      activityUrl: displayWindowInfo.url,
+      categoryReasoning: latestEvent?.categoryReasoning
     })
   }, [latestEvent, categoryDetails, userCategories, todayEvents, token, displayWindowInfo])
 

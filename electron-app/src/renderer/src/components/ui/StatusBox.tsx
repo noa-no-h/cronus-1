@@ -11,6 +11,7 @@ interface StatusBoxProps {
   isEnlarged: boolean // Determines if this box takes more space
   categoryDetails?: Category
   onCategoryClick?: () => void
+  disabled?: boolean
 }
 
 const StatusBox: React.FC<StatusBoxProps> = ({
@@ -20,7 +21,8 @@ const StatusBox: React.FC<StatusBoxProps> = ({
   highlightColor,
   isEnlarged,
   categoryDetails,
-  onCategoryClick
+  onCategoryClick,
+  disabled
 }) => {
   const [isHovered, setIsHovered] = useState(false)
 
@@ -60,7 +62,8 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       className={clsx(
         'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
-        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5'
+        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5',
+        disabled && 'cursor-not-allowed opacity-50'
       )}
     >
       <span
@@ -71,11 +74,17 @@ const StatusBox: React.FC<StatusBoxProps> = ({
           isHovered && isEnlarged && 'bg-white/10 rounded-md p-1'
         )}
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
+        onClick={!disabled ? onCategoryClick : undefined}
       >
         {isHovered && isEnlarged && (
           <span className="edit-icon-area rounded-md p-1 hover:bg-white/10">
             <EditIcon
-              onClick={() => isEnlarged && onCategoryClick && onCategoryClick()}
+              onClick={(e) => {
+                if (!disabled) {
+                  e.stopPropagation()
+                  onCategoryClick?.()
+                }
+              }}
               size={18}
               className="text-muted-foreground cursor-pointer hover:text-primary"
             />

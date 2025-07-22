@@ -26,6 +26,7 @@ export interface ActivityToRecategorize {
   currentCategoryId: string
   currentCategoryName: string
   currentCategoryColor: string
+  categoryReasoning?: string
   originalUrl?: string
   startDateMs?: number
   endDateMs?: number
@@ -67,8 +68,15 @@ export function MainAppContent(): React.ReactElement {
 
   const updateActivityCategoryMutation =
     trpc.activeWindowEvents.updateEventsCategoryInDateRange.useMutation({
-      onSuccess: (_data, variables) => {
+      onSuccess: (data, variables) => {
         console.log('🔄 RE-CATEGORIZATION SUCCESS:', variables)
+        if (data.latestEvent) {
+          // Invalidate and refetch the latest event query to update the UI
+          trpcUtils.activeWindowEvents.getLatestEvent.setData(
+            { token: token || '' },
+            data.latestEvent
+          )
+        }
         toast({
           title: 'Activity Re-categorized',
           description: (
@@ -169,38 +177,10 @@ export function MainAppContent(): React.ReactElement {
   )
 
   useEffect(() => {
-    const handleRecategorizeRequestFromIPC = (receivedData: Category): void => {
+    const handleRecategorizeRequestFromIPC = (receivedData: ActivityToRecategorize): void => {
       console.log('App.tsx: IPC Handler - Raw received data:', receivedData)
-
-      // The received data should be the category object.
-      const categoryObject = receivedData as Category
-
-      if (categoryObject && typeof categoryObject === 'object' && categoryObject._id) {
-        if (!activeWindow) {
-          console.warn('Recategorize request received but activeWindow is null.')
-          toast({
-            title: 'Cannot recategorize',
-            description: 'No active window information available.',
-            variant: 'destructive'
-          })
-          return
-        }
-
-        const nameToDisplay = activeWindow.title
-        const identifier = activeWindow.url
-        const itemType = activeWindow.url ? 'website' : 'app'
-
-        const target: ActivityToRecategorize = {
-          identifier: identifier || '',
-          nameToDisplay: nameToDisplay || 'Unknown',
-          itemType: itemType,
-          currentCategoryId: categoryObject._id,
-          currentCategoryName: categoryObject.name,
-          currentCategoryColor: categoryObject.color,
-          originalUrl: activeWindow.url || undefined
-        }
-        console.log('App.tsx: Opening dialog with target from IPC:', target)
-        openRecategorizeDialog(target)
+      if (receivedData && typeof receivedData === 'object' && receivedData.identifier) {
+        openRecategorizeDialog(receivedData)
       } else {
         console.warn('App.tsx: IPC recategorize request failed. Data received:', receivedData)
       }
@@ -394,6 +374,8 @@ export function MainAppContent(): React.ReactElement {
               setIsSettingsOpen(true)
               setFocusOn('categories')
             }}
+            setIsSettingsOpen={setIsSettingsOpen}
+            setFocusOn={setFocusOn}
           />
         )}
       </div>

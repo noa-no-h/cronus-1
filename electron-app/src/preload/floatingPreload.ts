@@ -7,6 +7,22 @@ interface FloatingStatusUpdate {
   dailyProductiveMs: number
   dailyUnproductiveMs: number
   categoryDetails?: Category
+  activityIdentifier?: string
+  itemType?: 'app' | 'website'
+  activityName?: string
+  activityUrl?: string
+  categoryReasoning?: string
+}
+
+export interface ActivityToRecategorize {
+  identifier: string
+  nameToDisplay: string
+  itemType: 'app' | 'website'
+  currentCategoryId: string
+  currentCategoryName: string
+  currentCategoryColor: string
+  categoryReasoning?: string
+  originalUrl?: string
 }
 
 export interface FloatingWindowApi {
@@ -15,7 +31,7 @@ export interface FloatingWindowApi {
   ) => () => void
   moveWindow: (deltaX: number, deltaY: number) => void
   hideFloatingWindow: () => void
-  requestRecategorizeView: (category: Category | undefined) => void
+  requestRecategorizeView: (activity: ActivityToRecategorize) => void
   openMainAppWindow: () => void
 }
 
@@ -34,8 +50,8 @@ const floatingApi: FloatingWindowApi = {
   hideFloatingWindow: () => {
     ipcRenderer.send('hide-floating-window')
   },
-  requestRecategorizeView: (category: Category | undefined) => {
-    ipcRenderer.send('request-recategorize-view', category)
+  requestRecategorizeView: (activity: ActivityToRecategorize) => {
+    ipcRenderer.send('request-recategorize-view', activity)
   },
   openMainAppWindow: () => {
     ipcRenderer.send('open-main-app-window')

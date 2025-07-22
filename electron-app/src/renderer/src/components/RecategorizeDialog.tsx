@@ -1,12 +1,14 @@
-import { PlusCircle } from 'lucide-react'
+import { Info, PlusCircle } from 'lucide-react'
 import React from 'react'
 import { Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
 import { useDarkMode } from '../hooks/useDarkMode'
 import { getDarkerColor, getLighterColor, hexToRgba } from '../lib/colors'
 import { ActivityIcon } from './ActivityList/ActivityIcon'
+import { WorkGoalImprovementHint } from './ActivityList/WorkGoalImprovementHint'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 interface RecategorizeDialogProps {
   open: boolean
@@ -16,6 +18,8 @@ interface RecategorizeDialogProps {
   onSave: (newCategoryId: string) => void
   isLoading: boolean
   onAddNewCategory: () => void
+  setIsSettingsOpen: (open: boolean) => void
+  setFocusOn: (field: string) => void
 }
 
 const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
@@ -25,7 +29,9 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
   allCategories,
   onSave,
   isLoading,
-  onAddNewCategory
+  onAddNewCategory,
+  setIsSettingsOpen,
+  setFocusOn
 }) => {
   const isDarkMode = useDarkMode()
 
@@ -51,30 +57,50 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex flex-col gap-2">
+          <div className="flex text-sm flex-col gap-2">
             <div className="pt-2 flex items-center">
               <span className="text-muted-foreground mr-2 flex-shrink-0">Change target:</span>
               <ActivityIcon
                 url={activityTarget.originalUrl}
                 appName={activityTarget.identifier}
                 size={16}
-                className="inline-block align-middle mr-2 flex-shrink-0"
+                className="inline-block align-middle mr-1 flex-shrink-0"
                 itemType={activityTarget.originalUrl ? 'website' : 'app'}
                 color={activityTarget.currentCategoryColor}
                 showFallback={false}
                 fallbackText={activityTarget.identifier.charAt(0).toUpperCase()}
               />
               <div className="truncate w-80">
-                <strong className="text-primary ">{activityTarget.nameToDisplay}</strong>
+                <strong className="text-primary font-semibold text-sm">
+                  {activityTarget.nameToDisplay}
+                </strong>
               </div>
             </div>
-            <div className="text-muted-foreground">
-              Currently categorized as{' '}
+            {activityTarget.categoryReasoning && (
+              <div className="flex flex-row gap-1">
+                <div className="text-muted-foreground flex-shrink-0">Category reason:</div>
+                <div className="font-semibold truncate">{activityTarget.categoryReasoning}</div>
+              </div>
+            )}
+            <div className="text-muted-foreground flex flex-row gap-1 items-center">
+              Currently categorized as
+              <Popover>
+                <PopoverTrigger>
+                  <Info className="w-4 h-4" />
+                </PopoverTrigger>
+                <PopoverContent>
+                  <WorkGoalImprovementHint
+                    setIsSettingsOpen={setIsSettingsOpen}
+                    setFocusOn={setFocusOn}
+                  />
+                </PopoverContent>
+              </Popover>
+              :
               <span
-                className="w-4 h-4 rounded-full inline-block align-middle mr-1 mb-[4px]"
+                className="w-4 h-4 rounded-full inline-block align-middle mb-[2px]"
                 style={{ backgroundColor: activityTarget.currentCategoryColor }}
               ></span>
-              <strong className="text-primary">{activityTarget.currentCategoryName}</strong>
+              <div className="text-primary font-semibold">{activityTarget.currentCategoryName}</div>
             </div>
           </div>
 

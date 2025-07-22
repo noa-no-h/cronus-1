@@ -32,7 +32,8 @@ export const useRecategorizationHandler = (
       itemType: displayWindowInfo.isApp ? 'app' : 'website',
       currentCategoryId: currentCatId,
       currentCategoryName: currentCatName,
-      currentCategoryColor: currentCat?.color || '#000000'
+      currentCategoryColor: currentCat?.color || '#000000',
+      categoryReasoning: latestEvent.categoryReasoning || undefined
     }
     onOpenRecategorizeDialog(target)
   }

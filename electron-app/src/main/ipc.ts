@@ -7,6 +7,17 @@ import icon from '../../resources/icon.png?asset'
 import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 
+export interface ActivityToRecategorize {
+  identifier: string
+  nameToDisplay: string
+  itemType: 'app' | 'website'
+  currentCategoryId: string
+  currentCategoryName: string
+  currentCategoryColor: string
+  categoryReasoning?: string
+  originalUrl?: string
+}
+
 interface Windows {
   mainWindow: BrowserWindow | null
   floatingWindow: BrowserWindow | null
@@ -206,14 +217,14 @@ export function registerIpcHandlers(
     }
   )
 
-  ipcMain.on('request-recategorize-view', (_event, categoryDetails?: Category) => {
+  ipcMain.on('request-recategorize-view', (_event, activity?: ActivityToRecategorize) => {
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.show()
       windows.mainWindow.focus()
       if (windows.mainWindow.isMinimized()) {
         windows.mainWindow.restore()
       }
-      windows.mainWindow.webContents.send('display-recategorize-page', categoryDetails)
+      windows.mainWindow.webContents.send('display-recategorize-page', activity)
     } else {
       // Main window is closed - recreate it
       console.log('Main window closed, recreating for recategorization...')
@@ -222,7 +233,7 @@ export function registerIpcHandlers(
       // Wait for window to load, then send recategorize request
       windows.mainWindow.webContents.once('did-finish-load', () => {
         if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
-          windows.mainWindow.webContents.send('display-recategorize-page', categoryDetails)
+          windows.mainWindow.webContents.send('display-recategorize-page', activity)
         }
       })
     }

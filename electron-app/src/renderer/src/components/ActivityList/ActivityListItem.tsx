@@ -106,7 +106,6 @@ export const ActivityListItem = ({
                 size={16}
                 className="mr-2"
                 color={currentCategory.color}
-                onFaviconError={() => handleFaviconError(activity.identifier)}
                 showFallback={faviconErrors.has(activity.identifier)}
                 fallbackText={activity.identifier.charAt(0).toUpperCase()}
               />

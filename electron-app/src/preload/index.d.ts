@@ -1,5 +1,5 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import { ActiveWindowDetails, Category } from 'shared/dist/types.js'
+import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { FloatingWindowApi } from './floatingPreload'
 
 // Use the BaseElectronAPI type from electron-toolkit if available
@@ -55,15 +55,11 @@ declare global {
 
       readFile: (filePath: string) => Promise<ArrayBuffer>
       deleteFile: (filePath: string) => Promise<void>
+      onDisplayRecategorizePage: (callback: (activity: ActivityToRecategorize) => void) => () => void
       getFloatingWindowVisibility: () => Promise<boolean>
-      onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
       getAudioDataUrl: () => Promise<string | null>
       openExternalUrl: (url: string) => void
       showNotification: (options: { title: string; body: string }) => void
-
-      onDisplayRecategorizePage: (callback: (category: Category) => void) => () => void
-      onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void
-      getFloatingWindowVisibility: () => Promise<boolean>
 
       // Permission-related methods
       getPermissionRequestStatus: () => Promise<boolean>

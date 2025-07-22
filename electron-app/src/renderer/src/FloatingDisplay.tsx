@@ -11,12 +11,12 @@ interface FloatingStatusUpdate {
   latestStatus: LatestStatusType
   dailyProductiveMs: number
   dailyUnproductiveMs: number
-  categoryName?: string
   categoryDetails?: Category
   activityIdentifier?: string
   itemType?: 'app' | 'website'
   activityName?: string
   activityUrl?: string
+  categoryReasoning?: string
 }
 
 // Helper to format milliseconds to HH:MM:SS
@@ -41,6 +41,7 @@ const FloatingDisplay: React.FC = () => {
     itemType?: 'app' | 'website'
     name?: string
     url?: string
+    categoryReasoning?: string
   }>({})
 
   const draggableRef = useRef<HTMLDivElement>(null)
@@ -57,7 +58,8 @@ const FloatingDisplay: React.FC = () => {
           identifier: data.activityIdentifier,
           itemType: data.itemType,
           name: data.activityName,
-          url: data.activityUrl
+          url: data.activityUrl,
+          categoryReasoning: data.categoryReasoning
         })
         setIsVisible(true)
       })
@@ -125,12 +127,31 @@ const FloatingDisplay: React.FC = () => {
   }
 
   const handleCategoryNameClick = () => {
+    console.log('[FloatingDisplay] handleCategoryNameClick', currentCategoryDetails, activityInfo)
+
     if (window.floatingApi && window.floatingApi.requestRecategorizeView) {
-      if (!currentCategoryDetails) {
-        console.warn('[FloatingDisplay] No category details to send for recategorization.')
+      if (!currentCategoryDetails || !activityInfo.identifier || !activityInfo.itemType) {
+        console.warn(
+          '[FloatingDisplay] Not enough information to send for recategorization.',
+          currentCategoryDetails,
+          activityInfo
+        )
         return
       }
-      window.floatingApi.requestRecategorizeView(currentCategoryDetails)
+      const activityToRecategorize = {
+        identifier: activityInfo.identifier,
+        nameToDisplay: activityInfo.name || 'Unknown Activity',
+        itemType: activityInfo.itemType,
+        currentCategoryId: currentCategoryDetails._id,
+        currentCategoryName: currentCategoryDetails.name,
+        currentCategoryColor: currentCategoryDetails.color,
+        originalUrl: activityInfo.url,
+        categoryReasoning: activityInfo.categoryReasoning
+      }
+
+      console.log('[FloatingDisplay] Sending activity to recategorize:', activityToRecategorize)
+
+      window.floatingApi.requestRecategorizeView(activityToRecategorize)
     } else {
       console.warn('[FloatingDisplay] floatingApi.requestRecategorizeView is not available.')
     }
@@ -225,6 +246,7 @@ const FloatingDisplay: React.FC = () => {
           isEnlarged={productiveIsEnlarged}
           categoryDetails={productiveBoxCategoryDetails}
           onCategoryClick={handleCategoryNameClick}
+          disabled={!currentCategoryDetails}
         />
         <StatusBox
           label={unproductiveLabel}
@@ -234,6 +256,7 @@ const FloatingDisplay: React.FC = () => {
           isEnlarged={unproductiveIsEnlarged}
           categoryDetails={unproductiveBoxCategoryDetails}
           onCategoryClick={handleCategoryNameClick}
+          disabled={!currentCategoryDetails}
         />
       </div>
     </div>

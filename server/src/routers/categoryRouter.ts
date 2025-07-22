@@ -102,7 +102,8 @@ export const categoryRouter = router({
       const userId = decodedToken.userId;
       let categories = await CategoryModel.find({ userId }).sort({ createdAt: -1 });
 
-      // Check for categories missing an emoji
+      // currently all categories will always have an emoji
+      // TODO it's set to optional in some places. We need to change that but it only became sort of mandatory on 20th July 2025
       const categoriesToUpdate = categories.filter((cat) => !cat.emoji || cat.emoji.trim() === '');
       if (categoriesToUpdate.length > 0) {
         await Promise.all(
