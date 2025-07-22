@@ -13,7 +13,7 @@ function AppWrapper(): React.JSX.Element {
     isAuthenticated,
     isLoading: isAuthLoading,
     loginWithGoogleCode,
-    handleCalendarAuthCode
+    connectCalendarForCurrentUser
   } = useAuth()
   const [googleClientId, setGoogleClientId] = useState<string | null>(null)
   const [configError, setConfigError] = useState<string | null>(null)
@@ -23,7 +23,7 @@ function AppWrapper(): React.JSX.Element {
     const cleanup = window.api.onAuthCodeReceived(async (code) => {
       try {
         if (isAuthenticated) {
-          await handleCalendarAuthCode(code)
+          await connectCalendarForCurrentUser(code)
         } else {
           await loginWithGoogleCode(code, true)
         }
@@ -32,7 +32,7 @@ function AppWrapper(): React.JSX.Element {
       }
     })
     return cleanup
-  }, [isAuthenticated, loginWithGoogleCode, handleCalendarAuthCode])
+  }, [isAuthenticated, loginWithGoogleCode, connectCalendarForCurrentUser])
 
   useEffect(() => {
     setIsLoadingConfig(true)

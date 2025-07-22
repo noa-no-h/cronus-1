@@ -15,6 +15,7 @@ interface AuthContextType {
   logout: () => void
   loginWithGoogleCode: (code: string, isDesktopFlow: boolean) => Promise<void>
   handleCalendarAuthCode: (code: string) => Promise<void>
+  connectCalendarForCurrentUser: (code: string) => Promise<void>
   resetJustLoggedIn: () => void
 }
 
@@ -162,6 +163,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     login(accessToken, refreshToken, user)
   }
 
+  const connectCalendarForCurrentUser = async (code: string): Promise<void> => {
+    try {
+      const { user: returnedUser } = await exchangeGoogleCodeForTokens(code, true)
+      if (returnedUser.id === user?.id) {
+        if (localStorage.getItem('hasCompletedOnboarding') !== 'true') {
+          localStorage.setItem('hasCompletedOnboarding', 'true')
+        }
+        toast({
+          title: 'Calendar Connected!',
+          description: 'Your Google Calendar has been successfully connected.'
+        })
+      } else {
+        toast({
+          title: 'Account Mismatch',
+          description: 'The Google account you used does not match your current login.',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Calendar auth failed:', error)
+      toast({
+        title: 'Connection Failed',
+        description: 'Failed to connect Google Calendar. Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -174,6 +203,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         logout,
         loginWithGoogleCode,
         handleCalendarAuthCode,
+        connectCalendarForCurrentUser,
         resetJustLoggedIn: () => setJustLoggedIn(false)
       }}
     >
