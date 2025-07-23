@@ -1,10 +1,10 @@
 import { ExternalLink } from 'lucide-react'
 import { JSX, useState } from 'react'
+import googleCalendarIcon from '../../assets/icons/googlecal.png'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import googleCalendarIcon from '../../assets/icons/googlecal.png'
 
 export function GoogleCalendarSettings(): JSX.Element {
   const { token } = useAuth()
@@ -76,7 +76,7 @@ export function GoogleCalendarSettings(): JSX.Element {
           Connect your Google Calendar to see your events alongside your activities.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         <div className="flex items-center justify-between">
           {!calendarStatus?.hasAccess && (
             <Button

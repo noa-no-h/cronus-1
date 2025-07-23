@@ -242,7 +242,7 @@ export function CategoryManagementSettings(): JSX.Element {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-xl">Manage Categories</CardTitle>
+            <CardTitle className="text-xl mb-1">Manage Categories</CardTitle>
             <CardDescription>
               Create from scratch or from templates. Ensure there is no overlap between categories
               e.g. archive "Work" after you crate more specific work/project categories.

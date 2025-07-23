@@ -34,35 +34,24 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
     return (
       <div className="space-y-4">
         <div className="bg-muted/30 rounded-lg p-6 border border-border">
-          <h2 className="text-xl font-semibold mb-4">Account</h2>
+          <h2 className="text-xl font-semibold mb-4">Account & Onboarding</h2>
           <p className="text-muted-foreground mb-4">Logged in as: {user?.email || 'Unknown'}</p>
-          <Button
-            onClick={() => {
-              logout()
-              onResetOnboarding()
-            }}
-            variant="destructive"
-            size="sm"
-          >
-            Logout
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  const OnboardingSection = () => {
-    return (
-      <div className="space-y-4">
-        <div className="bg-muted/30 rounded-lg p-6 border border-border">
-          <h2 className="text-xl font-semibold mb-4">Onboarding</h2>
-          <p className="text-muted-foreground mb-4">
-            Restart the setup process to review your goals and permissions.
-          </p>
-          <Button onClick={onResetOnboarding} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Reset Onboarding
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                logout()
+                onResetOnboarding()
+              }}
+              variant="destructive"
+              size="sm"
+            >
+              Logout
+            </Button>
+            <Button onClick={onResetOnboarding} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reset Onboarding
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -76,7 +65,6 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
         <DistractionSoundSettings />
         <MultiPurposeAppsSettings />
         <ThemeSwitcher />
-        <OnboardingSection />
         <GoogleCalendarSettings />
         <LogOutButtonSection />
         <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
