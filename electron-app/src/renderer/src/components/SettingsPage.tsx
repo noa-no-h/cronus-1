@@ -5,12 +5,12 @@ import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
 import { DistractionSoundSettings } from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
+import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
-import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
@@ -36,7 +36,14 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
         <div className="bg-muted/30 rounded-lg p-6 border border-border">
           <h2 className="text-xl font-semibold mb-4">Account</h2>
           <p className="text-muted-foreground mb-4">Logged in as: {user?.email || 'Unknown'}</p>
-          <Button onClick={logout} variant="destructive" size="sm">
+          <Button
+            onClick={() => {
+              logout()
+              onResetOnboarding()
+            }}
+            variant="destructive"
+            size="sm"
+          >
             Logout
           </Button>
         </div>

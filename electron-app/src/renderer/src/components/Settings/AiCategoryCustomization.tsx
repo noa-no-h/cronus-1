@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { defaultComparableCategories } from '../../../../shared/categories'
+import { defaultCategoriesData } from '../../../../shared/categories'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import { trpc } from '../../utils/trpc'
@@ -22,7 +22,7 @@ export function AiCategoryCustomization({
   const [countdown, setCountdown] = useState(3)
   const [suggestedCategories, setSuggestedCategories] = useState<any[]>([])
   const [selectedOption, setSelectedOption] = useState<'ai' | 'simple'>('ai')
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const generateCategoriesMutation = trpc.category.generateAiCategories.useMutation()
   const isDarkMode = useDarkMode()
 
@@ -30,7 +30,7 @@ export function AiCategoryCustomization({
     const fetchCategories = async () => {
       if (token && goals) {
         setLoading(true)
-        setCountdown(3)
+        setCountdown(5)
         onLoadingChange?.(true)
 
         // Start countdown timer
@@ -70,7 +70,9 @@ export function AiCategoryCustomization({
     if (selectedOption === 'ai') {
       onComplete(suggestedCategories)
     } else {
-      onComplete(defaultComparableCategories)
+      const defaultCategories = defaultCategoriesData(user!.id)
+      console.log('defaultCategories', defaultCategories)
+      onComplete(defaultCategories)
     }
   }
 
@@ -80,10 +82,10 @@ export function AiCategoryCustomization({
         Select a set of categories to start with. You can always customize them later.
       </p>
 
-      <div className="space-x-4 flex justify-center h-[242px]">
+      <div className="space-x-4 flex justify-center h-[300px]">
         <Button
           variant="outline"
-          className={`w-56 h-full p-4 text-left flex flex-col items-start justify-start transition-all duration-200 ${
+          className={`w-64 h-full p-4 text-left flex flex-col items-start justify-start transition-all duration-200 ${
             selectedOption === 'ai'
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-400'
               : ''
@@ -107,7 +109,7 @@ export function AiCategoryCustomization({
         </Button>
         <Button
           variant="outline"
-          className={`w-56 h-full p-4 text-left flex flex-col justify-start items-start transition-all duration-200 ${
+          className={`w-64 h-full p-4 text-left flex flex-col justify-start items-start transition-all duration-200 ${
             selectedOption === 'simple'
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-400'
               : ''
@@ -116,8 +118,8 @@ export function AiCategoryCustomization({
         >
           <span className="font-semibold">Simple Categories</span>
           <div className="flex flex-wrap gap-2 mt-2">
-            <CategoryBadge category={{ name: 'Work', color: '#22C55E' }} />
-            <CategoryBadge category={{ name: 'Distraction', color: '#EC4899' }} />
+            <CategoryBadge category={{ name: 'Work', color: '#22C55E', emoji: '💼' }} />
+            <CategoryBadge category={{ name: 'Distraction', color: '#EC4899', emoji: '🎮' }} />
           </div>
         </Button>
       </div>
