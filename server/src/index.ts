@@ -21,6 +21,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-02-24.acacia',
 });
 
+// function to filter out emails for zapier secret rubber
+function filterOutEmails(sensitive: string[]): string[] {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return sensitive.filter((val) => !emailRegex.test(val));
+}
+
 // Import routers
 import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
@@ -177,7 +183,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
   // Scrub error before sending to client
   const clientSensitive = findSensitiveValues(err);
-  const clientCleanErr = scrub(err, clientSensitive);
+  const clientFilteredSensitive = filterOutEmails(clientSensitive);
+  const clientCleanErr = scrub(err, clientFilteredSensitive);
 
   res.status(statusCode).send({
     error: {
