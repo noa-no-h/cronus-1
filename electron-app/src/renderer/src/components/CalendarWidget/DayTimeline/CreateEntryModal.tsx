@@ -158,7 +158,7 @@ export const CreateEntryModal = ({
 
   const handleSelectCategory = (category: Category) => {
     setSelectedCategory(category)
-    setInputValue('')
+    setInputValue(category.name)
     setIsPopoverOpen(false)
     inputRef.current?.focus()
   }
@@ -280,7 +280,7 @@ export const CreateEntryModal = ({
                     autoComplete="off"
                   />
                 </div>
-                {isPopoverOpen && !existingEntry && (
+                {isPopoverOpen && (
                   <CustomCategorySelectionPopover
                     ref={popoverRef}
                     anchorEl={inputRef}
@@ -306,9 +306,12 @@ export const CreateEntryModal = ({
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     {selectedCategory && (
-                      <div className="flex flex-row gap-4 items-center">
+                      <div className="flex flex-row gap-2 items-center">
                         <Label>Selected Category</Label>
-                        <CategoryBadge category={selectedCategory} />
+                        <CategoryBadge
+                          category={selectedCategory}
+                          onClear={() => setSelectedCategory(null)}
+                        />
                       </div>
                     )}
                   </div>

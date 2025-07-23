@@ -101,7 +101,7 @@ export const CategorySectionHeader: React.FC<CategorySectionHeaderProps> = ({
 
   return (
     <div className="sticky top-0 z-10 flex select-none items-center justify-between border-b border-border bg-card py-2">
-      <div className="flex items-center ml-1">
+      <div className="flex items-center">
         <CategoryBadge
           category={{ name: category.name, color: category.color, emoji: category.emoji }}
         />

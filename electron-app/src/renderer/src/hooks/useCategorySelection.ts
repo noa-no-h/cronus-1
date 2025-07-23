@@ -48,14 +48,17 @@ export const useCategorySelection = ({
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
 
   useEffect(() => {
-    if (selectedCategory) {
-      setSearchResults([])
-      setTemplateResults([])
-      setHistoryResults([])
+    if (selectedCategory && inputValue === selectedCategory.name) {
       setIsPopoverOpen(false)
       return
     }
-
+    if (
+      selectedCategory &&
+      historyData?.some((h) => h.title === inputValue && h.categoryId === selectedCategory._id)
+    ) {
+      setIsPopoverOpen(false)
+      return
+    }
     const lowerCaseQuery = inputValue.toLowerCase()
 
     // When there's no input, show recent history and all categories
@@ -153,6 +156,7 @@ export const useCategorySelection = ({
           } else {
             onShowCategoryForm()
           }
+          setIsPopoverOpen(false)
         } else {
           onSubmit()
         }

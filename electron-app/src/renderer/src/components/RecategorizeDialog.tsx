@@ -79,7 +79,7 @@ const RecategorizeDialog: React.FC<RecategorizeDialogProps> = ({
             {activityTarget.categoryReasoning && (
               <div className="flex flex-row gap-1">
                 <div className="text-muted-foreground flex-shrink-0">Category reason:</div>
-                <div className="font-semibold truncate">{activityTarget.categoryReasoning}</div>
+                <div className="font-semibold">{activityTarget.categoryReasoning}</div>
               </div>
             )}
             <div className="text-muted-foreground flex flex-row gap-1 items-center">
