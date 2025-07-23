@@ -12,6 +12,7 @@ import sitemapRouter from './routes/sitemap';
 import waitlistExpressRouter from './routes/waitlist';
 import { startSuggestionCronJob } from './services/cron/suggestionScheduler';
 import { createContext, publicProcedure, router } from './trpc';
+import { scrub, findSensitiveValues } from '@zapier/secret-scrubber';
 
 // Export tRPC utilities
 export { publicProcedure, router };
@@ -30,6 +31,12 @@ import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
 import { startChurnPreventionCronJob } from './services/cron/churnPreventionScheduler';
+
+// function to filter out emails for zapier secret rubber
+function filterOutEmails(sensitive: string[]): string[] {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return sensitive.filter((val) => !emailRegex.test(val));
+}
 
 // Export types used in router signatures
 export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
@@ -162,7 +169,11 @@ app.use(
 
 // Custom error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(`[Express Error] Unhandled error on ${req.method} ${req.originalUrl}:`, err); // Log the error with context
+  // Scrub error object before logging
+  const sensitive = findSensitiveValues(err);
+  const cleanErr = scrub(err, sensitive);
+
+  console.error(`[Express Error] Unhandled error on ${req.method} ${req.originalUrl}:`, cleanErr);
 
   if (res.headersSent) {
     return next(err);
@@ -170,12 +181,16 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
   const statusCode = err.status || (err.type === 'entity.too.large' ? 413 : 500);
 
-  // For this private side project, send detailed errors to the client for easier debugging.
+  // Scrub error before sending to client
+  const clientSensitive = findSensitiveValues(err);
+  const clientFilteredSensitive = filterOutEmails(clientSensitive);
+  const clientCleanErr = scrub(err, clientFilteredSensitive);
+
   res.status(statusCode).send({
     error: {
-      message: err.message,
-      stack: err.stack,
-      ...err,
+      message: clientCleanErr.message,
+      stack: clientCleanErr.stack,
+      ...clientCleanErr,
     },
   });
 });
