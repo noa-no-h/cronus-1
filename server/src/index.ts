@@ -21,12 +21,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2025-02-24.acacia',
 });
 
-// function to filter out emails for zapier secret rubber
-function filterOutEmails(sensitive: string[]): string[] {
-  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-  return sensitive.filter((val) => !emailRegex.test(val));
-}
-
 // Import routers
 import { activeWindowEventsRouter } from './routers/activeWindowEvents';
 import { authRouter } from './routers/auth';
@@ -37,6 +31,12 @@ import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
 import { startChurnPreventionCronJob } from './services/cron/churnPreventionScheduler';
+
+// function to filter out emails for zapier secret rubber
+function filterOutEmails(sensitive: string[]): string[] {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return sensitive.filter((val) => !emailRegex.test(val));
+}
 
 // Export types used in router signatures
 export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
