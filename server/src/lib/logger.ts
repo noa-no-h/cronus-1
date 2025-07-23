@@ -43,12 +43,6 @@ export const logToFile = async (message: string, data?: object): Promise<void> =
       logEntry += `\n[Could not stringify data]`;
     }
   }
-  logToFile('Test log', {
-    email: 'user@example.com',
-    password: 'hunter2',
-    apiKey: 'sk-1234567890abcdef',
-    message: 'Contact me at user@example.com and use password hunter2',
-  });
   try {
     await fs.appendFile(logFilePath, logEntry + '\n');
   } catch (err) {
