@@ -29,6 +29,7 @@ import { statisticsRouter } from './routers/statistics';
 import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
+import { startChurnPreventionCronJob } from './services/cron/churnPreventionScheduler';
 
 // Export types used in router signatures
 export type { CheckoutSessionResponse, PortalSessionResponse } from './routers/payments';
@@ -194,4 +195,4 @@ app.listen(PORT, () => {
 });
 
 startSuggestionCronJob();
-// startChurnPreventionCronJob();
+startChurnPreventionCronJob();
