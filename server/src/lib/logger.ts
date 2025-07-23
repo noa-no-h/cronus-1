@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { scrub, findSensitiveValues } from '@zapier/secret-scrubber';
 
 // Log file will be created in the `server` directory, e.g., /server/server.log
 const logFilePath = path.join(__dirname, '../../server.log');
@@ -26,8 +27,11 @@ export const logToFile = async (message: string, data?: object): Promise<void> =
   let logEntry = `${timestamp} - ${message}`;
   if (data) {
     try {
-      logEntry += `\n${JSON.stringify(data, null, 2)}`;
+      const sensitive = findSensitiveValues(data);
+      const cleanData = scrub(data, sensitive);
+      logEntry += `\n${JSON.stringify(cleanData, null, 2)}`;
     } catch (e) {
+      console.error('Failed to stringify data:', e);
       logEntry += `\n[Could not stringify data]`;
     }
   }
