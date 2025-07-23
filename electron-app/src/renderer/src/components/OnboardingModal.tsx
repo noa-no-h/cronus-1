@@ -24,7 +24,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [userGoals, setUserGoals] = useState('')
   const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
   const { token } = useAuth()
-  const createCategoriesMutation = trpc.category.createCategories.useMutation()
+  const utils = trpc.useUtils()
+  const createCategoriesMutation = trpc.category.createCategories.useMutation({
+    onSuccess: () => {
+      utils.category.getCategories.invalidate()
+      utils.category.hasCategories.invalidate()
+    }
+  })
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')

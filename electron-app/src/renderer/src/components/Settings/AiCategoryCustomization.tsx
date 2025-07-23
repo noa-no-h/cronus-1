@@ -115,6 +115,7 @@ export function AiCategoryCustomization({
               : ''
           }`}
           onClick={() => setSelectedOption('simple')}
+          disabled={loading}
         >
           <span className="font-semibold">Simple Categories</span>
           <div className="flex flex-wrap gap-2 mt-2">
