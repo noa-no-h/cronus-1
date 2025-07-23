@@ -28,11 +28,27 @@ export default function PrivacyPage() {
                 information in the following ways:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Information you give us (such as your name and email address)</li>
                 <li>
-                  Information we get from your use of our services (such as activity tracking data)
+                  <strong>Information You Provide:</strong> This includes your name and email
+                  address when you register for an account.
                 </li>
-                <li>Device information (such as your operating system and application usage)</li>
+                <li>
+                  <strong>Activity and Usage Data:</strong> We collect data from your device to
+                  power our automatic time-tracking features. This includes metadata about the
+                  applications you use and the websites you visit, such as window titles and URLs.
+                  <br />
+                  <br />
+                  For more accurate categorization, you can optionally grant permission for screen
+                  recordings. This feature captures screenshots that are processed locally on your
+                  device to extract text. These screenshots and the extracted text are{' '}
+                  <strong>never sent to our servers or stored.</strong> If you choose not to enable
+                  this optional feature, we only collect the basic metadata mentioned above.
+                </li>
+                <li>
+                  <strong>Device Information:</strong> We collect basic information about your
+                  device, such as its operating system, to ensure our service is compatible and to
+                  improve functionality.
+                </li>
               </ul>
             </section>
             <section className="space-y-4">
