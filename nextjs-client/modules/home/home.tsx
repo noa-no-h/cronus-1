@@ -8,6 +8,7 @@ import { HeroSection } from './hero-section';
 import { BlogPost } from '~/lib/blog';
 import { ActionSection } from './action-section';
 import { BlogSection } from './blog-section';
+import { FAQSection } from './faq-section';
 import { ShowcaseSection } from './showcase-section';
 import { TestimonialsSection } from './testimonials-section';
 
@@ -22,6 +23,7 @@ export function Home({ posts }: { posts: BlogPost[] }) {
       <FeaturesSection />
       <ComparisonSection />
       <ActionSection />
+      <FAQSection />
       <BlogSection posts={posts} />
       <CTASection />
       <Footer />

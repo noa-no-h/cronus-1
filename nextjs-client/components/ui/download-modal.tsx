@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { trackDownloadStart } from '~/lib/analytics';
 import { Button } from './button';
@@ -11,16 +11,30 @@ import { Input } from './input';
 interface DownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
+  autoFocusWindowsWaitlist?: boolean;
 }
 
-const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
+const DownloadModal: React.FC<DownloadModalProps> = ({
+  isOpen,
+  onClose,
+  autoFocusWindowsWaitlist,
+}) => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const windowsWaitlistInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && autoFocusWindowsWaitlist) {
+      setTimeout(() => {
+        windowsWaitlistInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen, autoFocusWindowsWaitlist]);
 
   const handleDownload = (url: string, type: 'arm64' | 'x64') => {
     // Track actual download start
@@ -146,6 +160,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ isOpen, onClose }) => {
               {!isSubmitted ? (
                 <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-3">
                   <Input
+                    ref={windowsWaitlistInputRef}
                     type="email"
                     placeholder="Enter your email"
                     value={email}
