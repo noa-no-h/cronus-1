@@ -3,6 +3,8 @@ import { CategoryModel } from '../../models/category';
 import { UserModel } from '../../models/user';
 import { checkActivityHistory } from './history';
 import { getOpenAICategoryChoice, getOpenAISummaryForBlock } from './llm';
+import { isTitleInformative } from './llm';
+import { generateActivitySummary } from './llm';
 
 interface CategorizationResult {
   categoryId: string | null;
@@ -16,7 +18,7 @@ export async function categorizeActivity(
     ActiveWindowDetails,
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser' | 'durationMs'
   >
-): Promise<CategorizationResult> {
+): Promise<CategorizationResult & { generatedTitle?: string }> {
   // 1. History Check
   const historyResult = await checkActivityHistory(userId, activeWindow);
   if (historyResult) {
@@ -90,5 +92,15 @@ export async function categorizeActivity(
     }
   }
 
-  return { categoryId: determinedCategoryId, categoryReasoning, llmSummary };
+  let finalTitle = activeWindow.title || '';
+  if (!(await isTitleInformative(finalTitle))) {
+    finalTitle = await generateActivitySummary(activeWindow);
+  }
+
+  return {
+    categoryId: determinedCategoryId,
+    categoryReasoning,
+    llmSummary,
+    generatedTitle: finalTitle,
+  };
 }

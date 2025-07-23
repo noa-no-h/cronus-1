@@ -315,6 +315,7 @@ export async function isTitleInformative(title: string): Promise<boolean> {
     const result = answer?.startsWith('yes') ?? false;
     return result;
   } catch (error) {
+    console.error('Error getting OpenAI title informative:', error);
     return false;
   }
 }
@@ -342,6 +343,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
     const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
     return generatedTitle;
   } catch (error) {
+    console.error('Error getting OpenAI activity summary:', error);
     return '';
   }
 }
