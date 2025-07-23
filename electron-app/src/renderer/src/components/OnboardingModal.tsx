@@ -7,6 +7,7 @@ import { AiCategoryCustomization } from './Settings/AiCategoryCustomization'
 import GoalInputForm from './Settings/GoalInputForm'
 import { PermissionStatus, PermissionType } from './Settings/PermissionsStatus'
 import { Button } from './ui/button'
+import { Input } from './ui/input'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -23,6 +24,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [screenRecordingStatus, setScreenRecordingStatus] = useState<number | null>(null)
   const [userGoals, setUserGoals] = useState('')
   const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
+  const [referralSource, setReferralSource] = useState('')
   const { token } = useAuth()
   const utils = trpc.useUtils()
   const createCategoriesMutation = trpc.category.createCategories.useMutation({
@@ -31,6 +33,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       utils.category.hasCategories.invalidate()
     }
   })
+  const updateUserReferralMutation = trpc.user.updateUserReferral.useMutation()
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
@@ -155,7 +158,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
             <Shield className="w-12 h-12 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="bg-muted/30 rounded-lg p-4 border border-border/50 max-w-md w-full">
-            <h3 className="font-semibold mb-4 text-left text-lg">Why We Need This Permission</h3>
+            <h3 className="font-semibold mb-2 text-left text-md">Why We Need This Permission</h3>
             <ul className="space-y-4 text-left text-muted-foreground">
               <li className="flex items-baseline">
                 <span className="text-blue-500 mr-3">&#x2022;</span>
@@ -212,32 +215,28 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'screen-recording',
       title: 'Enable Screen Recording Permission',
       content: (
-        <div className="text-center space-y-4 flex flex-col items-center">
+        <div className="text-center space-y-6 flex flex-col items-center">
           <div className="bg-blue-100 dark:bg-blue-900 p-4 rounded-full">
             <ShieldCheck className="w-12 h-12 text-blue-600 dark:text-blue-400" />
           </div>
 
           <div className="bg-muted/30 rounded-lg p-4 border border-border/50 max-w-md w-full">
-            <h3 className="font-semibold mb-4 text-left text-lg">Why We Need This Permission</h3>
+            <h3 className="font-semibold mb-2 text-left text-md">Improve Time Tracking Accuracy</h3>
             <ul className="space-y-4 text-left text-muted-foreground">
               <li className="flex items-baseline">
                 <span className="text-blue-500 mr-3">&#x2022;</span>
                 <span>
-                  To automatically categorize your activity, we periodically take a screenshot of
-                  your active window.
+                  We use on-device Optical Character Recognition (OCR) to analyze temporary
+                  screenshots of your active window, allowing for automatic activity categorization.
                 </span>
               </li>
               <li className="flex items-baseline">
                 <span className="text-blue-500 mr-3">&#x2022;</span>
                 <span>
-                  We then use Optical Character Recognition (OCR) to understand what you are working
-                  on.
-                </span>
-              </li>
-              <li className="flex items-baseline">
-                <span className="text-blue-500 mr-3">&#x2022;</span>
-                <span>
-                  All screenshots are deleted from your device immediately after being processed.
+                  Screenshots are{' '}
+                  <div className="inline-block font-semibold">deleted immediately</div> after
+                  processing and are{' '}
+                  <div className="inline-block font-semibold">never stored or uploaded</div>.
                 </span>
               </li>
             </ul>
@@ -285,7 +284,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       id: 'complete',
       title: "You're All Set!",
       content: (
-        <div className="text-center space-y-4 flex flex-col items-center">
+        <div className="text-center space-y-6 flex flex-col items-center">
           <div className="flex justify-center">
             <div className="bg-green-100 dark:bg-green-900 p-4 rounded-full">
               <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
@@ -294,10 +293,29 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           <p className="text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
             You&apos;re all set up. Cronus will now track your activity to help you stay focused.
           </p>
-          <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground">
-              💡 <strong>Tip:</strong> You can always update your goals and permissions in Settings.
-            </p>
+          <div className="w-full max-w-md mx-auto space-y-4">
+            <div className="text-left flex flex-col gap-1">
+              <label
+                htmlFor="referral"
+                className="font-medium text-base text-foreground mb-4 block"
+              >
+                Btw, how did you hear about Cronus?{' '}
+                <div className="text-xs text-muted-foreground">Optional</div>
+              </label>
+              <Input
+                id="referral"
+                type="text"
+                placeholder="e.g. Twitter, a friend, Google search..."
+                value={referralSource}
+                onChange={(e) => setReferralSource(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleNext()
+                  }
+                }}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       )
@@ -409,6 +427,18 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleComplete = async () => {
     setIsCompleting(true)
+
+    if (token && referralSource.trim()) {
+      try {
+        await updateUserReferralMutation.mutateAsync({
+          token,
+          referralSource
+        })
+        console.log('✅ Referral source updated successfully.')
+      } catch (error) {
+        console.error('❌ Failed to update referral source:', error)
+      }
+    }
 
     // Start window tracking now that onboarding is complete
     try {

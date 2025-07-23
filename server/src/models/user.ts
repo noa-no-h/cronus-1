@@ -39,6 +39,7 @@ export interface IUser extends Document {
   userProjectsAndGoals: string;
   multiPurposeApps: string[];
   lastChurnEmailSent?: Date;
+  referralSource?: string;
 }
 
 const userSchema = new Schema({
@@ -127,6 +128,10 @@ const userSchema = new Schema({
   },
   lastChurnEmailSent: {
     type: Date,
+    required: false,
+  },
+  referralSource: {
+    type: String,
     required: false,
   },
 });

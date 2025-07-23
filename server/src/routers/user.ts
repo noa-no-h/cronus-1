@@ -216,6 +216,29 @@ export const userRouter = router({
       };
     }),
 
+  updateUserReferral: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        referralSource: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      if (!input.referralSource.trim()) {
+        // Don't update if the input is empty or just whitespace
+        return { success: true };
+      }
+
+      const decoded = safeVerifyToken(input.token);
+      const userId = decoded.userId;
+
+      await UserModel.findByIdAndUpdate(userId, {
+        $set: { referralSource: input.referralSource },
+      });
+
+      return { success: true };
+    }),
+
   // Admin endpoint to query users by version
   getUsersByVersion: publicProcedure
     .input(
