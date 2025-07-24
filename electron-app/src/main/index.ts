@@ -2,7 +2,6 @@ import { is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
 import { app, BrowserWindow, session } from 'electron'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
-import { nativeWindows } from '../native-modules/native-windows'
 import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
 import { registerIpcHandlers } from './ipc'
 import { initializeLoggers } from './logging'
@@ -17,20 +16,16 @@ import { getActiveWindow } from './activeWindow'
 import os from 'os'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
-// NODE_ENV set in build isn't present in the run-time app
 dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
-
-// Initialize Sentry
-// if (!is.dev) {
-//   Sentry.init({
-//     dsn: 'https://771e73ad5ad9618684204fb0513a3298@o4509521859051520.ingest.us.sentry.io/4509521865015296',
-//     integrations: [],
-//     defaultIntegrations: false
-//   })
-// }
 
 let mainWindow: BrowserWindow | null = null
 let floatingWindow: BrowserWindow | null = null
+
+// Define the type for your nativeWindows module (customize as needed)
+type NativeWindows = {
+  startActiveWindowObserver: (callback: (windowInfo: ActiveWindowDetails | null) => void) => void
+  // Add other methods if needed
+}
 
 function App() {
   async function initializeApp() {
@@ -94,8 +89,12 @@ function App() {
     }
 
     // Make the callback available to IPC handlers
+    let nativeWindows: NativeWindows | undefined
+    if (process.platform === 'darwin') {
+      nativeWindows = (await import('../native-modules/native-windows')).nativeWindows
+    }
     ;(global as any).startActiveWindowObserver = () => {
-      nativeWindows.startActiveWindowObserver(windowChangeCallback)
+      nativeWindows?.startActiveWindowObserver(windowChangeCallback)
     }
 
     if (os.platform() === 'win32') {
