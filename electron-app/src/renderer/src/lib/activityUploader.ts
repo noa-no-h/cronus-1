@@ -53,7 +53,6 @@ export const uploadActiveWindowEvent = async (
   if (redactedContent) {
     try {
       redactedContent = await window.api.redactSensitiveContent(redactedContent)
-      console.log('🔒 Content redacted before upload')
     } catch (error) {
       console.error('❌ Failed to redact content:', error)
       // Continue with original content if redaction fails
