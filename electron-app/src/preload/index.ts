@@ -88,7 +88,9 @@ const api = {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getBuildDate: () => ipcRenderer.invoke('get-build-date'),
   getAppIconPath: (appName: string): Promise<string | null> =>
-    ipcRenderer.invoke('get-app-icon-path', appName)
+    ipcRenderer.invoke('get-app-icon-path', appName),
+  redactSensitiveContent: (content: string) =>
+    ipcRenderer.invoke('redact-sensitive-content', content)
   // setSentryUser: (
   //   userData: { id: string; email: string; username: string; subscription: boolean } | null
   // ) => ipcRenderer.invoke('set-sentry-user', userData)

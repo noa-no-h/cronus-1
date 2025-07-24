@@ -1,6 +1,4 @@
-import { createTRPCProxyClient, httpBatchLink } from '@trpc/client'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
-import type { AppRouter } from '../../../../../server/src/index'
 import { SYSTEM_EVENT_NAMES } from './constants'
 import { deleteLocalFile } from './s3Uploader'
 
@@ -51,6 +49,17 @@ export const uploadActiveWindowEvent = async (
 
   const isSystemEvent = SYSTEM_EVENT_NAMES.includes(windowDetails.ownerName)
 
+  let redactedContent = windowDetails.content
+  if (redactedContent) {
+    try {
+      redactedContent = await window.api.redactSensitiveContent(redactedContent)
+      console.log('🔒 Content redacted before upload')
+    } catch (error) {
+      console.error('❌ Failed to redact content:', error)
+      // Continue with original content if redaction fails
+    }
+  }
+
   // Map ActiveWindowDetails to the input type expected by the backend
   const eventData: EventData = {
     token,
@@ -60,7 +69,7 @@ export const uploadActiveWindowEvent = async (
     browser: windowDetails.browser,
     title: windowDetails.title,
     url: windowDetails.url,
-    content: windowDetails.content?.substring(0, CONTENT_CHAR_CUTOFF),
+    content: redactedContent?.substring(0, CONTENT_CHAR_CUTOFF),
     timestamp: windowDetails.timestamp || Date.now(),
     screenshotS3Url: windowDetails.screenshotS3Url ?? undefined
   }
