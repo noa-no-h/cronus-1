@@ -4,9 +4,6 @@ export function redactSensitiveContent(content: string): string {
   }
 
   try {
-    console.log('🔍 Redacting sensitive content, length:', content.length)
-    console.log('📄 ORIGINAL CONTENT:', content)
-
     let redacted = content
 
     // Passwords (various formats)
@@ -75,9 +72,6 @@ export function redactSensitiveContent(content: string): string {
       /(\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})/g,
       '[REDACTED_PHONE]'
     )
-
-    console.log('📄 REDACTED CONTENT:', redacted)
-    console.log('✅ Content redacted successfully')
 
     return redacted
   } catch (error) {
