@@ -13,6 +13,8 @@ import {
   setupSingleInstanceLock
 } from './protocol'
 import { createFloatingWindow, createMainWindow } from './windows'
+import { getActiveWindow } from './activeWindow'
+import os from 'os'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 // NODE_ENV set in build isn't present in the run-time app
@@ -94,6 +96,19 @@ function App() {
     // Make the callback available to IPC handlers
     ;(global as any).startActiveWindowObserver = () => {
       nativeWindows.startActiveWindowObserver(windowChangeCallback)
+    }
+
+    if (os.platform() === 'win32') {
+      setInterval(async () => {
+        try {
+          const win = await getActiveWindow()
+          if (win && mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('active-window-changed', win)
+          }
+        } catch (e) {
+          console.error('Error getting active window:', e)
+        }
+      }, 1000)
     }
 
     // Handle app activation (e.g., clicking the dock icon on macOS)

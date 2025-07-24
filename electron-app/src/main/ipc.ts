@@ -7,6 +7,7 @@ import icon from '../../resources/icon.png?asset'
 import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 import { redactSensitiveContent } from './redaction'
+import { getActiveWindow } from './activeWindow'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -324,6 +325,11 @@ export function registerIpcHandlers(
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.webContents.send('auth-code-received', code)
     }
+  })
+
+  // only using this for windows support
+  ipcMain.handle('get-active-window', async () => {
+    return await getActiveWindow()
   })
 
   // ipcMain.handle(
