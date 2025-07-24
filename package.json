@@ -54,7 +54,8 @@
     "get-windows": "^9.2.0",
     "lucide-react": "^0.483.0",
     "papaparse": "^5.5.2",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "tesseract.js": "^6.0.1"
   },
   "resolutions": {},
   "overrides": {
