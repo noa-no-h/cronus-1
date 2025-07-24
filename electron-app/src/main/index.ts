@@ -14,6 +14,7 @@ import {
 import { createFloatingWindow, createMainWindow } from './windows'
 import { getActiveWindow } from './activeWindow'
 import os from 'os'
+import { getActiveWindowOcrText } from './ocrWin'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
@@ -101,11 +102,15 @@ function App() {
       setInterval(async () => {
         try {
           const win = await getActiveWindow()
+          const ocrText = await getActiveWindowOcrText()
           if (win && mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('active-window-changed', win)
+            mainWindow.webContents.send('active-window-changed', {
+              ...win,
+              ocrText // Attach OCR result
+            })
           }
         } catch (e) {
-          console.error('Error getting active window:', e)
+          console.error('Error getting active window or OCR:', e)
         }
       }, 1000)
     }

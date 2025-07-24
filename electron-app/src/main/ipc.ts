@@ -8,6 +8,7 @@ import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 import { redactSensitiveContent } from './redaction'
 import { getActiveWindow } from './activeWindow'
+import { getActiveWindowOcrText } from './ocrWin'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -330,9 +331,17 @@ export function registerIpcHandlers(
   })
 
   // only using this for windows support
-  ipcMain.handle('get-active-window', async () => {
-    return await getActiveWindow()
-  })
+  if (process.platform === 'win32') {
+    ipcMain.handle('get-active-window', async () => {
+      return await getActiveWindow()
+    })
+  }
+
+  if (process.platform === 'win32') {
+    ipcMain.handle('get-active-window-ocr', async () => {
+      return await getActiveWindowOcrText()
+    })
+  }
 
   // ipcMain.handle(
   //   'set-sentry-user',
