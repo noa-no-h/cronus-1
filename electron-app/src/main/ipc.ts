@@ -6,6 +6,7 @@ import { Category } from 'shared/dist/types'
 import icon from '../../resources/icon.png?asset'
 import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
+import { redactSensitiveContent } from './redaction'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -193,6 +194,10 @@ export function registerIpcHandlers(
       logMainToFile('Error capturing screenshot + OCR', { error: String(error) })
       return { success: false, error: String(error) }
     }
+  })
+
+  ipcMain.handle('redact-sensitive-content', (_event, content: string) => {
+    return redactSensitiveContent(content)
   })
 
   ipcMain.on(
