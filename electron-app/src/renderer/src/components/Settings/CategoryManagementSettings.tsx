@@ -24,11 +24,18 @@ export function CategoryManagementSettings(): JSX.Element {
     data: categories,
     isLoading,
     error: fetchError
-  } = trpc.category.getCategories.useQuery({ token: token || '' }, { enabled: !!token }) as {
-    data: Category[] | undefined
-    isLoading: boolean
-    error: Error
-  }
+  } = trpc.category.getCategories.useQuery(
+    { token: token || '' },
+    {
+      enabled: !!token,
+      select: (data) =>
+        data?.map((category) => ({
+          ...category,
+          createdAt: new Date(category.createdAt),
+          updatedAt: new Date(category.updatedAt)
+        }))
+    }
+  )
   const createMutation = trpc.category.createCategory.useMutation({
     onSuccess: () => {
       utils.category.getCategories.invalidate({ token: token || '' })
