@@ -25,7 +25,9 @@ export function FeaturesSection({ className, ...props }: ComponentProps<'section
       )}
       {...props}
     >
-      <h3 className="text-2xl tablet:text-3xl tracking-tight text-center">Other features</h3>
+      <h3 className="text-2xl tablet:text-3xl tracking-tight text-center">
+        Features that help you lock in
+      </h3>
 
       <ul
         className={cn(

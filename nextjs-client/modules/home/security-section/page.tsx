@@ -18,7 +18,7 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
       {...props}
     >
       <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
-        Hardened security
+        Designed for Your Privacy
       </h3>
 
       <div className={cn('mt-12 tablet:mt-20', 'px-4', 'max-w-full')}>
@@ -34,9 +34,10 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
             description={
               <div className="block">
                 Your data is protected under GDPR. We are committed to your privacy. Read our{' '}
-                <a href="https://cronushq.com/privacy" className="text-accent/70 underline">
-                  privacy policy.
+                <a href="https://cronushq.com/privacy" className="underline">
+                  privacy policy
                 </a>
+                .
               </div>
             }
             className="border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300"
