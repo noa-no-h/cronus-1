@@ -5,8 +5,8 @@ import { CategoryModel } from '../models/category';
 import { getEmojiForCategory } from '../services/categorization/llm';
 import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
-import { getOpenAICategorySuggestion } from 'src/services/categorization/CategoryGeneration';
 import { safeVerifyToken } from '../lib/authUtils';
+import { getOpenAICategorySuggestion } from '../services/categorization/categoryGeneration';
 import { publicProcedure, router } from '../trpc';
 const objectIdToStringSchema = z
   .custom<Types.ObjectId | string>((val) => Types.ObjectId.isValid(val as any))

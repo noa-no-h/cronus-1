@@ -1,7 +1,6 @@
 import OpenAI from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
-import { Category as CategoryType } from '../../../../shared/types';
 
 const openai = new OpenAI(); // Ensure OPENAI_API_KEY is set
 
