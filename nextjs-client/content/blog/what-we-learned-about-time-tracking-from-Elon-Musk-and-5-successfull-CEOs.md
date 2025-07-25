@@ -107,7 +107,8 @@ First Round partner Bill Trenchard argues that a staggering **70% of a CEO's tim
 
 ## 8. John Lees-Miller (Overleaf CTO) on a Year of Minute-by-Minute Tracking
 
-[Read the Hacker News discussion](https://news.ycombinator.com/item?id=12388604)
+[Read the Blog Post](https://jdlm.info/articles/2016/07/04/cto-time-minute-by-minute.html)
+[Read the Hacker News discussion](https://news.ycombinator.com/item?id=12385707)
 
 Overleaf's co-founder and CTO, John Lees-Miller, manually tracked his time for over a year. His data-driven analysis offers some of the most concrete insights available for technical founders.
 
@@ -140,9 +141,8 @@ Because Ben Franklin didn’t have an AI assistant. You do.
 - [Paul Graham: _Maker’s Schedule, Manager’s Schedule_](http://www.paulgraham.com/makersschedule.html)
 - [Sam Corcos’s 2-Year Time Analysis (First Round Review)](https://review.firstround.com/an-exact-breakdown-of-how-one-ceo-spent-his-first-two-years-of-company-building/)
 - [Sam Corcos’s 5-Year Time Analysis Update (First Round Review)](https://review.firstround.com/how-i-spent-17784-hours-in-5-years-as-a-startup-founder/)
-- [A CTO's Time, Minute-by-Minute (Hacker News Discussion)](https://news.ycombinator.com/item?id=12388604)
-- [Bill Trenchard: _70% of Time Could Be Used Better_ (First Round Review)](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?)
-- [John Lees-Miller: _A CTO's Time, Minute-by-Minute_ (Hacker News Discussion)](https://news.ycombinator.com/item?id=12388604)
+- [A CTO's Time, Minute-by-Minute](https://jdlm.info/articles/2016/07/04/cto-time-minute-by-minute.html)
+- [Bill Trenchard: _70% of Time Could Be Used Better_ (First Round Review)](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?) | [Hacker News Discussion](https://news.ycombinator.com/item?id=12385707)
 
 ## Other interesting sources
 
