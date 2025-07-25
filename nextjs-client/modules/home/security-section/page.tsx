@@ -34,7 +34,7 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
             description={
               <div className="block">
                 Your data is protected under GDPR. We are committed to your privacy. Read our{' '}
-                <a href="https://cronushq.com/privacy" className="text-accent underline">
+                <a href="https://cronushq.com/privacy" className="text-accent/70 underline">
                   privacy policy.
                 </a>
               </div>
