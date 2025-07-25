@@ -1,8 +1,8 @@
 import { CircleQuestionMark } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import tutorialVideo from '../assets/cronus-tutorial-25-june.mp4'
-import { Button } from './ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
+import tutorialVideo from '../../assets/cronus-tutorial-25-june.mp4'
+import { Button } from '../ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
 
 interface TutorialModalProps {
   isFirstVisit: boolean

@@ -17,9 +17,9 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
       )}
       {...props}
     >
-      <h3 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
+      <h2 className="font-semibold text-2xl tablet:text-[32px] tracking-[-0.03em] text-center">
         Cronus vs Others
-      </h3>
+      </h2>
 
       <div className={cn('mt-12 tablet:mt-20', 'px-4', 'max-w-full')}>
         <ul
@@ -38,10 +38,10 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               'w-full tablet:w-[400px] desktop:w-[470px]'
             )}
           >
-            <h5 className="flex items-center gap-1.5">
+            <h3 className="flex items-center gap-1.5">
               <Logo className="w-[28px] text-accent" />
               <TextLogo className="w-[108px]" />
-            </h5>
+            </h3>
             <ul
               className={cn(
                 'text-xl',
@@ -103,9 +103,9 @@ export function ComparisonSection({ className, ...props }: ComponentProps<'secti
               'w-full tablet:w-[400px] desktop:w-[470px]'
             )}
           >
-            <h5 className="font-semibold text-2xl tracking-[-0.03em] leading-8 whitespace-nowrap">
+            <h3 className="font-semibold text-2xl tracking-[-0.03em] leading-8 whitespace-nowrap">
               Traditional Time Trackers
-            </h5>
+            </h3>
             <ul
               className={cn(
                 'text-xl',

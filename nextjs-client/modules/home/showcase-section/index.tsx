@@ -24,14 +24,14 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
         className={cn('desktop:flex desktop:flex-row-reverse desktop:items-center desktop:gap-20')}
       >
         <div className={cn('text-primary space-y-6', 'tablet:w-[682px] desktop:w-[480px]')}>
-          <h3
+          <h2
             className={cn(
               'font-medium font-serif tracking-tight whitespace-nowrap',
               'text-xl tablet:text-3xl'
             )}
           >
             AI Time and Distraction Tracking
-          </h3>
+          </h2>
           <p
             className={cn(
               'tracking-[-0.03em] leading-[1.5]',
@@ -65,9 +65,9 @@ export function ShowcaseSection({ className, ...props }: ComponentProps<'section
             'desktop:w-[480px] desktop:pl-8'
           )}
         >
-          <h3 className={cn('font-medium font-serif tracking-tight', 'text-xl tablet:text-3xl')}>
+          <h2 className={cn('font-medium font-serif tracking-tight', 'text-xl tablet:text-3xl')}>
             Gamified Productivity with the Mini Timer
-          </h3>
+          </h2>
           <p
             className={cn(
               'text-sm tablet:text-base',

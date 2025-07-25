@@ -6,13 +6,13 @@ import { useRef, type ComponentProps } from 'react';
 import { cn } from '~/lib/cn';
 import dominik from './dominikfink.jpeg';
 import freddy from './freddy-feldmeier.png';
+import jona from './jona-schwarz.jpeg';
 import koii from './koii-benvenutto.jpeg';
 import leander from './leander-maerkisch.png';
 import luke from './luke-piette.webp';
 import moritz from './moritz-wallawitsch.jpeg';
 import savannah from './savannah-feder.jpeg';
 import simon from './simon-berens.jpg';
-import jona from './jona-schwarz.jpeg';
 import { TestimonialCard } from './testimonial-card';
 
 const testimonials = [
@@ -110,9 +110,9 @@ export function TestimonialsSection({ className, ...props }: ComponentProps<'sec
       className={cn('bg-zinc-100 py-16 tablet:py-30 desktop:py-40', className)}
       {...props}
     >
-      <h3 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
+      <h2 className="font-medium font-serif text-primary text-2xl tablet:text-3xl tracking-tight text-center">
         What our users are saying
-      </h3>
+      </h2>
 
       <div className="mt-20 overflow-hidden" ref={emblaRef}>
         <div className="flex">
