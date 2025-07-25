@@ -6,7 +6,7 @@ export function WorkGoalImprovementHint({
   setFocusOn: (field: string) => void
 }) {
   return (
-    <>
+    <div className="text-sm text-muted-foreground">
       Make your{' '}
       <button
         onClick={() => {
@@ -18,6 +18,6 @@ export function WorkGoalImprovementHint({
         Work & Goals
       </button>{' '}
       setting more specific for better AI categorization.
-    </>
+    </div>
   )
 }

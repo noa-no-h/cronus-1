@@ -14,6 +14,7 @@ import {
   processActivityEvents
 } from '../../lib/activityProcessing'
 import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
+import { showActivityMovedToast } from '../../lib/custom-toasts'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CategoryForm } from '../Settings/CategoryForm'
@@ -25,7 +26,6 @@ import ActivityByCategorySkeleton from './ActivityByCategorySkeleton'
 import { ActivityList } from './ActivityList'
 import { CategorySectionHeader } from './CategorySectionHeader'
 import { TimeRangeSelectionInfo } from './TimeRangeSelectionInfo'
-import { WorkGoalImprovementHint } from './WorkGoalImprovementHint'
 
 interface ActivitiesByCategoryWidgetProps {
   processedEvents: ProcessedEventBlock[] | null
@@ -78,22 +78,20 @@ const ActivitiesByCategoryWidget = ({
         refetchEvents()
         const targetCategory = categories?.find((cat) => cat._id === variables.newCategoryId)
         const targetCategoryName = targetCategory ? targetCategory.name : 'Unknown Category'
+        const timeRangeDescription = getTimeRangeDescription(
+          selectedHour,
+          selectedDay,
+          'day',
+          startDateMs,
+          endDateMs
+        )
 
-        toast({
-          title: 'Activity Moved',
-          duration: 5000,
-          description: (
-            <>
-              {variables.activityIdentifier} moved to {targetCategoryName}{' '}
-              {getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.
-              <br />
-              <br />
-              <WorkGoalImprovementHint
-                setIsSettingsOpen={setIsSettingsOpen}
-                setFocusOn={setFocusOn}
-              />
-            </>
-          )
+        showActivityMovedToast({
+          activityIdentifier: variables.activityIdentifier,
+          targetCategoryName,
+          timeRangeDescription,
+          setIsSettingsOpen,
+          setFocusOn
         })
       },
       onError: (error) => {
@@ -163,20 +161,21 @@ const ActivitiesByCategoryWidget = ({
     try {
       await Promise.all(movePromises)
       refetchEvents()
-      toast({
-        title: 'Activities Moved',
-        duration: 5000,
-        description: (
-          <>
-            {`${activitiesToMove.length} activities moved to ${targetCategoryName} ${getTimeRangeDescription(selectedHour, selectedDay, 'day', startDateMs, endDateMs)}.`}
-            <br />
-            <br />
-            <WorkGoalImprovementHint
-              setIsSettingsOpen={setIsSettingsOpen}
-              setFocusOn={setFocusOn}
-            />
-          </>
-        )
+
+      const timeRangeDescription = getTimeRangeDescription(
+        selectedHour,
+        selectedDay,
+        'day',
+        startDateMs,
+        endDateMs
+      )
+
+      showActivityMovedToast({
+        activityIdentifier: activitiesToMove.length,
+        targetCategoryName,
+        timeRangeDescription,
+        setIsSettingsOpen,
+        setFocusOn
       })
       clearSelection()
     } catch (error) {
