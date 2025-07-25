@@ -4,7 +4,7 @@ import { cn } from '~/lib/cn';
 const SensitiveDataReductionIcon = ({ className, ...props }: ComponentProps<'div'>) => (
   <div className={cn('w-full h-full relative', className)} {...props}>
     {/* Document background */}
-    <div className="absolute left-[12.5%] w-[75%] h-full bg-blue-50/80 border-3 border-gray-400 rounded-sm" />
+    <div className="absolute left-[12.5%] w-[75%] h-[90%] bg-blue-50/80 border-2 border-gray-200 rounded-sm" />
 
     {/* Lines of text */}
     <div className="absolute top-[18%] left-[29%] w-[11%] h-[3px] bg-blue-500 rounded-full" />

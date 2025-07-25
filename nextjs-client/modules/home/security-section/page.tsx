@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import type { ComponentProps } from 'react';
-import { Device } from '~/components/icons/device';
+import PermissionsToggleIcon from '~/components/icons/permissions-toggle';
 import SensitiveDataReductionIcon from '~/components/icons/rsensitivedatareduction';
 import { cn } from '~/lib/cn';
 import { SecurityCard } from './components/SecurityCard';
@@ -47,10 +47,11 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
             description="Sensitive information is redacted on your device, so it never reaches our servers."
             className="border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300"
           />
+
           <SecurityCard
-            icon={<Device className="size-full text-accent/80" />}
+            icon={<PermissionsToggleIcon className="size-full text-accent/80" />}
             title="You're in Control"
-            description="Screenshots are optional and only used locally to improve accuracy. The app works perfectly with just metadata."
+            description="Enable optional on-device Screen OCR for improved accuracy. The app also works with just window metadata."
           />
         </ul>
       </div>
