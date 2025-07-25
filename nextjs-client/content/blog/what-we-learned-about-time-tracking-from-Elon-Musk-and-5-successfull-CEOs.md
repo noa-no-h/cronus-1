@@ -93,6 +93,30 @@ His system isn’t just about logging hours; it’s about ruthlessly aligning ev
 
 ---
 
+## 7. Bill Trenchard (First Round) on Getting 70% of Your Time Back
+
+[Read the First Round Review article](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?)
+
+First Round partner Bill Trenchard argues that a staggering **70% of a CEO's time is spent sub-optimally**. After interviewing top CEOs, he compiled a list of high-leverage tactics to reclaim those hours.
+
+- **Kill Status Meetings:** Trenchard's most radical tip? Get rid of the round-robin status update meeting. Instead, have team members write their updates in a shared document (like a Google Doc) for everyone to read weekly. This saves dozens of hours.
+- **Become an Email Ninja (with the 2-Minute Rule):** If an email takes less than two minutes to answer, do it immediately. If it takes longer, move it to a task manager (like Asana or Todoist). This prevents your inbox from becoming a default to-do list. He also recommends tools like `SaneBox` to filter noise and `TextExpander` for canned responses.
+- **De-risk Failure for Your Team:** A key role of a leader is to unblock their team. Trenchard advises asking, "What is the cost of failure?" If the cost is low, empower the team to move fast and break things. Don't let perfectionism on a minor feature grind a major project to a halt. This is the 80/20 rule in action.
+
+---
+
+## 8. John Lees-Miller (Overleaf CTO) on a Year of Minute-by-Minute Tracking
+
+[Read the Hacker News discussion](https://news.ycombinator.com/item?id=12388604)
+
+Overleaf's co-founder and CTO, John Lees-Miller, manually tracked his time for over a year. His data-driven analysis offers some of the most concrete insights available for technical founders.
+
+- **The Myth of the 130-Hour Work Week:** Lees-Miller logged a rigorous 52 hours of _actual_ work per week. He notes that this was a strict definition—any small break stopped the clock. It's a realistic look at the "marathon" of building a startup.
+- **Management Explodes, Meetings Disappear:** As his dev team grew by 200%, his `management` time skyrocketed by 230%. But surprisingly, his time in scheduled `meetings` _decreased_ by 72%. Why? Most of his new management tasks (like code reviews) were asynchronous, happening on GitHub and chat.
+- **The Weekend Creep:** The most alarming discovery was where his dev time went. While his total coding time stayed the same, it shifted. Workday `dev` time fell by 40%, but was replaced by a 140% _increase_ in weekend coding. A cautionary tale for any hands-on founder.
+
+---
+
 ## Why This Matters (and Why Cronus Exists)
 
 Time tracking isn’t about obsessing over minutes — it’s about **awareness**. Every resource above shares the same message: when you know where your time goes, you can _actually_ do something about it.
@@ -116,6 +140,14 @@ Because Ben Franklin didn’t have an AI assistant. You do.
 - [Paul Graham: _Maker’s Schedule, Manager’s Schedule_](http://www.paulgraham.com/makersschedule.html)
 - [Sam Corcos’s 2-Year Time Analysis (First Round Review)](https://review.firstround.com/an-exact-breakdown-of-how-one-ceo-spent-his-first-two-years-of-company-building/)
 - [Sam Corcos’s 5-Year Time Analysis Update (First Round Review)](https://review.firstround.com/how-i-spent-17784-hours-in-5-years-as-a-startup-founder/)
+- [A CTO's Time, Minute-by-Minute (Hacker News Discussion)](https://news.ycombinator.com/item?id=12388604)
+- [Bill Trenchard: _70% of Time Could Be Used Better_ (First Round Review)](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?)
+- [John Lees-Miller: _A CTO's Time, Minute-by-Minute_ (Hacker News Discussion)](https://news.ycombinator.com/item?id=12388604)
+
+## Other interesting sources
+
+- [How CEOs Manage Time (Harvard Business Review)](https://hbr.org/2018/07/how-ceos-manage-time)
+- [How the Best CEOs Get the Most Out of Every Day (First Round Review)](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?)
 
 ---
 
