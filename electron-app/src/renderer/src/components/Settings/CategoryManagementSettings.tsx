@@ -1,5 +1,5 @@
 import { ChevronDown, FolderPlus, MoreHorizontal, PlusCircle, Rows } from 'lucide-react'
-import { JSX, useEffect, useState } from 'react'
+import { JSX, useEffect, useMemo, useState } from 'react'
 import { defaultComparableCategories } from 'shared/categories'
 import { Category } from 'shared/dist/types.js'
 import { useAuth } from '../../contexts/AuthContext'
@@ -18,6 +18,7 @@ import { CategoryListItem } from './CategoryListItem'
 import { CategoryTemplateList } from './CategoryTemplateList'
 
 export function CategoryManagementSettings(): JSX.Element {
+  console.log('CategoryManagementSettings re-rendered')
   const { token } = useAuth()
   const utils = trpc.useUtils()
   const {
@@ -31,8 +32,8 @@ export function CategoryManagementSettings(): JSX.Element {
       select: (data) =>
         data?.map((category) => ({
           ...category,
-          createdAt: new Date(category.createdAt),
-          updatedAt: new Date(category.updatedAt)
+          createdAt: category.createdAt, // Removed new Date() conversion
+          updatedAt: category.updatedAt // Removed new Date() conversion
         }))
     }
   )
@@ -44,6 +45,7 @@ export function CategoryManagementSettings(): JSX.Element {
       setTemplateData(null)
     },
     onError: (err) => {
+      console.error('Error creating category:', err)
       alert(`Error creating category: ${err.message}`)
     }
   })
@@ -55,6 +57,7 @@ export function CategoryManagementSettings(): JSX.Element {
       setTemplateData(null)
     },
     onError: (err) => {
+      console.error('Error updating category:', err)
       alert(`Error updating category: ${err.message}`)
     }
   })
@@ -104,6 +107,7 @@ export function CategoryManagementSettings(): JSX.Element {
     // or when loading state finishes.
     if (!isLoading) {
       const result = checkCategoriesAgainstDefaults(categories, defaultComparableCategories)
+      console.log('checkCategoriesAgainstDefaults result:', result)
       setAreCategoriesMatchingDefaults(result)
     }
   }, [categories, isLoading])
@@ -224,6 +228,10 @@ export function CategoryManagementSettings(): JSX.Element {
     }
   }
 
+  const memoizedInitialData = useMemo(() => {
+    return editingCategory || templateData || undefined
+  }, [editingCategory, templateData])
+
   if (!token && !isLoading) {
     return (
       <div className="p-4 text-center text-yellow-500 bg-yellow-100 border border-yellow-500 rounded-md">
@@ -328,7 +336,7 @@ export function CategoryManagementSettings(): JSX.Element {
           )}
           {isFormOpen && (
             <CategoryForm
-              initialData={editingCategory || templateData || undefined}
+              initialData={memoizedInitialData}
               onSave={handleSaveCategory}
               onCancel={() => {
                 setIsFormOpen(false)

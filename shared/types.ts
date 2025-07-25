@@ -52,8 +52,8 @@ export interface Category {
   isProductive: boolean;
   isDefault: boolean;
   isArchived?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ActivityEventSuggestion {

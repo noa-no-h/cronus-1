@@ -266,12 +266,16 @@ export async function getEmojiForCategory(
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-2024-08-06',
       messages: prompt,
-      max_tokens: 4,
+      max_tokens: 10, // Increased max_tokens to accommodate more complex emojis
       temperature: 0,
     });
     const emoji = response.choices[0]?.message?.content?.trim() || null;
-    // Basic validation: must be a single unicode emoji character (or short sequence)
-    if (emoji && emoji.length <= 4) {
+    // More robust validation: check if it's a single emoji character or sequence
+    // This regex broadly matches various unicode emoji patterns.
+    const emojiRegex =
+      /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+    if (emoji && emojiRegex.test(emoji) && emoji.length <= 10) {
+      // Keep a length check, but regex is primary
       return emoji;
     }
     return null;
