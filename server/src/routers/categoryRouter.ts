@@ -3,7 +3,6 @@ import mongoose, { Types } from 'mongoose';
 import { z } from 'zod';
 import { CategoryModel } from '../models/category';
 import { getEmojiForCategory } from '../services/categorization/llm';
-import { resetCategoriesToDefault } from '../services/category-resetting/categoryResettingService';
 
 import { safeVerifyToken } from '../lib/authUtils';
 import { getOpenAICategorySuggestion } from '../services/categorization/categoryGeneration';
@@ -234,15 +233,6 @@ export const categoryRouter = router({
         isDefault: { $ne: true },
       });
 
-      return { success: true };
-    }),
-
-  resetToDefault: publicProcedure
-    .input(z.object({ token: z.string() }))
-    .mutation(async ({ input }) => {
-      const decodedToken = safeVerifyToken(input.token);
-      const userId = decodedToken.userId;
-      await resetCategoriesToDefault(userId);
       return { success: true };
     }),
 

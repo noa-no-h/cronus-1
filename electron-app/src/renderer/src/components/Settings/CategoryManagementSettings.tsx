@@ -1,9 +1,7 @@
 import { ChevronDown, FolderPlus, MoreHorizontal, PlusCircle, Rows } from 'lucide-react'
-import { JSX, useEffect, useMemo, useState } from 'react'
-import { defaultComparableCategories } from 'shared/categories'
+import { JSX, useMemo, useState } from 'react'
 import { Category } from 'shared/dist/types.js'
 import { useAuth } from '../../contexts/AuthContext'
-import { checkCategoriesAgainstDefaults } from '../../lib/categoryHelpers'
 import { trpc } from '../../utils/trpc'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
@@ -70,19 +68,6 @@ export function CategoryManagementSettings(): JSX.Element {
     }
   })
 
-  const resetToDefaultMutation = trpc.category.resetToDefault.useMutation({
-    onSuccess: () => {
-      utils.category.getCategories.invalidate({ token: token || '' })
-      setIsFormOpen(false) // Close form if open
-      setEditingCategory(null) // Clear editing state
-      setTemplateData(null)
-      alert('Categories have been reset to default.')
-    },
-    onError: (err) => {
-      alert(`Error resetting categories: ${err.message}`)
-    }
-  })
-
   const deleteRecentMutation = trpc.category.deleteRecentlyCreatedCategories.useMutation({
     onSuccess: () => {
       utils.category.getCategories.invalidate({ token: token || '' })
@@ -100,17 +85,6 @@ export function CategoryManagementSettings(): JSX.Element {
     Category,
     '_id' | 'userId' | 'createdAt' | 'updatedAt'
   > | null>(null)
-  const [areCategoriesMatchingDefaults, setAreCategoriesMatchingDefaults] = useState(false)
-
-  useEffect(() => {
-    // Update whether categories match defaults whenever 'categories' data changes
-    // or when loading state finishes.
-    if (!isLoading) {
-      const result = checkCategoriesAgainstDefaults(categories, defaultComparableCategories)
-      console.log('checkCategoriesAgainstDefaults result:', result)
-      setAreCategoriesMatchingDefaults(result)
-    }
-  }, [categories, isLoading])
 
   const handleAddNew = () => {
     setEditingCategory(null)
@@ -135,20 +109,6 @@ export function CategoryManagementSettings(): JSX.Element {
     }
     if (window.confirm('Are you sure you want to delete this category?')) {
       await deleteMutation.mutateAsync({ id, token })
-    }
-  }
-
-  const handleResetToDefault = async () => {
-    if (!token) {
-      alert('Authentication token not found. Please log in again.')
-      return
-    }
-    if (
-      window.confirm(
-        'Are you sure you want to reset all categories to their default settings? This action cannot be undone.'
-      )
-    ) {
-      await resetToDefaultMutation.mutateAsync({ token })
     }
   }
 
@@ -284,21 +244,18 @@ export function CategoryManagementSettings(): JSX.Element {
                 >
                   Delete Created in last 24 hours
                 </DropdownMenuItem>
-                {!areCategoriesMatchingDefaults && (
-                  <DropdownMenuItem
-                    onClick={handleArchiveAll}
-                    disabled={
-                      !token ||
-                      resetToDefaultMutation.isLoading ||
-                      createMutation.isLoading ||
-                      updateMutation.isLoading ||
-                      deleteMutation.isLoading ||
-                      !categories?.some((c) => !c.isArchived)
-                    }
-                  >
-                    Archive All Categories
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem
+                  onClick={handleArchiveAll}
+                  disabled={
+                    !token ||
+                    createMutation.isLoading ||
+                    updateMutation.isLoading ||
+                    deleteMutation.isLoading ||
+                    !categories?.some((c) => !c.isArchived)
+                  }
+                >
+                  Archive All Categories
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>

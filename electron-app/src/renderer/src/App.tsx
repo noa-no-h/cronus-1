@@ -367,7 +367,7 @@ export function MainAppContent(): React.ReactElement {
           </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
-        <TutorialModal isFirstVisit={showTutorial} onClose={() => setShowTutorial(false)} />
+        <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
         <UpdateNotification />
         <Toaster />
         {allCategories && recategorizeTarget && (
