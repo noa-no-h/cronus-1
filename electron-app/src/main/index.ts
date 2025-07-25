@@ -106,13 +106,14 @@ function App() {
           if (win && mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('active-window-changed', {
               ...win,
-              ocrText // Attach OCR result
+              ocrText
             })
           }
         } catch (e) {
           console.error('Error getting active window or OCR:', e)
         }
-      }, 1000)
+        // perform ocr every 5 seconds
+      }, 5000)
     }
 
     // Handle app activation (e.g., clicking the dock icon on macOS)

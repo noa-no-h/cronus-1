@@ -330,13 +330,14 @@ export function registerIpcHandlers(
     }
   })
 
-  // only using this for windows support
+  // getting metadata for windows
   if (process.platform === 'win32') {
     ipcMain.handle('get-active-window', async () => {
       return await getActiveWindow()
     })
   }
 
+  // OCR for windows version
   if (process.platform === 'win32') {
     ipcMain.handle('get-active-window-ocr', async () => {
       return await getActiveWindowOcrText()
