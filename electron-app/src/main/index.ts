@@ -15,6 +15,7 @@ import { createFloatingWindow, createMainWindow } from './windows'
 import { getActiveWindow } from './activeWindow'
 import os from 'os'
 import { getActiveWindowOcrText } from './ocrWin'
+import { getAppIconDataUrl } from './iconWin'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
@@ -103,17 +104,19 @@ function App() {
         try {
           const win = await getActiveWindow()
           const ocrText = await getActiveWindowOcrText()
+          // win.owner.path is the executable path from get-windows
+          const iconDataUrl = win?.owner?.path ? getAppIconDataUrl(win.owner.path) : null
           if (win && mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('active-window-changed', {
               ...win,
-              ocrText
+              ocrText,
+              iconDataUrl
             })
           }
         } catch (e) {
-          console.error('Error getting active window or OCR:', e)
+          console.error('Error getting active window, OCR, or icon:', e)
         }
-        // perform ocr every 5 seconds
-      }, 5000)
+      }, 5000) // or your chosen interval
     }
 
     // Handle app activation (e.g., clicking the dock icon on macOS)
