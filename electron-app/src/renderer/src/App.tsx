@@ -6,6 +6,7 @@ import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
 import { PermissionStatus, PermissionType } from './components/Settings/PermissionsStatus'
 import { SettingsPage } from './components/SettingsPage'
+import { TutorialModal } from './components/TutorialModal'
 import { Toaster } from './components/ui/toaster'
 import { TooltipProvider } from './components/ui/tooltip'
 import { UpdateNotification } from './components/UpdateNotification'
@@ -325,6 +326,22 @@ export function MainAppContent(): React.ReactElement {
     }
   }, [isAuthenticated, showOnboarding])
 
+  const handleTutorialClose = (): void => {
+    setShowTutorial(false)
+    localStorage.setItem('hasSeenTutorial', 'true')
+  }
+
+  useEffect(() => {
+    // Check if user has seen the tutorial
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    // Show tutorial if they've completed onboarding but haven't seen tutorial
+    if (hasCompletedOnboarding && !hasSeenTutorial) {
+      setShowTutorial(true)
+    }
+  }, [])
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex flex-col h-screen">
@@ -343,13 +360,14 @@ export function MainAppContent(): React.ReactElement {
         </div>
         <div className="flex-1 flex flex-col overflow-auto">
           <div className={`flex-1 flex-col min-h-0 ${isSettingsOpen ? 'hidden' : 'flex'}`}>
-            <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+            <DashboardView />
           </div>
           <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
             <SettingsPage onResetOnboarding={handleResetOnboarding} />
           </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+        <TutorialModal isFirstVisit={showTutorial} onClose={() => setShowTutorial(false)} />
         <UpdateNotification />
         <Toaster />
         {allCategories && recategorizeTarget && (
