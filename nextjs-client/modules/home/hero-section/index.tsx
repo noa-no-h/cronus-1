@@ -15,14 +15,14 @@ export function HeroSection({ className, ...props }: ComponentProps<'section'>) 
 
       <div className="relative z-10 flex flex-col items-center space-y-6 mt-[114px] desktop:mt-[90px]">
         <TextLogo className="w-[150px] tablet:w-[200px] text-black" />
-        <p
+        <h1
           className={cn(
             'w-[358px] tablet:w-[474px]',
             'font-medium font-serif text-sm tablet:text-2xl tracking-[-0.03em] text-center text-black'
           )}
         >
           Understand where your time went and reduce distractions.
-        </p>
+        </h1>
         <DownloadButton location="hero_section" />
       </div>
 
