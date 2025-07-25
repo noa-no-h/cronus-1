@@ -43,7 +43,7 @@ const extractActivityDetailsFromEvent = (
     const websiteInfo = extractWebsiteInfo(event.url, event.title || event.ownerName)
     activityName = websiteInfo.name
     itemType = 'website'
-    identifier = websiteInfo.domain
+    identifier = event.url // Use the full URL as the identifier
     originalUrl = event.url
   } else if (
     // Sometimes url is missing but it a browser event
