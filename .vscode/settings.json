@@ -11,5 +11,8 @@
     "electron-app/tailwind.config.js": "electron-app/**",
     "client/tailwind.config.js": "client/**"
   },
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "audioCues.lineHasWarning": "on",
+  "audioCues.lineHasBreakpoint": "on",
+  "audioCues.lineHasError": "on"
 }

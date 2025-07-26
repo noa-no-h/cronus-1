@@ -43,6 +43,7 @@ export function Header({ className, ...props }: ComponentProps<'header'>) {
       >
         <Navbar
           className={cn('bg-white flex-col px-6 tablet:bg-transparent tablet:flex-row tablet:px-0')}
+          onLinkClick={() => setIsOpen(false)}
         />
         <DownloadButton className="hidden tablet:flex shrink-0" location="header_navbar" />
       </div>

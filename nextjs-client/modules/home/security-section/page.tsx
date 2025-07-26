@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import type { ComponentProps } from 'react';
 import PermissionsToggleIcon from '~/components/icons/permissions-toggle';
-import SensitiveDataReductionIcon from '~/components/icons/rsensitivedatareduction';
+import SensitiveDataReductionIcon from '~/components/icons/sensitive-data-reduction';
 import { cn } from '~/lib/cn';
 import { SecurityCard } from './components/SecurityCard';
 import GdprLogo from './gdpr-logo.svg';
@@ -41,13 +41,11 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
                 .
               </div>
             }
-            className="border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300"
           />
           <SecurityCard
             icon={<SensitiveDataReductionIcon className="size-full text-accent/80" />}
             title="On-Device Data Redaction"
             description="Sensitive information is redacted on your device, so it never reaches our servers."
-            className="border-b-[0.5px] tablet:border-b-0 tablet:border-r-[0.5px] border-neutral-300"
           />
 
           <SecurityCard

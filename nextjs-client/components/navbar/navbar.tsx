@@ -5,7 +5,15 @@ import { usePathname } from 'next/navigation';
 import { NavigationMenu } from 'radix-ui';
 import { cn } from '~/lib/cn';
 
-const NavbarItem = ({ href, children }: { href: string; children: React.ReactNode }) => {
+const NavbarItem = ({
+  href,
+  children,
+  onLinkClick,
+}: {
+  href: string;
+  children: React.ReactNode;
+  onLinkClick?: () => void;
+}) => {
   const pathname = usePathname();
   const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
 
@@ -18,6 +26,12 @@ const NavbarItem = ({ href, children }: { href: string; children: React.ReactNod
             'text-sm tablet:text-base transition-colors font-normal',
             isActive ? 'text-blue-600 font-medium' : 'text-primary/80 hover:text-primary/50'
           )}
+          onClick={() => {
+            // Only call onLinkClick for hash links to close the menu without interfering with Next.js routing
+            if (href.startsWith('/#') && onLinkClick) {
+              onLinkClick();
+            }
+          }}
         >
           {children}
         </Link>
@@ -26,14 +40,28 @@ const NavbarItem = ({ href, children }: { href: string; children: React.ReactNod
   );
 };
 
-export function Navbar({ className }: { className?: string }) {
+export function Navbar({
+  className,
+  onLinkClick,
+}: {
+  className?: string;
+  onLinkClick?: () => void;
+}) {
   return (
     <NavigationMenu.Root>
       <NavigationMenu.List className={cn('flex items-center', 'text-sm', className)}>
-        <NavbarItem href="/blog">Blog</NavbarItem>
-        <NavbarItem href="/about">About</NavbarItem>
-        <NavbarItem href="/teams">Teams</NavbarItem>
-        <NavbarItem href="/#privacy">Privacy</NavbarItem>
+        <NavbarItem href="/blog" onLinkClick={onLinkClick}>
+          Blog
+        </NavbarItem>
+        <NavbarItem href="/about" onLinkClick={onLinkClick}>
+          About
+        </NavbarItem>
+        <NavbarItem href="/teams" onLinkClick={onLinkClick}>
+          Teams
+        </NavbarItem>
+        <NavbarItem href="/#privacy" onLinkClick={onLinkClick}>
+          Privacy
+        </NavbarItem>
 
         {/* <NavigationMenu.Item className="w-full border-b-[0.5px] border-b-[#CDCDCD] tablet:border-b-0">
           <NavigationMenu.Link asChild className="block pl-2 py-4 tablet:py-3 tablet:px-4">

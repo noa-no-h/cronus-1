@@ -13,7 +13,7 @@ export function SecurityCard({ icon, title, description, className, ...props }: 
       className={cn(
         'pt-10 tablet:pt-16 desktop:pt-[54px]',
         'bg-zinc-50 rounded-2xl overflow-hidden',
-        'border-[0.5px] border-neutral-300',
+        'border-[0.5px] border-solid border-neutral-300',
         'flex flex-col',
         'p-8 desktop:py-9 desktop:px-[56px]', // Keep these for internal padding/sizing
         'w-full tablet:w-[400px] desktop:w-[470px]', // Keep these for width
