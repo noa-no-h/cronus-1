@@ -127,8 +127,8 @@ const PauseTrackingSettings: React.FC<PauseTrackingSettingsProps> = ({
                 </div>
               </div>
 
-              <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="bg-muted/30 p-3 rounded-lg border border-border">
+                <p className="text-sm text-muted-foreground">
                   <strong>Tip:</strong> You can pause tracking anytime from Settings. Your data is
                   always private and stored locally on your device.
                 </p>
@@ -140,9 +140,7 @@ const PauseTrackingSettings: React.FC<PauseTrackingSettingsProps> = ({
             <Button variant="outline" onClick={handlePauseCancel}>
               Cancel
             </Button>
-            <Button onClick={handlePauseConfirm} className="bg-blue-500 hover:bg-blue-600">
-              Pause Tracking
-            </Button>
+            <Button onClick={handlePauseConfirm}>Pause Tracking</Button>
           </div>
         </DialogContent>
       </Dialog>
