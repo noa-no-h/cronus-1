@@ -70,6 +70,8 @@ declare global {
       enablePermissionRequests: () => Promise<void>
       forceEnablePermissionRequests: () => Promise<void>
       startWindowTracking: () => Promise<void>
+      pauseWindowTracking: () => Promise<void>
+      resumeWindowTracking: () => Promise<void>
       checkForUpdates: () => Promise<void>
       downloadUpdate: () => Promise<void>
       installUpdate: () => Promise<void>

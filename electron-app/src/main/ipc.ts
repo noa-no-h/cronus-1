@@ -81,6 +81,50 @@ export function registerIpcHandlers(
     }
   })
 
+  ipcMain.handle('pause-window-tracking', () => {
+    logMainToFile('Pausing active window observer')
+    // Call the global function to stop tracking
+    if ((global as any).stopActiveWindowObserver) {
+      ;(global as any).stopActiveWindowObserver()
+    } else {
+      logMainToFile('ERROR: stopActiveWindowObserver function not available')
+    }
+  })
+
+  ipcMain.handle('resume-window-tracking', () => {
+    logMainToFile('Resuming active window observer')
+    // Call the global function to start tracking again
+    if ((global as any).startActiveWindowObserver) {
+      ;(global as any).startActiveWindowObserver()
+    } else {
+      logMainToFile('ERROR: startActiveWindowObserver function not available')
+    }
+  })
+
+  // for pausing the timer when tracking is paused
+  ipcMain.on(
+    'update-floating-window-status',
+    (
+      _event,
+      data: {
+        latestStatus: 'productive' | 'unproductive' | 'maybe' | null
+        dailyProductiveMs: number
+        dailyUnproductiveMs: number
+        categoryName?: string
+        categoryDetails?: Category
+        isTrackingPaused?: boolean
+      }
+    ) => {
+      if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+        windows.floatingWindow.webContents.send('floating-window-status-updated', data)
+      } else {
+        console.warn(
+          'Main process: Received status update, but floatingWindow is null or destroyed.'
+        )
+      }
+    }
+  )
+
   // Permission-related IPC handlers
   ipcMain.handle('get-permission-request-status', () => {
     return nativeWindows.getPermissionDialogsEnabled()
@@ -199,28 +243,6 @@ export function registerIpcHandlers(
   ipcMain.handle('redact-sensitive-content', (_event, content: string) => {
     return redactSensitiveContent(content)
   })
-
-  ipcMain.on(
-    'update-floating-window-status',
-    (
-      _event,
-      data: {
-        latestStatus: 'productive' | 'unproductive' | 'maybe' | null
-        dailyProductiveMs: number
-        dailyUnproductiveMs: number
-        categoryName?: string
-        categoryDetails?: Category
-      }
-    ) => {
-      if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
-        windows.floatingWindow.webContents.send('floating-window-status-updated', data)
-      } else {
-        console.warn(
-          'Main process: Received status update, but floatingWindow is null or destroyed.'
-        )
-      }
-    }
-  )
 
   ipcMain.on('request-recategorize-view', (_event, activity?: ActivityToRecategorize) => {
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {

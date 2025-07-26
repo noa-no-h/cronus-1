@@ -11,12 +11,19 @@ import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
+import PauseTrackingSettings from './Settings/PauseTrackingSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
+  isTrackingPaused: boolean
+  onToggleTracking: () => void
 }
 
-export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
+export function SettingsPage({
+  onResetOnboarding,
+  isTrackingPaused,
+  onToggleTracking
+}: SettingsPageProps) {
   const { user, logout } = useAuth()
   const { focusOn, setFocusOn } = useSettings()
   const [showPermissions, setShowPermissions] = useState(false)
@@ -62,6 +69,10 @@ export function SettingsPage({ onResetOnboarding }: SettingsPageProps) {
       <div className="space-y-4">
         <GoalInputForm shouldFocus={focusOn === 'goal-input'} />
         <CategoryManagementSettings />
+        <PauseTrackingSettings
+          isTrackingPaused={isTrackingPaused}
+          onToggleTracking={onToggleTracking}
+        />
         <DistractionSoundSettings />
         <MultiPurposeAppsSettings />
         <ThemeSwitcher />

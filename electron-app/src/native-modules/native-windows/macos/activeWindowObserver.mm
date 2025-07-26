@@ -28,6 +28,7 @@
 
 Napi::ThreadSafeFunction activeWindowChangedCallback;
 ActiveWindowObserver *windowObserver;
+BOOL isObserverStopped = NO;  
 
 auto napiCallback = [](Napi::Env env, Napi::Function jsCallback, std::string* data) {
     jsCallback.Call({Napi::String::New(env, *data)});
@@ -39,6 +40,11 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         NSTimeInterval delayInMSec = 30;
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInMSec * NSEC_PER_MSEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            // CHECK: Don't process if callback is destroyed
+            if (!activeWindowChangedCallback) {
+                return;
+            }
+            
             MyLog(@"mainWindowChanged");
             NSDictionary *details = [(__bridge ActiveWindowObserver*)(refCon) getActiveWindow];
             if (details) {
@@ -49,7 +55,14 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
                 } else {
                     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
                     std::string* result = new std::string([jsonString UTF8String]);
-                    activeWindowChangedCallback.BlockingCall(result, napiCallback);
+                    
+                    // SAFETY CHECK: Verify callback still exists before calling
+                    if (activeWindowChangedCallback) {
+                        activeWindowChangedCallback.BlockingCall(result, napiCallback);
+                    } else {
+                        MyLog(@"⚠️ Callback destroyed during processing, skipping send");
+                        delete result; 
+                    }
                 }
             }
         });
@@ -210,18 +223,23 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 // Centralized method to send data to JavaScript
 - (void)sendWindowInfoToJS:(NSDictionary*)windowInfo withReason:(NSString*)reason {
+    // CHECK: Don't send if callback is destroyed
+    if (!activeWindowChangedCallback) {
+        return;
+    }
+    
     NSMutableDictionary *enrichedInfo = [windowInfo mutableCopy];
-    enrichedInfo[@"captureReason"] = reason;  // "app_switch", "periodic_backup", "chrome_tab_switch", etc.
+    enrichedInfo[@"captureReason"] = reason;
     enrichedInfo[@"timestamp"] = @([[NSDate date] timeIntervalSince1970] * 1000);
     
-    // 🛡️ MEMORY PROTECTION: Check content size before JSON serialization
+    // Check content size before JSON serialization
     NSString *content = enrichedInfo[@"content"];
     if (content && content.length > 2000) {
         MyLog(@"⚠️ Content too large for JSON (%lu chars), truncating", (unsigned long)content.length);
         enrichedInfo[@"content"] = [content substringToIndex:2000];
     }
     
-    @try {
+     @try {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:enrichedInfo options:0 error:&error];
         if (!jsonData) {
@@ -236,9 +254,13 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
         
         std::string* result = new std::string([jsonString UTF8String]);
-        activeWindowChangedCallback.BlockingCall(result, napiCallback);
         
-        MyLog(@"📤 SENT TO JS: %@ (%@) - %lu chars content", enrichedInfo[@"ownerName"], reason, (unsigned long)[enrichedInfo[@"content"] length]);
+        // Verify callback still exists before calling
+        if (activeWindowChangedCallback) {
+            activeWindowChangedCallback.BlockingCall(result, napiCallback);
+        } else {
+            delete result; 
+        }
         
     } @catch (NSException *exception) {
         MyLog(@"💥 FATAL: sendWindowInfoToJS crashed: %@", [exception reason]);
@@ -476,6 +498,12 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 
 // 🆕 NEW: Unified screenshot + OCR methods
 - (NSString*)captureScreenshotAndPerformOCR:(CGWindowID)windowId {
+    // Don't perform OCR if observer is stopped
+    if (isObserverStopped) {
+        NSLog(@"⚠️ Observer stopped, skipping OCR for window %u", windowId);
+        return @"";
+    }
+    
     MyLog(@"🔍 Starting screenshot + OCR for window ID: %u", windowId);
     
     @try {
@@ -564,14 +592,22 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
 @end
 
 void initActiveWindowObserver(Napi::Env env, Napi::Function windowCallback) {
+    isObserverStopped = NO;  // Reset the flag
     activeWindowChangedCallback = Napi::ThreadSafeFunction::New(env, windowCallback, "ActiveWindowChanged", 0, 1);
     windowObserver = [[ActiveWindowObserver alloc] init];
 }
 
 void stopActiveWindowObserver(Napi::Env env) {
-    [windowObserver cleanUp];
-    [windowObserver release]; // Release the observer instance itself
-    windowObserver = Nil;
-    activeWindowChangedCallback.Abort();
-    activeWindowChangedCallback = Nil;
+    isObserverStopped = YES;
+    
+    if (windowObserver) {
+        [windowObserver cleanUp];
+        [windowObserver release];
+        windowObserver = Nil;
+    }
+    
+    if (activeWindowChangedCallback) {
+        activeWindowChangedCallback.Abort();
+        activeWindowChangedCallback = Nil;
+    }
 }
