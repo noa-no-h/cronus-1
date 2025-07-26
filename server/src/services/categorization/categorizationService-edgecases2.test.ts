@@ -146,4 +146,159 @@ describe('categorizationService edge cases for Noah', () => {
       expectedCategoryName: 'Airbnb & Booking.com Verwaltung',
     });
   }, 30000);
+
+  test('should categorize Pinterest browsing for a designer as productive', async () => {
+    const designerUser = {
+      ...noahUser,
+      userProjectsAndGoals:
+        'Im a medical student, studying for the MCAT. I also have a side-hustle where I do brand design for small businesses.',
+    };
+    const designerCategories = [
+      {
+        _id: 'cat1',
+        userId: mockUserId,
+        name: 'Medical Studies',
+        description: 'Studying for medical school, attending lectures, reading textbooks.',
+        isProductive: true,
+      },
+      {
+        _id: 'cat2',
+        userId: mockUserId,
+        name: 'Brand Design Work',
+        description: 'Creating logos, design research, and working on client brand identities.',
+        isProductive: true,
+      },
+      {
+        _id: 'cat3',
+        userId: mockUserId,
+        name: 'MCAT Prep',
+        description: 'Focused study sessions for the MCAT exam.',
+        isProductive: true,
+      },
+      {
+        _id: 'cat4',
+        userId: mockUserId,
+        name: 'Client Communication',
+        description: 'Emails, calls, and meetings with design clients.',
+        isProductive: true,
+      },
+      {
+        _id: 'cat5',
+        userId: mockUserId,
+        name: 'Distraction',
+        description: 'Unrelated browsing, social media, etc.',
+        isProductive: false,
+      },
+      {
+        _id: 'cat6',
+        userId: mockUserId,
+        name: 'Social Media',
+        description: 'Personal social media use on Instagram, Twitter, etc.',
+        isProductive: false,
+      },
+    ];
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(designerUser),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(designerCategories),
+    });
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Safari',
+      title: 'Minimalist Cafe Aesthetic | Pinterest',
+      url: 'https://www.pinterest.com/search/pins/?q=minimalist%20cafe%20aesthetic',
+      content: 'Pins on minimalist cafe design, branding, and decor.',
+      type: 'browser',
+      browser: 'safari',
+    };
+
+    const result = await categorizeActivity(mockUserId, activeWindow);
+    assertCategorization({
+      testName: 'Designer Pinterest test',
+      result,
+      allCategories: designerCategories,
+      expectedCategoryName: 'Brand Design Work',
+    });
+  }, 30000);
+
+  test('should categorize reading a scientific paper for an architect as productive', async () => {
+    const architectUser = {
+      ...noahUser,
+      userProjectsAndGoals:
+        "I'm an architect designing sustainable, eco-friendly buildings. I also write a weekly newsletter about the future of cities.",
+    };
+    const architectCategories = [
+      {
+        _id: 'arc1',
+        userId: mockUserId,
+        name: 'Architectural Design',
+        description:
+          'Creative work, drafting, modeling, and working on sustainable building designs.',
+        isProductive: true,
+      },
+      {
+        _id: 'arc2',
+        userId: mockUserId,
+        name: 'Newsletter Writing',
+        description: 'Writing and editing content for the "Future of Cities" newsletter.',
+        isProductive: true,
+      },
+      {
+        _id: 'arc3',
+        userId: mockUserId,
+        name: 'Client Meetings',
+        description: 'Calls, video conferences, and in-person meetings with clients.',
+        isProductive: true,
+      },
+      {
+        _id: 'arc4',
+        userId: mockUserId,
+        name: 'Building Code Research',
+        description: 'Researching and reviewing local and national building codes.',
+        isProductive: true,
+      },
+      {
+        _id: 'arc5',
+        userId: mockUserId,
+        name: 'Distraction',
+        description: 'Unrelated browsing, news, etc.',
+        isProductive: false,
+      },
+    ];
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(architectUser),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(architectCategories),
+    });
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Safari',
+      title: 'Advancements in Solar Panel Efficiency | MIT Technology Review',
+      url: 'https://www.technologyreview.com/2023/10/25/1082202/breakthrough-could-push-solar-panels-past-the-limits-of-silicon/',
+      content:
+        'A new perovskite-based solar cell has achieved record efficiency, paving the way for more powerful and sustainable energy solutions.',
+      type: 'browser',
+      browser: 'safari',
+    };
+
+    const result = await categorizeActivity(mockUserId, activeWindow);
+    assertCategorization({
+      testName: 'Architect paper test',
+      result,
+      allCategories: architectCategories,
+      expectedCategoryName: 'Architectural Design',
+    });
+  }, 30000);
 });

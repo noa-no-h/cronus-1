@@ -15,6 +15,7 @@
     "test:categorization:edgecases": "bun test src/services/categorization/categorizationService-edgecases.test.ts",
     "test:categorization:edgecases2": "bun test src/services/categorization/categorizationService-edgecases2.test.ts",
     "test:categorization:all": "bun run test:categorization && bun run test:categorization:edgecases && bun run test:categorization:edgecases2",
+    "1.1--------------------------------": "--------------------------------",
     "test:reset_categories": "bun test src/services/category-resetting/resetCategories.test.ts",
     "test:multi-purpose-apps": "bun test src/services/categorization/multiPurposeApps.test.ts",
     "test:category-suggestions": "bun test src/services/categorization/categorySuggestionService.test.ts",
