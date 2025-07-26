@@ -31,7 +31,9 @@ export function QuitConfirmationModal({
             <X className="h-4 w-4" />
           </Button>
           <CardHeader className="text-center pr-10">
-            <CardTitle className="text-xl font-semibold">Are you sure you want to quit?</CardTitle>
+            <CardTitle className="text-xl font-semibold">
+              Are you sure you want to close Cronus?
+            </CardTitle>
             <CardDescription>
               Your time tracking will continue even when you&apos;re away
             </CardDescription>
