@@ -20,8 +20,8 @@ export function Home({ posts }: { posts: BlogPost[] }) {
       <HeroSection />
       {/* <MarqueeSection /> */}
       <ShowcaseSection />
-      <TestimonialsSection />
       <SecuritySection />
+      <TestimonialsSection />
       <FeaturesSection />
       <ComparisonSection />
       <ActionSection />

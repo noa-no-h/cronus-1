@@ -9,6 +9,7 @@ import GdprLogo from './gdpr-logo.svg';
 export default function SecuritySection({ className, ...props }: ComponentProps<'section'>) {
   return (
     <section
+      id="privacy"
       className={cn(
         'bg-white text-primary',
         'py-12 tablet:py-20',

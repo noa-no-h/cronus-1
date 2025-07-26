@@ -11,16 +11,17 @@ featured: true
 
 Time is the only resource you _can’t_ raise a round for. If you’re building, coding, or shipping, every hour counts — yet most of us have no idea where our time actually goes.
 
-Here’s a curated list of the best recent (and timeless) resources on time tracking and productivity — for tech founders, PMs, and engineers. We’ll mix advice from billionaires, a Founding Father, and a few modern productivity nerds.
+Here’s a curated list of the best recent (and timeless) resources on time tracking and productivity — for tech founders, PMs, and engineers. We’ll mix advice from billionaires, a Founding Father, and a few modern productivity experts.
 
----
+## 1. Rahul Vohra (Superhuman) on Tracking What You _Actually_ Do
 
-## 1. Rahul Vohra (Superhuman) on Focus and Meditation
+[Watch here (20:52)](https://www.youtube.com/watch?v=0igjSRZyX-w&t=1252s)
 
-[Watch here (18:06)](https://www.youtube.com/watch?v=0igjSRZyX-w&t=1086s)
+Superhuman’s CEO, Rahul Vohra, realized his calendar didn't reflect his actual work. He said, _“Your calendar says what you thought you were going to do, but it’s really only your trail of work that describes what you actually did.”_
 
-Superhuman’s CEO swears that **Transcendental Meditation** was the ultimate productivity hack: twice a day, 20 minutes each, and suddenly he could focus _way_ longer, think clearer, and actually ship.  
-His takeaway? Sometimes the best time management tool isn’t a new app — it’s training your brain to _stay calm when everything’s on fire_.
+To solve this, he created the **“switch log.”** Every time he changed tasks, he’d send a quick Slack message to his EA. At the end of the week, he could analyze where his time truly went. The insight was shocking. He realized, _“I was only spending 6 to 7% of my time on product, design, technology, and marketing.”_
+
+This simple time tracking method helped him redefine his role, focus on high-impact work, and ultimately, scale the company more effectively. For those without a personal assistant, Cronus automates this process, helping you discover—and expand—your own zone of genius.
 
 ---
 
@@ -148,6 +149,7 @@ Because Ben Franklin didn’t have an AI assistant. You do.
 
 - [How CEOs Manage Time (Harvard Business Review)](https://hbr.org/2018/07/how-ceos-manage-time)
 - [How the Best CEOs Get the Most Out of Every Day (First Round Review)](https://review.firstround.com/70-of-time-could-be-used-better-how-the-best-ceos-get-the-most-out-of-every-day/?)
+- [Rahul Vohra on time blocking (Hive)](https://hive.com/blog/gaurav-vohra-superhuman-time-blocking/)
 
 ---
 
