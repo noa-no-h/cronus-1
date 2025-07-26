@@ -16,6 +16,7 @@ import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { showActivityMovedToast } from './lib/custom-toasts'
 import { trpc } from './utils/trpc'
+import { QuitConfirmationModal } from './components/QuitConfirmationModal'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context-aware, AI distraction and time tracker.'
@@ -43,6 +44,7 @@ export function MainAppContent(): React.ReactElement {
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
   const [isTrackingPaused, setIsTrackingPaused] = useState(false)
+  const [showQuitModal, setShowQuitModal] = useState(false)
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsOpen(!isSettingsOpen)
@@ -357,11 +359,46 @@ export function MainAppContent(): React.ReactElement {
     }
   }, [])
 
+  // Add this effect to listen for quit confirmation requests
+  useEffect(() => {
+    const ipcRenderer = window.electron?.ipcRenderer
+    const handleShowQuitConfirmation = () => {
+      setShowQuitModal(true)
+    }
+
+    ipcRenderer?.on('show-quit-confirmation', handleShowQuitConfirmation)
+
+    return () => {
+      ipcRenderer?.removeListener('show-quit-confirmation', handleShowQuitConfirmation)
+    }
+  }, [])
+
+  const handleQuitConfirm = async () => {
+    console.log('🔄 Quit button clicked in modal, calling confirmQuit...')
+    try {
+      await window.api.confirmQuit()
+      console.log('✅ confirmQuit completed successfully')
+    } catch (error) {
+      console.error('❌ Failed to quit app:', error)
+    }
+  }
+
+  const handleKeepRunning = () => {
+    setShowQuitModal(false)
+  }
+
+  const handleOpenSettingsFromModal = () => {
+    setShowQuitModal(false)
+    setIsSettingsOpen(true)
+  }
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex flex-col h-screen">
         <div className="sticky top-0 z-50 bg-white dark:bg-black">
-          <div className="custom-title-bar">{APP_NAME}</div>
+          <div className="custom-title-bar">
+            <span>{APP_NAME}</span>
+          </div>
           <div className="flex-none p-2">
             <DistractionStatusBar
               activeWindow={activeWindow}
@@ -414,6 +451,12 @@ export function MainAppContent(): React.ReactElement {
             setFocusOn={setFocusOn}
           />
         )}
+        <QuitConfirmationModal
+          isOpen={showQuitModal}
+          onQuit={handleQuitConfirm}
+          onKeepRunning={handleKeepRunning}
+          onOpenSettings={handleOpenSettingsFromModal}
+        />
       </div>
     </TooltipProvider>
   )
