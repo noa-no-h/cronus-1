@@ -46,7 +46,9 @@ interface CustomElectronAPI extends BaseElectronAPI {
 
 declare global {
   interface Window {
-    electron: CustomElectronAPI // Use the custom, more specific type
+    electron: {
+      ipcRenderer: Electron.IpcRenderer
+    }
     api: {
       onAuthCodeReceived: (callback: (code: string) => void) => () => void // Return type for cleanup function
       onActiveWindowChanged: (callback: (details: ActiveWindowDetails) => void) => () => void // Return type for cleanup function
@@ -86,6 +88,8 @@ declare global {
       getAppIconPath: (appName: string) => Promise<string | null>
       redactSensitiveContent: (content: string) => Promise<string>
       // setSentryUser: (userData: { id: string; email: string; username: string; subscription: boolean } | null) => Promise<void>
+      confirmQuit: () => Promise<void>
+      cancelQuit: () => Promise<void>
     }
     floatingApi: FloatingWindowApi
   }
