@@ -81,8 +81,9 @@ export default function PrivacyPage() {
                   account and activity data
                 </li>
                 <li>
-                  <strong>PostHog:</strong> We use PostHog for basic user analytics to understand
-                  how our application is used and improve the user experience
+                  <strong>PostHog:</strong> We use PostHog for analytics, tracking clicks and views,
+                  which may include IP addresses, to improve our app. EU users can opt in; non-EU
+                  users are tracked by default with an opt-out option.
                 </li>
               </ul>
               <p>

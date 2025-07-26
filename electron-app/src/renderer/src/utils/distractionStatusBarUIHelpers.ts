@@ -122,6 +122,6 @@ export const getStatusText = (
 
   const fullCategoryDetails = categoryDetails as Category
   if (fullCategoryDetails.isProductive === true) return `${fullCategoryDetails.name}: Productive`
-  if (fullCategoryDetails.isProductive === false) return `${fullCategoryDetails.name}: Distracting`
+  if (fullCategoryDetails.isProductive === false) return `${fullCategoryDetails.name}: Unproductive`
   return `${fullCategoryDetails.name}: Neutral`
 }

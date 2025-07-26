@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AppWindowMac, X, Pause } from 'lucide-react'
+import { AppWindowMac, Pause, X } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Category } from 'shared'
 import { Button } from './components/ui/button'
@@ -187,7 +187,7 @@ const FloatingDisplay: React.FC = () => {
   let unproductiveIsHighlighted = false
   let unproductiveIsEnlarged = false
   let unproductiveHighlightColor: 'green' | 'red' | 'orange' | undefined = 'red'
-  let unproductiveLabel = 'Distracted'
+  let unproductiveLabel = 'Unproductive'
 
   const productiveTimeFormatted = formatMsToTime(displayedProductiveTimeMs)
   const unproductiveTimeFormatted = formatMsToTime(dailyUnproductiveMs)
