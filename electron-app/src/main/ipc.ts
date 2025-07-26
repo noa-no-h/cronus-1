@@ -348,30 +348,22 @@ export function registerIpcHandlers(
     }
   })
 
-  // Add these two handlers for window close modal
+  // Handlers for window close modal
   ipcMain.handle('confirm-quit', () => {
     logMainToFile('User confirmed quit, closing app')
 
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.destroy()
-    } else {
-      //console.log('⚠️ Main window already destroyed or null')
     }
 
     if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
       windows.floatingWindow.destroy()
-      //console.log('✅ Floating window destroyed')
-    } else {
-      //console.log('⚠️ Floating window already destroyed or null')
     }
 
-    //console.log('🔄 Exiting app...')
     app.exit(0)
-    //console.log('✅ app.exit(0) called')
   })
 
   ipcMain.handle('cancel-quit', () => {
-    //console.log('IPC: cancel-quit handler called')
     logMainToFile('User cancelled quit')
     // Just return, the modal will be closed by the renderer
   })
