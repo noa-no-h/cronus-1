@@ -4,7 +4,7 @@ import { UserModel } from '../../models/user';
 import { checkActivityHistory } from './history';
 import { getOpenAICategoryChoice, getOpenAISummaryForBlock } from './llm';
 
-interface CategorizationResult {
+export interface CategorizationResult {
   categoryId: string | null;
   categoryReasoning: string | null;
   llmSummary: string | null;

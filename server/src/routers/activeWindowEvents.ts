@@ -1,11 +1,12 @@
 import { TRPCError } from '@trpc/server';
 import mongoose, { FilterQuery } from 'mongoose';
+import { categorizeActivity } from 'src/services/categorization/categorizationService';
+import { generateActivitySummary, isTitleInformative } from 'src/services/categorization/llm';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
-import { categorizeActivity } from '../services/categorization/categorizationService';
-import { generateActivitySummary, isTitleInformative } from '../services/categorization/llm';
+import { updateEventCategoryInDateRange as updateEventCategoryInDateRangeService } from '../services/move/updateEventCategoryInDateRange';
 import { publicProcedure, router } from '../trpc';
 
 // Zod schema for input validation
@@ -383,95 +384,21 @@ export const activeWindowEventsRouter = router({
       const decodedToken = safeVerifyTokenWithVersionTracking(token, ctx.userAgent);
       const userId = decodedToken.userId;
 
-      const filter: FilterQuery<ActiveWindowEvent> = {
-        userId,
-        timestamp: {
-          $gte: new Date(startDateMs),
-          $lte: new Date(endDateMs),
-        },
-      };
-
-      if (itemType === 'app') {
-        filter.ownerName = activityIdentifier;
-      } else {
-        // itemType === 'website'
-        // Function to escape special characters for regex
-        const escapeRegExp = (string: string): string => {
-          return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-        };
-        const escapedIdentifier = escapeRegExp(activityIdentifier);
-
-        filter.$or = [
-          // Option 1: activityIdentifier is a domain present in a URL
-          { url: { $regex: `(^|[^A-Za-z0-9_])${escapedIdentifier}([:\\/]|$)`, $options: 'i' } },
-          // Option 2: activityIdentifier is a title, for a browser event where URL is null or empty
-          {
-            title: activityIdentifier, // Exact match for title
-            ownerName: {
-              $in: [
-                'Google Chrome',
-                'Chrome',
-                'Safari',
-                'Firefox',
-                'firefox',
-                'Microsoft Edge',
-                'msedge',
-                'Brave Browser',
-                'Brave',
-                'Opera',
-                'opera',
-                'Vivaldi',
-                'Arc',
-                // Add more browser ownerNames if needed
-              ],
-            },
-            $or: [{ url: null }, { url: '' }], // URL is either null or an empty string
-          },
-        ];
-      }
-
-      console.log(
-        'queryConditions in updateEventsCategoryInDateRange',
-        JSON.stringify(filter, null, 2)
-      );
-
       try {
-        const result = await ActiveWindowEventModel.updateMany(filter, [
-          {
-            $set: {
-              oldCategoryId: '$categoryId',
-              oldCategoryReasoning: '$categoryReasoning',
-              oldLlmSummary: '$llmSummary',
-              categoryId: newCategoryId,
-              categoryReasoning: 'Updated manually',
-              llmSummary: null,
-              lastCategorizationAt: new Date(),
-            },
-          },
-        ]);
+        const result = await updateEventCategoryInDateRangeService({
+          userId,
+          startDateMs,
+          endDateMs,
+          activityIdentifier,
+          itemType,
+          newCategoryId,
+        });
 
         console.log(
-          `[EventsRouter] Updated ${result.modifiedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
+          `[EventsRouter] Updated ${result.updatedCount} events for user ${userId} to category ${newCategoryId} for identifier "${activityIdentifier}"`
         );
 
-        if (result.modifiedCount > 0) {
-          const latestUpdatedEvent = await ActiveWindowEventModel.findOne(filter).sort({
-            timestamp: -1,
-          });
-          return {
-            success: true,
-            updatedCount: result.modifiedCount,
-            latestEvent: latestUpdatedEvent
-              ? (latestUpdatedEvent.toObject() as ActiveWindowEvent)
-              : null,
-          };
-        }
-
-        return {
-          success: true,
-          updatedCount: result.modifiedCount,
-          latestEvent: null,
-        };
+        return result;
       } catch (error) {
         console.error('[EventsRouter] Error updating event categories:', error);
         throw new TRPCError({

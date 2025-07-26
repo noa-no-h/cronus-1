@@ -2,7 +2,6 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { defaultCategoriesData } from '../../../../shared/categories'
 import { useAuth } from '../../contexts/AuthContext'
-import { useDarkMode } from '../../hooks/useDarkMode'
 import { trpc } from '../../utils/trpc'
 import { CategoryBadge } from '../CategoryBadge'
 import { Button } from '../ui/button'
@@ -24,7 +23,6 @@ export function AiCategoryCustomization({
   const [selectedOption, setSelectedOption] = useState<'ai' | 'simple'>('ai')
   const { token, user } = useAuth()
   const generateCategoriesMutation = trpc.category.generateAiCategories.useMutation()
-  const isDarkMode = useDarkMode()
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -79,10 +77,11 @@ export function AiCategoryCustomization({
   return (
     <div className="text-center">
       <p className="text-muted-foreground mb-6">
-        Select a set of categories to start with. You can always customize them later.
+        These categories help our ai categorize your activities and how you spend your time. You can
+        modify and improve them later in the settings.
       </p>
 
-      <div className="space-x-4 flex justify-center h-[300px]">
+      <div className="space-x-4 flex justify-center h-[350px]">
         <Button
           variant="outline"
           className={`w-64 h-full p-4 text-left flex flex-col items-start justify-start transition-all duration-200 ${

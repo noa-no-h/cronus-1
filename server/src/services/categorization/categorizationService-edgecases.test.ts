@@ -1,6 +1,19 @@
-import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, jest, mock, test } from 'bun:test';
 import mongoose from 'mongoose';
 import { ActiveWindowDetails } from '../../../../shared/types';
+import { assertCategorization } from './testUtils';
+
+/*
+
+This test file includes the following edge cases:
+
+1. Stock portfolio as Distraction (if no Investing category exists)
+2. Audiobook project negotiation as Distraction (rather than Growth & Marketing)
+3. Browsing X/Twitter as Distraction (despite user goals mentioning X for outreach)
+4. Brighter-related email as Brighter (rather than Other work)
+5. Substack article on robotics as Work (when content is empty)
+
+*/
 
 // Mock Mongoose models and their methods
 const mockActiveWindowEventModel = {
@@ -190,22 +203,12 @@ describe('categorizeActivity edge cases', () => {
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
-    // Log the LLM outputs for inspection
-    console.log('Full result object:', result);
-    console.log('LLM Summary:', result.llmSummary);
-    console.log('Category Reasoning:', result.categoryReasoning);
-
     // Assert
-    const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
-    const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
-    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
-      distractionCategory?.name ?? 'Expected Category Not Found'
-    );
-    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-    expect(CategoryModel.find).toHaveBeenCalledWith({
-      userId: mockUserId,
-      isArchived: { $ne: true },
+    assertCategorization({
+      testName: 'Stock portfolio test',
+      result,
+      allCategories: templateCategories,
+      expectedCategoryName: 'Distraction',
     });
   });
 
@@ -270,22 +273,12 @@ Claude can make mistakes. Please double-check responses.`;
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
-    // Log the LLM outputs for inspection
-    console.log('Audiobook test - Full result object:', result);
-    console.log('Audiobook test - LLM Summary:', result.llmSummary);
-    console.log('Audiobook test - Category Reasoning:', result.categoryReasoning);
-
     // Assert
-    const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
-    const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
-    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
-      distractionCategory?.name ?? 'Expected Category Not Found'
-    );
-    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-    expect(CategoryModel.find).toHaveBeenCalledWith({
-      userId: mockUserId,
-      isArchived: { $ne: true },
+    assertCategorization({
+      testName: 'Audiobook test',
+      result,
+      allCategories: templateCategories,
+      expectedCategoryName: 'Distraction',
     });
   }, 30000); // Increased timeout for LLM call
 
@@ -419,22 +412,12 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
-    // Log the LLM outputs for inspection
-    console.log('X browsing test - Full result object:', result);
-    console.log('X browsing test - LLM Summary:', result.llmSummary);
-    console.log('X browsing test - Category Reasoning:', result.categoryReasoning);
-
     // Assert
-    const distractionCategory = templateCategories.find((c) => c.name === 'Distraction');
-    const receivedCategory = templateCategories.find((c) => c._id === result.categoryId);
-    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
-      distractionCategory?.name ?? 'Expected Category Not Found'
-    );
-    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-    expect(CategoryModel.find).toHaveBeenCalledWith({
-      userId: mockUserId,
-      isArchived: { $ne: true },
+    assertCategorization({
+      testName: 'X browsing test',
+      result,
+      allCategories: templateCategories,
+      expectedCategoryName: 'Distraction',
     });
   }, 30000); // Increased timeout for LLM call
 
@@ -518,22 +501,12 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
-    // Log the LLM outputs for inspection
-    console.log('Brighter email test - Full result object:', result);
-    console.log('Brighter email test - LLM Summary:', result.llmSummary);
-    console.log('Brighter email test - Category Reasoning:', result.categoryReasoning);
-
     // Assert
-    const brighterCategory = simonCategories.find((c) => c.name === 'Brighter');
-    const receivedCategory = simonCategories.find((c) => c._id === result.categoryId);
-    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
-      brighterCategory?.name ?? 'Expected Category Not Found'
-    );
-    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-    expect(CategoryModel.find).toHaveBeenCalledWith({
-      userId: mockUserId,
-      isArchived: { $ne: true },
+    assertCategorization({
+      testName: 'Brighter email test',
+      result,
+      allCategories: simonCategories,
+      expectedCategoryName: 'Brighter',
     });
   }, 30000); // Increased timeout for LLM call
 
@@ -594,22 +567,12 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
     // Act
     const result = await categorizeActivity(mockUserId, activeWindow);
 
-    // Log the LLM outputs for inspection
-    console.log('Substack test - Full result object:', result);
-    console.log('Substack test - LLM Summary:', result.llmSummary);
-    console.log('Substack test - Category Reasoning:', result.categoryReasoning);
-
     // Assert
-    const workCategory = dominiqueCategories.find((c) => c.name === 'Work');
-    const receivedCategory = dominiqueCategories.find((c) => c._id === result.categoryId);
-    expect(receivedCategory?.name ?? 'Category Not Found').toBe(
-      workCategory?.name ?? 'Expected Category Not Found'
-    );
-    expect(ActiveWindowEventModel.findOne).toHaveBeenCalledTimes(1);
-    expect(UserModel.findById).toHaveBeenCalledWith(mockUserId);
-    expect(CategoryModel.find).toHaveBeenCalledWith({
-      userId: mockUserId,
-      isArchived: { $ne: true },
+    assertCategorization({
+      testName: 'Substack test',
+      result,
+      allCategories: dominiqueCategories,
+      expectedCategoryName: 'Work',
     });
   }, 30000);
 });

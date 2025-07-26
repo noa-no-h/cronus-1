@@ -26,7 +26,7 @@ export function ArticleCard({ post }: { post: BlogPost }) {
 }
 
 export function BlogSection({ posts }: { posts: BlogPost[] }) {
-  const featuredPosts = posts.filter((post) => post.featured).slice(0, 3);
+  const featuredPosts = posts.filter((post) => post.featured).slice(0, 4);
 
   return (
     <section className="py-20 bg-white">

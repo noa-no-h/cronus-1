@@ -2,14 +2,12 @@ import type { ReactElement } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { ActiveWindowEvent, Category } from 'shared'
 import { useAuth } from '../contexts/AuthContext'
-import { useDarkMode } from '../hooks/useDarkMode'
 import { useWindowFocus } from '../hooks/useWindowFocus'
 import { REFRESH_EVENTS_INTERVAL_MS } from '../lib/constants'
 import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
-import { TutorialModal } from './TutorialModal'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -75,17 +73,8 @@ const convertCalendarEventToBlock = (event: CalendarEvent): ProcessedEventBlock 
   }
 }
 
-export function DashboardView({
-  className,
-  showTutorial,
-  setShowTutorial
-}: {
-  className?: string
-  showTutorial: boolean
-  setShowTutorial: (show: boolean) => void
-}): ReactElement {
+export function DashboardView({ className }: { className?: string }): ReactElement {
   const { token } = useAuth()
-  const isDarkMode = useDarkMode()
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day')
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
@@ -112,17 +101,6 @@ export function DashboardView({
     }
     return baseInterval
   }
-
-  useEffect(() => {
-    // Check if user has seen the tutorial
-    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
-
-    // Show tutorial if they've completed onboarding but haven't seen tutorial
-    if (hasCompletedOnboarding && !hasSeenTutorial) {
-      setShowTutorial(true)
-    }
-  }, [])
 
   useEffect(() => {
     const calculateDateRange = (): void => {
@@ -281,11 +259,6 @@ export function DashboardView({
     setSelectedDay(null)
   }
 
-  const handleTutorialClose = (): void => {
-    setShowTutorial(false)
-    localStorage.setItem('hasSeenTutorial', 'true')
-  }
-
   const handleViewModeChange = (newMode: 'day' | 'week'): void => {
     setViewMode(newMode)
     setSelectedHour(null)
@@ -362,7 +335,6 @@ export function DashboardView({
           isLoading={isLoadingEvents}
         />
       </div>
-      <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
     </div>
   )
 }

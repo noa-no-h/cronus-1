@@ -239,6 +239,21 @@ export const userRouter = router({
       return { success: true };
     }),
 
+  getUserReferralSource: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input }) => {
+      const decoded = safeVerifyToken(input.token);
+      const userId = decoded.userId;
+
+      const user = await UserModel.findById(userId).select('referralSource');
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      return user.referralSource || '';
+    }),
+
   // Admin endpoint to query users by version
   getUsersByVersion: publicProcedure
     .input(

@@ -85,7 +85,7 @@ const AccordionItem = ({
   return (
     <div className="border-b border-gray-200 py-4">
       <button className="w-full flex justify-between items-center text-left" onClick={onClick}>
-        <span className="text-lg font-medium">{item.question}</span>
+        <h3 className="text-lg font-medium">{item.question}</h3>
         {isOpen ? <Minus className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
       </button>
       {isOpen && <div className="mt-4 text-gray-600">{item.answer}</div>}

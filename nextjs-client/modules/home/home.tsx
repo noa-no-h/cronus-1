@@ -9,6 +9,7 @@ import { BlogPost } from '~/lib/blog';
 import { ActionSection } from './action-section';
 import { BlogSection } from './blog-section';
 import { FAQSection } from './faq-section';
+import SecuritySection from './security-section/page';
 import { ShowcaseSection } from './showcase-section';
 import { TestimonialsSection } from './testimonials-section';
 
@@ -20,6 +21,7 @@ export function Home({ posts }: { posts: BlogPost[] }) {
       {/* <MarqueeSection /> */}
       <ShowcaseSection />
       <TestimonialsSection />
+      <SecuritySection />
       <FeaturesSection />
       <ComparisonSection />
       <ActionSection />

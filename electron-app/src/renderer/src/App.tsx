@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
-import { WorkGoalImprovementHint } from './components/ActivityList/WorkGoalImprovementHint'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
+import { TutorialModal } from './components/Onboarding/TutorialModal'
 import { OnboardingModal } from './components/OnboardingModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
 import { PermissionStatus, PermissionType } from './components/Settings/PermissionsStatus'
@@ -14,6 +14,7 @@ import { useAuth } from './contexts/AuthContext'
 import { useSettings } from './contexts/SettingsContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
+import { showActivityMovedToast } from './lib/custom-toasts'
 import { trpc } from './utils/trpc'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
@@ -77,19 +78,16 @@ export function MainAppContent(): React.ReactElement {
             data.latestEvent
           )
         }
-        toast({
-          title: 'Activity Re-categorized',
-          description: (
-            <>
-              {`${variables.activityIdentifier} has been moved.`}
-              <br />
-              <br />
-              <WorkGoalImprovementHint
-                setIsSettingsOpen={setIsSettingsOpen}
-                setFocusOn={setFocusOn}
-              />
-            </>
-          )
+
+        const targetCategory = allCategories?.find((cat) => cat._id === variables.newCategoryId)
+        const targetCategoryName = targetCategory ? targetCategory.name : 'Unknown Category'
+
+        showActivityMovedToast({
+          activityIdentifier: variables.activityIdentifier,
+          targetCategoryName,
+          timeRangeDescription: 'for the selected period',
+          setIsSettingsOpen,
+          setFocusOn
         })
 
         trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
@@ -328,6 +326,22 @@ export function MainAppContent(): React.ReactElement {
     }
   }, [isAuthenticated, showOnboarding])
 
+  const handleTutorialClose = (): void => {
+    setShowTutorial(false)
+    localStorage.setItem('hasSeenTutorial', 'true')
+  }
+
+  useEffect(() => {
+    // Check if user has seen the tutorial
+    const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    // Show tutorial if they've completed onboarding but haven't seen tutorial
+    if (hasCompletedOnboarding && !hasSeenTutorial) {
+      setShowTutorial(true)
+    }
+  }, [])
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex flex-col h-screen">
@@ -346,13 +360,14 @@ export function MainAppContent(): React.ReactElement {
         </div>
         <div className="flex-1 flex flex-col overflow-auto">
           <div className={`flex-1 flex-col min-h-0 ${isSettingsOpen ? 'hidden' : 'flex'}`}>
-            <DashboardView showTutorial={showTutorial} setShowTutorial={setShowTutorial} />
+            <DashboardView />
           </div>
           <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
             <SettingsPage onResetOnboarding={handleResetOnboarding} />
           </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+        <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
         <UpdateNotification />
         <Toaster />
         {allCategories && recategorizeTarget && (

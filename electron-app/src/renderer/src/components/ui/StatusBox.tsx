@@ -74,7 +74,6 @@ const StatusBox: React.FC<StatusBoxProps> = ({
           isHovered && isEnlarged && 'bg-white/10 rounded-md p-1'
         )}
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
-        onClick={!disabled ? onCategoryClick : undefined}
       >
         {isHovered && isEnlarged && (
           <span className="edit-icon-area rounded-md p-1 hover:bg-white/10">
