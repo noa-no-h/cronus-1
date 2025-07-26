@@ -100,7 +100,7 @@ export function createFloatingWindow(
 
 export function createMainWindow(
   getUrlToHandleOnReady: () => string | null,
-  handleAppUrl: (url: string, window: BrowserWindow) => void
+  handleAppUrl: (url: string) => void
 ): BrowserWindow {
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
@@ -148,7 +148,18 @@ export function createMainWindow(
   mainWindow.webContents.on('did-finish-load', () => {
     const pendingUrl = getUrlToHandleOnReady()
     if (pendingUrl) {
-      handleAppUrl(pendingUrl, mainWindow)
+      handleAppUrl(pendingUrl)
+    }
+  })
+
+  // Add this close event handler to intercept the normal close button
+  mainWindow.on('close', (event) => {
+    // Prevent the window from closing immediately
+    event.preventDefault()
+
+    // Send a message to the renderer to show the quit confirmation modal
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-quit-confirmation')
     }
   })
 

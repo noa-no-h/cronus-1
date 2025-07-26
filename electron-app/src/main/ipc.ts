@@ -348,6 +348,26 @@ export function registerIpcHandlers(
     }
   })
 
+  // Handlers for window close modal
+  ipcMain.handle('confirm-quit', () => {
+    logMainToFile('User confirmed quit, closing app')
+
+    if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
+      windows.mainWindow.destroy()
+    }
+
+    if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+      windows.floatingWindow.destroy()
+    }
+
+    app.exit(0)
+  })
+
+  ipcMain.handle('cancel-quit', () => {
+    logMainToFile('User cancelled quit')
+    // Just return, the modal will be closed by the renderer
+  })
+
   // ipcMain.handle(
   //   'set-sentry-user',
   //   (
