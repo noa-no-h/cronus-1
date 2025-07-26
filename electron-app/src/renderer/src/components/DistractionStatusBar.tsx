@@ -405,15 +405,18 @@ const DistractionStatusBar = ({
         </div>
       </div>
       <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-        <Button
-          className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
-          variant="ghost"
-          onClick={handlePauseClick}
-          title={isTrackingPaused ? 'Resume Tracking' : 'Pause Tracking'}
-        >
-          {isTrackingPaused ? <Play size={20} /> : <Pause size={20} />}
-          {!isNarrowView && <span className="ml-2">{isTrackingPaused ? 'Resume' : 'Pause'}</span>}
-        </Button>
+        {isTrackingPaused && (
+          <Button
+            className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+            variant="ghost"
+            onClick={onToggleTracking}
+            title="Resume Tracking"
+          >
+            <Play size={20} />
+            {!isNarrowView && <span className="ml-2">Resume</span>}
+          </Button>
+        )}
+
         {!isMiniTimerVisible && (
           <Button
             className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
@@ -425,6 +428,7 @@ const DistractionStatusBar = ({
             {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

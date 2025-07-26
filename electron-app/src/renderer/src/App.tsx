@@ -380,7 +380,11 @@ export function MainAppContent(): React.ReactElement {
             <DashboardView />
           </div>
           <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
-            <SettingsPage onResetOnboarding={handleResetOnboarding} />
+            <SettingsPage
+              onResetOnboarding={handleResetOnboarding}
+              isTrackingPaused={isTrackingPaused}
+              onToggleTracking={handleToggleTracking}
+            />
           </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
