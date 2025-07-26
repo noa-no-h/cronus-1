@@ -210,6 +210,15 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   ]
 
   const steps = baseSteps.filter((step) => {
+    // TODO: figure out if we need some kind of permission for get-windows on Windows
+    if (process.platform !== 'darwin' && step.id === 'accessibility') {
+      return false
+    }
+    // TODO: figure out if we need some kind of permission for get-windows on Windows
+    if (process.platform !== 'darwin' && step.id === 'screen-recording') {
+      return false
+    }
+
     if (step.id === 'goals' && hasExistingGoals) {
       return false
     }
