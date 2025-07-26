@@ -35,11 +35,13 @@ export interface IUser extends Document {
     distractionSoundInterval: number;
     showDistractionNotifications: boolean;
     distractionNotificationInterval: number;
+    optedOutOfPosthogTracking: boolean;
   };
   userProjectsAndGoals: string;
   multiPurposeApps: string[];
   lastChurnEmailSent?: Date;
   referralSource?: string;
+  isInEU: boolean;
 }
 
 const userSchema = new Schema({
@@ -117,6 +119,10 @@ const userSchema = new Schema({
       type: Number,
       default: 60, // in seconds
     },
+    optedOutOfPosthogTracking: {
+      type: Boolean,
+      default: false, // Default to tracking enabled
+    },
   },
   userProjectsAndGoals: {
     type: String,
@@ -133,6 +139,10 @@ const userSchema = new Schema({
   referralSource: {
     type: String,
     required: false,
+  },
+  isInEU: {
+    type: Boolean,
+    default: false,
   },
 });
 

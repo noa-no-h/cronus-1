@@ -17,18 +17,62 @@ const googleClient = new OAuth2Client(
 
 const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
 
+const checkIsEU = async (ip: string) => {
+  try {
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=countryCode`);
+    const data = (await response.json()) as { countryCode: string };
+    const euCountryCodes = [
+      'AT',
+      'BE',
+      'BG',
+      'HR',
+      'CY',
+      'CZ',
+      'DK',
+      'EE',
+      'FI',
+      'FR',
+      'DE',
+      'GR',
+      'HU',
+      'IE',
+      'IT',
+      'LV',
+      'LT',
+      'LU',
+      'MT',
+      'NL',
+      'PL',
+      'PT',
+      'RO',
+      'SK',
+      'SI',
+      'ES',
+      'SE',
+    ];
+    return euCountryCodes.includes(data.countryCode);
+  } catch (error) {
+    console.error('Failed to check if user is in EU:', error);
+    return false;
+  }
+};
+
 const findOrCreateUserAndOnboard = async (
   payload: TokenPayload,
-  userAgent?: string
+  userAgent?: string,
+  ip?: string
 ): Promise<IUser> => {
   let user = await UserModel.findOne({ googleId: payload.sub });
 
   if (!user) {
+    const isInEU = ip ? await checkIsEU(ip) : false;
+
     user = await UserModel.create({
       email: payload.email,
       name: payload.name,
       googleId: payload.sub,
       picture: payload.picture,
+      isInEU,
       multiPurposeApps: [
         'Mail',
         'Beeper Desktop',
@@ -127,7 +171,7 @@ export const authRouter = router({
         const payload = ticket.getPayload();
         if (!payload) throw new Error('No payload');
 
-        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent);
+        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent, ctx.req.ip);
 
         // Generate access token (short-lived)
         const accessToken = jwt.sign(
@@ -228,6 +272,7 @@ export const authRouter = router({
       hasSubscription: user.hasSubscription,
       isWaitlisted: user.isWaitlisted,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
+      isInEU: user.isInEU,
     } satisfies User;
   }),
 
@@ -367,7 +412,7 @@ export const authRouter = router({
         if (!payload) throw new Error('No payload');
 
         // Find or create user (reuse your existing logic)
-        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent);
+        const user = await findOrCreateUserAndOnboard(payload, ctx.userAgent, ctx.req.ip);
 
         if (hasCalendarScope && tokens.access_token) {
           user.googleAccessToken = tokens.access_token;

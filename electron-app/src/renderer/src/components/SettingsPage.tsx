@@ -3,15 +3,16 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
+import { DisableUsageAnalyticsSettings } from './Settings/DisableUsageAnalyticsSettings'
 import { DistractionSoundSettings } from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
 import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
+import PauseTrackingSettings from './Settings/PauseTrackingSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
-import PauseTrackingSettings from './Settings/PauseTrackingSettings'
 
 interface SettingsPageProps {
   onResetOnboarding: () => void
@@ -77,6 +78,7 @@ export function SettingsPage({
         <MultiPurposeAppsSettings />
         <ThemeSwitcher />
         <GoogleCalendarSettings />
+        <DisableUsageAnalyticsSettings />
         <LogOutButtonSection />
         <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
         {showPermissions && <PermissionsStatus />}

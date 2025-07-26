@@ -1,9 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
 import { AccessibilityStep } from './Onboarding/AccessibilityStep'
 import { CompleteStep } from './Onboarding/CompleteStep'
+import { PostHogOptInEuStep } from './Onboarding/PostHogOptInEuStep'
 import { ScreenRecordingStep } from './Onboarding/ScreenRecordingStep'
 import { WelcomeStep } from './Onboarding/WelcomeStep'
 import { AiCategoryCustomization } from './Settings/AiCategoryCustomization'
@@ -38,7 +40,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
   const [referralSource, setReferralSource] = useState('')
   const [showSkipConfirmDialog, setShowSkipConfirmDialog] = useState(false)
-  const { token } = useAuth()
+  const [hasOptedInToPosthog, setHasOptedInToPosthog] = useState(false)
+  const { token, user } = useAuth()
+  const queryClient = useQueryClient()
   const utils = trpc.useUtils()
   const createCategoriesMutation = trpc.category.createCategories.useMutation({
     onSuccess: () => {
@@ -47,6 +51,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     }
   })
   const updateUserReferralMutation = trpc.user.updateUserReferral.useMutation()
+  const updateUserPosthogTrackingMutation = trpc.user.updateUserPosthogTracking.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.user.getElectronAppSettings.getQueryKey({ token: token || '' })
+      })
+    }
+  })
 
   useEffect(() => {
     console.log('🚪 Onboarding modal mounted. Enabling permission requests for onboarding.')
@@ -160,6 +171,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       content: <WelcomeStep />
     },
     {
+      id: 'posthog-opt-in-eu',
+      title: 'PostHog Usage Analytics',
+      content: <PostHogOptInEuStep />
+    },
+    {
       id: 'goals',
       title: '',
       content: <GoalInputForm onboardingMode={true} onComplete={handleGoalsComplete} />
@@ -210,6 +226,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   ]
 
   const steps = baseSteps.filter((step) => {
+    if (step.id === 'posthog-opt-in-eu' && !user?.isInEU) {
+      return false
+    }
+
     if (step.id === 'goals' && hasExistingGoals) {
       return false
     }
@@ -307,6 +327,19 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       console.error('Failed to start window tracking:', error)
     }
 
+    // Update PostHog tracking preference
+    if (token) {
+      try {
+        await updateUserPosthogTrackingMutation.mutateAsync({
+          token,
+          optedOutOfPosthogTracking: !hasOptedInToPosthog
+        })
+        console.log('✅ PostHog tracking preference updated successfully.')
+      } catch (error) {
+        console.error('❌ Failed to update PostHog tracking preference:', error)
+      }
+    }
+
     // Complete the onboarding process
     setTimeout(() => {
       onComplete()
@@ -328,6 +361,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const isScreenRecordingStep = currentStepData?.id === 'screen-recording'
   const isLastStep = currentStep === steps.length - 1
   const isWelcomeStep = currentStepData?.id === 'welcome'
+  const isPosthogOptInStep = currentStepData?.id === 'posthog-opt-in-eu'
 
   return (
     <>
@@ -389,7 +423,28 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 )}
 
                 {/* Main action button */}
-                {isAccessibilityStep && !hasRequestedPermission ? (
+                {isPosthogOptInStep ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setHasOptedInToPosthog(false)
+                        handleNext()
+                      }}
+                      variant="outline"
+                    >
+                      Decline
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setHasOptedInToPosthog(true)
+                        handleNext()
+                      }}
+                      variant="default"
+                    >
+                      Accept
+                    </Button>
+                  </>
+                ) : isAccessibilityStep && !hasRequestedPermission ? (
                   <Button
                     onClick={handleRequestAccessibilityPermission}
                     disabled={isRequestingPermission}

@@ -78,6 +78,7 @@ export const userRouter = router({
         distractionSoundInterval: 30,
         showDistractionNotifications: true,
         distractionNotificationInterval: 60,
+        optedOutOfPosthogTracking: false, // Default value
       };
 
       return {
@@ -252,6 +253,34 @@ export const userRouter = router({
       }
 
       return user.referralSource || '';
+    }),
+
+  updateUserPosthogTracking: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        optedOutOfPosthogTracking: z.boolean(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const decoded = safeVerifyToken(input.token);
+      const userId = decoded.userId;
+
+      const updatedUser = await UserModel.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            'electronAppSettings.optedOutOfPosthogTracking': input.optedOutOfPosthogTracking,
+          },
+        },
+        { new: true }
+      );
+
+      if (!updatedUser) {
+        throw new Error('User not found');
+      }
+
+      return { success: true, user: updatedUser };
     }),
 
   // Admin endpoint to query users by version

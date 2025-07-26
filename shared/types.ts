@@ -2,12 +2,13 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  picture?: string | null;
+  picture?: string;
   hasSubscription?: boolean;
-  stripeCustomerId?: string;
   isWaitlisted?: boolean;
-  tokenVersion?: number;
   hasCompletedOnboarding?: boolean;
+  isInEU?: boolean;
+  stripeCustomerId?: string;
+  tokenVersion?: number;
   electronAppSettings?: {
     calendarZoomLevel?: number;
   };

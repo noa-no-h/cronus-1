@@ -1,0 +1,66 @@
+import { useQueryClient } from '@tanstack/react-query'
+import posthog from 'posthog-js'
+import { useAuth } from '../../contexts/AuthContext'
+import { trpc } from '../../utils/trpc'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Checkbox } from '../ui/checkbox'
+import { Label } from '../ui/label'
+
+export const DisableUsageAnalyticsSettings = () => {
+  const { token, user } = useAuth()
+  const queryClient = useQueryClient()
+
+  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery({
+    token: token || ''
+  })
+
+  const updateUserPosthogTrackingMutation = trpc.user.updateUserPosthogTracking.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.user.getElectronAppSettings.getQueryKey({ token: token || '' })
+      })
+    }
+  })
+
+  const handleToggle = async (checked: boolean) => {
+    if (token) {
+      try {
+        await updateUserPosthogTrackingMutation.mutateAsync({
+          token,
+          optedOutOfPosthogTracking: !checked
+        })
+        if (!checked) {
+          posthog.opt_out_capturing()
+        } else {
+          posthog.opt_in_capturing()
+        }
+      } catch (error) {
+        console.error('Failed to update PostHog tracking preference:', error)
+      }
+    }
+  }
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle>Usage Analytics</CardTitle>
+        <CardDescription>
+          Help us improve CronusHQ by allowing us to collect anonymous usage data.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-center space-x-2">
+        <Checkbox
+          id="disable-analytics"
+          checked={!electronSettings?.optedOutOfPosthogTracking}
+          onCheckedChange={handleToggle}
+        />
+        <Label
+          htmlFor="disable-analytics"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Enable Usage Analytics
+        </Label>
+      </CardContent>
+    </Card>
+  )
+}
