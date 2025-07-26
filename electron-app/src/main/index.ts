@@ -94,14 +94,13 @@ function App() {
     }
 
     // Make the callback available to IPC handlers
+    ;(global as any).stopActiveWindowObserver = () => {
+      isTrackingPaused = true
+      nativeWindows.stopActiveWindowObserver()
+    }
     ;(global as any).startActiveWindowObserver = () => {
       isTrackingPaused = false
       nativeWindows.startActiveWindowObserver(windowChangeCallback)
-    }
-    ;(global as any).stopActiveWindowObserver = () => {
-      isTrackingPaused = true
-      // Don't immediately stop the native observer, just mark as paused
-      // The native observer will continue running but we won't process events
     }
 
     // Handle app activation (e.g., clicking the dock icon on macOS)

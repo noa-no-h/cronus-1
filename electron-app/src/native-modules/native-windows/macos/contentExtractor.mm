@@ -5,6 +5,8 @@
 // Custom Log Macro
 #define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
 
+extern BOOL isObserverStopped;
+
 @implementation ContentExtractor
 
 + (NSString*)getWindowTitle:(CGWindowID)windowId {
@@ -24,8 +26,6 @@
 }
 
 + (NSString*)getAppTextContent:(NSString*)ownerName windowId:(CGWindowID)windowId {
-    MyLog(@"🔍 Attempting to extract text from: %@", ownerName);
-    
     // Different strategies for different app types
     if ([ownerName containsString:@"Code"] || [ownerName containsString:@"Cursor"] || [ownerName containsString:@"Xcode"]) {
         return [self getCodeEditorText:windowId];
@@ -108,8 +108,7 @@
 }
 
 + (NSString*)getCodeEditorAccessibilityText:(CGWindowID)windowId {
-    MyLog(@"🔍 Starting detailed Cursor accessibility extraction...");
-    
+        
     @try {
         // Get the PID for this window
         pid_t windowPid = 0;

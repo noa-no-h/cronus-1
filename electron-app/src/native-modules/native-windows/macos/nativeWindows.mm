@@ -13,7 +13,12 @@ void StartActiveWindowObserverMethod(const Napi::CallbackInfo& info) {
 
 void StopActiveWindowObserverMethod(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  stopActiveWindowObserver(env);
+  
+  @try {
+    stopActiveWindowObserver(env);
+  } @catch (NSException *exception) {
+    // Silent fail
+  }
 }
 
 void SetPermissionDialogsEnabledMethod(const Napi::CallbackInfo& info) {
