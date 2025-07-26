@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { AppWindowMac, X } from 'lucide-react'
+import { AppWindowMac, X, Pause } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Category } from 'shared'
 import { Button } from './components/ui/button'
@@ -17,6 +17,7 @@ interface FloatingStatusUpdate {
   activityName?: string
   activityUrl?: string
   categoryReasoning?: string
+  isTrackingPaused?: boolean
 }
 
 // Helper to format milliseconds to HH:MM:SS
@@ -33,6 +34,7 @@ const FloatingDisplay: React.FC = () => {
   const [displayedProductiveTimeMs, setDisplayedProductiveTimeMs] = useState<number>(0)
   const [dailyUnproductiveMs, setDailyUnproductiveMs] = useState<number>(0)
   const [isVisible, setIsVisible] = useState<boolean>(false)
+  const [isTrackingPaused, setIsTrackingPaused] = useState<boolean>(false)
   const [currentCategoryDetails, setCurrentCategoryDetails] = useState<Category | undefined>(
     undefined
   )
@@ -54,6 +56,7 @@ const FloatingDisplay: React.FC = () => {
         setDisplayedProductiveTimeMs(data.dailyProductiveMs)
         setDailyUnproductiveMs(data.dailyUnproductiveMs)
         setCurrentCategoryDetails(data.categoryDetails)
+        setIsTrackingPaused(data.isTrackingPaused || false)
         setActivityInfo({
           identifier: data.activityIdentifier,
           itemType: data.itemType,
@@ -71,14 +74,18 @@ const FloatingDisplay: React.FC = () => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout | undefined
 
-    if (latestStatus === 'productive') {
-      intervalId = setInterval(() => {
-        setDisplayedProductiveTimeMs((prevMs) => prevMs + 1000)
-      }, 1000)
-    } else if (latestStatus === 'unproductive' || latestStatus === 'maybe') {
-      intervalId = setInterval(() => {
-        setDailyUnproductiveMs((prevMs) => prevMs + 1000)
-      }, 1000)
+    // Only count time if tracking is not paused
+    if (!isTrackingPaused) {
+      // Add this condition
+      if (latestStatus === 'productive') {
+        intervalId = setInterval(() => {
+          setDisplayedProductiveTimeMs((prevMs) => prevMs + 1000)
+        }, 1000)
+      } else if (latestStatus === 'unproductive' || latestStatus === 'maybe') {
+        intervalId = setInterval(() => {
+          setDailyUnproductiveMs((prevMs) => prevMs + 1000)
+        }, 1000)
+      }
     }
 
     return () => {
@@ -86,7 +93,7 @@ const FloatingDisplay: React.FC = () => {
         clearInterval(intervalId)
       }
     }
-  }, [latestStatus])
+  }, [latestStatus, isTrackingPaused])
 
   const handleGlobalMouseMove = useCallback((event: globalThis.MouseEvent) => {
     if (!dragStartInfoRef.current || !window.floatingApi) return
@@ -204,17 +211,34 @@ const FloatingDisplay: React.FC = () => {
     unproductiveBoxCategoryDetails = currentCategoryDetails
   }
 
+  // visual indication when tracking is paused
+  const getPauseIndicator = () => {
+    if (isTrackingPaused) {
+      return (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-xl z-50 flex items-center justify-center">
+          <div className="bg-blue-700 text-white px-2 py-1 opacity-90 rounded-lg font-semibold text-xs shadow-lg flex items-center gap-1">
+            <Pause size={12} />
+            PAUSED
+          </div>
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
     <div
       ref={draggableRef}
       className={clsx(
         'w-full h-full flex items-center p-0.5 px-1 rounded-xl select-none',
-        'border-2 border-secondary/50'
+        'border-2 border-secondary/50',
+        isTrackingPaused && 'opacity-75'
       )}
       onMouseDown={handleMouseDownOnDraggable}
       title="Drag to move"
       style={{ cursor: 'grab' }}
     >
+      {getPauseIndicator()}
       <div className="flex flex-col items-center">
         <Button
           variant="ghost"

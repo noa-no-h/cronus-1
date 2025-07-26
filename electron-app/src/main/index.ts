@@ -30,6 +30,8 @@ dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
 let mainWindow: BrowserWindow | null = null
 let floatingWindow: BrowserWindow | null = null
 
+let isTrackingPaused = false
+
 function App() {
   async function initializeApp() {
     await initializeLoggers()
@@ -86,13 +88,18 @@ function App() {
     // This will be started after onboarding is complete via IPC call
     // Store the callback for later use
     const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
-      if (windowInfo && mainWindow && !mainWindow.isDestroyed()) {
+      if (windowInfo && mainWindow && !mainWindow.isDestroyed() && !isTrackingPaused) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }
     }
 
     // Make the callback available to IPC handlers
+    ;(global as any).stopActiveWindowObserver = () => {
+      isTrackingPaused = true
+      nativeWindows.stopActiveWindowObserver()
+    }
     ;(global as any).startActiveWindowObserver = () => {
+      isTrackingPaused = false
       nativeWindows.startActiveWindowObserver(windowChangeCallback)
     }
 

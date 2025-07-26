@@ -8,7 +8,9 @@ import {
   Mail,
   MessageCircle,
   Settings as SettingsIcon,
-  Youtube
+  Youtube,
+  Play,
+  Pause
 } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
@@ -34,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu'
+import PauseInfoModal from './PauseInfoModal'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
@@ -42,6 +45,8 @@ interface DistractionStatusBarProps {
   onOpenRecategorizeDialog: (target: ActivityToRecategorize) => void
   onSettingsClick: () => void
   isSettingsOpen: boolean
+  isTrackingPaused: boolean
+  onToggleTracking: () => void
 }
 
 // Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
@@ -68,7 +73,9 @@ const arePropsEqual = (
     prevProps.isMiniTimerVisible === nextProps.isMiniTimerVisible &&
     prevProps.onOpenRecategorizeDialog === nextProps.onOpenRecategorizeDialog &&
     prevProps.onSettingsClick === nextProps.onSettingsClick &&
-    prevProps.isSettingsOpen === nextProps.isSettingsOpen
+    prevProps.isSettingsOpen === nextProps.isSettingsOpen &&
+    prevProps.isTrackingPaused === nextProps.isTrackingPaused &&
+    prevProps.onToggleTracking === nextProps.onToggleTracking
   )
 }
 
@@ -78,10 +85,36 @@ const DistractionStatusBar = ({
   isMiniTimerVisible,
   onOpenRecategorizeDialog,
   onSettingsClick,
-  isSettingsOpen
+  isSettingsOpen,
+  isTrackingPaused,
+  onToggleTracking
 }: DistractionStatusBarProps): JSX.Element | null => {
   const { token } = useAuth()
   const [isNarrowView, setIsNarrowView] = useState(false)
+  const [showPauseModal, setShowPauseModal] = useState(false)
+
+  const handlePauseClick = () => {
+    const hasPausedBefore = localStorage.getItem('cronus-has-paused-before')
+
+    if (!hasPausedBefore && !isTrackingPaused) {
+      // First time pausing - show modal
+      setShowPauseModal(true)
+    } else {
+      // Not first time - directly toggle
+      onToggleTracking()
+    }
+  }
+
+  const handlePauseConfirm = () => {
+    // Mark as paused before
+    localStorage.setItem('cronus-has-paused-before', 'true')
+    setShowPauseModal(false)
+    onToggleTracking()
+  }
+
+  const handlePauseCancel = () => {
+    setShowPauseModal(false)
+  }
 
   useEffect(() => {
     const handleResize = (): void => {
@@ -247,9 +280,18 @@ const DistractionStatusBar = ({
       activityIdentifier,
       activityName,
       activityUrl: displayWindowInfo.url,
-      categoryReasoning: latestEvent?.categoryReasoning
+      categoryReasoning: latestEvent?.categoryReasoning,
+      isTrackingPaused
     })
-  }, [latestEvent, categoryDetails, userCategories, todayEvents, token, displayWindowInfo])
+  }, [
+    latestEvent,
+    categoryDetails,
+    userCategories,
+    todayEvents,
+    token,
+    displayWindowInfo,
+    isTrackingPaused
+  ])
 
   const statusText = useMemo(
     () =>
@@ -309,9 +351,20 @@ const DistractionStatusBar = ({
         className={clsx(
           'rounded-lg',
           'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between sm:gap-x-3',
-          cardBgColor
+          cardBgColor,
+          'relative'
         )}
       >
+        {/* Paused overlay */}
+        {isTrackingPaused && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg z-10 flex items-center justify-center">
+            <div className="bg-blue-700 text-white px-3 py-1.5 rounded-lg opacity-75 font-semibold text-sm shadow-lg flex items-center gap-1">
+              <Pause size={14} />
+              PAUSED
+            </div>
+          </div>
+        )}
+
         <div className="flex-grow min-w-0 flex items-center">
           <AnimatePresence>
             <motion.div
@@ -348,6 +401,18 @@ const DistractionStatusBar = ({
         </div>
       </div>
       <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
+        {isTrackingPaused && (
+          <Button
+            className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+            variant="ghost"
+            onClick={onToggleTracking}
+            title="Resume Tracking"
+          >
+            <Play size={20} />
+            {!isNarrowView && <span className="ml-2">Resume</span>}
+          </Button>
+        )}
+
         {!isMiniTimerVisible && (
           <Button
             className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
@@ -359,6 +424,7 @@ const DistractionStatusBar = ({
             {!isNarrowView && <span className="ml-2">{'Open Mini Timer'}</span>}
           </Button>
         )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -434,6 +500,11 @@ const DistractionStatusBar = ({
             ))}
         </Button>
       </div>
+      <PauseInfoModal
+        isOpen={showPauseModal}
+        onClose={handlePauseCancel}
+        onConfirm={handlePauseConfirm}
+      />
     </div>
   )
 }

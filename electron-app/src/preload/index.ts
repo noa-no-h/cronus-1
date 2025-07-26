@@ -76,6 +76,8 @@ const api = {
   forceEnablePermissionRequests: (): Promise<void> =>
     ipcRenderer.invoke('force-enable-permission-requests'),
   startWindowTracking: (): Promise<void> => ipcRenderer.invoke('start-window-tracking'),
+  pauseWindowTracking: (): Promise<void> => ipcRenderer.invoke('pause-window-tracking'),
+  resumeWindowTracking: (): Promise<void> => ipcRenderer.invoke('resume-window-tracking'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),

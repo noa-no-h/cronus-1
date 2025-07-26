@@ -42,10 +42,25 @@ export function MainAppContent(): React.ReactElement {
   const [permissionsChecked, setPermissionsChecked] = useState(false)
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
   const [showTutorial, setShowTutorial] = useState(false)
+  const [isTrackingPaused, setIsTrackingPaused] = useState(false)
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsOpen(!isSettingsOpen)
   }, [setIsSettingsOpen, isSettingsOpen])
+
+  const handleToggleTracking = useCallback(async () => {
+    try {
+      if (isTrackingPaused) {
+        await window.api.resumeWindowTracking()
+        setIsTrackingPaused(false)
+      } else {
+        await window.api.pauseWindowTracking()
+        setIsTrackingPaused(true)
+      }
+    } catch (error) {
+      console.error('Failed to toggle tracking:', error)
+    }
+  }, [isTrackingPaused])
 
   const trpcUtils = trpc.useContext()
 
@@ -274,7 +289,7 @@ export function MainAppContent(): React.ReactElement {
   useEffect(() => {
     const cleanup = window.api.onActiveWindowChanged((details) => {
       setActiveWindow(details)
-      if (details && isAuthenticated && token) {
+      if (details && isAuthenticated && token && !isTrackingPaused) {
         uploadActiveWindowEvent(
           token,
           details as ActiveWindowDetails & { localScreenshotPath?: string | undefined },
@@ -283,7 +298,7 @@ export function MainAppContent(): React.ReactElement {
       }
     })
     return cleanup
-  }, [isAuthenticated, token, eventCreationMutation.mutateAsync])
+  }, [isAuthenticated, token, eventCreationMutation.mutateAsync, isTrackingPaused])
 
   useEffect(() => {
     // Fetch initial state
@@ -355,6 +370,8 @@ export function MainAppContent(): React.ReactElement {
               onOpenRecategorizeDialog={openRecategorizeDialog}
               onSettingsClick={handleSettingsClick}
               isSettingsOpen={isSettingsOpen}
+              isTrackingPaused={isTrackingPaused}
+              onToggleTracking={handleToggleTracking}
             />
           </div>
         </div>
@@ -363,7 +380,11 @@ export function MainAppContent(): React.ReactElement {
             <DashboardView />
           </div>
           <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
-            <SettingsPage onResetOnboarding={handleResetOnboarding} />
+            <SettingsPage
+              onResetOnboarding={handleResetOnboarding}
+              isTrackingPaused={isTrackingPaused}
+              onToggleTracking={handleToggleTracking}
+            />
           </div>
         </div>
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
