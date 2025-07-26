@@ -21,7 +21,7 @@ Superhuman’s CEO, Rahul Vohra, realized his calendar didn't reflect his actual
 
 To solve this, he created the **“switch log.”** Every time he changed tasks, he’d send a quick Slack message to his EA. At the end of the week, he could analyze where his time truly went. The insight was shocking. He realized, _“I was only spending 6 to 7% of my time on product, design, technology, and marketing.”_
 
-This simple time tracking method helped him redefine his role, focus on high-impact work, and ultimately, scale the company more effectively. For those without a personal assistant, Cronus automates this process, helping you discover—and expand—your own zone of genius.
+This simple time tracking method helped him redefine his role, focus on high-impact work, and ultimately, scale the company more effectively. For those without a personal assistant, [Cronus](https://cronushq.com) automates this process, helping you discover—and expand—your own zone of genius.
 
 ---
 
@@ -109,6 +109,7 @@ First Round partner Bill Trenchard argues that a staggering **70% of a CEO's tim
 ## 8. John Lees-Miller (Overleaf CTO) on a Year of Minute-by-Minute Tracking
 
 [Read the Blog Post](https://jdlm.info/articles/2016/07/04/cto-time-minute-by-minute.html)
+
 [Read the Hacker News discussion](https://news.ycombinator.com/item?id=12385707)
 
 Overleaf's co-founder and CTO, John Lees-Miller, manually tracked his time for over a year. His data-driven analysis offers some of the most concrete insights available for technical founders.
