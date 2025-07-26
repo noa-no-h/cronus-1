@@ -36,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu'
+import PauseInfoModal from './PauseInfoModal'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
@@ -90,6 +91,30 @@ const DistractionStatusBar = ({
 }: DistractionStatusBarProps): JSX.Element | null => {
   const { token } = useAuth()
   const [isNarrowView, setIsNarrowView] = useState(false)
+  const [showPauseModal, setShowPauseModal] = useState(false)
+
+  const handlePauseClick = () => {
+    const hasPausedBefore = localStorage.getItem('cronus-has-paused-before')
+
+    if (!hasPausedBefore && !isTrackingPaused) {
+      // First time pausing - show modal
+      setShowPauseModal(true)
+    } else {
+      // Not first time - directly toggle
+      onToggleTracking()
+    }
+  }
+
+  const handlePauseConfirm = () => {
+    // Mark as paused before
+    localStorage.setItem('cronus-has-paused-before', 'true')
+    setShowPauseModal(false)
+    onToggleTracking()
+  }
+
+  const handlePauseCancel = () => {
+    setShowPauseModal(false)
+  }
 
   useEffect(() => {
     const handleResize = (): void => {
@@ -331,7 +356,7 @@ const DistractionStatusBar = ({
           'rounded-lg',
           'p-2 px-4 py-[10px] flex-1 min-w-0 flex flex-row items-center justify-between sm:gap-x-3',
           cardBgColor,
-          'relative' // Add this for positioning the overlay
+          'relative'
         )}
       >
         {/* Paused overlay */}
@@ -383,7 +408,7 @@ const DistractionStatusBar = ({
         <Button
           className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
           variant="ghost"
-          onClick={onToggleTracking}
+          onClick={handlePauseClick}
           title={isTrackingPaused ? 'Resume Tracking' : 'Pause Tracking'}
         >
           {isTrackingPaused ? <Play size={20} /> : <Pause size={20} />}
@@ -475,6 +500,11 @@ const DistractionStatusBar = ({
             ))}
         </Button>
       </div>
+      <PauseInfoModal
+        isOpen={showPauseModal}
+        onClose={handlePauseCancel}
+        onConfirm={handlePauseConfirm}
+      />
     </div>
   )
 }
