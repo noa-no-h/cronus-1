@@ -352,6 +352,9 @@ export function registerIpcHandlers(
   ipcMain.handle('confirm-quit', () => {
     logMainToFile('User confirmed quit, closing app')
 
+    // Remove the before-quit listener temporarily to allow the app to quit
+    app.removeAllListeners('before-quit')
+
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.destroy()
     }
@@ -360,7 +363,7 @@ export function registerIpcHandlers(
       windows.floatingWindow.destroy()
     }
 
-    app.exit(0)
+    app.quit()
   })
 
   ipcMain.handle('cancel-quit', () => {

@@ -54,7 +54,7 @@ function App() {
     setupCsp()
     setupProtocolHandlers(() => mainWindow)
 
-    mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) => handleAppUrl(url, window))
+    mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
     initializeAutoUpdater(mainWindow)
     floatingWindow = createFloatingWindow(() => mainWindow)
 
@@ -69,9 +69,7 @@ function App() {
     }
 
     const recreateMainWindow = (): BrowserWindow => {
-      mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
-        handleAppUrl(url, window)
-      )
+      mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
       return mainWindow
     }
 
@@ -106,9 +104,7 @@ function App() {
     // Handle app activation (e.g., clicking the dock icon on macOS)
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
-        mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
-          handleAppUrl(url, window)
-        )
+        mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
       } else {
         // If there are windows (like the floating window), show the main window
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -119,8 +115,8 @@ function App() {
           }
         } else {
           // Main window doesn't exist, recreate it
-          mainWindow = createMainWindow(getUrlToHandleOnReady, (url, window) =>
-            handleAppUrl(url, window)
+          mainWindow = createMainWindow(getUrlToHandleOnReady, (url) =>
+            handleAppUrl(url, mainWindow)
           )
         }
       }
@@ -148,6 +144,20 @@ function App() {
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
       app.quit()
+    }
+  })
+
+  // Handle app quit attempts (Cmd+Q, File > Quit, etc.)
+  app.on('before-quit', (event) => {
+    // Prevent the app from quitting immediately
+    event.preventDefault()
+
+    // Send a message to the renderer to show the quit confirmation modal
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-quit-confirmation')
+    } else {
+      // If no main window exists, just quit
+      app.exit(0)
     }
   })
 

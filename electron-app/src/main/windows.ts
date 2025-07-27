@@ -152,16 +152,8 @@ export function createMainWindow(
     }
   })
 
-  // Add this close event handler to intercept the normal close button
-  mainWindow.on('close', (event) => {
-    // Prevent the window from closing immediately
-    event.preventDefault()
-
-    // Send a message to the renderer to show the quit confirmation modal
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('show-quit-confirmation')
-    }
-  })
+  // Allow the window to close normally when clicking the red button
+  // The quit confirmation will be handled by the before-quit event in main/index.ts
 
   return mainWindow
 }
