@@ -14,7 +14,7 @@ export const userRouter = router({
         playDistractionSound: z.boolean().optional(),
         distractionSoundInterval: z.number().min(5).max(300).optional(),
         showDistractionNotifications: z.boolean().optional(),
-        distractionNotificationInterval: z.number().min(5).max(300).optional(),
+        distractionNotificationInterval: z.number().min(5).max(600).optional(),
       })
     )
     .mutation(async ({ input }) => {
