@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { categorySchema, ICategoryDoc } from './category';
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -147,4 +146,12 @@ export const userSchema = new Schema({
   },
 });
 
-export const UserModel = mongoose.model<IUser>('User', userSchema);
+// Check if model already exists to prevent OverwriteModelError in production
+let UserModel: mongoose.Model<IUser>;
+try {
+  UserModel = mongoose.model<IUser>('User');
+} catch {
+  UserModel = mongoose.model<IUser>('User', userSchema);
+}
+
+export { UserModel };
