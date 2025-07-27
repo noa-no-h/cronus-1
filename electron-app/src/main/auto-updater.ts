@@ -17,50 +17,38 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
 
   autoUpdater.on('checking-for-update', () => {
     log.info('Checking for update...')
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', { status: 'checking' })
-    }
+    mainWindow?.webContents.send('update-status', { status: 'checking' })
   })
 
   autoUpdater.on('update-available', (info) => {
     log.info('Update available.', info)
     const payload: UpdateStatus = { status: 'available', info }
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', payload)
-    }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-not-available', () => {
     log.info('Update not available.')
     const payload: UpdateStatus = { status: 'not-available' }
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', payload)
-    }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('error', (err) => {
     log.error('Auto-updater error:', err)
     // Sentry.captureException(err)
     const payload: UpdateStatus = { status: 'error', error: err }
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', payload)
-    }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
     log.info(`Download progress: ${progressObj.percent}%`)
     const payload: UpdateStatus = { status: 'downloading', progress: progressObj }
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', payload)
-    }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-downloaded', () => {
     log.info('Update downloaded.')
     const payload: UpdateStatus = { status: 'downloaded' }
-    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
-      mainWindow.webContents.send('update-status', payload)
-    }
+    mainWindow?.webContents.send('update-status', payload)
   })
 
   // Check for updates on startup (only in production)

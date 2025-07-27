@@ -46,6 +46,7 @@ export function MainAppContent(): React.ReactElement {
   const [showTutorial, setShowTutorial] = useState(false)
   const [isTrackingPaused, setIsTrackingPaused] = useState(false)
   const [showQuitModal, setShowQuitModal] = useState(false)
+  const [isSystemRestarting, setIsSystemRestarting] = useState(false) // Prevent quit modal during system operations
 
   const handleSettingsClick = useCallback(() => {
     setIsSettingsOpen(!isSettingsOpen)
@@ -366,6 +367,13 @@ export function MainAppContent(): React.ReactElement {
       // Check for Cmd+Q on Mac or Ctrl+Q on other platforms
       if ((event.metaKey || event.ctrlKey) && event.key === 'q') {
         event.preventDefault()
+
+        // Don't show quit modal during system operations or if onboarding not completed
+        const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+        if (isSystemRestarting || !hasCompletedOnboarding) {
+          return
+        }
+
         setShowQuitModal(true)
       }
     }
@@ -375,7 +383,7 @@ export function MainAppContent(): React.ReactElement {
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [])
+  }, [isSystemRestarting])
 
   const handleQuitConfirm = async () => {
     console.log('🔄 Quit button clicked in modal, calling confirmQuit...')
@@ -396,12 +404,16 @@ export function MainAppContent(): React.ReactElement {
     setIsSettingsOpen(true)
   }
 
+  const handleSystemRestartBegin = useCallback(() => {
+    setIsSystemRestarting(true)
+  }, [])
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className={cn('flex flex-col', !isSettingsOpen && 'h-screen')}>
         <div className="sticky top-0 z-50 bg-white dark:bg-black">
           <div className="custom-title-bar">
-            <span>{APP_NAME}</span>
+            <span className="app-window-title">Cronus</span>
           </div>
           <div className="flex-none p-2">
             <DistractionStatusBar
@@ -416,6 +428,7 @@ export function MainAppContent(): React.ReactElement {
             />
           </div>
         </div>
+
         <div className="flex-1 flex flex-col overflow-auto">
           <div className={`flex-1 flex-col min-h-0 ${isSettingsOpen ? 'hidden' : 'flex'}`}>
             <DashboardView />
@@ -428,9 +441,18 @@ export function MainAppContent(): React.ReactElement {
             />
           </div>
         </div>
+
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+
+        <QuitConfirmationModal
+          isOpen={showQuitModal}
+          onQuit={handleQuitConfirm}
+          onKeepRunning={handleKeepRunning}
+          onOpenSettings={handleOpenSettingsFromModal}
+        />
+
+        <UpdateNotification onRestartBegin={handleSystemRestartBegin} />
         <TutorialModal isFirstVisit={showTutorial} onClose={handleTutorialClose} />
-        <UpdateNotification />
         <Toaster />
         {allCategories && recategorizeTarget && (
           <RecategorizeDialog
@@ -455,12 +477,6 @@ export function MainAppContent(): React.ReactElement {
             setFocusOn={setFocusOn}
           />
         )}
-        <QuitConfirmationModal
-          isOpen={showQuitModal}
-          onQuit={handleQuitConfirm}
-          onKeepRunning={handleKeepRunning}
-          onOpenSettings={handleOpenSettingsFromModal}
-        />
       </div>
     </TooltipProvider>
   )

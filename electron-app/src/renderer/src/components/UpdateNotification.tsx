@@ -14,7 +14,11 @@ import {
 import { Button } from './ui/button'
 import { ToastAction } from './ui/toast'
 
-export function UpdateNotification(): React.JSX.Element {
+export function UpdateNotification({
+  onRestartBegin
+}: {
+  onRestartBegin?: () => void
+}): React.JSX.Element {
   const { theme } = useTheme()
   const isDarkMode = useDarkMode()
   const toastRef = useRef<any>(null)
@@ -56,6 +60,7 @@ export function UpdateNotification(): React.JSX.Element {
       if (status.status === 'downloaded') {
         const handleRestart = (): void => {
           setIsRestarting(true)
+          onRestartBegin?.() // Notify parent that system restart is beginning
           window.api.installUpdate()
         }
 
