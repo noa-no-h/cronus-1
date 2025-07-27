@@ -60,33 +60,59 @@ function App() {
 
     mainWindow.on('closed', () => {
       mainWindow = null
+      windows.mainWindow = null
     })
 
     if (floatingWindow) {
       floatingWindow.on('closed', () => {
         floatingWindow = null
+        windows.floatingWindow = null
       })
+    }
+
+    // Create windows object that IPC handlers will reference
+    const windows: { mainWindow: BrowserWindow | null; floatingWindow: BrowserWindow | null } = {
+      mainWindow,
+      floatingWindow
     }
 
     const recreateMainWindow = (): BrowserWindow => {
       mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
+      // Update the windows object reference for IPC handlers
+      windows.mainWindow = mainWindow
       return mainWindow
     }
 
     const recreateFloatingWindow = (): void => {
       if (!floatingWindow) {
         floatingWindow = createFloatingWindow(() => mainWindow)
+        // Update the windows object reference for IPC handlers
+        windows.floatingWindow = floatingWindow
+
+        // Set up closed event handler for the new floating window
+        if (floatingWindow) {
+          floatingWindow.on('closed', () => {
+            floatingWindow = null
+            windows.floatingWindow = null
+          })
+        }
       }
     }
 
-    registerIpcHandlers({ mainWindow, floatingWindow }, recreateFloatingWindow, recreateMainWindow)
+    registerIpcHandlers(windows, recreateFloatingWindow, recreateMainWindow)
     registerAutoUpdaterHandlers()
 
     // Don't start observing active window changes immediately
     // This will be started after onboarding is complete via IPC call
     // Store the callback for later use
     const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
-      if (windowInfo && mainWindow && !mainWindow.isDestroyed() && !isTrackingPaused) {
+      if (
+        windowInfo &&
+        mainWindow &&
+        !mainWindow.isDestroyed() &&
+        !mainWindow.webContents.isDestroyed() &&
+        !isTrackingPaused
+      ) {
         mainWindow.webContents.send('active-window-changed', windowInfo)
       }
     }
@@ -105,6 +131,7 @@ function App() {
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) {
         mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
+        windows.mainWindow = mainWindow
       } else {
         // If there are windows (like the floating window), show the main window
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -118,6 +145,7 @@ function App() {
           mainWindow = createMainWindow(getUrlToHandleOnReady, (url) =>
             handleAppUrl(url, mainWindow)
           )
+          windows.mainWindow = mainWindow
         }
       }
     })

@@ -48,12 +48,26 @@ export function registerIpcHandlers(
   })
 
   ipcMain.on('show-floating-window', () => {
-    if (windows.floatingWindow) {
-      if (!windows.floatingWindow.isVisible()) {
-        windows.floatingWindow.show()
+    try {
+      if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+        if (!windows.floatingWindow.isVisible()) {
+          windows.floatingWindow.show()
+        }
+      } else {
+        console.log('Creating new floating window...')
+        recreateFloatingWindow()
+
+        // Give the floating window a moment to initialize before showing
+        if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+          setTimeout(() => {
+            if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+              windows.floatingWindow.show()
+            }
+          }, 100)
+        }
       }
-    } else {
-      recreateFloatingWindow()
+    } catch (error) {
+      console.error('Error in show-floating-window handler:', error)
     }
   })
 
@@ -115,7 +129,11 @@ export function registerIpcHandlers(
         isTrackingPaused?: boolean
       }
     ) => {
-      if (windows.floatingWindow && !windows.floatingWindow.isDestroyed()) {
+      if (
+        windows.floatingWindow &&
+        !windows.floatingWindow.isDestroyed() &&
+        !windows.floatingWindow.webContents.isDestroyed()
+      ) {
         windows.floatingWindow.webContents.send('floating-window-status-updated', data)
       } else {
         console.warn(

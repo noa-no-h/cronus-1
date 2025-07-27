@@ -47,13 +47,13 @@ export function createFloatingWindow(
 
   floatingWindow.on('show', () => {
     const main = getMainWindow()
-    if (main && !main.isDestroyed()) {
+    if (main && !main.isDestroyed() && !main.webContents.isDestroyed()) {
       main.webContents.send('floating-window-visibility-changed', true)
     }
   })
   floatingWindow.on('hide', () => {
     const main = getMainWindow()
-    if (main && !main.isDestroyed()) {
+    if (main && !main.isDestroyed() && !main.webContents.isDestroyed()) {
       main.webContents.send('floating-window-visibility-changed', false)
     }
   })

@@ -21,7 +21,7 @@ export function handleAppUrl(url: string, mainWindow: BrowserWindow | null): voi
   //   body: `App received URL: ${url}`
   // }).show()
 
-  if (!mainWindow || mainWindow.isDestroyed()) {
+  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.webContents.isDestroyed()) {
     urlToHandleOnReady = url
     return
   }
