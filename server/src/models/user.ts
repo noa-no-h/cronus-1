@@ -109,7 +109,7 @@ const userSchema = new Schema({
     },
     distractionSoundInterval: {
       type: Number,
-      default: 30, // in seconds
+      default: 30,
     },
     showDistractionNotifications: {
       type: Boolean,
@@ -117,7 +117,7 @@ const userSchema = new Schema({
     },
     distractionNotificationInterval: {
       type: Number,
-      default: 60, // in seconds
+      default: 60,
     },
     optedOutOfPosthogTracking: {
       type: Boolean,
