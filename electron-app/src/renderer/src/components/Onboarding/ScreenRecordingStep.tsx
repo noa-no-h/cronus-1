@@ -71,7 +71,7 @@ export function ScreenRecordingStep({
         <div className="bg-green-50 w-full dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
           <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
             <CheckCircle className="w-4 h-4 mr-2" />
-            <strong>Permission granted! You can now continue.</strong>
+            <div className="font-semibold">Permission granted! You can now continue.</div>
           </p>
         </div>
       )}
