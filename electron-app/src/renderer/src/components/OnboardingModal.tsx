@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
+import posthog from 'posthog-js'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../utils/trpc'
@@ -45,9 +46,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const queryClient = useQueryClient()
   const utils = trpc.useUtils()
 
-  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery({
-    token: token || ''
-  })
+  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery(
+    {
+      token: token || ''
+    },
+    {
+      enabled: !!token
+    }
+  )
 
   const createCategoriesMutation = trpc.category.createCategories.useMutation({
     onSuccess: () => {
@@ -58,9 +64,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const updateUserReferralMutation = trpc.user.updateUserReferral.useMutation()
   const updateUserPosthogTrackingMutation = trpc.user.updateUserPosthogTracking.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: trpc.user.getElectronAppSettings.getQueryKey({ token: token || '' })
-      })
+      // Use trpc utils for more reliable invalidation
+      utils.user.getElectronAppSettings.invalidate({ token: token || '' })
     }
   })
 
@@ -232,9 +237,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const steps = baseSteps.filter((step) => {
     if (step.id === 'posthog-opt-in-eu') {
-      // Show PostHog step for EU users OR users who haven't made a choice yet
-      const hasntMadeChoice = electronSettings?.optedOutOfPosthogTracking === undefined
-      return user?.isInEU || hasntMadeChoice
+      // Show PostHog step only for EU users
+      return user?.isInEU
     }
 
     if (step.id === 'goals' && hasExistingGoals) {
@@ -334,13 +338,23 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       console.error('Failed to start window tracking:', error)
     }
 
-    // Update PostHog tracking preference
-    if (token) {
+    // Update PostHog tracking preference only if user saw the PostHog step
+    const showedPosthogStep = steps.some((step) => step.id === 'posthog-opt-in-eu')
+    if (token && showedPosthogStep) {
       try {
+        const optedOut = !hasOptedInToPosthog
         await updateUserPosthogTrackingMutation.mutateAsync({
           token,
-          optedOutOfPosthogTracking: !hasOptedInToPosthog
+          optedOutOfPosthogTracking: optedOut
         })
+
+        // Call PostHog opt-out/opt-in methods
+        if (optedOut) {
+          posthog.opt_out_capturing()
+        } else {
+          posthog.opt_in_capturing()
+        }
+
         console.log('✅ PostHog tracking preference updated successfully.')
       } catch (error) {
         console.error('❌ Failed to update PostHog tracking preference:', error)

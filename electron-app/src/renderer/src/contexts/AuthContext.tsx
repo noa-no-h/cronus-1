@@ -1,9 +1,9 @@
 import { usePostHog } from 'posthog-js/react'
 import { createContext, JSX, ReactNode, useContext, useEffect, useState } from 'react'
 import { User } from 'shared/dist/types.js'
+import { useToast } from '../hooks/use-toast'
 import { exchangeGoogleCodeForTokens } from '../lib/auth'
 import { trpc } from '../utils/trpc'
-import { useToast } from '../hooks/use-toast'
 
 interface AuthContextType {
   user: User | null
@@ -27,11 +27,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
   const posthog = usePostHog()
-  
+
   const { toast } = useToast()
 
   const trpcUtils = trpc.useContext()
-        
+
   const {
     data: _fetchedUser,
     error: _userError,

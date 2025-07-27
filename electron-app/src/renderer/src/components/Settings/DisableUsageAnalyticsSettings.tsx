@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
@@ -8,17 +7,21 @@ import { Label } from '../ui/label'
 
 export const DisableUsageAnalyticsSettings = () => {
   const { token, user } = useAuth()
-  const queryClient = useQueryClient()
+  const utils = trpc.useUtils()
 
-  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery({
-    token: token || ''
-  })
+  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery(
+    {
+      token: token || ''
+    },
+    {
+      enabled: !!token
+    }
+  )
 
   const updateUserPosthogTrackingMutation = trpc.user.updateUserPosthogTracking.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: trpc.user.getElectronAppSettings.getQueryKey({ token: token || '' })
-      })
+      // Use trpc utils for more reliable invalidation
+      utils.user.getElectronAppSettings.invalidate({ token: token || '' })
     }
   })
 
