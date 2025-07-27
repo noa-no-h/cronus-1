@@ -63,6 +63,30 @@ electron-app/
 ├── tsconfig.web.json # TypeScript config for renderer
 └── README.md
 
+## Electron Architecture Gotcha: webContents Lifecycle
+
+**Important**: When implementing macOS-style window hiding (to keep tracking alive), be aware that `BrowserWindow` and `webContents` have **independent lifecycles**.
+
+```typescript
+// ❌ WRONG - Only checks if window exists
+if (mainWindow && !mainWindow.isDestroyed()) {
+  mainWindow.webContents.send('message', data) // Can crash with "Object has been destroyed"
+}
+
+// ✅ CORRECT - Checks both window AND renderer
+if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isDestroyed()) {
+  mainWindow.webContents.send('message', data) // Safe
+}
+```
+
+**Why this happens**: When you hide a window (instead of destroying it), Electron may destroy the `webContents` (renderer process) for memory management while keeping the `BrowserWindow` container alive. Always check both states before IPC communication.
+
+This pattern is used throughout our codebase in:
+
+- `src/main/ipc.ts` - All IPC handlers
+- `src/main/index.ts` - Active window tracking
+- `src/main/auto-updater.ts` - Update status messages
+
 ## Building the Electron App
 
 The primary method for creating local builds is through `electron-builder`, which ensures that all packaging, code signing, and entitlements are handled correctly and consistently.
