@@ -89,7 +89,7 @@ declare global {
       redactSensitiveContent: (content: string) => Promise<string>
       // setSentryUser: (userData: { id: string; email: string; username: string; subscription: boolean } | null) => Promise<void>
       confirmQuit: () => Promise<void>
-      cancelQuit: () => Promise<void>
+  
     }
     floatingApi: FloatingWindowApi
   }

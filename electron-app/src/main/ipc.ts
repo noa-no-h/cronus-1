@@ -348,12 +348,9 @@ export function registerIpcHandlers(
     }
   })
 
-  // Handlers for window close modal
+  // Handler for quit confirmation modal
   ipcMain.handle('confirm-quit', () => {
     logMainToFile('User confirmed quit, closing app')
-
-    // Remove the before-quit listener temporarily to allow the app to quit
-    app.removeAllListeners('before-quit')
 
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.destroy()
@@ -364,11 +361,6 @@ export function registerIpcHandlers(
     }
 
     app.quit()
-  })
-
-  ipcMain.handle('cancel-quit', () => {
-    logMainToFile('User cancelled quit')
-    // Just return, the modal will be closed by the renderer
   })
 
   // ipcMain.handle(

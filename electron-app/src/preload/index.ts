@@ -98,8 +98,7 @@ const api = {
   // ) => ipcRenderer.invoke('set-sentry-user', userData)
 
   // Add these two methods for quit confirmation
-  confirmQuit: () => ipcRenderer.invoke('confirm-quit'),
-  cancelQuit: () => ipcRenderer.invoke('cancel-quit')
+  confirmQuit: () => ipcRenderer.invoke('confirm-quit')
 }
 
 export interface ActivityToRecategorize {

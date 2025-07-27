@@ -152,8 +152,15 @@ export function createMainWindow(
     }
   })
 
-  // Allow the window to close normally when clicking the red button
-  // The quit confirmation will be handled by the before-quit event in main/index.ts
+  // Handle close button - hide window instead of destroying it to keep tracking active
+  mainWindow.on('close', (event) => {
+    if (process.platform === 'darwin') {
+      // On macOS, hide the window instead of closing it
+      event.preventDefault()
+      mainWindow.hide()
+    }
+    // On other platforms, allow normal close behavior
+  })
 
   return mainWindow
 }

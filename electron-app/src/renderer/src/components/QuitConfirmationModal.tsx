@@ -1,4 +1,4 @@
-import { Monitor, Pause, Settings, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 
@@ -30,30 +30,28 @@ export function QuitConfirmationModal({
           >
             <X className="h-4 w-4" />
           </Button>
-          <CardHeader className="text-center pr-10">
-            <CardTitle className="text-xl font-semibold">
-              Are you sure you want to close Cronus?
-            </CardTitle>
+          <CardHeader>
+            <CardTitle>Are you sure you want to quit Cronus?</CardTitle>
             <CardDescription>
-              Your time tracking will continue even when you&apos;re away
+              We automatically pause tracking when your computer sleeps. You can also pause tracking
+              manually instead of quitting.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-start gap-3">
-                <Monitor className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>The app will continue tracking when your computer sleeps or locks</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Pause className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <p>You can pause tracking anytime in settings</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 pt-2">
+          <CardContent className="space-y-3">
+            <div className="flex flex-col gap-2">
               <Button onClick={onOpenSettings} variant="outline" className="w-full">
-                <Settings className="w-4 h-4 mr-2" />
-                Open Settings
+                Pause Tracking
+              </Button>
+              <Button
+                onClick={() =>
+                  window.open(
+                    'mailto:wallawitsch@gmail.com, arne.strickmann@googlemail.com?subject=Cronus%20Feedback'
+                  )
+                }
+                variant="outline"
+                className="w-full"
+              >
+                Email Feedback
               </Button>
               <Button onClick={onQuit} variant="default" className="w-full">
                 Quit App

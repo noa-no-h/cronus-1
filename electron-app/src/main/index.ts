@@ -147,20 +147,6 @@ function App() {
     }
   })
 
-  // Handle app quit attempts (Cmd+Q, File > Quit, etc.)
-  app.on('before-quit', (event) => {
-    // Prevent the app from quitting immediately
-    event.preventDefault()
-
-    // Send a message to the renderer to show the quit confirmation modal
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('show-quit-confirmation')
-    } else {
-      // If no main window exists, just quit
-      app.exit(0)
-    }
-  })
-
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })

@@ -360,17 +360,20 @@ export function MainAppContent(): React.ReactElement {
     }
   }, [])
 
-  // Add this effect to listen for quit confirmation requests
+  // Listen for Cmd+Q keyboard shortcut to show quit confirmation
   useEffect(() => {
-    const ipcRenderer = window.electron?.ipcRenderer
-    const handleShowQuitConfirmation = () => {
-      setShowQuitModal(true)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Cmd+Q on Mac or Ctrl+Q on other platforms
+      if ((event.metaKey || event.ctrlKey) && event.key === 'q') {
+        event.preventDefault()
+        setShowQuitModal(true)
+      }
     }
 
-    ipcRenderer?.on('show-quit-confirmation', handleShowQuitConfirmation)
+    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      ipcRenderer?.removeListener('show-quit-confirmation', handleShowQuitConfirmation)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
 
