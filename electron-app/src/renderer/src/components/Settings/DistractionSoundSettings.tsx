@@ -172,6 +172,7 @@ export const DistractionSoundSettings = () => {
               <SelectItem value="60">Every 1 minute</SelectItem>
               <SelectItem value="120">Every 2 minutes</SelectItem>
               <SelectItem value="300">Every 5 minutes</SelectItem>
+              <SelectItem value="600">Every 10 minutes</SelectItem>
             </SelectContent>
           </Select>
         </div>
