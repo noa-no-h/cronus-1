@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { categorySchema, ICategoryDoc } from './category';
 
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -44,7 +45,7 @@ export interface IUser extends Document {
   isInEU: boolean;
 }
 
-const userSchema = new Schema({
+export const userSchema = new Schema({
   email: {
     type: String,
     required: true,

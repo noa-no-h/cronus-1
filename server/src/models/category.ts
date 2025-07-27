@@ -16,7 +16,7 @@ export interface ICategoryDoc extends Document {
   updatedAt: Date; // from timestamps
 }
 
-const categorySchema: Schema = new Schema<ICategoryDoc>(
+export const categorySchema: Schema = new Schema<ICategoryDoc>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true }, // Matches ICategoryDoc.userId
     name: { type: String, required: true, trim: true, maxlength: 100 },

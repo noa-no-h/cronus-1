@@ -1,6 +1,6 @@
+import { UserModel } from 'src/models/user';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 import { CategoryModel } from '../../models/category';
-import { UserModel } from '../../models/user';
 import { checkActivityHistory } from './history';
 import { getOpenAICategoryChoice, getOpenAISummaryForBlock } from './llm';
 
@@ -32,6 +32,8 @@ export async function categorizeActivity(
     ...cat,
     _id: cat._id.toString(),
     userId: cat.userId.toString(),
+    createdAt: cat.createdAt.toISOString(),
+    updatedAt: cat.updatedAt.toISOString(),
   }));
 
   if (!userCategories || userCategories.length === 0) {
