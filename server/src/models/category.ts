@@ -64,4 +64,12 @@ export const categorySchema: Schema = new Schema<ICategoryDoc>(
 // Index for unique category name per user
 categorySchema.index({ userId: 1, name: 1 }, { unique: true });
 
-export const CategoryModel = mongoose.model<ICategoryDoc>('Category', categorySchema);
+// Check if model already exists to prevent OverwriteModelError in production
+let CategoryModel: mongoose.Model<ICategoryDoc>;
+try {
+  CategoryModel = mongoose.model<ICategoryDoc>('Category');
+} catch {
+  CategoryModel = mongoose.model<ICategoryDoc>('Category', categorySchema);
+}
+
+export { CategoryModel };

@@ -24,4 +24,12 @@ const teamsWaitlistSchema = new mongoose.Schema({
   },
 });
 
-export const TeamsWaitlist = mongoose.model('TeamsWaitlist', teamsWaitlistSchema);
+// Check if model already exists to prevent OverwriteModelError in production
+let TeamsWaitlist: mongoose.Model<mongoose.Document>;
+try {
+  TeamsWaitlist = mongoose.model('TeamsWaitlist');
+} catch {
+  TeamsWaitlist = mongoose.model('TeamsWaitlist', teamsWaitlistSchema);
+}
+
+export { TeamsWaitlist };

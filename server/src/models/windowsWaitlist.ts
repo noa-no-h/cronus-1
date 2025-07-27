@@ -12,4 +12,12 @@ const windowsWaitlistSchema = new mongoose.Schema({
   },
 });
 
-export const WindowsWaitlist = mongoose.model('WindowsWaitlist', windowsWaitlistSchema);
+// Check if model already exists to prevent OverwriteModelError in production
+let WindowsWaitlist: mongoose.Model<mongoose.Document>;
+try {
+  WindowsWaitlist = mongoose.model('WindowsWaitlist');
+} catch {
+  WindowsWaitlist = mongoose.model('WindowsWaitlist', windowsWaitlistSchema);
+}
+
+export { WindowsWaitlist };
