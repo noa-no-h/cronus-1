@@ -4,6 +4,7 @@ import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { TutorialModal } from './components/Onboarding/TutorialModal'
 import { OnboardingModal } from './components/OnboardingModal'
+import { QuitConfirmationModal } from './components/QuitConfirmationModal'
 import RecategorizeDialog from './components/RecategorizeDialog'
 import { PermissionStatus, PermissionType } from './components/Settings/PermissionsStatus'
 import { SettingsPage } from './components/SettingsPage'
@@ -15,8 +16,8 @@ import { useSettings } from './contexts/SettingsContext'
 import { toast } from './hooks/use-toast'
 import { uploadActiveWindowEvent } from './lib/activityUploader'
 import { showActivityMovedToast } from './lib/custom-toasts'
+import { cn } from './lib/utils'
 import { trpc } from './utils/trpc'
-import { QuitConfirmationModal } from './components/QuitConfirmationModal'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
 export const APP_USP = 'The first context-aware, AI distraction and time tracker.'
@@ -394,7 +395,7 @@ export function MainAppContent(): React.ReactElement {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="flex flex-col h-screen">
+      <div className={cn('flex flex-col', !isSettingsOpen && 'h-screen')}>
         <div className="sticky top-0 z-50 bg-white dark:bg-black">
           <div className="custom-title-bar">
             <span>{APP_NAME}</span>
@@ -416,7 +417,7 @@ export function MainAppContent(): React.ReactElement {
           <div className={`flex-1 flex-col min-h-0 ${isSettingsOpen ? 'hidden' : 'flex'}`}>
             <DashboardView />
           </div>
-          <div className={`flex-1 flex-col overflow-y-auto ${isSettingsOpen ? 'flex' : 'hidden'}`}>
+          <div className={`flex-1 flex-col ${isSettingsOpen ? 'flex' : 'hidden'}`}>
             <SettingsPage
               onResetOnboarding={handleResetOnboarding}
               isTrackingPaused={isTrackingPaused}
