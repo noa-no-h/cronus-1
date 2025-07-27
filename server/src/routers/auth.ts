@@ -264,6 +264,21 @@ export const authRouter = router({
       throw new Error('User not found');
     }
 
+    // Backfill isInEU for existing users who don't have it properly set
+    if (!user.isInEU && ctx.req.ip) {
+      try {
+        const actualIsInEU = await checkIsEU(ctx.req.ip);
+        if (actualIsInEU !== user.isInEU) {
+          user.isInEU = actualIsInEU;
+          await user.save();
+          console.log(`✅ Updated EU status for user ${user.email}: ${actualIsInEU}`);
+        }
+      } catch (error) {
+        console.error('Failed to backfill EU status for user:', user.email, error);
+        // Don't throw - continue with existing isInEU value
+      }
+    }
+
     return {
       id: user._id.toString(),
       email: user.email,

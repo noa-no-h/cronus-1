@@ -44,6 +44,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const { token, user } = useAuth()
   const queryClient = useQueryClient()
   const utils = trpc.useUtils()
+
+  const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery({
+    token: token || ''
+  })
+
   const createCategoriesMutation = trpc.category.createCategories.useMutation({
     onSuccess: () => {
       utils.category.getCategories.invalidate()
@@ -226,8 +231,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   ]
 
   const steps = baseSteps.filter((step) => {
-    if (step.id === 'posthog-opt-in-eu' && !user?.isInEU) {
-      return false
+    if (step.id === 'posthog-opt-in-eu') {
+      // Show PostHog step for EU users OR users who haven't made a choice yet
+      const hasntMadeChoice = electronSettings?.optedOutOfPosthogTracking === undefined
+      return user?.isInEU || hasntMadeChoice
     }
 
     if (step.id === 'goals' && hasExistingGoals) {
