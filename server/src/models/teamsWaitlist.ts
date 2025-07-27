@@ -1,4 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
+
+export interface ITeamsWaitlist extends Document {
+  email: string;
+  companyName: string;
+  teamSize: string;
+  additionalInfo?: string;
+  createdAt: Date;
+}
 
 const teamsWaitlistSchema = new mongoose.Schema({
   email: {
@@ -24,12 +32,6 @@ const teamsWaitlistSchema = new mongoose.Schema({
   },
 });
 
-// Check if model already exists to prevent OverwriteModelError in production
-let TeamsWaitlist: mongoose.Model<mongoose.Document>;
-try {
-  TeamsWaitlist = mongoose.model('TeamsWaitlist');
-} catch {
-  TeamsWaitlist = mongoose.model('TeamsWaitlist', teamsWaitlistSchema);
-}
-
-export { TeamsWaitlist };
+export const TeamsWaitlist: mongoose.Model<ITeamsWaitlist> =
+  mongoose.models.TeamsWaitlist ||
+  mongoose.model<ITeamsWaitlist>('TeamsWaitlist', teamsWaitlistSchema);

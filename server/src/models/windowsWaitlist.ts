@@ -1,4 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
+
+export interface IWindowsWaitlist extends Document {
+  email: string;
+  createdAt: Date;
+}
 
 const windowsWaitlistSchema = new mongoose.Schema({
   email: {
@@ -12,12 +17,6 @@ const windowsWaitlistSchema = new mongoose.Schema({
   },
 });
 
-// Check if model already exists to prevent OverwriteModelError in production
-let WindowsWaitlist: mongoose.Model<mongoose.Document>;
-try {
-  WindowsWaitlist = mongoose.model('WindowsWaitlist');
-} catch {
-  WindowsWaitlist = mongoose.model('WindowsWaitlist', windowsWaitlistSchema);
-}
-
-export { WindowsWaitlist };
+export const WindowsWaitlist: mongoose.Model<IWindowsWaitlist> =
+  mongoose.models.WindowsWaitlist ||
+  mongoose.model<IWindowsWaitlist>('WindowsWaitlist', windowsWaitlistSchema);
