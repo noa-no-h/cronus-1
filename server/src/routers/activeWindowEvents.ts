@@ -102,7 +102,6 @@ export const activeWindowEventsRouter = router({
         const decodedToken = safeVerifyToken(input.token);
         const userId = decodedToken.userId;
 
-        // Input times are already UTC milliseconds representing the user's local day/week boundaries
         const { startDateMs, endDateMs } = input;
 
         if (startDateMs >= endDateMs) {
@@ -112,6 +111,8 @@ export const activeWindowEventsRouter = router({
           });
         }
 
+        const EVENT_LIMIT = 7500; // Safety limit to prevent server crashes
+
         const events = await ActiveWindowEventModel.find({
           userId: userId,
           timestamp: {
@@ -120,10 +121,18 @@ export const activeWindowEventsRouter = router({
           },
         })
           .select(
-            // TODO: just get all this?
             'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs generatedTitle'
           )
-          .sort({ timestamp: 1 });
+          .sort({ timestamp: 1 })
+          .limit(EVENT_LIMIT);
+
+        if (events.length === EVENT_LIMIT) {
+          console.warn(
+            `[PERFORMANCE] User ${userId} hit the event limit of ${EVENT_LIMIT} for date range ${new Date(
+              startDateMs
+            ).toISOString()} to ${new Date(endDateMs).toISOString()}. Returning partial data.`
+          );
+        }
 
         return events.map((event) => event.toObject() as ActiveWindowEvent);
       } catch (error) {

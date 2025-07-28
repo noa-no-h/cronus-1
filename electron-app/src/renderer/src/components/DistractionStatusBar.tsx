@@ -7,10 +7,10 @@ import {
   ExternalLink,
   Mail,
   MessageCircle,
-  Settings as SettingsIcon,
-  Youtube,
+  Pause,
   Play,
-  Pause
+  Settings as SettingsIcon,
+  Youtube
 } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
@@ -29,6 +29,7 @@ import { calculateProductivityMetrics } from '../utils/timeMetrics'
 import { trpc } from '../utils/trpc'
 import { ActivityIcon } from './ActivityList/ActivityIcon'
 import DistractionStatusLoadingSkeleton from './DistractionStatusLoadingSkeleton'
+import PauseInfoModal from './PauseInfoModal'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -36,7 +37,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu'
-import PauseInfoModal from './PauseInfoModal'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
