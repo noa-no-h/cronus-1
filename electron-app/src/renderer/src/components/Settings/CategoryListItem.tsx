@@ -48,7 +48,7 @@ export function CategoryListItem({
             variant="ghost"
             size="icon"
             onClick={() => onEdit(category)}
-            className="p-1.5 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
+            className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-background focus:ring-primary"
             title="Edit category"
             disabled={isUpdating}
           >
@@ -60,7 +60,7 @@ export function CategoryListItem({
               <Button
                 variant="ghost"
                 size="icon"
-                className="p-1.5 rounded-full text-muted-foreground data-[state=open]:bg-primary/20 data-[state=open]:text-primary"
+                className="p-1.5 text-muted-foreground data-[state=open]:bg-primary/20 data-[state=open]:text-primary"
                 disabled={isUpdating || isDeleting}
               >
                 <span className="sr-only">Open menu</span>

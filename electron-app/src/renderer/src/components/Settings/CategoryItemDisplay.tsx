@@ -42,7 +42,7 @@ export function CategoryItemDisplay({
     >
       <div className="flex items-center justify-between gap-x-4">
         <div className="flex items-center flex-1 min-w-0">
-          <span className="text-lg mr-3 flex-shrink-0">{emoji}</span>
+          <span className="text-lg mx-2 flex-shrink-0">{emoji}</span>
           <div className="flex-1 min-w-0">
             <p
               className="text-md font-medium truncate"
@@ -50,14 +50,14 @@ export function CategoryItemDisplay({
             >
               {name}
             </p>
-            {description && (
+            {/* {description && (
               <p
-                className="text-sm truncate"
+                className="text-sm truncate opacity-70"
                 style={{ color: isArchived ? 'text-muted-foreground' : textColor }}
               >
                 {description}
               </p>
-            )}
+            )} */}
           </div>
         </div>
         <div className="flex-shrink-0 flex items-center space-x-1 sm:space-x-2">{actions}</div>
