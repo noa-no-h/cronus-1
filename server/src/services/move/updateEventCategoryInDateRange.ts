@@ -78,9 +78,11 @@ export async function updateEventCategoryInDateRange(params: {
 
   let latestEvent: ActiveWindowEvent | null = null;
   if (result.modifiedCount > 0) {
-    const latestUpdatedEvent = await ActiveWindowEventModel.findOne(filter).sort({
-      timestamp: -1,
-    });
+    const latestUpdatedEvent = await ActiveWindowEventModel.findOne(filter)
+      .sort({
+        timestamp: -1,
+      })
+      .lean();
     if (latestUpdatedEvent) {
       latestEvent = latestUpdatedEvent.toObject() as ActiveWindowEvent;
     }

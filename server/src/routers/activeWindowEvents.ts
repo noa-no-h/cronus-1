@@ -158,12 +158,13 @@ export const activeWindowEventsRouter = router({
           userId: userId,
         })
           .sort({ timestamp: -1 })
-          .limit(1);
+          .limit(1)
+          .lean();
 
         if (!latestEvent) {
           return null; // Or throw a TRPCError if an event is always expected
         }
-        return latestEvent.toObject() as ActiveWindowEvent;
+        return { ...latestEvent, _id: latestEvent._id.toString() } as ActiveWindowEvent;
       } catch (error) {
         console.error('Error fetching latest event:', error);
         // Handle token verification errors specifically if verifyToken throws them
@@ -344,7 +345,7 @@ export const activeWindowEventsRouter = router({
               categoryColor: '$categoryDetails.color',
             },
           },
-        ]);
+        ]).allowDiskUse(true);
         return history;
       } catch (error) {
         console.error('Error fetching manual entry history:', error);
