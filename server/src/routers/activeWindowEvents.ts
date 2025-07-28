@@ -120,11 +120,10 @@ export const activeWindowEventsRouter = router({
             $lt: endDateMs,
           },
         })
-          .select(
-            'ownerName title url type browser timestamp categoryId categoryReasoning llmSummary durationMs generatedTitle'
-          )
+          .select('-content') // Explicitly exclude the large 'content' field
           .sort({ timestamp: 1 })
-          .limit(EVENT_LIMIT);
+          .limit(EVENT_LIMIT)
+          .lean();
 
         if (events.length === EVENT_LIMIT) {
           console.warn(
@@ -134,7 +133,10 @@ export const activeWindowEventsRouter = router({
           );
         }
 
-        return events.map((event) => event.toObject() as ActiveWindowEvent);
+        return events.map((event) => ({
+          ...event,
+          _id: event._id.toString(),
+        })) as ActiveWindowEvent[];
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         console.error('Error fetching events for date range:', error);
