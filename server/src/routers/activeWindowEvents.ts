@@ -1,7 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import mongoose, { FilterQuery } from 'mongoose';
 import { categorizeActivity } from 'src/services/categorization/categorizationService';
-import { generateActivitySummary, isTitleInformative } from 'src/services/categorization/llm';
 import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
@@ -34,31 +33,32 @@ export const activeWindowEventsRouter = router({
       input;
     const activityDetails = { ownerName, type, browser, title, url, content };
 
-    // LLM logic for title evaluation/generation
-    let generatedTitle: string | undefined = undefined;
-    try {
-      // Only generate titles for desktop apps with uninformative titles
-      const shouldGenerateTitle =
-        type === 'window' &&
-        (!title ||
-          title.trim() === '' ||
-          title === 'Untitled' ||
-          title === ownerName ||
-          title.length < 3);
-
-      if (shouldGenerateTitle) {
-        // Evaluate if the title is informative
-        const informative = await isTitleInformative(title || '');
-
-        // If not, generate a summary
-        if (!informative) {
-          generatedTitle = await generateActivitySummary(activityDetails);
-          console.log('[Router] Final generated title:', generatedTitle);
-        }
-      }
-    } catch (err) {
-      console.error('LLM title evaluation/generation failed:', err);
-    }
+    // TODO: bring back informative title
+    // We sometimes send 20-40+ simultaneous activeWindowEvents.create calls so this can leads to too many concurrent openai calls
+    // With 30 creates × 2-3 OpenAI calls each = 60-90 concurrent OpenAI API calls, plus database operations
+    // We should move this to a cron job or similar that runs only if a better title is required from EventSegment.tsx
+    // DO NOT REMOVE THIS CODE
+    // let generatedTitle: string | undefined = undefined;
+    // try {
+    //   const shouldGenerateTitle =
+    //     type === 'window' &&
+    //     (!title ||
+    //       title.trim() === '' ||
+    //       title === 'Untitled' ||
+    //       title === ownerName ||
+    //       title.length < 3);
+    //   if (shouldGenerateTitle) {
+    //     // Evaluate if the title is informative
+    //     const informative = await isTitleInformative(title || '');
+    //     // If not, generate a summary
+    //     if (!informative) {
+    //       generatedTitle = await generateActivitySummary(activityDetails);
+    //       console.log('[Router] Final generated title:', generatedTitle);
+    //     }
+    //   }
+    // } catch (err) {
+    //   console.error('LLM title evaluation/generation failed:', err);
+    // }
 
     const categorizationResult = await categorizeActivity(userId, activityDetails);
     const categoryId = categorizationResult.categoryId;
@@ -76,7 +76,6 @@ export const activeWindowEventsRouter = router({
       content,
       timestamp,
       screenshotS3Url,
-      generatedTitle,
       categoryId, // Add categoryId from categorization service
       categoryReasoning,
       llmSummary,
