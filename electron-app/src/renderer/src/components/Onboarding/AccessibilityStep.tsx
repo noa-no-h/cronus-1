@@ -29,20 +29,6 @@ export function AccessibilityStep({
           </li>
         </ul>
       </div>
-      {permissionStatus !== 1 && (
-        <p className="text-xs text-muted-foreground max-w-md mx-auto">
-          All data is processed locally on your device. For more information, please refer to our{' '}
-          <a
-            href="https://cronushq.com/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            Privacy Policy
-          </a>
-          .
-        </p>
-      )}
       {hasRequestedPermission && permissionStatus !== 1 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
           <p className="text-sm text-left text-blue-800 dark:text-blue-200">
@@ -60,7 +46,7 @@ export function AccessibilityStep({
         <div className="w-full bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mt-4 border border-green-200 dark:border-green-800">
           <p className="text-sm text-green-800 dark:text-green-200 flex items-center justify-center">
             <CheckCircle className="w-4 h-4 mr-2" />
-            <div className="font-semibold">Permission granted! You can now continue.</div>
+            <div className="font-medium">Permission granted! You can now continue.</div>
           </p>
         </div>
       )}
