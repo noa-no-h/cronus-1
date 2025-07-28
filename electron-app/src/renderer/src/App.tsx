@@ -279,6 +279,7 @@ export function MainAppContent(): React.ReactElement {
   }
 
   const handleResetOnboarding = (): void => {
+    console.log('handleResetOnboarding in App.tsx')
     setShowOnboarding(true)
     // Remove the local storage flag to allow onboarding to show again
     localStorage.removeItem('hasCompletedOnboarding')

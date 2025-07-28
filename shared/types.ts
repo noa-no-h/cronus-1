@@ -11,6 +11,12 @@ export interface User {
   tokenVersion?: number;
   electronAppSettings?: {
     calendarZoomLevel?: number;
+    theme?: 'light' | 'dark' | 'system';
+    playDistractionSound?: boolean;
+    distractionSoundInterval?: number;
+    showDistractionNotifications?: boolean;
+    distractionNotificationInterval?: number;
+    optedOutOfPosthogTracking?: boolean;
   };
   userProjectsAndGoals?: string;
 }

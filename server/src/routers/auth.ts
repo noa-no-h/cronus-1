@@ -257,38 +257,46 @@ export const authRouter = router({
     }),
 
   getUser: publicProcedure.input(z.object({ token: z.string() })).query(async ({ input, ctx }) => {
-    const decoded = safeVerifyTokenWithVersionTracking(input.token, ctx.userAgent);
-    const user = await UserModel.findById(decoded.userId);
+    try {
+      const decoded = safeVerifyTokenWithVersionTracking(input.token, ctx.userAgent);
+      const user = await UserModel.findById(decoded.userId);
 
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Backfill isInEU for existing users who don't have it properly set
-    if (!user.isInEU && ctx.req.ip) {
-      try {
-        const actualIsInEU = await checkIsEU(ctx.req.ip);
-        if (actualIsInEU !== user.isInEU) {
-          user.isInEU = actualIsInEU;
-          await user.save();
-          console.log(`✅ Updated EU status for user ${user.email}: ${actualIsInEU}`);
-        }
-      } catch (error) {
-        console.error('Failed to backfill EU status for user:', user.email, error);
-        // Don't throw - continue with existing isInEU value
+      if (!user) {
+        throw new Error('User not found');
       }
-    }
 
-    return {
-      id: user._id.toString(),
-      email: user.email,
-      name: user.name,
-      picture: user.picture,
-      hasSubscription: user.hasSubscription,
-      isWaitlisted: user.isWaitlisted,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-      isInEU: user.isInEU,
-    } satisfies User;
+      // Backfill isInEU for existing users who don't have it properly set
+      if (!user.isInEU && ctx.req.ip) {
+        try {
+          const actualIsInEU = await checkIsEU(ctx.req.ip);
+          if (actualIsInEU !== user.isInEU) {
+            user.isInEU = actualIsInEU;
+            await user.save();
+          }
+        } catch (error) {
+          console.error(`[getUser] Failed to backfill EU status for user: ${user.email}`, error);
+          // Don't throw - continue with existing isInEU value
+        }
+      }
+
+      return {
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        hasSubscription: user.hasSubscription,
+        isWaitlisted: user.isWaitlisted,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        isInEU: user.isInEU,
+        electronAppSettings: user.electronAppSettings,
+      } satisfies User;
+    } catch (error) {
+      console.error(
+        `[getUser] Error occurred during user lookup for token: ${input.token.substring(0, 20)}...`,
+        error
+      );
+      throw error;
+    }
   }),
 
   checkAndIncrementExportUsage: publicProcedure

@@ -237,6 +237,7 @@ const ActivitiesByCategoryWidget = ({
   }
 
   const handleMoveActivity = (activity: ActivityItem, targetCategoryId: string): void => {
+    console.log('handleMoveActivity in ActivitiesByCategoryWidget.tsx')
     if (!token || startDateMs === null || endDateMs === null) {
       console.error('Missing token or date range for move operation')
       return

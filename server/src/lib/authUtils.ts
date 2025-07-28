@@ -84,12 +84,19 @@ export async function updateUserClientVersion(userId: string, userAgent?: string
   if (!clientVersion) return;
 
   try {
-    // Only update if version has changed to avoid unnecessary DB writes
-    await UserModel.updateOne(
-      {
-        _id: userId,
-        $or: [{ clientVersion: { $ne: clientVersion } }, { clientVersion: { $exists: false } }],
-      },
+    const currentUser = await UserModel.findById(userId)
+      .select('clientVersion hasCompletedOnboarding')
+      .lean();
+    if (!currentUser) {
+      return;
+    }
+
+    if (currentUser.clientVersion === clientVersion) {
+      return;
+    }
+
+    const result = await UserModel.updateOne(
+      { _id: userId },
       {
         $set: {
           clientVersion: clientVersion,
@@ -97,9 +104,23 @@ export async function updateUserClientVersion(userId: string, userAgent?: string
         },
       }
     );
+
+    if (result.modifiedCount > 0) {
+      const updatedUser = await UserModel.findById(userId).select('hasCompletedOnboarding').lean();
+      if (
+        updatedUser &&
+        currentUser.hasCompletedOnboarding !== updatedUser.hasCompletedOnboarding
+      ) {
+        console.error(
+          `🚨 [updateUserClientVersion] CRITICAL: hasCompletedOnboarding changed unexpectedly for user ${userId}! Before: ${currentUser.hasCompletedOnboarding}, After: ${updatedUser.hasCompletedOnboarding}`
+        );
+      }
+    }
   } catch (error) {
-    console.error('Failed to update client version:', error);
-    // Don't throw - version tracking is non-critical
+    console.error(
+      `[updateUserClientVersion] Failed to update client version for user ${userId}:`,
+      error
+    );
   }
 }
 
