@@ -62,19 +62,16 @@ export function useDistractionSound(categoryDetails: Category | null | undefined
     }
 
     const checkAndPlay = () => {
-      const now = Date.now()
-      // If sound has never been played, or if it has been longer than the interval, play it.
-      if (!lastPlayedRef.current || now - lastPlayedRef.current > DISTRACTION_SOUND_INTERVAL_MS) {
-        // console.log('[useDistractionSound] Playing distraction sound')
-        distractionAudio.play().catch((e) => console.error('Error playing distraction sound:', e))
-        lastPlayedRef.current = now
-      }
+      // Since we're now running at the user's sound interval, we can play sound immediately
+      distractionAudio.play().catch((e) => console.error('Error playing distraction sound:', e))
+      lastPlayedRef.current = Date.now()
     }
 
-    // Play immediately on becoming distracting if conditions are met
+    // Play immediately on becoming distracting
     checkAndPlay()
 
-    const intervalId = setInterval(checkAndPlay, 1000) // check every second
+    // Check at the user's configured sound interval instead of every second
+    const intervalId = setInterval(checkAndPlay, DISTRACTION_SOUND_INTERVAL_MS)
 
     // Cleanup function to clear interval
     return () => {
