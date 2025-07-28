@@ -1,13 +1,13 @@
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2, Smile } from 'lucide-react'
 import { JSX, useState } from 'react'
 import { Category } from 'shared/dist/types.js'
 import { Button } from '../ui/button'
+import { EmojiPicker, EmojiPickerContent, EmojiPickerSearch } from '../ui/emoji-picker'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { Switch } from '../ui/switch'
 import { Textarea } from '../ui/textarea'
-import { EmojiPickerComponent } from './EmojiPicker'
 import { IsProductiveTooltip } from './IsProductiveTooltip'
 
 export const notionStyleCategoryColors = [
@@ -154,11 +154,24 @@ export function CategoryForm({
             Emoji <span className="text-red-500">*</span>
           </Label>
           <div className="flex items-center space-x-2 mt-1">
-            <EmojiPickerComponent
-              selectedEmoji={emoji}
-              onEmojiSelect={setEmoji}
-              disabled={isSaving}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-10 w-10 p-0 text-lg">
+                  {emoji || <Smile className="h-4 w-4" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-fit p-0">
+                <EmojiPicker
+                  className="h-[342px]"
+                  onEmojiSelect={({ emoji: newEmoji }) => {
+                    setEmoji(newEmoji)
+                  }}
+                >
+                  <EmojiPickerSearch />
+                  <EmojiPickerContent />
+                </EmojiPicker>
+              </PopoverContent>
+            </Popover>
             <span className="text-sm text-muted-foreground">Choose an emoji for this category</span>
           </div>
         </div>

@@ -70,8 +70,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
         className={clsx(
           'font-sm font-medium flex flex-row items-center gap-1',
           labelColorCls,
-          isEnlarged && 'pr-2',
-          isHovered && isEnlarged && 'bg-white/10 rounded-md p-1'
+          isEnlarged && 'pr-2'
         )}
         style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
       >

@@ -112,7 +112,7 @@ export const CalendarWidgetHeader = ({
             size="xs"
             onClick={() => onViewModeChange(viewMode === 'day' ? 'week' : 'day')}
           >
-            {viewMode === 'day' ? 'Week' : 'Day'}
+            {viewMode === 'day' ? 'Stats' : 'Day'}
           </Button>
         </div>
       </div>

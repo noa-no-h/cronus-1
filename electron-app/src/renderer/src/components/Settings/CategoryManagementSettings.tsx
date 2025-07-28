@@ -291,17 +291,28 @@ export function CategoryManagementSettings(): JSX.Element {
               isSaving={createMutation.isLoading}
             />
           )}
+
           {isFormOpen && (
-            <CategoryForm
-              initialData={memoizedInitialData}
-              onSave={handleSaveCategory}
-              onCancel={() => {
-                setIsFormOpen(false)
-                setEditingCategory(null)
-                setTemplateData(null)
-              }}
-              isSaving={createMutation.isLoading || updateMutation.isLoading}
-            />
+            <div className="p-4 border rounded-lg my-4">
+              <h3 className="text-lg font-semibold leading-none tracking-tight">
+                {editingCategory ? 'Edit Category' : 'Create New Category'}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">
+                {editingCategory
+                  ? 'Edit the details of your category.'
+                  : 'Create a new category to organize your activities.'}
+              </p>
+              <CategoryForm
+                initialData={memoizedInitialData}
+                onSave={handleSaveCategory}
+                onCancel={() => {
+                  setIsFormOpen(false)
+                  setEditingCategory(null)
+                  setTemplateData(null)
+                }}
+                isSaving={createMutation.isLoading || updateMutation.isLoading}
+              />
+            </div>
           )}
 
           {!isFormOpen && !isTemplateViewOpen && (!categories || categories.length === 0) && (
