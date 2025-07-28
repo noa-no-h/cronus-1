@@ -50,6 +50,7 @@ export const useDistractionNotification = (
     }
 
     const checkAndNotify = () => {
+      console.log(`⏰ useDistractionNotification: Timer fired at ${new Date().toLocaleTimeString()}`)
       if (!activeWindow) return
 
       const now = Date.now()
@@ -62,28 +63,27 @@ export const useDistractionNotification = (
         return
       }
 
-      // If the initial wait period is over, check if it's time for a new notification
-      if (!lastNotifiedRef.current || now - lastNotifiedRef.current > notificationIntervalMs) {
-        const appName = activeWindow.ownerName || 'Current Application'
-        const notificationTitle = `Focus Alert: ${appName}`
-        const notificationBody = `${statusText}`
+      // Since we're now running at the user's interval, we can show notification immediately
+      const appName = activeWindow.ownerName || 'Current Application'
+      const notificationTitle = `Focus Alert: ${appName}`
+      const notificationBody = `${statusText}`
 
-        console.log(
-          'Showing notification in useDistractionNotification',
-          notificationTitle,
-          notificationBody
-        )
-        // @ts-ignore
-        window.api.showNotification({
-          title: notificationTitle,
-          body: notificationBody
-        })
-        lastNotifiedRef.current = now
-      }
+      console.log(
+        'Showing notification in useDistractionNotification',
+        notificationTitle,
+        notificationBody
+      )
+      // @ts-ignore
+      window.api.showNotification({
+        title: notificationTitle,
+        body: notificationBody
+      })
+      lastNotifiedRef.current = now
     }
 
-    // We don't want to call checkAndNotify immediately, but start checking.
-    const intervalId = setInterval(checkAndNotify, 1000) // check every second
+    // Check at the user's configured interval instead of every second
+    console.log(`🔔 useDistractionNotification: Starting timer with ${notificationIntervalMs}ms interval`)
+    const intervalId = setInterval(checkAndNotify, notificationIntervalMs)
 
     return () => {
       clearInterval(intervalId)
