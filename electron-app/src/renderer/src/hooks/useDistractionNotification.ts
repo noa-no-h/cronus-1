@@ -50,7 +50,6 @@ export const useDistractionNotification = (
     }
 
     const checkAndNotify = () => {
-      console.log(`⏰ useDistractionNotification: Timer fired at ${new Date().toLocaleTimeString()}`)
       if (!activeWindow) return
 
       const now = Date.now()
@@ -68,11 +67,6 @@ export const useDistractionNotification = (
       const notificationTitle = `Focus Alert: ${appName}`
       const notificationBody = `${statusText}`
 
-      console.log(
-        'Showing notification in useDistractionNotification',
-        notificationTitle,
-        notificationBody
-      )
       // @ts-ignore
       window.api.showNotification({
         title: notificationTitle,
@@ -81,8 +75,6 @@ export const useDistractionNotification = (
       lastNotifiedRef.current = now
     }
 
-    // Check at the user's configured interval instead of every second
-    console.log(`🔔 useDistractionNotification: Starting timer with ${notificationIntervalMs}ms interval`)
     const intervalId = setInterval(checkAndNotify, notificationIntervalMs)
 
     return () => {
