@@ -103,6 +103,13 @@ export const activeWindowEventsRouter = router({
 
         const { startDateMs, endDateMs } = input;
 
+        // log the query inputs
+        console.log('getEventsForDateRange', {
+          userId,
+          startDateMs,
+          endDateMs,
+        });
+
         if (startDateMs >= endDateMs) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
@@ -153,10 +160,15 @@ export const activeWindowEventsRouter = router({
         const decodedToken = safeVerifyToken(input.token);
         const userId = decodedToken.userId;
 
+        console.log('getLatestEvent', {
+          userId,
+        });
+
         const latestEvent = await ActiveWindowEventModel.findOne({
           userId: userId,
         })
           .sort({ timestamp: -1 })
+          .select('-content')
           .limit(1)
           .lean();
 
