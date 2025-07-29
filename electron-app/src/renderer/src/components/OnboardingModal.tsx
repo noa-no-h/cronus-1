@@ -30,6 +30,7 @@ interface OnboardingModalProps {
 
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0)
+  const [isDev, setIsDev] = useState(false)
   const [isCompleting, setIsCompleting] = useState(false)
   const [isRequestingPermission, setIsRequestingPermission] = useState(false)
   const [hasRequestedPermission, setHasRequestedPermission] = useState(false)
@@ -74,6 +75,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     if (window.electron?.ipcRenderer) {
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
+    const checkDevStatus = async () => {
+      const env = await window.api.getEnvVariables()
+      setIsDev(env.isDev)
+    }
+    checkDevStatus()
   }, [])
 
   const { data: userProjectsAndGoals, isLoading: isLoadingGoals } =
@@ -91,6 +97,16 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       console.log('Fetched user categories:', hasCategories)
     }
   }, [userProjectsAndGoals, isLoadingGoals])
+
+  const handleSkipOnboarding = () => {
+    const completeStepIndex = steps.findIndex((step) => step.id === 'complete')
+    if (completeStepIndex !== -1) {
+      setCurrentStep(completeStepIndex)
+    } else {
+      // Fallback if complete step isn't found for some reason
+      handleComplete()
+    }
+  }
 
   const hasExistingGoals = userProjectsAndGoals && userProjectsAndGoals.trim().length > 0
   const hasExistingReferral = !!existingReferralSource && existingReferralSource.trim().length > 0
@@ -422,6 +438,13 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               />
             </div>
+            {isDev && (
+              <div className="text-center">
+                <Button onClick={handleSkipOnboarding} variant="link" size="sm">
+                  (Dev) Skip to end
+                </Button>
+              </div>
+            )}
             <div className="min-h-[320px] flex items-center justify-center pt-4">
               {currentStepData?.content}
             </div>
