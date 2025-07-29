@@ -62,42 +62,46 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       className={clsx(
         'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
-        isEnlarged ? 'flex-auto gap-2 px-1.5 py-1' : 'flex-col gap-[5px] w-[32%] px-1 py-0.5',
+        isEnlarged
+          ? 'flex-auto gap-2 px-1 py-[1.5px]'
+          : 'flex-col justify-center w-[32%] px-1 py-0.5',
         disabled && 'cursor-not-allowed opacity-50'
       )}
     >
-      <span
-        className={clsx(
-          'font-sm font-medium flex flex-row items-center gap-1',
-          labelColorCls,
-          isEnlarged && 'pr-2'
-        )}
-        style={{ fontSize: isEnlarged ? '0.875rem' : '10px' }}
-      >
-        {isHovered && isEnlarged && (
-          <span className="edit-icon-area rounded-md p-1 hover:bg-white/10">
-            <EditIcon
-              onClick={(e) => {
-                if (!disabled) {
-                  e.stopPropagation()
-                  onCategoryClick?.()
-                }
-              }}
-              size={18}
-              className="text-muted-foreground cursor-pointer hover:text-primary"
-            />
+      {isEnlarged && (
+        <span
+          className={clsx(
+            'font-sm font-medium flex flex-row items-center gap-1',
+            labelColorCls,
+            isEnlarged && 'pr-2'
+          )}
+          style={{ fontSize: isEnlarged ? '0.75rem' : '9px' }}
+        >
+          {isHovered && isEnlarged && (
+            <span className="edit-icon-area rounded-md p-0.5 hover:bg-white/10">
+              <EditIcon
+                onClick={(e) => {
+                  if (!disabled) {
+                    e.stopPropagation()
+                    onCategoryClick?.()
+                  }
+                }}
+                size={14}
+                className="text-muted-foreground cursor-pointer hover:text-primary"
+              />
+            </span>
+          )}
+          <span className="truncate w-full max-w-[80px]">
+            {categoryDetails?.name || label}
+            {process.env.NODE_ENV === 'development' && ' Dev'}
           </span>
-        )}
-        <span className="truncate w-full max-w-[80px]">
-          {categoryDetails?.name || label}
-          {process.env.NODE_ENV === 'development' && ' Dev'}
         </span>
-      </span>
+      )}
       <span
         className={clsx(
           'font-mono pointer-events-none',
           timeColorCls,
-          isEnlarged ? 'text-2xl font-semibold' : 'text-xs text-primary'
+          isEnlarged ? 'text-xl font-semibold' : 'text-md text-primary py-[1.5px]'
         )}
       >
         {time}

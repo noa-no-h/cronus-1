@@ -6,7 +6,7 @@ import icon from '../../resources/icon.png?asset'
 const { nativeTheme } = require('electron')
 
 const FLOATING_WINDOW_WIDTH = 400
-const FLOATING_WINDOW_HEIGHT = 55
+const FLOATING_WINDOW_HEIGHT = 42
 const IS_FLOATING_WINDOW_DEV_MODE = false
 
 export function createFloatingWindow(
