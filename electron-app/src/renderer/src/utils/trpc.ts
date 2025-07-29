@@ -64,6 +64,13 @@ export const createTrpcClient = () =>
 
           if (shouldRefresh) {
             console.log(`⚠️ Received ${response.status} error - Token likely expired or invalid`)
+
+            // Don't attempt refresh for 502/503 server errors - they indicate server issues, not auth issues
+            if (response.status === 502 || response.status === 503) {
+              console.log('🔥 Server unavailable (502/503), skipping token refresh attempt')
+              return response
+            }
+
             if (!isRefreshing) {
               console.log('🔄 Starting token refresh process')
               isRefreshing = true
@@ -88,6 +95,12 @@ export const createTrpcClient = () =>
                 }
               }
               return fetch(url, newOptions)
+            } catch (refreshError) {
+              console.log(
+                '❌ Token refresh failed, returning original response instead of throwing'
+              )
+              // Return the original response instead of throwing - let the query handle the error gracefully
+              return response
             } finally {
               isRefreshing = false
               refreshPromise = null

@@ -237,10 +237,21 @@ export function MainAppContent(): React.ReactElement {
         } finally {
           setPermissionsChecked(true)
         }
+      } else {
+        // If no token (due to server issues), don't assume permissions are missing
+        // Only mark as checked if we haven't checked before or if localStorage indicates onboarding was completed
+        const hasCompletedOnboardingLocal = localStorage.getItem('hasCompletedOnboarding') === 'true'
+        if (hasCompletedOnboardingLocal || !permissionsChecked) {
+          setPermissionsChecked(true)
+          // If user completed onboarding before, assume permissions were granted unless proven otherwise
+          if (hasCompletedOnboardingLocal) {
+            setMissingAccessibilityPermissions(false)
+          }
+        }
       }
     }
     checkPermissions()
-  }, [token])
+  }, [token, permissionsChecked])
 
   // Show onboarding only if user hasn't completed it before or permissions are missing
   useEffect(() => {
@@ -248,9 +259,19 @@ export function MainAppContent(): React.ReactElement {
       return // Wait for permission check to complete
     }
 
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+    // Use both localStorage and server-side user data for more robust onboarding detection
+    const hasCompletedOnboardingLocal = localStorage.getItem('hasCompletedOnboarding') === 'true'
+    const hasCompletedOnboardingServer = user?.hasCompletedOnboarding || false
+    
+    // If server data is available and indicates completion, sync localStorage
+    if (isAuthenticated && user && hasCompletedOnboardingServer && !hasCompletedOnboardingLocal) {
+      localStorage.setItem('hasCompletedOnboarding', 'true')
+    }
 
-    // Show onboarding if it's never been completed, OR if essential permissions are missing.
+    // Only show onboarding if BOTH server and localStorage indicate it's not completed, OR if essential permissions are missing
+    // But don't retrigger onboarding due to temporary auth loss - use the most permissive check
+    const hasCompletedOnboarding = hasCompletedOnboardingLocal || hasCompletedOnboardingServer
+    
     if (!hasCompletedOnboarding || missingAccessibilityPermissions) {
       setShowOnboarding(true)
       if (justLoggedIn) {
@@ -263,7 +284,7 @@ export function MainAppContent(): React.ReactElement {
         setShowTutorial(true)
       }
     }
-  }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn])
+  }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn, isAuthenticated, user])
 
   const handleOnboardingComplete = (): void => {
     setShowOnboarding(false)

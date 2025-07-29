@@ -49,7 +49,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       },
       onError: (err) => {
         console.error('Failed to fetch user with token during query:', err)
-        logout()
+
+        // Don't logout for server errors - only for actual auth failures
+        const errorMessage = err?.message || ''
+        const isServerError =
+          errorMessage.includes('502') ||
+          errorMessage.includes('503') ||
+          errorMessage.includes('500') ||
+          errorMessage.includes('ECONNREFUSED') ||
+          errorMessage.includes('network')
+
+        if (!isServerError) {
+          console.log('🚪 Auth error detected, logging out user')
+          logout()
+        } else {
+          console.log('🔥 Server error detected, keeping user logged in')
+        }
       }
     }
   )
