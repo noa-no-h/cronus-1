@@ -159,7 +159,7 @@ export const DistractionSoundSettings = () => {
           <div className="flex-1">
             <p className="text-sm font-medium">System Notification Permissions</p>
             <p className="text-xs text-muted-foreground">
-              If notifications aren't working, check your system settings
+              If notifications aren&apos;t working, check your system settings
             </p>
           </div>
           <Button
