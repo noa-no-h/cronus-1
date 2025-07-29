@@ -278,12 +278,12 @@ export function MainAppContent(): React.ReactElement {
     setShowTutorial(true)
   }
 
-  const handleResetOnboarding = (): void => {
+  const handleResetOnboarding = useCallback((): void => {
     console.log('handleResetOnboarding in App.tsx')
     setShowOnboarding(true)
     // Remove the local storage flag to allow onboarding to show again
     localStorage.removeItem('hasCompletedOnboarding')
-  }
+  }, [])
 
   const handleOpenMiniTimer = (): void => {
     if (window.electron?.ipcRenderer) {

@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { CategoryManagementSettings } from './Settings/CategoryManagementSettings'
@@ -20,25 +20,18 @@ interface SettingsPageProps {
   onToggleTracking: () => void
 }
 
-export function SettingsPage({
-  onResetOnboarding,
-  isTrackingPaused,
-  onToggleTracking
-}: SettingsPageProps) {
-  const { user, logout } = useAuth()
-  const { focusOn, setFocusOn } = useSettings()
-  const [showPermissions, setShowPermissions] = useState(false)
-
-  useEffect(() => {
-    if (focusOn === 'goal-input') {
-      // The focusing logic will be inside GoalInputForm
-      // We reset the focus request here after a short delay
-      // to allow the component to render and focus.
-      setTimeout(() => setFocusOn(null), 100)
-    }
-  }, [focusOn, setFocusOn])
-
-  const LogOutButtonSection = () => {
+// We've extracted LogOutButtonSection to be its own component.
+// This prevents it from being recreated on every render of SettingsPage.
+const LogOutButtonSection = memo(
+  ({
+    user,
+    logout,
+    onResetOnboarding
+  }: {
+    user: { email: string | undefined } | null
+    logout: () => void
+    onResetOnboarding: () => void
+  }) => {
     return (
       <div className="space-y-4">
         <div className="bg-muted/30 rounded-lg p-6 border border-border">
@@ -64,6 +57,31 @@ export function SettingsPage({
       </div>
     )
   }
+)
+
+export const SettingsPage = memo(function SettingsPage({
+  onResetOnboarding,
+  isTrackingPaused,
+  onToggleTracking
+}: SettingsPageProps) {
+  const { user, logout } = useAuth()
+  const { focusOn, setFocusOn } = useSettings()
+  const [showPermissions, setShowPermissions] = useState(false)
+
+  useEffect(() => {
+    if (focusOn === 'goal-input') {
+      // The focusing logic will be inside GoalInputForm
+      // We reset the focus request here after a short delay
+      // to allow the component to render and focus.
+      setTimeout(() => setFocusOn(null), 100)
+    }
+  }, [focusOn, setFocusOn])
+
+  // By wrapping this in useCallback, we ensure the function reference doesn't
+  // change on re-renders, preventing unnecessary re-renders of AppInformation.
+  const handleShowPermissions = useCallback(() => {
+    setShowPermissions((v) => !v)
+  }, [])
 
   console.log('SettingsPage re-rendered')
 
@@ -81,10 +99,10 @@ export function SettingsPage({
         <ThemeSwitcher />
         <GoogleCalendarSettings />
         <DisableUsageAnalyticsSettings />
-        <LogOutButtonSection />
-        <AppInformation onShowPermissions={() => setShowPermissions((v) => !v)} />
+        <LogOutButtonSection user={user} logout={logout} onResetOnboarding={onResetOnboarding} />
+        <AppInformation onShowPermissions={handleShowPermissions} />
         {showPermissions && <PermissionsStatus />}
       </div>
     </div>
   )
-}
+})

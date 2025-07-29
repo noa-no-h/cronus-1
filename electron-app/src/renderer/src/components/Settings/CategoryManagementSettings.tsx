@@ -1,5 +1,5 @@
 import { ChevronDown, FolderPlus, MoreHorizontal, PlusCircle, Rows } from 'lucide-react'
-import { JSX, useMemo, useState } from 'react'
+import { JSX, memo, useMemo, useState } from 'react'
 import { Category } from 'shared/dist/types.js'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
@@ -15,7 +15,7 @@ import { CategoryForm } from './CategoryForm'
 import { CategoryListItem } from './CategoryListItem'
 import { CategoryTemplateList } from './CategoryTemplateList'
 
-export function CategoryManagementSettings(): JSX.Element {
+export const CategoryManagementSettings = memo(function CategoryManagementSettings(): JSX.Element {
   console.log('CategoryManagementSettings re-rendered')
   const { token } = useAuth()
   const utils = trpc.useUtils()
@@ -386,4 +386,4 @@ export function CategoryManagementSettings(): JSX.Element {
       </Card>
     </div>
   )
-}
+})
