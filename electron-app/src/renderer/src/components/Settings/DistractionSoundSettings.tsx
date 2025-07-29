@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { trpc } from '../../utils/trpc'
+import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
@@ -92,6 +93,15 @@ export const DistractionSoundSettings = () => {
     })
   }
 
+  const handleOpenSystemNotificationsSettings = () => {
+    // Open macOS System Preferences Notifications pane
+    if (window.api?.openExternalUrl) {
+      window.api.openExternalUrl('x-apple.systempreferences:com.apple.preference.notifications')
+    } else {
+      console.warn('window.api.openExternalUrl not available')
+    }
+  }
+
   if (isLoading) {
     return (
       <Card className="bg-card border-border">
@@ -108,9 +118,9 @@ export const DistractionSoundSettings = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-card-foreground">Distraction Alert Settings</CardTitle>
+        <CardTitle className="text-card-foreground">Focus Reminders</CardTitle>
         <CardDescription>
-          Configure sounds and notifications for when you get distracted.
+          Get alerts when you&apos;re using unproductive apps to help you stay focused.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -122,7 +132,7 @@ export const DistractionSoundSettings = () => {
               onCheckedChange={handleShowNotificationsChange}
             />
             <Label htmlFor="show-notifications-switch" className="whitespace-nowrap">
-              Show System Notifications
+              Desktop Notifications
             </Label>
           </div>
           <Select
@@ -144,6 +154,24 @@ export const DistractionSoundSettings = () => {
           </Select>
         </div>
 
+        {/* System Notifications Settings Button */}
+        <div className="flex items-center justify-between space-x-4 p-3 bg-muted/30 rounded-lg">
+          <div className="flex-1">
+            <p className="text-sm font-medium">System Notification Permissions</p>
+            <p className="text-xs text-muted-foreground">
+              If notifications aren't working, check your system settings
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenSystemNotificationsSettings}
+            className="whitespace-nowrap"
+          >
+            Open System Settings
+          </Button>
+        </div>
+
         <div className="border-t border-border/50"></div>
 
         <div className="flex items-center justify-between space-x-4">
@@ -154,7 +182,7 @@ export const DistractionSoundSettings = () => {
               onCheckedChange={handlePlaySoundChange}
             />
             <Label htmlFor="play-sound-switch" className="whitespace-nowrap">
-              Play Sound Alert
+              Sound Alerts
             </Label>
           </div>
           <Select
