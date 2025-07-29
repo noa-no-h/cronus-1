@@ -42,6 +42,8 @@ const activeWindowEventSchema = new Schema(
 
 // Compound index for efficient querying by userId and timestamp
 activeWindowEventSchema.index({ userId: 1, timestamp: -1 });
+activeWindowEventSchema.index({ userId: 1, timestamp: 1 });
+activeWindowEventSchema.index({ userId: 1, type: 1, title: 1, lastUsed: -1 });
 
 // Check if model already exists to prevent OverwriteModelError in production
 let ActiveWindowEventModel: mongoose.Model<IActiveWindowEvent>;
