@@ -337,7 +337,7 @@ export function CategoryManagementSettings(): JSX.Element {
           )}
 
           {!isFormOpen && !isTemplateViewOpen && activeCategories.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 w-full mx-auto bg-transparent p-0">
               {activeCategories.map((category, idx) => (
                 <div key={category._id}>
                   <CategoryListItem
@@ -361,7 +361,7 @@ export function CategoryManagementSettings(): JSX.Element {
           {!isFormOpen && !isTemplateViewOpen && archivedCategories.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-foreground mb-4">Archived Categories</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full mx-auto bg-transparent p-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 w-full mx-auto bg-transparent p-0">
                 {archivedCategories.map((category, idx) => (
                   <div key={category._id}>
                     <CategoryListItem
