@@ -52,7 +52,7 @@ export function GoogleCalendarSettings(): JSX.Element {
         } catch (error) {
           console.error('Failed to check calendar status:', error)
         }
-      }, 2000) // Check every 2 seconds
+      }, 5000) // Check every 5 seconds (balanced between responsiveness and CPU efficiency)
 
       // Clear interval after 30 seconds to avoid infinite checking
       setTimeout(() => {
