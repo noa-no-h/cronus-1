@@ -409,12 +409,16 @@ export function MainAppContent(): React.ReactElement {
     setIsSystemRestarting(true)
   }, [])
 
+  useEffect(() => {
+    document.title = APP_NAME
+  }, [])
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className={cn('flex flex-col', !isSettingsOpen && 'h-screen')}>
         <div className="sticky top-0 z-50 bg-white dark:bg-black">
           <div className="custom-title-bar">
-            <span className="app-window-title">Cronus</span>
+            <span className="app-window-title">{APP_NAME}</span>
           </div>
           <div className="flex-none p-2">
             <DistractionStatusBar

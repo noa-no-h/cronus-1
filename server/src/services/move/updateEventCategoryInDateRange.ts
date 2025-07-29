@@ -84,7 +84,10 @@ export async function updateEventCategoryInDateRange(params: {
       })
       .lean();
     if (latestUpdatedEvent) {
-      latestEvent = latestUpdatedEvent.toObject() as ActiveWindowEvent;
+      latestEvent = {
+        ...latestUpdatedEvent,
+        _id: latestUpdatedEvent._id.toString(),
+      } as ActiveWindowEvent;
     }
   }
 

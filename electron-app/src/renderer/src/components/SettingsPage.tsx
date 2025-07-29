@@ -65,6 +65,8 @@ export function SettingsPage({
     )
   }
 
+  console.log('SettingsPage re-rendered')
+
   return (
     <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin scrollbar-track-gray-900 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500 p-2 pt-0 pb-4">
       <div className="space-y-4">
