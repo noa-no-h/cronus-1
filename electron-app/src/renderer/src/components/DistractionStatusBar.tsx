@@ -12,7 +12,7 @@ import {
   Settings as SettingsIcon,
   Youtube
 } from 'lucide-react'
-import React, { JSX, useEffect, useMemo, useState } from 'react'
+import React, { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
 import type { ActivityToRecategorize } from '../App'
 import { useAuth } from '../contexts/AuthContext'
@@ -92,6 +92,7 @@ const DistractionStatusBar = ({
   const { token } = useAuth()
   const [isNarrowView, setIsNarrowView] = useState(false)
   const [showPauseModal, setShowPauseModal] = useState(false)
+  const lastSentData = useRef<string | null>(null)
 
   const handlePauseClick = () => {
     const hasPausedBefore = localStorage.getItem('cronus-has-paused-before')
@@ -240,49 +241,65 @@ const DistractionStatusBar = ({
   )
 
   useEffect(() => {
-    if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
-      return
-    }
-
-    let latestStatus: 'productive' | 'unproductive' | 'maybe' = 'maybe'
-    let categoryDetailsForFloatingWindow: Category | undefined = undefined
-
-    if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
-      const fullCategoryDetails = categoryDetails as Category
-      if (fullCategoryDetails.isProductive === true) latestStatus = 'productive'
-      else if (fullCategoryDetails.isProductive === false) {
-        latestStatus = 'unproductive'
+    const sendUpdate = async (): Promise<void> => {
+      if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
+        return
       }
-      categoryDetailsForFloatingWindow = fullCategoryDetails
-    } else if (categoryDetails === null) {
-      latestStatus = 'maybe'
-      // No specific category to send for 'maybe' if it's due to category not found
-      // Or we could send a generic "Uncategorized" message if desired
+
+      let latestStatus: 'productive' | 'unproductive' | 'maybe' = 'maybe'
+      let categoryDetailsForFloatingWindow: Category | undefined
+
+      if (categoryDetails && typeof categoryDetails === 'object' && '_id' in categoryDetails) {
+        const fullCategoryDetails = categoryDetails as Category
+        if (fullCategoryDetails.isProductive === true) latestStatus = 'productive'
+        else if (fullCategoryDetails.isProductive === false) {
+          latestStatus = 'unproductive'
+        }
+        categoryDetailsForFloatingWindow = fullCategoryDetails
+      } else if (categoryDetails === null) {
+        latestStatus = 'maybe'
+      }
+
+      const { dailyProductiveMs, dailyUnproductiveMs } = calculateProductivityMetrics(
+        todayEvents as ActiveWindowEvent[],
+        (userCategories as unknown as Category[]) || []
+      )
+
+      const itemType = displayWindowInfo.url ? 'website' : 'app'
+      const activityIdentifier = displayWindowInfo.isApp
+        ? displayWindowInfo.ownerName
+        : displayWindowInfo.url
+      const activityName = displayWindowInfo.ownerName
+
+      const dataToSend = {
+        latestStatus,
+        dailyProductiveMs,
+        dailyUnproductiveMs,
+        categoryDetails: categoryDetailsForFloatingWindow,
+        itemType,
+        activityIdentifier,
+        activityName,
+        activityUrl: displayWindowInfo.url,
+        categoryReasoning: latestEvent?.categoryReasoning,
+        isTrackingPaused
+      }
+
+      const currentDataString = JSON.stringify(dataToSend)
+
+      if (currentDataString === lastSentData.current) {
+        return // Data hasn't changed, no need to send.
+      }
+
+      if (window.api?.getFloatingWindowVisibility) {
+        const isVisible = await window.api.getFloatingWindowVisibility()
+        if (isVisible) {
+          window.electron.ipcRenderer.send('update-floating-window-status', dataToSend)
+          lastSentData.current = currentDataString
+        }
+      }
     }
 
-    const { dailyProductiveMs, dailyUnproductiveMs } = calculateProductivityMetrics(
-      todayEvents as ActiveWindowEvent[],
-      (userCategories as unknown as Category[]) || []
-    )
-
-    const itemType = displayWindowInfo.url ? 'website' : 'app'
-    const activityIdentifier = displayWindowInfo.isApp
-      ? displayWindowInfo.ownerName
-      : displayWindowInfo.url
-    const activityName = displayWindowInfo.ownerName
-
-    window.electron.ipcRenderer.send('update-floating-window-status', {
-      latestStatus,
-      dailyProductiveMs,
-      dailyUnproductiveMs,
-      categoryDetails: categoryDetailsForFloatingWindow,
-      itemType,
-      activityIdentifier,
-      activityName,
-      activityUrl: displayWindowInfo.url,
-      categoryReasoning: latestEvent?.categoryReasoning,
-      isTrackingPaused
-    })
+    sendUpdate()
   }, [
     latestEvent,
     categoryDetails,
