@@ -25,7 +25,7 @@ export interface ProcessedCategory {
   activities: ActivityItem[]
 }
 
-const extractActivityDetailsFromEvent = (
+export const extractActivityDetailsFromEvent = (
   event: ActiveWindowEvent
 ): {
   activityName: string
@@ -79,8 +79,8 @@ export const processActivityEvents = (
     isProductive: false,
     userId: '', // Assuming userId is not strictly needed for display
     isDefault: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
 
   const categoryActivityAccumulator: Record<

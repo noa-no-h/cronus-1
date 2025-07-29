@@ -1,8 +1,21 @@
 import clsx from 'clsx'
 import React from 'react'
 import { Category as SharedCategory } from 'shared'
-import { ActivityItem, ProcessedCategory } from '../../lib/activityProcessing'
+import { useAuth } from '../../contexts/AuthContext'
+import { toast } from '../../hooks/use-toast'
+import {
+  ActivityItem,
+  extractActivityDetailsFromEvent,
+  ProcessedCategory
+} from '../../lib/activityProcessing'
 import { formatDuration } from '../../lib/timeFormatting'
+import { trpc } from '../../utils/trpc'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger
+} from '../ui/context-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { ActivityIcon } from './ActivityIcon'
 import { MoveActivityButton } from './MoveActivityButton'
@@ -77,7 +90,92 @@ export const ActivityListItem = ({
     }
   }
 
-  return (
+  const { token } = useAuth()
+  const utils = trpc.useUtils()
+
+  const deleteActivityMutation = trpc.activeWindowEvents.deleteActivitiesByIdentifier.useMutation({
+    onMutate: async (deletedActivity) => {
+      // Optimistically update to the new value
+      if (!startDateMs || !endDateMs || !token) {
+        return
+      }
+
+      const queryInput = {
+        token,
+        startDateMs,
+        endDateMs
+      }
+
+      await utils.activeWindowEvents.getEventsForDateRange.cancel(queryInput)
+      const previousEvents = utils.activeWindowEvents.getEventsForDateRange.getData(queryInput)
+
+      utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
+        if (!oldData) return []
+        return oldData.filter((event) => {
+          const eventWithDate = {
+            ...event,
+            lastCategorizationAt: event.lastCategorizationAt
+              ? new Date(event.lastCategorizationAt)
+              : undefined
+          }
+          const { identifier: eventIdentifier } = extractActivityDetailsFromEvent(eventWithDate)
+          return eventIdentifier !== deletedActivity.identifier
+        })
+      })
+
+      return { previousEvents }
+    },
+    onSuccess(data, variables) {
+      if (data.deletedCount && data.deletedCount > 0) {
+        toast({
+          title: 'Successfully deleted activity',
+          description: `Deleted ${data.deletedCount} events for "${variables.identifier}"`
+        })
+      }
+    },
+    onError: (err, newPost, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (!startDateMs || !endDateMs || !token) {
+        return
+      }
+      const queryInput = {
+        token,
+        startDateMs,
+        endDateMs
+      }
+      if (context?.previousEvents) {
+        utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, context.previousEvents)
+      }
+    },
+    onSettled: () => {
+      // After either success or error, refetch the data to ensure consistency
+      if (!startDateMs || !endDateMs || !token) {
+        return
+      }
+      const queryInput = {
+        token,
+        startDateMs,
+        endDateMs
+      }
+      utils.activeWindowEvents.getEventsForDateRange.invalidate(queryInput)
+    }
+  })
+
+  const handleDeleteActivity = (activity: ActivityItem): void => {
+    if (!token || !startDateMs || !endDateMs) return
+
+    deleteActivityMutation.mutate({
+      token,
+      startDateMs,
+      endDateMs,
+      identifier: activity.identifier,
+      itemType: activity.itemType,
+      isUrl: !!activity.originalUrl,
+      categoryId: currentCategory.id
+    })
+  }
+
+  const content = (
     <>
       <Tooltip>
         <div
@@ -184,5 +282,16 @@ export const ActivityListItem = ({
         </TooltipContent>
       </Tooltip>
     </>
+  )
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>{content}</ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => handleDeleteActivity(activity)}>
+          Delete Activity
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

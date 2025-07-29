@@ -462,4 +462,64 @@ export const activeWindowEventsRouter = router({
         });
       }
     }),
+
+  deleteActivitiesByIdentifier: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        startDateMs: z.number(),
+        endDateMs: z.number(),
+        identifier: z.string(),
+        itemType: z.enum(['app', 'website']),
+        isUrl: z.boolean().optional(),
+        categoryId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { token, startDateMs, endDateMs, identifier, itemType, isUrl, categoryId } = input;
+      const decodedToken = safeVerifyTokenWithVersionTracking(token, ctx.userAgent);
+      const userId = decodedToken.userId;
+
+      const filter: FilterQuery<ActiveWindowEvent> = {
+        userId,
+        timestamp: {
+          $gte: startDateMs,
+          $lt: endDateMs,
+        },
+      };
+
+      if (categoryId === 'uncategorized') {
+        filter.categoryId = { $in: [null, undefined] };
+      } else {
+        filter.categoryId = new mongoose.Types.ObjectId(categoryId);
+      }
+
+      if (itemType === 'app') {
+        filter.ownerName = identifier;
+      } else if (itemType === 'website') {
+        if (isUrl) {
+          filter.url = identifier;
+        } else {
+          filter.title = identifier;
+        }
+      }
+
+      try {
+        const result = await ActiveWindowEventModel.deleteMany(filter);
+
+        console.log(
+          `[EventsRouter] Hard-deleted ${result.deletedCount} events for user ${userId} with identifier ${identifier}`
+        );
+        return {
+          success: true,
+          deletedCount: result.deletedCount,
+        };
+      } catch (error) {
+        console.error('[EventsRouter] Error hard-deleting events by identifier:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete events by identifier in date range.',
+        });
+      }
+    }),
 });
