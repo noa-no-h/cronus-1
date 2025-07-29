@@ -49,7 +49,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       },
       onError: (err) => {
         console.error('Failed to fetch user with token during query:', err)
-        logout()
+        // Check if the error message indicates a server error (5xx)
+        const isServerError = /5\d{2}/.test(err.message)
+        if (!isServerError) {
+          logout()
+        } else {
+          console.warn('Server error detected, preserving session.')
+        }
       }
     }
   )

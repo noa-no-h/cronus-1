@@ -36,7 +36,7 @@ export interface ActivityToRecategorize {
 }
 
 export function MainAppContent(): React.ReactElement {
-  const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn } = useAuth()
+  const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn, user } = useAuth()
   const { isSettingsOpen, setIsSettingsOpen, setFocusOn } = useSettings()
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
@@ -248,7 +248,12 @@ export function MainAppContent(): React.ReactElement {
       return // Wait for permission check to complete
     }
 
-    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+    // We check both localStorage and the server-side flag. This handles cases where
+    // localStorage might be cleared, but the user has already completed onboarding.
+    const hasCompletedOnboardingLocally = localStorage.getItem('hasCompletedOnboarding') === 'true'
+    const hasCompletedOnboardingRemotely = !!user?.hasCompletedOnboarding
+
+    const hasCompletedOnboarding = hasCompletedOnboardingLocally || hasCompletedOnboardingRemotely
 
     // Show onboarding if it's never been completed, OR if essential permissions are missing.
     if (!hasCompletedOnboarding || missingAccessibilityPermissions) {
@@ -263,7 +268,7 @@ export function MainAppContent(): React.ReactElement {
         setShowTutorial(true)
       }
     }
-  }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn])
+  }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn, user])
 
   const handleOnboardingComplete = (): void => {
     setShowOnboarding(false)

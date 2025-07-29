@@ -26,6 +26,12 @@ export const createTrpcClient = () =>
         fetch: async (url, options = {}) => {
           const response = await fetch(url, options)
 
+          // For 5xx server errors, we should not proceed with token refresh logic
+          if (response.status >= 500 && response.status <= 599) {
+            console.warn(`🌐 Server error (${response.status}), bypassing token refresh.`)
+            return response // Pass server errors through without attempting refresh
+          }
+
           // Check for authentication errors
           let shouldRefresh = false
 
