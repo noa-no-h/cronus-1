@@ -24,7 +24,7 @@ const faqData: FAQItem[] = [
         <p>
           Yes - but that's optional. You can also only give accessibility access which allows us to
           read the app meta-data (such as the title of your active browser tab). However this is
-          less accurate, which is why most users enable sceenrecording access.
+          less accurate, which is why most users enable screen recording access.
         </p>
         <p className="mt-2">
           We never send the screenshot to our server or store it. We only use it to extract the text
@@ -47,7 +47,7 @@ const faqData: FAQItem[] = [
   {
     question: "What's the cost?",
     answer:
-      "It's completely free currently. We will likely add a small subscription in the future for advanced features. However we will never paywall the core time tracking funktionality.",
+      "It's completely free currently. We will likely add a small subscription in the future for advanced features. However we will never paywall the core time tracking functionality.",
   },
 ];
 
