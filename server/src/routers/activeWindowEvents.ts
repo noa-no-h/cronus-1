@@ -117,7 +117,7 @@ export const activeWindowEventsRouter = router({
           });
         }
 
-        const EVENT_LIMIT = 7500; // Safety limit to prevent server crashes
+        const EVENT_LIMIT = 15000;
 
         const events = await ActiveWindowEventModel.find({
           userId: userId,
