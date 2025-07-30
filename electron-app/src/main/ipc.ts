@@ -7,6 +7,7 @@ import icon from '../../resources/icon.png?asset'
 import { nativeWindows, PermissionType } from '../native-modules/native-windows'
 import { logMainToFile } from './logging'
 import { redactSensitiveContent } from './redaction'
+import { setAllowForcedQuit } from './windows'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -369,6 +370,9 @@ export function registerIpcHandlers(
   // Handler for quit confirmation modal
   ipcMain.handle('confirm-quit', () => {
     logMainToFile('User confirmed quit, closing app')
+
+    // Allow the app to quit normally when user confirms
+    setAllowForcedQuit(true)
 
     if (windows.mainWindow && !windows.mainWindow.isDestroyed()) {
       windows.mainWindow.destroy()

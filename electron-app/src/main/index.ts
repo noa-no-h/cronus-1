@@ -12,7 +12,7 @@ import {
   setupProtocolHandlers,
   setupSingleInstanceLock
 } from './protocol'
-import { createFloatingWindow, createMainWindow } from './windows'
+import { createFloatingWindow, createMainWindow, setIsAppQuitting, getIsAppQuitting } from './windows'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 // NODE_ENV set in build isn't present in the run-time app
@@ -168,6 +168,19 @@ function App() {
   }
 
   app.whenReady().then(initializeApp)
+
+  // Handle app quit attempts (Cmd+Q, Dock → Quit, Menu → Quit)
+  app.on('before-quit', (event) => {
+    setIsAppQuitting(true)
+    
+    // Only show quit modal for Cmd+Q when app is focused
+    if (mainWindow && mainWindow.isFocused()) {
+      event.preventDefault()
+      setIsAppQuitting(false) // Reset since we're preventing
+      mainWindow.webContents.send('show-quit-confirmation')
+    }
+    // For dock/menu quit or unfocused app, allow normal quit
+  })
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

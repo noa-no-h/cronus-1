@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import log from 'electron-log'
 import { autoUpdater } from 'electron-updater'
 import { UpdateStatus } from '../shared/update'
+import { setAllowForcedQuit } from './windows'
 
 let mainWindow: BrowserWindow | null = null
 let updateTimer: NodeJS.Timeout | null = null
@@ -144,6 +145,7 @@ export function registerAutoUpdaterHandlers(): void {
   })
   ipcMain.handle('install-update', () => {
     log.info('Requesting to quit and install update.')
+    setAllowForcedQuit(true)
     autoUpdater.quitAndInstall(true, true)
   })
 }

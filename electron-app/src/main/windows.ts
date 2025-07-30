@@ -5,6 +5,23 @@ import icon from '../../resources/icon.png?asset'
 
 const { nativeTheme } = require('electron')
 
+// Quit handling state
+let allowForcedQuit = false
+let isAppQuitting = false
+
+// Export functions to manage quit state
+export function setAllowForcedQuit(allow: boolean): void {
+  allowForcedQuit = allow
+}
+
+export function setIsAppQuitting(quitting: boolean): void {
+  isAppQuitting = quitting
+}
+
+export function getIsAppQuitting(): boolean {
+  return isAppQuitting
+}
+
 const FLOATING_WINDOW_WIDTH = 400
 const FLOATING_WINDOW_HEIGHT = 42
 const IS_FLOATING_WINDOW_DEV_MODE = false
@@ -154,12 +171,12 @@ export function createMainWindow(
 
   // Handle close button - hide window instead of destroying it to keep tracking active
   mainWindow.on('close', (event) => {
-    if (process.platform === 'darwin') {
-      // On macOS, hide the window instead of closing it
+    if (process.platform === 'darwin' && !isAppQuitting && !allowForcedQuit) {
+      // This is the red traffic light button - hide instead of close
       event.preventDefault()
       mainWindow.hide()
     }
-    // On other platforms, allow normal close behavior
+    // If isAppQuitting or allowForcedQuit is true, allow normal close behavior
   })
 
   return mainWindow
