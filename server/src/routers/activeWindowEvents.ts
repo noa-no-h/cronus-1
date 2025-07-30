@@ -127,7 +127,7 @@ export const activeWindowEventsRouter = router({
           },
         })
           .select('-content') // Explicitly exclude the large 'content' field
-          .sort({ timestamp: 1 })
+          .sort({ timestamp: -1 }) // Changed to descending (newest first)
           .limit(EVENT_LIMIT)
           .lean();
 
