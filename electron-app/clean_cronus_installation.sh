@@ -7,6 +7,7 @@ echo "🧹 Cleaning up any existing Cronus processes and files..."
 echo "🛑 Stopping any running Cronus processes..."
 pkill -f "Cronus" || true
 pkill -f "cronus" || true
+pkill -f "cronus" || true
 
 # Wait a moment for processes to fully terminate
 sleep 2

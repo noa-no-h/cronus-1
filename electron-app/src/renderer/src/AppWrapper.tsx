@@ -22,9 +22,12 @@ function AppWrapper(): React.JSX.Element {
   useEffect(() => {
     const cleanup = window.api.onAuthCodeReceived(async (code) => {
       try {
+        console.log('[AppWrapper] Auth code received in useEffect:', code)
         if (isAuthenticated) {
+          console.log('[AppWrapper] User is authenticated, connecting calendar.')
           await connectCalendarForCurrentUser(code)
         } else {
+          console.log('[AppWrapper] User is not authenticated, logging in.')
           await loginWithGoogleCode(code, true)
         }
       } catch (err) {

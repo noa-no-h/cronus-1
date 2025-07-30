@@ -38,6 +38,50 @@ export interface ActivityToRecategorize {
 export function MainAppContent(): React.ReactElement {
   const { isAuthenticated, token, justLoggedIn, resetJustLoggedIn, user } = useAuth()
   const { isSettingsOpen, setIsSettingsOpen, setFocusOn } = useSettings()
+
+  // Override localStorage methods to track hasCompletedOnboarding changes
+  React.useEffect(() => {
+    const originalSetItem = localStorage.setItem
+    const originalRemoveItem = localStorage.removeItem
+    const originalClear = localStorage.clear
+
+    localStorage.setItem = function(key: string, value: string) {
+      if (key === 'hasCompletedOnboarding') {
+        console.log('🔍 [ONBOARDING DEBUG] localStorage.setItem called for hasCompletedOnboarding', {
+          key,
+          value,
+          stack: new Error().stack
+        })
+      }
+      return originalSetItem.call(this, key, value)
+    }
+
+    localStorage.removeItem = function(key: string) {
+      if (key === 'hasCompletedOnboarding') {
+        console.log('🚨 [ONBOARDING DEBUG] localStorage.removeItem called for hasCompletedOnboarding!', {
+          key,
+          currentValue: localStorage.getItem(key),
+          stack: new Error().stack
+        })
+      }
+      return originalRemoveItem.call(this, key)
+    }
+
+    localStorage.clear = function() {
+      console.log('🚨 [ONBOARDING DEBUG] localStorage.clear called! This will clear hasCompletedOnboarding', {
+        currentOnboardingValue: localStorage.getItem('hasCompletedOnboarding'),
+        allKeys: Object.keys(localStorage),
+        stack: new Error().stack
+      })
+      return originalClear.call(this)
+    }
+
+    return () => {
+      localStorage.setItem = originalSetItem
+      localStorage.removeItem = originalRemoveItem
+      localStorage.clear = originalClear
+    }
+  }, [])
   const [activeWindow, setActiveWindow] = useState<ActiveWindowDetails | null>(null)
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -244,7 +288,17 @@ export function MainAppContent(): React.ReactElement {
 
   // Show onboarding only if user hasn't completed it before or permissions are missing
   useEffect(() => {
+    console.log('🔍 [ONBOARDING DEBUG] useEffect triggered', {
+      permissionsChecked,
+      missingAccessibilityPermissions,
+      justLoggedIn,
+      user: user?.email,
+      userHasCompletedOnboarding: user?.hasCompletedOnboarding,
+      stack: new Error().stack
+    })
+    
     if (!permissionsChecked) {
+      console.log('🔍 [ONBOARDING DEBUG] Waiting for permissions check')
       return // Wait for permission check to complete
     }
 
@@ -253,15 +307,29 @@ export function MainAppContent(): React.ReactElement {
     const hasCompletedOnboardingLocally = localStorage.getItem('hasCompletedOnboarding') === 'true'
     const hasCompletedOnboardingRemotely = !!user?.hasCompletedOnboarding
 
+    console.log('🔍 [ONBOARDING DEBUG] Checking onboarding status', {
+      hasCompletedOnboardingLocally,
+      hasCompletedOnboardingRemotely,
+      localStorageValue: localStorage.getItem('hasCompletedOnboarding'),
+      allLocalStorageKeys: Object.keys(localStorage)
+    })
+
     const hasCompletedOnboarding = hasCompletedOnboardingLocally || hasCompletedOnboardingRemotely
 
-    // Show onboarding if it's never been completed, OR if essential permissions are missing.
-    if (!hasCompletedOnboarding || missingAccessibilityPermissions) {
+    // Show onboarding only if it's never been completed
+    // Note: Permissions are handled within the onboarding flow itself
+    if (!hasCompletedOnboarding) {
+      console.log('🚨 [ONBOARDING DEBUG] SHOWING ONBOARDING - not completed', {
+        hasCompletedOnboarding,
+        missingAccessibilityPermissions,
+        stack: new Error().stack
+      })
       setShowOnboarding(true)
       if (justLoggedIn) {
         resetJustLoggedIn() // Reset the flag if it was set
       }
     } else {
+      console.log('🔍 [ONBOARDING DEBUG] Onboarding completed, checking tutorial')
       // User has completed onboarding, check if they've seen the tutorial
       const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
       if (!hasSeenTutorial) {
@@ -284,7 +352,9 @@ export function MainAppContent(): React.ReactElement {
   }
 
   const handleResetOnboarding = useCallback((): void => {
-    console.log('handleResetOnboarding in App.tsx')
+    console.log('🚨 [ONBOARDING DEBUG] handleResetOnboarding called!', {
+      stack: new Error().stack
+    })
     setShowOnboarding(true)
     // Remove the local storage flag to allow onboarding to show again
     localStorage.removeItem('hasCompletedOnboarding')

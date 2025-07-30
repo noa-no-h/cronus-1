@@ -30,6 +30,7 @@ export async function refreshAccessToken() {
     return response.accessToken
   } catch (error) {
     console.error('Token refresh failed:', error)
+    // Only clear auth-related tokens, not other localStorage data like onboarding state
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     // localStorage.removeItem('token'); // Original had this

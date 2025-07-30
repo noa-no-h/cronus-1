@@ -1,6 +1,5 @@
 import { endOfDay, startOfDay } from 'date-fns'
 import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
 import type { TimeBlock } from '../lib/dayTimelineHelpers'
 import { trpc } from '../utils/trpc'
 import { toast } from './use-toast'
@@ -8,10 +7,11 @@ import { toast } from './use-toast'
 interface UseManualEntryProps {
   baseDate: Date
   onModalClose?: () => void
+  token: string | null
+  userId: string | null
 }
 
-export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) => {
-  const { token } = useAuth()
+export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseManualEntryProps) => {
   const utils = trpc.useUtils()
 
   const [modalState, setModalState] = useState<{
@@ -43,7 +43,7 @@ export const useManualEntry = ({ baseDate, onModalClose }: UseManualEntryProps) 
       utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
         const optimisticEntry: any = {
           _id: tempId,
-          userId: token, // Assuming token is userId, adjust if necessary
+          userId: userId,
           ownerName: 'manual',
           type: 'manual',
           title: newEntry.name,

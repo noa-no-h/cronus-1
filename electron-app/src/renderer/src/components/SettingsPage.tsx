@@ -45,10 +45,11 @@ const LogOutButtonSection = memo(
               }}
               variant="destructive"
               size="sm"
+              type="button"
             >
               Logout
             </Button>
-            <Button onClick={onResetOnboarding} variant="outline" size="sm">
+            <Button type="button" onClick={onResetOnboarding} variant="outline" size="sm">
               <RefreshCw className="w-4 h-4 mr-2" />
               Reset Onboarding
             </Button>

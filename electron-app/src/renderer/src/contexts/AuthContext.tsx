@@ -48,13 +48,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         }
       },
       onError: (err) => {
-        console.error('Failed to fetch user with token during query:', err)
-        // Check if the error message indicates a server error (5xx)
+        console.error('[AuthContext] Failed to fetch user with token during query:', err)
+        // Check if the error message indicates a server error (5xx) or common transient errors
         const isServerError = /5\d{2}/.test(err.message)
-        if (!isServerError) {
+        const isNetworkError = err.message?.toLowerCase().includes('network') || 
+                              err.message?.toLowerCase().includes('fetch') ||
+                              err.message?.toLowerCase().includes('connection')
+        const isTimeoutError = err.message?.toLowerCase().includes('timeout')
+        const isTransientError = isServerError || isNetworkError || isTimeoutError
+        
+        if (!isTransientError) {
+          console.log('[AuthContext] Calling logout due to non-transient error in getUser query.')
+          // log the actual error
+          console.log('[AuthContext] Error:', err)
+          console.trace('Logout trace')
           logout()
         } else {
-          console.warn('Server error detected, preserving session.')
+          console.warn('[AuthContext] Transient error detected in getUser query, preserving session.', {
+            isServerError,
+            isNetworkError,
+            isTimeoutError,
+            errorMessage: err.message
+          })
         }
       }
     }
@@ -87,6 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   }, [refetchUser])
 
   const login = (accessToken: string, newRefreshToken?: string, userData?: User): void => {
+    console.log('[AuthContext] login called.', {
+      hasUserData: !!userData,
+      userEmail: userData?.email
+    })
     localStorage.setItem('accessToken', accessToken)
     setToken(accessToken)
     if (newRefreshToken) {
@@ -119,7 +138,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   }
 
   const logout = (): void => {
+    console.error('🚨 [ONBOARDING DEBUG] LOGOUT CALLED! This may clear hasCompletedOnboarding')
+    console.error('[AuthContext] logout called. See trace below for culprit.')
+    console.trace('Logout trace')
     const currentToken = localStorage.getItem('accessToken')
+    console.log('🔍 [ONBOARDING DEBUG] localStorage before logout:', {
+      hasCompletedOnboarding: localStorage.getItem('hasCompletedOnboarding'),
+      allKeys: Object.keys(localStorage)
+    })
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     setToken(null)
@@ -177,8 +203,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   const connectCalendarForCurrentUser = async (code: string): Promise<void> => {
     try {
       const { user: returnedUser } = await exchangeGoogleCodeForTokens(code, true)
+      console.log('[AuthContext] connectCalendarForCurrentUser', {
+        returnedUser,
+        user
+      })
       if (returnedUser.id === user?.id) {
+        console.log('[AuthContext] connectCalendarForCurrentUser: user id matches')
         if (localStorage.getItem('hasCompletedOnboarding') !== 'true') {
+          console.log(
+            '🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: setting hasCompletedOnboarding to true'
+          )
           localStorage.setItem('hasCompletedOnboarding', 'true')
         }
         toast({

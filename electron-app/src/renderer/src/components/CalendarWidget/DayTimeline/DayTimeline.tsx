@@ -89,7 +89,12 @@ export const DayTimeline = ({
     handleSelectManualEntry,
     openNewEntryModal,
     updateManualEntry
-  } = useManualEntry({ baseDate: dayForEntries, onModalClose: () => resetDragState() })
+  } = useManualEntry({
+    baseDate: dayForEntries,
+    onModalClose: () => resetDragState(),
+    token,
+    userId: user?.id || null
+  })
 
   const {
     dragState,
@@ -422,6 +427,13 @@ export const DayTimeline = ({
         const durationMs = new Date(entry.endTime).getTime() - new Date(entry.startTime).getTime()
 
         if (entry._id && token) {
+          console.log('[DayTimeline] Updating manual entry:', {
+            token,
+            id: entry._id,
+            startTime: newStartTime.getTime(),
+            durationMs
+          })
+
           updateManualEntry.mutate({
             token,
             id: entry._id,
