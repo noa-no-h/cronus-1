@@ -116,10 +116,10 @@ export function MainAppContent(): React.ReactElement {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
     if (isAuthenticated && hasCompletedOnboarding) {
       console.log(
-        'App is loaded, user is authenticated and has completed onboarding. Enabling permission requests and starting window tracking.'
+        'App is loaded, user is authenticated and has completed onboarding. Window tracking is already started by OnboardingModal.'
       )
-      window.api.enablePermissionRequests()
-      window.api.startWindowTracking()
+      // Note: enablePermissionRequests() and startWindowTracking() are already called by OnboardingModal.tsx
+      // Removing redundant calls to prevent race condition with Chrome Apple Events permissions
     }
   }, [isAuthenticated])
 

@@ -349,6 +349,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     // Start window tracking now that onboarding is complete
     try {
       await window.api.enablePermissionRequests()
+      // Add delay to ensure native _explicitPermissionDialogsEnabled flag is properly set
+      // This prevents Chrome Apple Events permission race condition
+      await new Promise(resolve => setTimeout(resolve, 500))
       await window.api.startWindowTracking()
     } catch (error) {
       console.error('Failed to start window tracking:', error)
