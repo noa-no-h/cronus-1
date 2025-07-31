@@ -527,15 +527,20 @@ void windowChangeCallback(AXObserverRef observer, AXUIElementRef element, CFStri
         }
         
         // Perform OCR using Vision framework
+        NSTimeInterval startTime = [[NSDate date] timeIntervalSince1970];
+        
         VNRecognizeTextRequest *request = [[VNRecognizeTextRequest alloc] init];
         request.recognitionLevel = VNRequestTextRecognitionLevelAccurate;
-        request.usesLanguageCorrection = YES;
+        request.usesLanguageCorrection = NO;
         
         VNImageRequestHandler *handler = [[VNImageRequestHandler alloc] 
             initWithCGImage:screenshot options:@{}];
         
         NSError *error = nil;
         BOOL success = [handler performRequests:@[request] error:&error];
+        
+        NSTimeInterval ocrDuration = ([[NSDate date] timeIntervalSince1970] - startTime) * 1000;
+        MyLog(@"🚀 OCR completed in %.1fms (langCorrection=NO)", ocrDuration);
         
         NSString *result = @"";
         if (success && !error) {
