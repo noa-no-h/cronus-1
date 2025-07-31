@@ -17,18 +17,18 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   autoUpdater.autoInstallOnAppQuit = false
 
   autoUpdater.on('checking-for-update', () => {
-    log.info('Checking for update...')
+    // log.info('Checking for update...')
     mainWindow?.webContents.send('update-status', { status: 'checking' })
   })
 
   autoUpdater.on('update-available', (info) => {
-    log.info('Update available.', info)
+    // log.info('Update available.', info)
     const payload: UpdateStatus = { status: 'available', info }
     mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-not-available', () => {
-    log.info('Update not available.')
+    // log.info('Update not available.')
     const payload: UpdateStatus = { status: 'not-available' }
     mainWindow?.webContents.send('update-status', payload)
   })
@@ -41,13 +41,13 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
-    log.info(`Download progress: ${progressObj.percent}%`)
+    // log.info(`Download progress: ${progressObj.percent}%`)
     const payload: UpdateStatus = { status: 'downloading', progress: progressObj }
     mainWindow?.webContents.send('update-status', payload)
   })
 
   autoUpdater.on('update-downloaded', () => {
-    log.info('Update downloaded.')
+    // log.info('Update downloaded.')
     const payload: UpdateStatus = { status: 'downloaded' }
     mainWindow?.webContents.send('update-status', payload)
   })
@@ -67,7 +67,7 @@ export function initializeAutoUpdater(window: BrowserWindow): void {
 }
 
 function checkForUpdatesIfNeeded(trigger: string): void {
-  log.info(`✅ Triggering update check (${trigger})`)
+  // log.info(`✅ Triggering update check (${trigger})`)
   autoUpdater.checkForUpdates().catch((error) => {
     log.error(`Update check failed (${trigger}):`, error)
     // Sentry.captureException(error)
@@ -115,12 +115,12 @@ function setupRecurringUpdateCheck(): void {
   // Schedule next check in 5 minutes (300000 ms)
   const msUntilFiveMinutes = 300000
 
-  log.info(
-    `📅 Next recurring update check scheduled for: ${new Date(Date.now() + msUntilFiveMinutes).toLocaleString()}`
-  )
+  // log.info(
+  //   `📅 Next recurring update check scheduled for: ${new Date(Date.now() + msUntilFiveMinutes).toLocaleString()}`
+  // )
 
   updateTimer = setTimeout(() => {
-    log.info('🔄 Recurring update check triggered')
+    // log.info('🔄 Recurring update check triggered')
     checkForUpdatesIfNeeded('recurring_timer')
 
     // Reschedule for next interval
@@ -130,7 +130,7 @@ function setupRecurringUpdateCheck(): void {
 
 export function registerAutoUpdaterHandlers(): void {
   ipcMain.handle('check-for-updates', () => {
-    log.info('🖱️ Manual update check requested')
+    // log.info('🖱️ Manual update check requested')
     checkForUpdatesIfNeeded('manual')
     return true
   })
@@ -144,7 +144,7 @@ export function registerAutoUpdaterHandlers(): void {
     }
   })
   ipcMain.handle('install-update', () => {
-    log.info('Requesting to quit and install update.')
+    // log.info('Requesting to quit and install update.')
     setAllowForcedQuit(true)
     autoUpdater.quitAndInstall(true, true)
   })

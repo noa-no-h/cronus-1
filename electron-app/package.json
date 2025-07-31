@@ -51,6 +51,7 @@
     "clean:cronus-installation": "bash clean_cronus_installation.sh",
     "clean-and-build": "time (bun run clean:cronus-installation && bun run build:for-publish:arm64 && open dist/Cronus-*-arm64.dmg && say 'Build complete')",
     "clean-and-quick-build": "time (bun run clean:cronus-installation && NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg && say 'Quick build complete')",
+    "reset-app-state": "bash reset_app_state.sh",
     "quick-build": "time (NODE_ENV=production bun run build && npx electron-builder --mac --arm64 -c.mac.forceCodeSigning=false -c.mac.notarize=false -c.dmg.sign=false && open dist/Cronus-*-arm64.dmg && say 'Quick build complete')"
   },
   "build": {
