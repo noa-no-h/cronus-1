@@ -209,12 +209,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
       })
       if (returnedUser.id === user?.id) {
         console.log('[AuthContext] connectCalendarForCurrentUser: user id matches')
-        if (localStorage.getItem('hasCompletedOnboarding') !== 'true') {
-          console.log(
-            '🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: setting hasCompletedOnboarding to true'
-          )
-          localStorage.setItem('hasCompletedOnboarding', 'true')
-        }
+        // REMOVED: Incorrect onboarding completion logic that was causing the bug
+        // Calendar connection should not mark onboarding as complete
+        console.log('🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: calendar connected successfully, NOT setting hasCompletedOnboarding')
         toast({
           title: 'Calendar Connected!',
           description: 'Your Google Calendar has been successfully connected.'

@@ -45,34 +45,24 @@ export function MainAppContent(): React.ReactElement {
     const originalRemoveItem = localStorage.removeItem
     const originalClear = localStorage.clear
 
-    localStorage.setItem = function(key: string, value: string) {
+    localStorage.setItem = function (key: string, value: string) {
       if (key === 'hasCompletedOnboarding') {
-        console.log('🔍 [ONBOARDING DEBUG] localStorage.setItem called for hasCompletedOnboarding', {
-          key,
-          value,
-          stack: new Error().stack
-        })
+        console.log('🔍 [PERMISSIONS DEBUG] localStorage.setItem called for hasCompletedOnboarding')
       }
       return originalSetItem.call(this, key, value)
     }
 
-    localStorage.removeItem = function(key: string) {
+    localStorage.removeItem = function (key: string) {
       if (key === 'hasCompletedOnboarding') {
-        console.log('🚨 [ONBOARDING DEBUG] localStorage.removeItem called for hasCompletedOnboarding!', {
-          key,
-          currentValue: localStorage.getItem(key),
-          stack: new Error().stack
-        })
+        console.log(
+          '� [PERMISSIONS DEBUG] localStorage.removeItem called for hasCompletedOnboarding'
+        )
       }
       return originalRemoveItem.call(this, key)
     }
 
-    localStorage.clear = function() {
-      console.log('🚨 [ONBOARDING DEBUG] localStorage.clear called! This will clear hasCompletedOnboarding', {
-        currentOnboardingValue: localStorage.getItem('hasCompletedOnboarding'),
-        allKeys: Object.keys(localStorage),
-        stack: new Error().stack
-      })
+    localStorage.clear = function () {
+      console.log('🔍 [PERMISSIONS DEBUG] localStorage.clear called')
       return originalClear.call(this)
     }
 
@@ -116,7 +106,7 @@ export function MainAppContent(): React.ReactElement {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
     if (isAuthenticated && hasCompletedOnboarding) {
       console.log(
-        'App is loaded, user is authenticated and has completed onboarding. Window tracking is already started by OnboardingModal.'
+        '🔍 [PERMISSIONS DEBUG] App is loaded, user is authenticated and has completed onboarding. Window tracking is already started by OnboardingModal (ideally).'
       )
       // Note: enablePermissionRequests() and startWindowTracking() are already called by OnboardingModal.tsx
       // Removing redundant calls to prevent race condition with Chrome Apple Events permissions
@@ -286,7 +276,7 @@ export function MainAppContent(): React.ReactElement {
     checkPermissions()
   }, [token])
 
-  // Show onboarding only if user hasn't completed it before or permissions are missing
+  // Show onboarding only if user hasn't completed it locally (Electron app should show onboarding on each fresh install)
   useEffect(() => {
     console.log('🔍 [ONBOARDING DEBUG] useEffect triggered', {
       permissionsChecked,
@@ -296,31 +286,29 @@ export function MainAppContent(): React.ReactElement {
       userHasCompletedOnboarding: user?.hasCompletedOnboarding,
       stack: new Error().stack
     })
-    
+
     if (!permissionsChecked) {
       console.log('🔍 [ONBOARDING DEBUG] Waiting for permissions check')
       return // Wait for permission check to complete
     }
 
-    // We check both localStorage and the server-side flag. This handles cases where
-    // localStorage might be cleared, but the user has already completed onboarding.
+    // For Electron app, only check localStorage since users might reinstall on different computers
+    // and need to grant permissions again. Server-side flag is kept for consistency but not used for decision.
     const hasCompletedOnboardingLocally = localStorage.getItem('hasCompletedOnboarding') === 'true'
-    const hasCompletedOnboardingRemotely = !!user?.hasCompletedOnboarding
 
-    console.log('🔍 [ONBOARDING DEBUG] Checking onboarding status', {
+    console.log('🔍 [ONBOARDING DEBUG] Checking onboarding status (localStorage only)', {
       hasCompletedOnboardingLocally,
-      hasCompletedOnboardingRemotely,
       localStorageValue: localStorage.getItem('hasCompletedOnboarding'),
-      allLocalStorageKeys: Object.keys(localStorage)
+      allLocalStorageKeys: Object.keys(localStorage),
+      serverSideFlag: user?.hasCompletedOnboarding,
+      note: 'Using localStorage only for Electron app onboarding decision'
     })
 
-    const hasCompletedOnboarding = hasCompletedOnboardingLocally || hasCompletedOnboardingRemotely
-
-    // Show onboarding only if it's never been completed
+    // Show onboarding only if it hasn't been completed locally
     // Note: Permissions are handled within the onboarding flow itself
-    if (!hasCompletedOnboarding) {
-      console.log('🚨 [ONBOARDING DEBUG] SHOWING ONBOARDING - not completed', {
-        hasCompletedOnboarding,
+    if (!hasCompletedOnboardingLocally) {
+      console.log('🚨 [ONBOARDING DEBUG] SHOWING ONBOARDING - not completed locally', {
+        hasCompletedOnboardingLocally,
         missingAccessibilityPermissions,
         stack: new Error().stack
       })
@@ -329,7 +317,7 @@ export function MainAppContent(): React.ReactElement {
         resetJustLoggedIn() // Reset the flag if it was set
       }
     } else {
-      console.log('🔍 [ONBOARDING DEBUG] Onboarding completed, checking tutorial')
+      console.log('🔍 [ONBOARDING DEBUG] Onboarding completed locally, checking tutorial')
       // User has completed onboarding, check if they've seen the tutorial
       const hasSeenTutorial = localStorage.getItem('hasSeenTutorial') === 'true'
       if (!hasSeenTutorial) {
@@ -339,22 +327,38 @@ export function MainAppContent(): React.ReactElement {
   }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn, user])
 
   const handleOnboardingComplete = (): void => {
+    console.log('🔍 [ONBOARDING DEBUG] handleOnboardingComplete called - starting completion process')
+    
     setShowOnboarding(false)
+    console.log('🔍 [ONBOARDING DEBUG] Set showOnboarding to false')
+    
     // Set the local storage flag to mark onboarding as completed
+    const previousValue = localStorage.getItem('hasCompletedOnboarding')
     localStorage.setItem('hasCompletedOnboarding', 'true')
+    console.log('🔍 [ONBOARDING DEBUG] localStorage hasCompletedOnboarding set to true', {
+      previousValue,
+      newValue: localStorage.getItem('hasCompletedOnboarding'),
+      timestamp: new Date().toISOString()
+    })
+    
     if (window.electron?.ipcRenderer) {
+      console.log(
+        '🔍 [PERMISSIONS DEBUG] Setting open at login to true and enabling permission requests'
+      )
       window.electron.ipcRenderer.invoke('set-open-at-login', true)
       // Enable permission requests now that onboarding is complete
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
+    
+    console.log('🔍 [ONBOARDING DEBUG] Invalidating user queries and setting tutorial to show')
     trpcUtils.user.getUserProjectsAndGoals.invalidate()
     setShowTutorial(true)
+    
+    console.log('🔍 [ONBOARDING DEBUG] handleOnboardingComplete completed successfully')
   }
 
   const handleResetOnboarding = useCallback((): void => {
-    console.log('🚨 [ONBOARDING DEBUG] handleResetOnboarding called!', {
-      stack: new Error().stack
-    })
+    console.log('🔍 [PERMISSIONS DEBUG] Resetting onboarding')
     setShowOnboarding(true)
     // Remove the local storage flag to allow onboarding to show again
     localStorage.removeItem('hasCompletedOnboarding')
@@ -462,13 +466,9 @@ export function MainAppContent(): React.ReactElement {
   }, [isSystemRestarting])
 
   const handleQuitConfirm = async () => {
-    console.log('🔄 Quit button clicked in modal, calling confirmQuit...')
     try {
       await window.api.confirmQuit()
-      console.log('✅ confirmQuit completed successfully')
-    } catch (error) {
-      console.error('❌ Failed to quit app:', error)
-    }
+    } catch (error) {}
   }
 
   const handleKeepRunning = () => {

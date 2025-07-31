@@ -332,36 +332,43 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   }
 
   const handleComplete = async () => {
+    console.log('🔍 [ONBOARDING MODAL DEBUG] handleComplete called - starting onboarding completion')
     setIsCompleting(true)
 
     if (token && referralSource.trim()) {
+      console.log('🔍 [ONBOARDING MODAL DEBUG] Updating referral source:', referralSource)
       try {
         await updateUserReferralMutation.mutateAsync({
           token,
           referralSource
         })
-        console.log('✅ Referral source updated successfully.')
+        console.log('✅ [ONBOARDING MODAL DEBUG] Referral source updated successfully.')
       } catch (error) {
-        console.error('❌ Failed to update referral source:', error)
+        console.error('❌ [ONBOARDING MODAL DEBUG] Failed to update referral source:', error)
       }
     }
 
     // Start window tracking now that onboarding is complete
+    console.log('🔍 [ONBOARDING MODAL DEBUG] Starting window tracking')
     try {
       await window.api.enablePermissionRequests()
+      console.log('🔍 [ONBOARDING MODAL DEBUG] Permission requests enabled, adding delay before starting tracking')
       // Add delay to ensure native _explicitPermissionDialogsEnabled flag is properly set
       // This prevents Chrome Apple Events permission race condition
       await new Promise(resolve => setTimeout(resolve, 500))
       await window.api.startWindowTracking()
+      console.log('🔍 [ONBOARDING MODAL DEBUG] Window tracking started successfully')
     } catch (error) {
-      console.error('Failed to start window tracking:', error)
+      console.error('❌ [ONBOARDING MODAL DEBUG] Failed to start window tracking:', error)
     }
 
     // Update PostHog tracking preference only if user saw the PostHog step
     const showedPosthogStep = steps.some((step) => step.id === 'posthog-opt-in-eu')
+    console.log('🔍 [ONBOARDING MODAL DEBUG] PostHog step check:', { showedPosthogStep, hasOptedInToPosthog })
     if (token && showedPosthogStep) {
       try {
         const optedOut = !hasOptedInToPosthog
+        console.log('🔍 [ONBOARDING MODAL DEBUG] Updating PostHog preference:', { optedOut })
         await updateUserPosthogTrackingMutation.mutateAsync({
           token,
           optedOutOfPosthogTracking: optedOut
@@ -374,14 +381,16 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           posthog.opt_in_capturing()
         }
 
-        console.log('✅ PostHog tracking preference updated successfully.')
+        console.log('✅ [ONBOARDING MODAL DEBUG] PostHog tracking preference updated successfully.')
       } catch (error) {
-        console.error('❌ Failed to update PostHog tracking preference:', error)
+        console.error('❌ [ONBOARDING MODAL DEBUG] Failed to update PostHog tracking preference:', error)
       }
     }
 
     // Complete the onboarding process
+    console.log('🔍 [ONBOARDING MODAL DEBUG] Calling onComplete callback in 500ms')
     setTimeout(() => {
+      console.log('🔍 [ONBOARDING MODAL DEBUG] Executing onComplete callback now')
       onComplete()
     }, 500)
   }
