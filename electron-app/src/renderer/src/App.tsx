@@ -104,14 +104,46 @@ export function MainAppContent(): React.ReactElement {
 
   useEffect(() => {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
+
+    console.log(
+      '🔍 [PERMISSIONS DEBUG] app.tsx is loaging (empty useEffect) with isAuthenticated:',
+      isAuthenticated,
+      'and hasCompletedOnboarding:',
+      hasCompletedOnboarding
+    )
+
     if (isAuthenticated && hasCompletedOnboarding) {
       console.log(
-        '🔍 [PERMISSIONS DEBUG] App is loaded, user is authenticated and has completed onboarding. Window tracking is already started by OnboardingModal (ideally).'
+        '🔍 [PERMISSIONS DEBUG] App is loaded, user is authenticated and has completed onboarding. Starting permission requests and window tracking as safety net.'
       )
-      // Note: enablePermissionRequests() and startWindowTracking() are already called by OnboardingModal.tsx
-      // Removing redundant calls to prevent race condition with Chrome Apple Events permissions
+
+      // RE-ENABLED: These API calls are crucial for app restarts and as safeguard
+      // OnboardingModal calls these during initial completion, but we need them on every app start
+      // for existing users who restart the app
+      const initializeTracking = async () => {
+        try {
+          console.log('🔍 [PERMISSIONS DEBUG] Calling enablePermissionRequests()')
+          await window.api.enablePermissionRequests()
+
+          // Add delay to ensure native _explicitPermissionDialogsEnabled flag is properly set
+          // This prevents Chrome Apple Events permission race condition
+          console.log('🔍 [PERMISSIONS DEBUG] Adding 500ms delay before startWindowTracking()')
+          await new Promise((resolve) => setTimeout(resolve, 500))
+
+          console.log('🔍 [PERMISSIONS DEBUG] Calling startWindowTracking()')
+          await window.api.startWindowTracking()
+
+          console.log(
+            '✅ [PERMISSIONS DEBUG] Window tracking initialization completed successfully'
+          )
+        } catch (error) {
+          console.error('❌ [PERMISSIONS DEBUG] Failed to initialize window tracking:', error)
+        }
+      }
+
+      initializeTracking()
     }
-  }, [isAuthenticated])
+  }, [])
 
   const [isRecategorizeDialogOpen, setIsRecategorizeDialogOpen] = useState(false)
   const [recategorizeTarget, setRecategorizeTarget] = useState<ActivityToRecategorize | null>(null)
@@ -327,11 +359,13 @@ export function MainAppContent(): React.ReactElement {
   }, [permissionsChecked, missingAccessibilityPermissions, justLoggedIn, resetJustLoggedIn, user])
 
   const handleOnboardingComplete = (): void => {
-    console.log('🔍 [ONBOARDING DEBUG] handleOnboardingComplete called - starting completion process')
-    
+    console.log(
+      '🔍 [ONBOARDING DEBUG] handleOnboardingComplete called - starting completion process'
+    )
+
     setShowOnboarding(false)
     console.log('🔍 [ONBOARDING DEBUG] Set showOnboarding to false')
-    
+
     // Set the local storage flag to mark onboarding as completed
     const previousValue = localStorage.getItem('hasCompletedOnboarding')
     localStorage.setItem('hasCompletedOnboarding', 'true')
@@ -340,7 +374,7 @@ export function MainAppContent(): React.ReactElement {
       newValue: localStorage.getItem('hasCompletedOnboarding'),
       timestamp: new Date().toISOString()
     })
-    
+
     if (window.electron?.ipcRenderer) {
       console.log(
         '🔍 [PERMISSIONS DEBUG] Setting open at login to true and enabling permission requests'
@@ -349,11 +383,11 @@ export function MainAppContent(): React.ReactElement {
       // Enable permission requests now that onboarding is complete
       window.electron.ipcRenderer.invoke('enable-permission-requests')
     }
-    
+
     console.log('🔍 [ONBOARDING DEBUG] Invalidating user queries and setting tutorial to show')
     trpcUtils.user.getUserProjectsAndGoals.invalidate()
     setShowTutorial(true)
-    
+
     console.log('🔍 [ONBOARDING DEBUG] handleOnboardingComplete completed successfully')
   }
 
