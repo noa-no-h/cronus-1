@@ -39,7 +39,7 @@ export function ScreenRecordingStep({
           </li>
         </ul>
       </div>
-
+      {/* TODO: screenRecordingStatus !== 1 is not working I think but we could make this open when the user clicks on "Grant Access" as additional instructions */}
       {hasRequestedScreenRecording && screenRecordingStatus !== 1 && (
         <div className="bg-blue-50 w-full dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
           <div className="text-sm text-left text-blue-800 dark:text-blue-200">

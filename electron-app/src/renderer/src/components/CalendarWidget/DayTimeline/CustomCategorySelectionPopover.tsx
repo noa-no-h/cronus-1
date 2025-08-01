@@ -107,7 +107,7 @@ export const CustomCategorySelectionPopover = forwardRef<
                   >
                     <History className="mr-2 h-4 w-4" />
                     <div className="flex flex-col">
-                      <span className="font-semibold">{item.title}</span>
+                      <span className="font-semibold truncate block">{item.title}</span>
                       {item.categoryName && (
                         <div className="flex items-center text-xs text-muted-foreground">
                           <span
@@ -162,7 +162,8 @@ export const CustomCategorySelectionPopover = forwardRef<
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 <span>
-                  Create from template: <span className="font-semibold">{template.name}</span>
+                  Create from template:{' '}
+                  <span className="font-semibold truncate block">{template.name}</span>
                 </span>
               </div>
             ))}
