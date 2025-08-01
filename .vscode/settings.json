@@ -12,7 +12,13 @@
     "client/tailwind.config.js": "client/**"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "audioCues.lineHasWarning": "on",
-  "audioCues.lineHasBreakpoint": "on",
-  "audioCues.lineHasError": "on"
+  "accessibility.signals.lineHasError": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasWarning": {
+    "sound": "on"
+  },
+  "accessibility.signals.lineHasBreakpoint": {
+    "sound": "on"
+  }
 }

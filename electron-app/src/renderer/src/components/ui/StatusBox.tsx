@@ -60,11 +60,9 @@ const StatusBox: React.FC<StatusBoxProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={clsx(
-        'rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
+        'px-0.5 rounded-md border flex items-center bg-secondary justify-center h-full transition-all duration-300 ease-in-out relative',
         borderColorCls,
-        isEnlarged
-          ? 'flex-auto gap-2 px-1 py-[1.5px]'
-          : 'flex-col justify-center w-[32%] px-1 py-0.5',
+        isEnlarged ? 'flex-auto gap-2  py-[1.5px]' : 'flex-col justify-center w-[32%] py-0.5',
         disabled && 'cursor-not-allowed opacity-50'
       )}
     >
@@ -78,7 +76,7 @@ const StatusBox: React.FC<StatusBoxProps> = ({
           style={{ fontSize: isEnlarged ? '0.75rem' : '9px' }}
         >
           {isHovered && isEnlarged && (
-            <span className="edit-icon-area rounded-md p-0.5 hover:bg-white/10">
+            <span className="edit-icon-area rounded-md p-2 hover:bg-white/10">
               <EditIcon
                 onClick={(e) => {
                   if (!disabled) {

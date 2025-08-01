@@ -230,7 +230,7 @@ const FloatingDisplay: React.FC = () => {
     <div
       ref={draggableRef}
       className={clsx(
-        'w-full h-full flex items-center  px-1 rounded-[10px] select-none',
+        'w-full h-full flex items-center px-0.5 rounded-[10px] select-none',
         'border-2 border-secondary/50',
         isTrackingPaused && 'opacity-75'
       )}
@@ -239,25 +239,25 @@ const FloatingDisplay: React.FC = () => {
       style={{ cursor: 'grab' }}
     >
       {getPauseIndicator()}
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col gap-[-1px] mr-[-1px] items-center">
         <Button
           variant="ghost"
           size="icon"
           onClick={handleClose}
-          className="close-button-area p-1 w-5 h-5 mr-1 rounded-md"
+          className="close-button-area p-1 w-5 h-5 mr-1 rounded-[7px]"
           title="Close Mini Timer"
         >
-          <X className="w-3 h-3 text-muted-foreground" />
+          <X className="w-[8px] h-[8px] text-muted-foreground hover:text-primary" />
         </Button>
         {/* button to open the main app window */}
         <Button
           variant="ghost"
           size="icon"
           onClick={handleOpenMainAppWindow}
-          className="open-main-app-window-butto p-1 w-5 h-5 mr-1 rounded-md"
+          className="open-main-app-window-butto p-1 w-5 h-5 mr-1 rounded-[7px]"
           title="Open Main App Window"
         >
-          <AppWindowMac className="w-3 h-3 text-muted-foreground" />
+          <AppWindowMac className="w-[8px] h-[8px] text-muted-foreground hover:text-primary" />
         </Button>
       </div>
 
