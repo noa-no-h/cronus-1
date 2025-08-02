@@ -124,7 +124,9 @@ export function UpdateNotification({
         <AlertDialogHeader>
           <AlertDialogTitle>Update in Progress</AlertDialogTitle>
           <AlertDialogDescription>
-            Restarting to apply the update. This can take up to 30 seconds. Please wait...
+            Restarting to apply the update. This can take up to 30 seconds! After the app closes it
+            can take up to 1 minute for the update to be applied. Please do not open it until it
+            opens back up by itself.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex justify-center items-center py-4">
