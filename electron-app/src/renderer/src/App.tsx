@@ -13,7 +13,7 @@ import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
 import { useSettings } from './contexts/SettingsContext'
 import { useActivityTracking, ActivityToRecategorize } from './hooks/useActivityTracking'
-import { useOnboardingLogic } from './hooks/useOnboardingLogic'
+import { useOnboardingLogic } from './hooks/useOnboardingLogicApp'
 import { useAccessibilityPermission } from './hooks/useAccessibilityPermission'
 import { cn } from './lib/utils'
 
