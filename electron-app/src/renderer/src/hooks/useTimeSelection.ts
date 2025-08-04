@@ -102,8 +102,9 @@ export const useTimeSelection = (
 
         if (selectionDate > now) {
           toast({
-            title: 'Cannot schedule in the future',
-            description: "You can't add entries after the current time.",
+            title: 'Cannot log time in the future',
+            description:
+              "You can't add entries after the current time. This feature is meant to log time away from your computer.",
             variant: 'default'
           })
           setDragState((prev) => ({ ...prev, isSelecting: false, isDragging: false }))
