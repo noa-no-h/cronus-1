@@ -299,17 +299,22 @@ export function ProductivityTrendChart({
               content={
                 <ChartTooltipContent
                   formatter={(value, name, item) => {
-                    if (name === 'lastWeekProductiveHours' && value === null) return null
-
-                    const displayName =
-                      name === 'productiveHours' || name === 'lastWeekProductiveHours'
-                        ? 'Productive'
-                        : 'Unproductive'
+                    if (value === null) return null
 
                     const today = new Date()
                     const { startDate, endDate } = item.payload
                     const isActualCurrentWeek =
                       today >= startDate && today < new Date(endDate.getTime() + 86400000)
+
+                    // For the current week, only show lastWeekProductiveHours
+                    // For other weeks, only show productiveHours (to avoid duplicates)
+                    if (isActualCurrentWeek && name !== 'lastWeekProductiveHours') return null
+                    if (!isActualCurrentWeek && name === 'lastWeekProductiveHours') return null
+
+                    const displayName =
+                      name === 'productiveHours' || name === 'lastWeekProductiveHours'
+                        ? 'Productive'
+                        : 'Unproductive'
 
                     return [`${value}h `, displayName, isActualCurrentWeek ? ' (This Week)' : '']
                   }}
