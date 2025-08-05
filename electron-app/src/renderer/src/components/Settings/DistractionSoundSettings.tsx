@@ -118,7 +118,7 @@ export const DistractionSoundSettings = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="text-card-foreground">Focus Reminders</CardTitle>
+        <CardTitle className="text-xl text-card-foreground">Focus Reminders</CardTitle>
         <CardDescription>
           Get alerts when you&apos;re using unproductive apps to help you stay focused.
         </CardDescription>
