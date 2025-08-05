@@ -49,6 +49,8 @@ describe('categorizationService edge cases for Noah', () => {
       description:
         'Arbeiten an juristischen Dokumenten, Schriftsatzerstellung und rechtliche Recherchen.',
       isProductive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: '6881329948a884740ed087c4',
@@ -56,6 +58,8 @@ describe('categorizationService edge cases for Noah', () => {
       name: 'Lernen für das Referendariat',
       description: 'Vorbereitung und Lernen für das juristische Referendariat.',
       isProductive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: '6881329948a884740ed087c5',
@@ -63,6 +67,8 @@ describe('categorizationService edge cases for Noah', () => {
       name: 'Planung & Reflexion',
       description: 'Journaling, Reflexion über Ziele oder Überprüfung persönlicher Pläne.',
       isProductive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: '6881329948a884740ed087c6',
@@ -70,6 +76,8 @@ describe('categorizationService edge cases for Noah', () => {
       name: 'Distraction',
       description: 'Scrolling social media, browsing unrelated content, or idle clicking',
       isProductive: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: '6881e734b113c0f5ca6bf806',
@@ -78,6 +86,8 @@ describe('categorizationService edge cases for Noah', () => {
       description:
         'Kommunikation mit Gästen, Reinigungskräften etc. Verwaltung der Wohnungen über Hospitable.com',
       isProductive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
@@ -160,6 +170,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Medical Studies',
         description: 'Studying for medical school, attending lectures, reading textbooks.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'cat2',
@@ -167,6 +179,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Brand Design Work',
         description: 'Creating logos, design research, and working on client brand identities.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'cat3',
@@ -174,6 +188,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'MCAT Prep',
         description: 'Focused study sessions for the MCAT exam.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'cat4',
@@ -181,6 +197,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Client Communication',
         description: 'Emails, calls, and meetings with design clients.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'cat5',
@@ -188,6 +206,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Distraction',
         description: 'Unrelated browsing, social media, etc.',
         isProductive: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'cat6',
@@ -195,6 +215,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Social Media',
         description: 'Personal social media use on Instagram, Twitter, etc.',
         isProductive: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ];
 
@@ -241,6 +263,8 @@ describe('categorizationService edge cases for Noah', () => {
         description:
           'Creative work, drafting, modeling, and working on sustainable building designs.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'arc2',
@@ -248,6 +272,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Newsletter Writing',
         description: 'Writing and editing content for the "Future of Cities" newsletter.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'arc3',
@@ -255,6 +281,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Client Meetings',
         description: 'Calls, video conferences, and in-person meetings with clients.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'arc4',
@@ -262,6 +290,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Building Code Research',
         description: 'Researching and reviewing local and national building codes.',
         isProductive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: 'arc5',
@@ -269,6 +299,8 @@ describe('categorizationService edge cases for Noah', () => {
         name: 'Distraction',
         description: 'Unrelated browsing, news, etc.',
         isProductive: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ];
 

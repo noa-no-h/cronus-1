@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, jest, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
 import mongoose from 'mongoose';
 import { ActiveWindowDetails } from '../../../../shared/types';
 import { assertCategorization } from './testUtils';
@@ -11,7 +11,8 @@ This test file includes the following edge cases:
 2. Audiobook project negotiation as Distraction (rather than Growth & Marketing)
 3. Browsing X/Twitter as Distraction (despite user goals mentioning X for outreach)
 4. Brighter-related email as Brighter (rather than Other work)
-5. Substack article on robotics as Work (when content is empty)
+5. Flight booking as Other work or Brighter (not Distraction, as likely work trip)
+6. Substack article on robotics as Work (when content is empty)
 
 */
 
@@ -63,6 +64,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#3B82F6',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -72,6 +75,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#8B5CF6',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -81,6 +86,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#10B981',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -90,6 +97,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#EAB308',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -99,6 +108,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#0EA5E9',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -108,6 +119,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#EC4899',
       isProductive: false,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -117,6 +130,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#F43F5E',
       isProductive: false,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -126,6 +141,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#D97706',
       isProductive: false,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -135,6 +152,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#6366F1',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -144,6 +163,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#A855F7',
       isProductive: false,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -153,6 +174,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#84CC16',
       isProductive: true,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       _id: new mongoose.Types.ObjectId().toString(),
@@ -162,6 +185,8 @@ describe('categorizeActivity edge cases', () => {
       color: '#6B7280',
       isProductive: false,
       isDefault: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
@@ -440,6 +465,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#22C55E',
         isProductive: true,
         isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -450,6 +477,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#EC4899',
         isProductive: false,
         isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -460,6 +489,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#6366F1',
         isProductive: true,
         isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -470,6 +501,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#F97316',
         isProductive: true,
         isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ];
 
@@ -510,6 +543,121 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
     });
   }, 30000); // Increased timeout for LLM call
 
+  test('should categorize flight booking as Other work or Brighter rather than Distraction for work trips', async () => {
+    // Arrange: Mock history check to fail, simulating the LLM pathway
+    (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
+      sort: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue(null),
+    });
+
+    // Simon's actual categories
+    const simonCategories = [
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Other work',
+        description:
+          'Other coding projects, misc life admin, personal email (sberensnyc@gmail.com), random chatgpt',
+        color: '#22C55E',
+        isProductive: true,
+        isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Distraction',
+        description:
+          'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
+        color: '#EC4899',
+        isProductive: false,
+        isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Health',
+        description:
+          'Function health, nucleus, one medical, circle health, exercising, gym, blood tests, cooking, food related things, forkable, doordash, chatgpt (related to health)',
+        color: '#6366F1',
+        isProductive: true,
+        isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        _id: new mongoose.Types.ObjectId().toString(),
+        userId: mockUserId,
+        name: 'Brighter',
+        description:
+          'Brighter lamp company, company emails (simon@getbrighter.co), chatgpt (related to brighter), firmware, whatsapp (with feston or eric beam or ravi), digikey, mouser, notion',
+        color: '#F97316',
+        isProductive: true,
+        isDefault: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    (UserModel.findById as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockResolvedValue({
+        userProjectsAndGoals:
+          "I have 3 main goals: 1. sell my lighting brand (Brighter) which makes the world's brightest floor lamp 2. learn ML so I can get a job at a big lab 3. Fix/improve my health so I have more energy, focus, and stamina in my work",
+      }),
+    });
+    (CategoryModel.find as jest.Mock).mockReturnValue({
+      lean: jest.fn().mockResolvedValue(simonCategories),
+    });
+
+    const flightContent = `American Airlines
+Main content
+Your trip summary
+Confirmation code: ABCD123
+Flight 1 - Choose flights - American Airlines
+Trip details
+New York (LGA) → San Francisco (SFO)
+Departure: January 15, 2025 at 8:00 AM
+Arrival: January 15, 2025 at 11:30 AM (PST)
+Flight AA1234
+Duration: 6h 30m
+Aircraft: Boeing 737-800
+Seat: 12A (Main Cabin)
+Passenger: Simon Berens
+Total cost: $340.00
+Payment method: **** 1234
+Booking reference: ABCD123`;
+
+    const activeWindow: Pick<
+      ActiveWindowDetails,
+      'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
+    > = {
+      ownerName: 'Google Chrome',
+      title: 'American Airlines - Your trip summary',
+      url: 'https://www.aa.com/booking/your-trip-summary?sid=9caddfbb-44bc-42f2-a2dd-5cda890d2e15',
+      content: flightContent,
+      type: 'browser',
+      browser: 'chrome',
+    };
+
+    // Act
+    const result = await categorizeActivity(mockUserId, activeWindow);
+
+    // Assert: Should be categorized as either "Other work" or "Brighter", not "Distraction"
+    const receivedCategory = simonCategories.find((c) => c._id === result.categoryId);
+    const acceptedCategories = ['Other work', 'Brighter'];
+    
+    console.log('Flight booking test - Category Name:', receivedCategory?.name);
+    console.log('Flight booking test - LLM Summary:', result.llmSummary);
+    console.log('Flight booking test - Category Reasoning:', result.categoryReasoning);
+    
+    expect(acceptedCategories).toContain(receivedCategory?.name);
+  }, 30000); // Increased timeout for LLM call
+
   test('should categorize substack article on robotics as Work when content is empty', async () => {
     // Arrange: Mock history check to fail, simulating the LLM pathway
     (ActiveWindowEventModel.findOne as jest.Mock).mockReturnValue({
@@ -528,6 +676,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#22C55E',
         isProductive: true,
         isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -538,6 +688,8 @@ Accessibility | Adsinfo | More... © 2025 X Corp.`;
         color: '#EC4899',
         isProductive: false,
         isDefault: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
     ];
 

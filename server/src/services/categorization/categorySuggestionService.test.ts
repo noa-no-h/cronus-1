@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { getOpenAICategorySuggestion } from './llm';
+import { getOpenAICategorySuggestion } from './categoryGeneration';
 
 describe('getOpenAICategorySuggestion', () => {
   const testCases = [

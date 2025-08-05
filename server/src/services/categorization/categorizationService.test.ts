@@ -111,24 +111,32 @@ describe('categorizeActivity', () => {
       name: 'Find Dream Wife',
       description:
         'Look at Instagram profiles for potential dream wives, read about dating content to understand dating dynamics.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     const socialMediaCategory = {
       _id: new mongoose.Types.ObjectId().toString(),
       userId: mockUserId,
       name: 'Social Media Distraction',
       description: 'Mindlessly scrolling social media.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     const deepWorkCategory = {
       _id: new mongoose.Types.ObjectId().toString(),
       userId: mockUserId,
       name: 'Deep Work',
       description: 'Focused coding and development tasks.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     const shallowWorkCategory = {
       _id: new mongoose.Types.ObjectId().toString(),
       userId: mockUserId,
       name: 'Shallow Work',
       description: 'Emails, slack, etc.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const dreamWifeSeekingCategories = [dreamWifeCategory, socialMediaCategory, deepWorkCategory];
@@ -147,18 +155,24 @@ describe('categorizeActivity', () => {
       userId: mockUserId,
       name: 'Product Management',
       description: 'Contacting and interviewing potential users',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     const productDevelopmentCategory = {
       _id: new mongoose.Types.ObjectId().toString(),
       userId: mockUserId,
       name: 'Product Development',
       description: 'Coding, debugging, and working on the application.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     const distractionCategory = {
       _id: new mongoose.Types.ObjectId().toString(),
       userId: mockUserId,
       name: 'Distraction',
       description: 'Browsing social media without a specific work-related purpose.',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const productManagerCategories = [
@@ -292,6 +306,8 @@ describe('categorizeActivity', () => {
         name: 'Work',
         description:
           'Writing/editing code, reading or watching coding tutorials, documentation, work-related articles, github repos, looking at AWS, deployment setups, google docs, Figma',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       const distractionCategory = {
         _id: new mongoose.Types.ObjectId().toString(),
@@ -299,6 +315,8 @@ describe('categorizeActivity', () => {
         name: 'Distraction',
         description:
           'Looking at tasks and work-unrelated sites like scrolling social media, playing games, random googling, substacks (except if it is directly work-related)',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       await runLlmCategorizationTest({
