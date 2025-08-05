@@ -117,8 +117,6 @@ export const activeWindowEventsRouter = router({
           });
         }
 
-        const EVENT_LIMIT = 15000;
-
         const events = await ActiveWindowEventModel.find({
           userId: userId,
           timestamp: {
@@ -128,16 +126,7 @@ export const activeWindowEventsRouter = router({
         })
           .select('-content') // Explicitly exclude the large 'content' field
           .sort({ timestamp: -1 }) // Changed to descending (newest first)
-          .limit(EVENT_LIMIT)
           .lean();
-
-        if (events.length === EVENT_LIMIT) {
-          console.warn(
-            `[PERFORMANCE] User ${userId} hit the event limit of ${EVENT_LIMIT} for date range ${new Date(
-              startDateMs
-            ).toISOString()} to ${new Date(endDateMs).toISOString()}. Returning partial data.`
-          );
-        }
 
         return events.map((event) => ({
           ...event,
