@@ -68,7 +68,7 @@ export function GoogleCalendarSettings(): JSX.Element {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="text-xl flex items-center gap-2">
           <img src={googleCalendarIcon} alt="Google Calendar" className="h-5 w-5" />
           Google Calendar Integration
         </CardTitle>

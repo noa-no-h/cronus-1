@@ -45,7 +45,7 @@ const PauseTrackingSettings: React.FC<PauseTrackingSettingsProps> = ({
     <React.Fragment>
       <Card ref={cardRef} className="bg-card border-border">
         <CardHeader>
-          <CardTitle>Pause Tracking</CardTitle>
+          <CardTitle className="text-xl">Pause Tracking</CardTitle>
           <CardDescription>
             We automatically track when your computer goes asleep/becomes inactive and pause the
             tracking accordingly. You can still pause tracking here if you do not want your activity
