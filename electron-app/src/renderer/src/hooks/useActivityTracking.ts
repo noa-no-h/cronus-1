@@ -99,7 +99,7 @@ export function useActivityTracking({
         const isServer = error?.message?.toLowerCase().includes('server')
         if (isTimeout || isNetwork || isServer) {
           toast({
-            duration: 1000,
+            duration: 1500,
             title: 'Server Unresponsive',
             description:
               'Hey, sorry the server is unresponsive right now, please try again in a few minutes.',
@@ -107,7 +107,7 @@ export function useActivityTracking({
           })
         } else {
           toast({
-            duration: 1000,
+            duration: 1500,
             title: 'Error',
             description: 'Failed to re-categorize activity. ' + error.message,
             variant: 'destructive'

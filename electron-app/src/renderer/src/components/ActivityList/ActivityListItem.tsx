@@ -128,7 +128,7 @@ export const ActivityListItem = ({
     onSuccess(data, variables) {
       if (data.deletedCount && data.deletedCount > 0) {
         toast({
-          duration: 1000,
+          duration: 1500,
           title: 'Successfully deleted activity',
           description: `Deleted ${data.deletedCount} events for "${variables.identifier}"`
         })

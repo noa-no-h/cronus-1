@@ -115,7 +115,7 @@ const ActivitiesByCategoryWidget = ({
       setIsCreateCategoryOpen(false)
       toast({
         title: 'Category Created',
-        duration: 1000,
+        duration: 1500,
         description: `Category "${data.name}" has been created.`
       })
 
@@ -128,7 +128,7 @@ const ActivitiesByCategoryWidget = ({
       }
     } catch (err) {
       toast({
-        duration: 1000,
+        duration: 1500,
         title: 'Error creating category',
         description: (err as Error).message,
         variant: 'destructive'
@@ -183,7 +183,7 @@ const ActivitiesByCategoryWidget = ({
     } catch (error) {
       console.error('Error moving activities:', error)
       toast({
-        duration: 1000,
+        duration: 1500,
         title: 'Error',
         description: 'Could not move all activities.',
         variant: 'destructive'

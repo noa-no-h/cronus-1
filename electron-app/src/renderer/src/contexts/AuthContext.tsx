@@ -219,13 +219,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
           '🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: calendar connected successfully, NOT setting hasCompletedOnboarding'
         )
         toast({
-          duration: 1000,
+          duration: 1500,
           title: 'Calendar Connected!',
           description: 'Your Google Calendar has been successfully connected.'
         })
       } else {
         toast({
-          duration: 1000,
+          duration: 1500,
           title: 'Account Mismatch',
           description: 'The Google account you used does not match your current login.',
           variant: 'destructive'
@@ -234,7 +234,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     } catch (error) {
       console.error('Calendar auth failed:', error)
       toast({
-        duration: 1000,
+        duration: 1500,
         title: 'Connection Failed',
         description: 'Failed to connect Google Calendar. Please try again.',
         variant: 'destructive'
