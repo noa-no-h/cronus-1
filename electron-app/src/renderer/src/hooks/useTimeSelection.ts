@@ -102,6 +102,7 @@ export const useTimeSelection = (
 
         if (selectionDate > now) {
           toast({
+            duration: 1000,
             title: 'Cannot log time in the future',
             description:
               "You can't add entries after the current time. This feature is meant to log time away from your computer.",

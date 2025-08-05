@@ -51,12 +51,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         console.error('[AuthContext] Failed to fetch user with token during query:', err)
         // Check if the error message indicates a server error (5xx) or common transient errors
         const isServerError = /5\d{2}/.test(err.message)
-        const isNetworkError = err.message?.toLowerCase().includes('network') || 
-                              err.message?.toLowerCase().includes('fetch') ||
-                              err.message?.toLowerCase().includes('connection')
+        const isNetworkError =
+          err.message?.toLowerCase().includes('network') ||
+          err.message?.toLowerCase().includes('fetch') ||
+          err.message?.toLowerCase().includes('connection')
         const isTimeoutError = err.message?.toLowerCase().includes('timeout')
         const isTransientError = isServerError || isNetworkError || isTimeoutError
-        
+
         if (!isTransientError) {
           console.log('[AuthContext] Calling logout due to non-transient error in getUser query.')
           // log the actual error
@@ -64,12 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
           console.trace('Logout trace')
           logout()
         } else {
-          console.warn('[AuthContext] Transient error detected in getUser query, preserving session.', {
-            isServerError,
-            isNetworkError,
-            isTimeoutError,
-            errorMessage: err.message
-          })
+          console.warn(
+            '[AuthContext] Transient error detected in getUser query, preserving session.',
+            {
+              isServerError,
+              isNetworkError,
+              isTimeoutError,
+              errorMessage: err.message
+            }
+          )
         }
       }
     }
@@ -211,13 +215,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
         console.log('[AuthContext] connectCalendarForCurrentUser: user id matches')
         // REMOVED: Incorrect onboarding completion logic that was causing the bug
         // Calendar connection should not mark onboarding as complete
-        console.log('🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: calendar connected successfully, NOT setting hasCompletedOnboarding')
+        console.log(
+          '🔍 [ONBOARDING DEBUG] connectCalendarForCurrentUser: calendar connected successfully, NOT setting hasCompletedOnboarding'
+        )
         toast({
+          duration: 1000,
           title: 'Calendar Connected!',
           description: 'Your Google Calendar has been successfully connected.'
         })
       } else {
         toast({
+          duration: 1000,
           title: 'Account Mismatch',
           description: 'The Google account you used does not match your current login.',
           variant: 'destructive'
@@ -226,6 +234,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
     } catch (error) {
       console.error('Calendar auth failed:', error)
       toast({
+        duration: 1000,
         title: 'Connection Failed',
         description: 'Failed to connect Google Calendar. Please try again.',
         variant: 'destructive'

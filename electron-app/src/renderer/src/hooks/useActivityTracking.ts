@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActiveWindowDetails, Category } from 'shared'
-import { toast } from './use-toast'
 import { uploadActiveWindowEvent } from '../lib/activityUploader'
 import { showActivityMovedToast } from '../lib/custom-toasts'
 import { trpc } from '../utils/trpc'
+import { toast } from './use-toast'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -99,6 +99,7 @@ export function useActivityTracking({
         const isServer = error?.message?.toLowerCase().includes('server')
         if (isTimeout || isNetwork || isServer) {
           toast({
+            duration: 1000,
             title: 'Server Unresponsive',
             description:
               'Hey, sorry the server is unresponsive right now, please try again in a few minutes.',
@@ -106,6 +107,7 @@ export function useActivityTracking({
           })
         } else {
           toast({
+            duration: 1000,
             title: 'Error',
             description: 'Failed to re-categorize activity. ' + error.message,
             variant: 'destructive'
