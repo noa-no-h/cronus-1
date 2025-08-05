@@ -46,7 +46,7 @@ export const DisableUsageAnalyticsSettings = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle>Usage Analytics</CardTitle>
+        <CardTitle className="text-xl">Usage Analytics</CardTitle>
         <CardDescription>
           Help us improve CronusHQ by allowing us to collect anonymous usage data.
         </CardDescription>

@@ -72,7 +72,7 @@ export const MultiPurposeAppsSettings = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Multi-Purpose Apps</CardTitle>
+        <CardTitle className="text-xl">Multi-Purpose Apps</CardTitle>
         <CardDescription>
           Apps listed here will always be re-evaluated by the AI instead of using your past history.
           Add apps that you use for both work and personal tasks (e.g., Messages, WhatsApp, Notion).

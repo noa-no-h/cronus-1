@@ -7,6 +7,7 @@ import { DisableUsageAnalyticsSettings } from './Settings/DisableUsageAnalyticsS
 import { DistractionSoundSettings } from './Settings/DistractionSoundSettings'
 import GoalInputForm from './Settings/GoalInputForm'
 import { GoogleCalendarSettings } from './Settings/GoogleCalendarSettings'
+import { ManualUpdateSettings } from './Settings/ManualUpdateSettings'
 import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import PauseTrackingSettings from './Settings/PauseTrackingSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
@@ -60,6 +61,8 @@ const LogOutButtonSection = memo(
   }
 )
 
+LogOutButtonSection.displayName = 'LogOutButtonSection'
+
 export const SettingsPage = memo(function SettingsPage({
   onResetOnboarding,
   isTrackingPaused,
@@ -100,6 +103,7 @@ export const SettingsPage = memo(function SettingsPage({
         <MultiPurposeAppsSettings />
         <ThemeSwitcher />
         <GoogleCalendarSettings />
+        <ManualUpdateSettings />
         <DisableUsageAnalyticsSettings />
         <LogOutButtonSection user={user} logout={logout} onResetOnboarding={onResetOnboarding} />
         <AppInformation onShowPermissions={handleShowPermissions} />
