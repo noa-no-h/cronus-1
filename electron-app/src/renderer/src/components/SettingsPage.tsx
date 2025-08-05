@@ -70,8 +70,8 @@ export const SettingsPage = memo(function SettingsPage({
   const [showPermissions, setShowPermissions] = useState(false)
 
   useEffect(() => {
-    if (focusOn === 'goal-input') {
-      // The focusing logic will be inside GoalInputForm
+    if (focusOn === 'goal-input' || focusOn === 'pause-tracking') {
+      // The focusing logic will be inside the respective components
       // We reset the focus request here after a short delay
       // to allow the component to render and focus.
       setTimeout(() => setFocusOn(null), 100)
@@ -94,6 +94,7 @@ export const SettingsPage = memo(function SettingsPage({
         <PauseTrackingSettings
           isTrackingPaused={isTrackingPaused}
           onToggleTracking={onToggleTracking}
+          shouldFocus={focusOn === 'pause-tracking'}
         />
         <DistractionSoundSettings />
         <MultiPurposeAppsSettings />

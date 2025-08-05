@@ -1,5 +1,5 @@
 import { Pause, Play } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import PauseInfoModal from '../PauseInfoModal'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
@@ -7,13 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 interface PauseTrackingSettingsProps {
   isTrackingPaused: boolean
   onToggleTracking: () => void
+  shouldFocus?: boolean
 }
 
 const PauseTrackingSettings: React.FC<PauseTrackingSettingsProps> = ({
   isTrackingPaused,
-  onToggleTracking
+  onToggleTracking,
+  shouldFocus = false
 }) => {
   const [showPauseModal, setShowPauseModal] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (shouldFocus && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [shouldFocus])
 
   const handlePauseClick = () => {
     if (!isTrackingPaused) {
@@ -34,7 +43,7 @@ const PauseTrackingSettings: React.FC<PauseTrackingSettingsProps> = ({
 
   return (
     <React.Fragment>
-      <Card className="bg-card border-border">
+      <Card ref={cardRef} className="bg-card border-border">
         <CardHeader>
           <CardTitle>Pause Tracking</CardTitle>
           <CardDescription>

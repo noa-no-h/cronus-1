@@ -178,6 +178,7 @@ export function MainAppContent(): React.ReactElement {
   const handleOpenSettingsFromModal = () => {
     setShowQuitModal(false)
     setIsSettingsOpen(true)
+    setFocusOn('pause-tracking')
   }
 
   const handleSystemRestartBegin = useCallback(() => {

@@ -42,6 +42,7 @@ const GoalInputForm = ({
       if (!onboardingMode) {
         toast({
           title: 'Goals Updated!',
+          duration: 1000,
           description: 'Your goals have been successfully updated.'
         })
       }
