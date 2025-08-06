@@ -1,4 +1,5 @@
 import { RefObject, useState } from 'react'
+import { type DaySegment } from '@renderer/lib/dayTimelineHelpers'
 import { useToast } from './use-toast'
 
 export type DragState = {
@@ -16,7 +17,8 @@ export const useTimeSelection = (
     endTime: { hour: number; minute: number }
   ) => void,
   isEnabled: boolean,
-  dayForEntries: Date
+  dayForEntries: Date,
+  existingSegments: DaySegment[] = []
 ) => {
   const { toast } = useToast()
 
@@ -72,7 +74,34 @@ export const useTimeSelection = (
       const currentY = getRelativeY(e.clientY)
       const isDragging = prev.isDragging || Math.abs(currentY - prev.startPos.y) > 5 // 5px threshold
 
-      return { ...prev, isDragging, currentPos: { y: currentY } }
+      // Limit the current position based on existing segments
+      let limitedCurrentY = currentY
+      const startY = prev.startPos.y
+      const isDraggingDown = currentY > startY
+
+      if (existingSegments.length > 0) {
+        for (const segment of existingSegments) {
+          // Skip calendar events as they are informational overlays only
+          if (segment.type === 'calendar') {
+            continue
+          }
+          
+          if (isDraggingDown) {
+            // When dragging down, stop at the top of any existing segment
+            if (segment.top > startY && segment.top < currentY) {
+              limitedCurrentY = Math.min(limitedCurrentY, segment.top)
+            }
+          } else {
+            // When dragging up, stop at the bottom of any existing segment
+            const segmentBottom = segment.top + segment.height
+            if (segmentBottom < startY && segmentBottom > currentY) {
+              limitedCurrentY = Math.max(limitedCurrentY, segmentBottom)
+            }
+          }
+        }
+      }
+
+      return { ...prev, isDragging, currentPos: { y: limitedCurrentY } }
     })
   }
 
@@ -82,7 +111,8 @@ export const useTimeSelection = (
       return
     }
 
-    const endY = getRelativeY(e.clientY)
+    // Use the collision-limited position from dragState instead of raw mouse position
+    const endY = dragState.currentPos?.y ?? getRelativeY(e.clientY)
     const startTime = yToTime(dragState.startPos!.y)
     const endTime = yToTime(endY)
 

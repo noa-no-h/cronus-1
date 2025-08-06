@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import React from 'react'
+import { type DaySegment } from '@renderer/lib/dayTimelineHelpers'
 import { CurrentTimeIndicator } from './CurrentTimeIndicator'
 import { SelectionBox } from './SelectionBox'
 
@@ -8,6 +9,7 @@ interface TimelineOverlaysProps {
     top: number
     height: number
     backgroundColor: string
+    hasOverlappingCalendarEvents: boolean
   } | null
   dragState: any
   yToTime: (y: number) => { hour: number; minute: number; y: number } | null
@@ -17,6 +19,7 @@ interface TimelineOverlaysProps {
   isDragging: boolean
   isModalOpen: boolean
   hasGoogleCalendarEvents: boolean
+  existingSegments: DaySegment[]
 }
 
 export const TimelineOverlays: React.FC<TimelineOverlaysProps> = ({
@@ -28,7 +31,8 @@ export const TimelineOverlays: React.FC<TimelineOverlaysProps> = ({
   timelineHeight,
   isDragging,
   isModalOpen,
-  hasGoogleCalendarEvents
+  hasGoogleCalendarEvents,
+  existingSegments
 }) => {
   return (
     <>
@@ -50,6 +54,7 @@ export const TimelineOverlays: React.FC<TimelineOverlaysProps> = ({
         dragState={dragState}
         yToTime={yToTime}
         hasGoogleCalendarEvents={hasGoogleCalendarEvents}
+        existingSegments={existingSegments}
       />
 
       {isToday && (

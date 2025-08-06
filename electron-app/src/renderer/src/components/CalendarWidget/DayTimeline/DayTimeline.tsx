@@ -53,11 +53,15 @@ export const DayTimeline = ({
     entry: DaySegment | null
     direction: 'top' | 'bottom' | null
     startY: number | null
+    limitedTop: number | null
+    limitedHeight: number | null
   }>({
     isResizing: false,
     entry: null,
     direction: null,
-    startY: null
+    startY: null,
+    limitedTop: null,
+    limitedHeight: null
   })
 
   const [movingState, setMovingState] = useState<{
@@ -95,27 +99,6 @@ export const DayTimeline = ({
     token,
     userId: user?.id || null
   })
-
-  const {
-    dragState,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    handleMouseLeave,
-    resetDragState
-  } = useTimeSelection(
-    timelineContainerRef as React.RefObject<HTMLDivElement>,
-    (y: number) => {
-      if (!timelineContainerRef.current) return null
-      // y is already relative to the timeline container, so we pass it directly
-      return convertYToTime(y, timelineContainerRef.current, hourHeight)
-    },
-    (startTime, endTime) => {
-      openNewEntryModal(startTime, endTime)
-    },
-    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving,
-    dayForEntries
-  )
 
   const { data: suggestions, refetch: refetchSuggestions } = trpc.suggestions.list.useQuery(
     {
@@ -187,6 +170,33 @@ export const DayTimeline = ({
     [googleCalendarTimeBlocks, timelineHeight]
   )
 
+  const allExistingSegments = useMemo(
+    () => [...trackedDaySegments, ...suggestionDaySegments, ...googleCalendarDaySegments],
+    [trackedDaySegments, suggestionDaySegments, googleCalendarDaySegments]
+  )
+
+  const {
+    dragState,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    resetDragState
+  } = useTimeSelection(
+    timelineContainerRef as React.RefObject<HTMLDivElement>,
+    (y: number) => {
+      if (!timelineContainerRef.current) return null
+      // y is already relative to the timeline container, so we pass it directly
+      return convertYToTime(y, timelineContainerRef.current, hourHeight)
+    },
+    (startTime, endTime) => {
+      openNewEntryModal(startTime, endTime)
+    },
+    !modalState.isOpen && !resizingState.isResizing && !movingState.isMoving,
+    dayForEntries,
+    allExistingSegments
+  )
+
   const hourlyActivity = useMemo(() => {
     const activity = new Array(24).fill(false)
     const allSegments = [...trackedDaySegments]
@@ -238,7 +248,9 @@ export const DayTimeline = ({
       isResizing: true,
       entry,
       direction,
-      startY: e.clientY
+      startY: e.clientY,
+      limitedTop: null,
+      limitedHeight: null
     })
   }
 
@@ -279,6 +291,43 @@ export const DayTimeline = ({
         newHeight = entry.height + snappedDeltaY
       }
 
+      // Apply collision detection - limit resize based on existing segments
+      if (direction === 'top') {
+        // When resizing from top, check for existing segments above
+        for (const segment of allExistingSegments) {
+          // Skip calendar events and the current entry being resized
+          if (segment.type === 'calendar' || segment._id === entry._id) {
+            continue
+          }
+          const segmentBottom = segment.top + segment.height
+          // If there's a segment above that would collide, limit the resize
+          if (segmentBottom <= entry.top && segmentBottom > newTop) {
+            newTop = Math.max(newTop, segmentBottom)
+            newHeight = entry.top + entry.height - newTop
+          }
+        }
+      } else {
+        // When resizing from bottom, check for existing segments below
+        const newBottom = newTop + newHeight
+        let closestSegmentTop = newBottom // Initialize to current target
+        
+        for (const segment of allExistingSegments) {
+          // Skip calendar events and the current entry being resized
+          if (segment.type === 'calendar' || segment._id === entry._id) {
+            continue
+          }
+          // If there's a segment below that would collide, find the closest one
+          if (segment.top >= entry.top + entry.height && segment.top < newBottom) {
+            closestSegmentTop = Math.min(closestSegmentTop, segment.top)
+          }
+        }
+        
+        // Update height to stop at the closest segment
+        if (closestSegmentTop < newBottom) {
+          newHeight = closestSegmentTop - newTop
+        }
+      }
+
       // Clamp resize
       newHeight = Math.max(5, newHeight) // Min height 5px
       if (direction === 'top') {
@@ -293,6 +342,13 @@ export const DayTimeline = ({
 
         return entryStart < calendarEnd && entryEnd > calendarStart
       })
+
+      // Store the collision-limited values in resizing state
+      setResizingState(prev => ({
+        ...prev,
+        limitedTop: newTop,
+        limitedHeight: newHeight
+      }))
 
       setPreviewState({
         top: newTop,
@@ -371,22 +427,38 @@ export const DayTimeline = ({
   const handleTimelineMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     let actionTaken = false
     if (resizingState.isResizing && resizingState.entry && resizingState.startY) {
-      const { entry, direction, startY } = resizingState
+      const { entry, direction, limitedTop, limitedHeight } = resizingState
       actionTaken = true
 
-      const deltaY = e.clientY - startY
-      const minutesPerPixel = (24 * 60) / timelineHeight
-      // Snap to nearest 5 minutes
-      const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
-
+      // Use collision-limited values if available, otherwise fall back to raw calculation
       let newStartTime = new Date(entry.startTime)
       let newEndTime = new Date(entry.endTime)
 
-      if (direction === 'top') {
-        newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
+      if (limitedTop !== null && limitedHeight !== null) {
+        // Calculate new times based on collision-limited visual position
+        const minutesPerPixel = (24 * 60) / timelineHeight
+        const totalMinutesInDay = 24 * 60
+        
+        // Convert limited visual position back to time
+        const startMinutes = (limitedTop / timelineHeight) * totalMinutesInDay
+        const durationMinutes = (limitedHeight / timelineHeight) * totalMinutesInDay
+        
+        const dayStart = new Date(entry.startTime)
+        dayStart.setHours(0, 0, 0, 0)
+        
+        newStartTime = new Date(dayStart.getTime() + startMinutes * 60000)
+        newEndTime = new Date(dayStart.getTime() + (startMinutes + durationMinutes) * 60000)
       } else {
-        // 'bottom'
-        newEndTime.setMinutes(newEndTime.getMinutes() + deltaMinutes)
+        // Fallback to raw calculation (shouldn't happen in normal flow)
+        const deltaY = e.clientY - resizingState.startY
+        const minutesPerPixel = (24 * 60) / timelineHeight
+        const deltaMinutes = Math.round((deltaY * minutesPerPixel) / 5) * 5
+
+        if (direction === 'top') {
+          newStartTime.setMinutes(newStartTime.getMinutes() + deltaMinutes)
+        } else {
+          newEndTime.setMinutes(newEndTime.getMinutes() + deltaMinutes)
+        }
       }
 
       // Basic validation - enforce minimum 5 minute duration
@@ -449,7 +521,14 @@ export const DayTimeline = ({
     }
 
     // Reset state regardless of what happened
-    setResizingState({ isResizing: false, entry: null, direction: null, startY: null })
+    setResizingState({ 
+      isResizing: false, 
+      entry: null, 
+      direction: null, 
+      startY: null,
+      limitedTop: null,
+      limitedHeight: null
+    })
     setMovingState({
       isMoving: false,
       entry: null,
@@ -570,6 +649,7 @@ export const DayTimeline = ({
           isDragging={dragState.isDragging}
           isModalOpen={modalState.isOpen}
           hasGoogleCalendarEvents={hasGoogleCalendarEvents}
+          existingSegments={allExistingSegments}
         />
       </div>
       {modalState.isOpen && (
