@@ -1,4 +1,5 @@
 import { endOfDay, startOfDay } from 'date-fns'
+import { usePostHog } from 'posthog-js/react'
 import { useState } from 'react'
 import type { TimeBlock } from '../lib/dayTimelineHelpers'
 import { trpc } from '../utils/trpc'
@@ -13,6 +14,7 @@ interface UseManualEntryProps {
 
 export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseManualEntryProps) => {
   const utils = trpc.useUtils()
+  const posthog = usePostHog()
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean
@@ -162,6 +164,7 @@ export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseMan
         name: data.name,
         categoryId: data.categoryId
       })
+      posthog?.capture('updated_manual_entry')
     } else if (modalState.startTime && modalState.endTime && token) {
       const getAbsTime = (time: { hour: number; minute: number }) => {
         const date = new Date(baseDate)
@@ -176,6 +179,7 @@ export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseMan
         startTime: getAbsTime(modalState.startTime),
         endTime: getAbsTime(modalState.endTime)
       })
+      posthog?.capture('created_manual_entry')
     }
     handleModalClose()
   }
@@ -183,6 +187,7 @@ export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseMan
   const handleModalDelete = (entryId: string) => {
     if (!token) return
     deleteManualEntry.mutate({ token, id: entryId })
+    posthog?.capture('deleted_manual_entry')
     handleModalClose()
     toast({
       title: 'Entry deleted successfully',

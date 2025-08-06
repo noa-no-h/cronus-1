@@ -1,4 +1,5 @@
 import { CodeResponse, useGoogleLogin } from '@react-oauth/google'
+import { usePostHog } from 'posthog-js/react'
 import { useCallback, useEffect, useState } from 'react'
 import { APP_USP } from '../App'
 import GoogleLogo from '../assets/icons/google.png'
@@ -14,9 +15,14 @@ interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
 
 export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
   const { theme } = useTheme()
+  const posthog = usePostHog()
   const isDarkMode =
     theme === 'dark' ||
     (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  useEffect(() => {
+    posthog?.capture('viewed_login_form')
+  }, [])
 
   // Common state
   const [googleClientId, setGoogleClientId] = useState<string | null>(null)
@@ -58,6 +64,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
 
   // Handler for PRODUCTION browser-based flow
   const handleProdLoginClick = useCallback(() => {
+    posthog?.capture('initiated_login', { login_type: 'production' })
     if (!googleClientId || !clientUrl) {
       console.error('Google Client ID or Client URL not available for production login.')
       return
@@ -85,6 +92,7 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       // console.log('DEV LOGIN (CODE): Got code from Google popup:', codeResponse.code)
       try {
         await loginWithGoogleCode(codeResponse.code, false)
+        posthog?.capture('login_success')
         // console.log('DEV LOGIN (CODE): Successfully logged in via context.')
         onLoginSuccess?.()
       } catch (error: unknown) {
@@ -106,7 +114,10 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
     if (isDev) {
       return (
         <button
-          onClick={() => googleLogin()}
+          onClick={() => {
+            posthog?.capture('initiated_login', { login_type: 'development' })
+            googleLogin()
+          }}
           disabled={!googleClientId}
           className="non-draggable-area inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-black bg-white hover:bg-gray-50 disabled:opacity-50"
         >

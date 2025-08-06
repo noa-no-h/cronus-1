@@ -1,3 +1,4 @@
+import { usePostHog } from 'posthog-js/react'
 import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
@@ -54,6 +55,7 @@ const CalendarWidget = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [hourHeight, setHourHeight] = useState(5) // Default: 80px -> 5rem
   const { token } = useAuth()
+  const posthog = usePostHog()
   const [animationDirection, setAnimationDirection] = useState<'prev' | 'next' | 'none'>('none')
 
   const { data: electronSettings } = trpc.user.getElectronAppSettings.useQuery(
@@ -182,6 +184,12 @@ const CalendarWidget = ({
       onDateChange(newDate)
     }
   }
+
+  useEffect(() => {
+    if (viewMode === 'week') {
+      posthog?.capture('viewed_week_view')
+    }
+  }, [viewMode])
 
   const handleDateSelect = (date: Date) => {
     setAnimationDirection('none')

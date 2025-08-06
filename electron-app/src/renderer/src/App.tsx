@@ -1,5 +1,5 @@
+import { usePostHog } from 'posthog-js/react'
 import React, { useCallback, useEffect, useState } from 'react'
-import { Category } from 'shared'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
 import { TutorialModal } from './components/Onboarding/TutorialModal'
@@ -12,9 +12,9 @@ import { TooltipProvider } from './components/ui/tooltip'
 import { UpdateNotification } from './components/UpdateNotification'
 import { useAuth } from './contexts/AuthContext'
 import { useSettings } from './contexts/SettingsContext'
-import { useActivityTracking, ActivityToRecategorize } from './hooks/useActivityTracking'
-import { useOnboardingLogic } from './hooks/useOnboardingLogicApp'
 import { useAccessibilityPermission } from './hooks/useAccessibilityPermission'
+import { useActivityTracking } from './hooks/useActivityTracking'
+import { useOnboardingLogic } from './hooks/useOnboardingLogicApp'
 import { cn } from './lib/utils'
 
 export const APP_NAME = 'Cronus' + (process.env.NODE_ENV === 'development' ? ' Dev' : '')
@@ -23,6 +23,15 @@ export const APP_USP = 'The first context-aware, AI distraction and time tracker
 export function MainAppContent(): React.ReactElement {
   const { isAuthenticated, token } = useAuth()
   const { isSettingsOpen, setIsSettingsOpen, setFocusOn } = useSettings()
+  const posthog = usePostHog()
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      posthog?.capture('viewed_settings')
+    } else {
+      posthog?.capture('viewed_dashboard')
+    }
+  }, [isSettingsOpen])
 
   const [isMiniTimerVisible, setIsMiniTimerVisible] = useState(false)
   const [isTrackingPaused, setIsTrackingPaused] = useState(false)
@@ -30,7 +39,8 @@ export function MainAppContent(): React.ReactElement {
   const [isSystemRestarting, setIsSystemRestarting] = useState(false)
 
   // Use the accessibility permission hook
-  const { accessibilityPermissionChecked, missingAccessibilityPermissions } = useAccessibilityPermission({ token })
+  const { accessibilityPermissionChecked, missingAccessibilityPermissions } =
+    useAccessibilityPermission({ token })
 
   // Use the onboarding logic hook
   const {

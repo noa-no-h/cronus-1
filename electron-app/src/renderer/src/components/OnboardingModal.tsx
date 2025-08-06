@@ -1,10 +1,11 @@
 import { Loader2 } from 'lucide-react'
+import { usePostHog } from 'posthog-js/react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useOnboardingPermissions } from '../hooks/useOnboardingPermissions'
-import { useOnboardingSteps } from '../hooks/useOnboardingSteps'
 import { useOnboardingCompletion } from '../hooks/useOnboardingCompletion'
+import { useOnboardingPermissions } from '../hooks/useOnboardingPermissions'
 import { useOnboardingQueries } from '../hooks/useOnboardingQueries'
+import { useOnboardingSteps } from '../hooks/useOnboardingSteps'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ interface OnboardingModalProps {
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [showSkipConfirmDialog, setShowSkipConfirmDialog] = useState(false)
   const { user } = useAuth()
+  const posthog = usePostHog()
 
   const {
     isDev,
@@ -40,9 +42,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     handleCategoriesComplete
   } = useOnboardingQueries()
 
-
-
-
   const {
     isRequestingPermission,
     hasRequestedPermission,
@@ -56,8 +55,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     startPermissionPolling
   } = useOnboardingPermissions()
 
-
-
   const handleGoalsCompleteAndNext = (goals: string) => {
     handleGoalsComplete(goals)
     handleStepNext()
@@ -70,7 +67,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const {
     currentStep,
-    setCurrentStep,
     steps,
     currentStepData,
     isLastStep,
@@ -101,13 +97,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     onAiCategoriesLoadingChange: setIsAiCategoriesLoading
   })
 
-  const {
-    isCompleting,
-    hasOptedInToPosthog,
-    setHasOptedInToPosthog,
-    handleComplete
-  } = useOnboardingCompletion({ token: (user as any)?.token || null, steps })
-
+  const { isCompleting, setHasOptedInToPosthog, handleComplete } = useOnboardingCompletion({
+    token: (user as any)?.token || null,
+    steps
+  })
 
   // Check permission status when on accessibility step
   useEffect(() => {
@@ -115,6 +108,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     if (!activeStepDefinition) return
     return startPermissionPolling(activeStepDefinition.id)
   }, [currentStep, steps, startPermissionPolling])
+
+  useEffect(() => {
+    if (currentStepData?.id) {
+      posthog?.capture('viewed_onboarding_step', { step: currentStepData.id })
+    }
+  }, [currentStepData?.id])
 
   const handleBackWithReset = () => {
     const currentStepId = steps[currentStep]?.id
@@ -124,12 +123,12 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
   const handleNext = () => {
     if (isLastStep) {
+      posthog?.capture('completed_onboarding')
       handleComplete(referralSource, onComplete)
     } else {
       handleStepNext()
     }
   }
-
 
   if (isLoading) {
     return (
@@ -138,7 +137,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       </div>
     )
   }
-
 
   return (
     <>
@@ -230,7 +228,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                   </>
                 ) : isAccessibilityStep && !hasRequestedPermission ? (
                   <Button
-                    onClick={handleRequestAccessibilityPermission}
+                    onClick={() => {
+                      posthog?.capture('clicked_grant_accessibility_permission')
+                      handleRequestAccessibilityPermission()
+                    }}
                     disabled={isRequestingPermission}
                     variant="default"
                     size="default"
@@ -248,7 +249,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                 ) : isScreenRecordingStep && !hasRequestedScreenRecording ? (
                   <>
                     <Button
-                      onClick={() => setShowSkipConfirmDialog(true)}
+                      onClick={() => {
+                        posthog?.capture('clicked_skip_screen_recording_permission')
+                        setShowSkipConfirmDialog(true)
+                      }}
                       variant="outline"
                       size="default"
                       className="min-w-[100px]"
@@ -256,7 +260,10 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
                       Skip
                     </Button>
                     <Button
-                      onClick={handleRequestScreenRecordingPermission}
+                      onClick={() => {
+                        posthog?.capture('clicked_grant_screen_recording_permission')
+                        handleRequestScreenRecordingPermission()
+                      }}
                       disabled={isRequestingScreenRecording}
                       variant="default"
                       size="default"
