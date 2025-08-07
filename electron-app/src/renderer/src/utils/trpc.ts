@@ -1,5 +1,4 @@
-import { httpLink } from '@trpc/client'
-import { createTRPCReact } from '@trpc/react-query'
+import { createTRPCReact, httpBatchLink } from '@trpc/react-query'
 import type { AppRouter } from '../../../../../server/src/index'
 import { refreshAccessToken } from '../lib/auth'
 
@@ -15,7 +14,7 @@ let refreshPromise: Promise<string> | null = null
 export const createTrpcClient = () =>
   trpc.createClient({
     links: [
-      httpLink({
+      httpBatchLink({
         url: `${serverUrl}/trpc`,
         async headers() {
           const token = localStorage.getItem('accessToken')
@@ -95,7 +94,10 @@ export const createTrpcClient = () =>
               }
               return fetch(url, newOptions)
             } catch (refreshError) {
-              console.error('❌ Token refresh failed, returning original response to prevent logout:', refreshError)
+              console.error(
+                '❌ Token refresh failed, returning original response to prevent logout:',
+                refreshError
+              )
               // Return the original response instead of throwing, to prevent AuthContext logout
               // This preserves user session and onboarding state during transient auth issues
               return response
