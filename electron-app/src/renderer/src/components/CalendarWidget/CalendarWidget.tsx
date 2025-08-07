@@ -147,7 +147,8 @@ const CalendarWidget = ({
       categoryColor: eventBlock.categoryColor,
       categoryId: eventBlock.categoryId || undefined,
       type: eventBlock.originalEvent.type,
-      originalEvent: eventBlock.originalEvent
+      originalEvent: eventBlock.originalEvent,
+      originalEventIds: eventBlock.originalEvent._id ? [eventBlock.originalEvent._id] : [] // Store the original event ID if it exists
     }))
   }
 

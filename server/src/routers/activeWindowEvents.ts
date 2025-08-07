@@ -464,6 +464,70 @@ export const activeWindowEventsRouter = router({
       }
     }),
 
+  deleteEventsByIds: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        eventIds: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { token, eventIds } = input;
+      const decodedToken = safeVerifyTokenWithVersionTracking(token, ctx.userAgent);
+      const userId = decodedToken.userId;
+
+      if (!eventIds || eventIds.length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No event IDs provided.',
+        });
+      }
+
+      // Validate all IDs are valid ObjectIds
+      const validIds = eventIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+      if (validIds.length !== eventIds.length) {
+        console.warn(
+          `[EventsRouter] Some invalid event IDs provided: ${eventIds.filter((id) => !mongoose.Types.ObjectId.isValid(id))}`
+        );
+      }
+
+      if (validIds.length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No valid event IDs provided.',
+        });
+      }
+
+      const filter: FilterQuery<ActiveWindowEvent> = {
+        userId,
+        _id: { $in: validIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      };
+
+      console.log(
+        `[EventsRouter] deleteEventsByIds filter: userId=${userId}, eventIds=[${validIds.join(', ')}]`
+      );
+
+      try {
+        const result = await ActiveWindowEventModel.deleteMany(filter);
+
+        console.log(
+          `[EventsRouter] Hard-deleted ${result.deletedCount} events by IDs for user ${userId}`
+        );
+        return {
+          success: true,
+          deletedCount: result.deletedCount,
+          requestedCount: validIds.length,
+        };
+      } catch (error) {
+        console.error('[EventsRouter] Error hard-deleting events by IDs:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to delete events by IDs.',
+        });
+      }
+    }),
+
+  // keep this for legacy clients
   deleteActivitiesByIdentifier: publicProcedure
     .input(
       z.object({

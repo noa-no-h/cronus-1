@@ -11,6 +11,7 @@ export interface TimeBlock {
   categoryName?: string
   type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
   originalEvent?: any
+  originalEventIds?: string[] // Track all original event IDs that contributed to this block
   isSuggestion?: boolean
   onAccept?: (e: React.MouseEvent) => void
   onReject?: (e: React.MouseEvent) => void
@@ -19,6 +20,7 @@ export interface TimeBlock {
 export interface ActivityBlock {
   duration: number
   block: TimeBlock
+  eventIds?: string[] // Track event IDs that contributed to this activity
 }
 
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
@@ -71,7 +73,16 @@ function createTimelineSlots(timeBlocks: TimeBlock[], hourStart: Date): Timeline
         const groupingKey =
           BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
         if (!activitiesInSlot[groupingKey]) {
-          activitiesInSlot[groupingKey] = { duration: 0, block }
+          activitiesInSlot[groupingKey] = { 
+            duration: 0, 
+            block,
+            eventIds: block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+          }
+        } else {
+          // Merge event IDs when adding to existing activity
+          const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
+          const newEventIds = block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+          activitiesInSlot[groupingKey].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
         }
         activitiesInSlot[groupingKey].duration += duration
       }
@@ -119,8 +130,15 @@ function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { duratio
       Object.entries(slot.allActivities).forEach(([key, data]) => {
         if (currentMergedSlot.allActivities[key]) {
           currentMergedSlot.allActivities[key].duration += data.duration
+          // Merge event IDs
+          const existingEventIds = currentMergedSlot.allActivities[key].eventIds || []
+          const newEventIds = data.eventIds || []
+          currentMergedSlot.allActivities[key].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
         } else {
-          currentMergedSlot.allActivities[key] = data
+          currentMergedSlot.allActivities[key] = {
+            ...data,
+            eventIds: data.eventIds ? [...data.eventIds] : []
+          }
         }
       })
     } else {
@@ -297,7 +315,16 @@ export function getTimelineSegmentsForDay(
         const groupingKey =
           BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
         if (!activitiesInSlot[groupingKey]) {
-          activitiesInSlot[groupingKey] = { duration: 0, block }
+          activitiesInSlot[groupingKey] = { 
+            duration: 0, 
+            block,
+            eventIds: block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+          }
+        } else {
+          // Merge event IDs when adding to existing activity
+          const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
+          const newEventIds = block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+          activitiesInSlot[groupingKey].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
         }
         activitiesInSlot[groupingKey].duration += duration
       }
@@ -338,6 +365,15 @@ export function getTimelineSegmentsForDay(
       const startTime = new Date(dayStart.getTime() + startMinutes * 60000)
       const endTime = new Date(dayStart.getTime() + (startMinutes + durationMinutes) * 60000)
 
+      // Collect all event IDs from all activities in this slot
+      const allEventIds: string[] = []
+      Object.values(slot.allActivities).forEach(activity => {
+        if (activity.eventIds) {
+          allEventIds.push(...activity.eventIds)
+        }
+      })
+      const uniqueEventIds = [...new Set(allEventIds)]
+
       return {
         ...block,
         // override the start and end times to be the correct start and end times for the aggregated segment
@@ -348,6 +384,7 @@ export function getTimelineSegmentsForDay(
         heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
         topPercentage: (startMinutes / totalMinutesInDay) * 100,
         allActivities: slot.allActivities,
+        originalEventIds: uniqueEventIds, // Include all contributing event IDs
         top,
         height,
         durationMs: durationMinutes * 60 * 1000,

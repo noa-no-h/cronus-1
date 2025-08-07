@@ -73,8 +73,8 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
   googleCalendarSegments = []
 }) => {
   const utils = trpc.useUtils()
-  const deleteEventsMutation = trpc.activeWindowEvents.deleteEventsInDateRange.useMutation({
-    onMutate: async (deletedRange) => {
+  const deleteEventsMutation = trpc.activeWindowEvents.deleteEventsByIds.useMutation({
+    onMutate: async (deletedEventIds) => {
       const queryInput = {
         token: token || '',
         startDateMs: startOfDay(dayForEntries).getTime(),
@@ -86,11 +86,7 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
       utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
         if (!oldData) return []
         return oldData.filter((event) => {
-          const eventStartTime = event.timestamp
-          const eventEndTime = event.timestamp + (event.durationMs || 0)
-          const overlaps =
-            eventStartTime < deletedRange.endDateMs && eventEndTime > deletedRange.startDateMs
-          return !overlaps
+          return !deletedEventIds.eventIds.includes(event._id)
         })
       })
 
@@ -121,10 +117,22 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
   const handleDeleteSegment = (segment: DaySegment) => {
     if (!token) return
 
+    // Use the originalEventIds from the segment if available, otherwise fall back to segment._id
+    const eventIdsToDelete = segment.originalEventIds && segment.originalEventIds.length > 0 
+      ? segment.originalEventIds 
+      : segment._id ? [segment._id] : []
+
+    if (eventIdsToDelete.length === 0) {
+      console.error('No event IDs found for segment deletion:', segment)
+      alert('Error: Cannot delete segment - no associated events found.')
+      return
+    }
+
+    console.log(`[EventSegments] Deleting ${eventIdsToDelete.length} events:`, eventIdsToDelete)
+
     deleteEventsMutation.mutate({
       token: token,
-      startDateMs: segment.startTime.getTime(),
-      endDateMs: segment.endTime.getTime()
+      eventIds: eventIdsToDelete
     })
   }
 
