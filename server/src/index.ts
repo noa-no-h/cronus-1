@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config(); // This will load .env from the current directory (server/)
 
 import * as trpcExpress from '@trpc/server/adapters/express';
+import { findSensitiveValues, scrub } from '@zapier/secret-scrubber';
 import cors from 'cors';
 import express from 'express';
 import mongoose from 'mongoose';
@@ -10,9 +11,7 @@ import { UserModel } from './models/user';
 import { calendarRouter } from './routers/calendar';
 import sitemapRouter from './routes/sitemap';
 import waitlistExpressRouter from './routes/waitlist';
-import { startSuggestionCronJob } from './services/cron/suggestionScheduler';
 import { createContext, publicProcedure, router } from './trpc';
-import { scrub, findSensitiveValues } from '@zapier/secret-scrubber';
 
 // Export tRPC utilities
 export { publicProcedure, router };
@@ -30,7 +29,6 @@ import { statisticsRouter } from './routers/statistics';
 import { suggestionsRouter } from './routers/suggestions';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
-import { startChurnPreventionCronJob } from './services/cron/churnPreventionScheduler';
 
 // function to filter out emails for zapier secret rubber
 function filterOutEmails(sensitive: string[]): string[] {
@@ -208,6 +206,3 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-startSuggestionCronJob();
-startChurnPreventionCronJob();
