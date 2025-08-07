@@ -19,7 +19,8 @@ export class GoogleCalendarService {
     accessToken: string,
     refreshToken: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    userId: string
   ): Promise<CalendarEvent[]> {
     try {
       const auth = new google.auth.OAuth2(
@@ -61,8 +62,18 @@ export class GoogleCalendarService {
         hangoutLink: event.hangoutLink || undefined,
         organizer: event.organizer || undefined,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google Calendar API error:', error);
+      if (error.code === 400 && error.message === 'invalid_grant') {
+        console.warn(
+          'Invalid grant error: User tokens are likely revoked or expired. Invalidating user access.'
+        );
+        // Invalidate the user's tokens in the database
+        await UserModel.findByIdAndUpdate(
+          { _id: userId },
+          { $set: { googleAccessToken: null, googleRefreshToken: null, hasCalendarAccess: false } }
+        );
+      }
       return [];
     }
   }
@@ -83,6 +94,7 @@ export async function getCalendarEvents(userId: string, startDate: Date, endDate
     user.googleAccessToken,
     user.googleRefreshToken,
     startDate,
-    endDate
+    endDate,
+    userId
   );
 }
