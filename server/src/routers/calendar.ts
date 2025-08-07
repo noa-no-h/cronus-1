@@ -26,7 +26,8 @@ export const calendarRouter = router({
         user.googleAccessToken,
         user.googleRefreshToken!,
         new Date(input.startDate),
-        new Date(input.endDate)
+        new Date(input.endDate),
+        user._id.toString()
       );
     }),
 
