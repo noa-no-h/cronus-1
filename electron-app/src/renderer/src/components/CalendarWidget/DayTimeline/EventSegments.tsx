@@ -86,7 +86,7 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
       utils.activeWindowEvents.getEventsForDateRange.setData(queryInput, (oldData) => {
         if (!oldData) return []
         return oldData.filter((event) => {
-          return !deletedEventIds.eventIds.includes(event._id)
+          return event._id ? !deletedEventIds.eventIds.includes(event._id) : true
         })
       })
 

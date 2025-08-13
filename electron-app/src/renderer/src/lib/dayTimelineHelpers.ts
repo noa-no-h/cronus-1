@@ -73,16 +73,26 @@ function createTimelineSlots(timeBlocks: TimeBlock[], hourStart: Date): Timeline
         const groupingKey =
           BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
         if (!activitiesInSlot[groupingKey]) {
-          activitiesInSlot[groupingKey] = { 
-            duration: 0, 
+          activitiesInSlot[groupingKey] = {
+            duration: 0,
             block,
-            eventIds: block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+            eventIds: block.originalEventIds
+              ? [...block.originalEventIds]
+              : block._id
+                ? [block._id]
+                : []
           }
         } else {
           // Merge event IDs when adding to existing activity
           const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
-          const newEventIds = block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
-          activitiesInSlot[groupingKey].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
+          const newEventIds = block.originalEventIds
+            ? [...block.originalEventIds]
+            : block._id
+              ? [block._id]
+              : []
+          activitiesInSlot[groupingKey].eventIds = [
+            ...new Set([...existingEventIds, ...newEventIds])
+          ]
         }
         activitiesInSlot[groupingKey].duration += duration
       }
@@ -133,7 +143,9 @@ function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { duratio
           // Merge event IDs
           const existingEventIds = currentMergedSlot.allActivities[key].eventIds || []
           const newEventIds = data.eventIds || []
-          currentMergedSlot.allActivities[key].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
+          currentMergedSlot.allActivities[key].eventIds = [
+            ...new Set([...existingEventIds, ...newEventIds])
+          ]
         } else {
           currentMergedSlot.allActivities[key] = {
             ...data,
@@ -315,16 +327,26 @@ export function getTimelineSegmentsForDay(
         const groupingKey =
           BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
         if (!activitiesInSlot[groupingKey]) {
-          activitiesInSlot[groupingKey] = { 
-            duration: 0, 
+          activitiesInSlot[groupingKey] = {
+            duration: 0,
             block,
-            eventIds: block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
+            eventIds: block.originalEventIds
+              ? [...block.originalEventIds]
+              : block._id
+                ? [block._id]
+                : []
           }
         } else {
           // Merge event IDs when adding to existing activity
           const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
-          const newEventIds = block.originalEventIds ? [...block.originalEventIds] : (block._id ? [block._id] : [])
-          activitiesInSlot[groupingKey].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
+          const newEventIds = block.originalEventIds
+            ? [...block.originalEventIds]
+            : block._id
+              ? [block._id]
+              : []
+          activitiesInSlot[groupingKey].eventIds = [
+            ...new Set([...existingEventIds, ...newEventIds])
+          ]
         }
         activitiesInSlot[groupingKey].duration += duration
       }
@@ -351,6 +373,7 @@ export function getTimelineSegmentsForDay(
   const mergedSlots = mergeConsecutiveSlots(slots)
 
   // Step 3: Convert merged slots to day segments
+
   const aggregatedSegments: DaySegment[] = mergedSlots
     .filter((slot) => slot.mainActivity)
     .map((slot) => {
@@ -367,7 +390,7 @@ export function getTimelineSegmentsForDay(
 
       // Collect all event IDs from all activities in this slot
       const allEventIds: string[] = []
-      Object.values(slot.allActivities).forEach(activity => {
+      Object.values(slot.allActivities).forEach((activity) => {
         if (activity.eventIds) {
           allEventIds.push(...activity.eventIds)
         }
@@ -384,7 +407,7 @@ export function getTimelineSegmentsForDay(
         heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
         topPercentage: (startMinutes / totalMinutesInDay) * 100,
         allActivities: slot.allActivities,
-        originalEventIds: uniqueEventIds, // Include all contributing event IDs
+        originalEventIds: uniqueEventIds,
         top,
         height,
         durationMs: durationMinutes * 60 * 1000,
