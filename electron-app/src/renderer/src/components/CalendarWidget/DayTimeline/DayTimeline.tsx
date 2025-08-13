@@ -6,11 +6,11 @@ import { useManualEntry } from '../../../hooks/useManualEntry'
 import { useTimeSelection } from '../../../hooks/useTimeSelection'
 import { hexToRgba } from '../../../lib/colors'
 import {
-  convertYToTime,
   getTimelineSegmentsForDay,
   type DaySegment,
   type TimeBlock
 } from '../../../lib/dayTimelineHelpers'
+import { convertYToTime } from '../../../lib/timePositioning'
 import { trpc } from '../../../utils/trpc'
 import { CreateEntryModal } from './CreateEntryModal'
 import { EventSegments } from './EventSegments'
@@ -187,7 +187,7 @@ export const DayTimeline = ({
     (y: number) => {
       if (!timelineContainerRef.current) return null
       // y is already relative to the timeline container, so we pass it directly
-      return convertYToTime(y, timelineContainerRef.current, hourHeight)
+      return convertYToTime(y, timelineContainerRef.current)
     },
     (startTime, endTime) => {
       openNewEntryModal(startTime, endTime)
@@ -310,7 +310,7 @@ export const DayTimeline = ({
         // When resizing from bottom, check for existing segments below
         const newBottom = newTop + newHeight
         let closestSegmentTop = newBottom // Initialize to current target
-        
+
         for (const segment of allExistingSegments) {
           // Skip calendar events and the current entry being resized
           if (segment.type === 'calendar' || segment._id === entry._id) {
@@ -321,7 +321,7 @@ export const DayTimeline = ({
             closestSegmentTop = Math.min(closestSegmentTop, segment.top)
           }
         }
-        
+
         // Update height to stop at the closest segment
         if (closestSegmentTop < newBottom) {
           newHeight = closestSegmentTop - newTop
@@ -344,7 +344,7 @@ export const DayTimeline = ({
       })
 
       // Store the collision-limited values in resizing state
-      setResizingState(prev => ({
+      setResizingState((prev) => ({
         ...prev,
         limitedTop: newTop,
         limitedHeight: newHeight
@@ -438,14 +438,14 @@ export const DayTimeline = ({
         // Calculate new times based on collision-limited visual position
         const minutesPerPixel = (24 * 60) / timelineHeight
         const totalMinutesInDay = 24 * 60
-        
+
         // Convert limited visual position back to time
         const startMinutes = (limitedTop / timelineHeight) * totalMinutesInDay
         const durationMinutes = (limitedHeight / timelineHeight) * totalMinutesInDay
-        
+
         const dayStart = new Date(entry.startTime)
         dayStart.setHours(0, 0, 0, 0)
-        
+
         newStartTime = new Date(dayStart.getTime() + startMinutes * 60000)
         newEndTime = new Date(dayStart.getTime() + (startMinutes + durationMinutes) * 60000)
       } else {
@@ -521,10 +521,10 @@ export const DayTimeline = ({
     }
 
     // Reset state regardless of what happened
-    setResizingState({ 
-      isResizing: false, 
-      entry: null, 
-      direction: null, 
+    setResizingState({
+      isResizing: false,
+      entry: null,
+      direction: null,
       startY: null,
       limitedTop: null,
       limitedHeight: null
@@ -542,7 +542,7 @@ export const DayTimeline = ({
 
   const yToTime = (y: number) => {
     if (!timelineContainerRef.current) return null
-    return convertYToTime(y, timelineContainerRef.current, hourHeight)
+    return convertYToTime(y, timelineContainerRef.current)
   }
 
   // Calculate current time position
