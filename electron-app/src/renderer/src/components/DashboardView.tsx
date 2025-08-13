@@ -183,6 +183,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       }
     )
 
+  // TODO: dont re-fefetch every 30 seconds all events for day
   const {
     data: eventsData,
     isLoading: isLoadingFetchedEvents,
