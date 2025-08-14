@@ -1,14 +1,14 @@
 import { ChevronRightIcon } from '@radix-ui/react-icons'
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
-import { EnrichedTimelineSegment } from '../../../lib/dayTimelineHelpers'
+import { VisualSegment } from '../../../lib/dayTimelineHelpers'
 import { formatDuration } from '../../../lib/timeFormatting'
 import { ActivityIcon } from '../../ActivityList/ActivityIcon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
 import { CalendarEventTooltip } from './CalendarEventTooltip'
 
 interface TimelineSegmentTooltipProps {
-  segment: EnrichedTimelineSegment
+  segment: VisualSegment
   children: React.ReactNode
 }
 

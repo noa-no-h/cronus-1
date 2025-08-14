@@ -1,3 +1,4 @@
+import { ActivityToRecategorize } from '@renderer/hooks/useActivityTracking'
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -14,7 +15,6 @@ import {
 } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
-import type { ActivityToRecategorize } from '../App'
 import { useAuth } from '../contexts/AuthContext'
 import { useDistractionNotification } from '../hooks/useDistractionNotification'
 import { useDistractionSound } from '../hooks/useDistractionSound'

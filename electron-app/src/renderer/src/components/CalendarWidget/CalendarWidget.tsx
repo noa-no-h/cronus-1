@@ -1,11 +1,10 @@
+import { CanonicalBlock } from '@renderer/lib/dayTimelineHelpers'
 import { usePostHog } from 'posthog-js/react'
 import { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCurrentTime } from '../../hooks/useCurrentTime'
 import { useDarkMode } from '../../hooks/useDarkMode'
 import { useWindowWidth } from '../../hooks/useWindowWidth'
-import { SYSTEM_EVENT_NAMES } from '../../lib/constants'
-import type { TimeBlock } from '../../lib/dayTimelineHelpers'
 import { trpc } from '../../utils/trpc'
 import type { ProcessedEventBlock } from '../DashboardView'
 import { CalendarWidgetHeader } from './CalendarWidgetHeader'
@@ -124,19 +123,12 @@ const CalendarWidget = ({
     return tomorrow <= today
   }
 
-  const convertProcessedToTimeBlocks = (
-    events: ProcessedEventBlock[] | null,
-    filterSystemEvents = true
-  ): TimeBlock[] => {
+  const convertProcessedToTimeBlocks = (events: ProcessedEventBlock[] | null): CanonicalBlock[] => {
     if (!events) {
       return []
     }
 
-    const filteredEvents = filterSystemEvents
-      ? events.filter((event) => !SYSTEM_EVENT_NAMES.includes(event.name))
-      : events
-
-    return filteredEvents.map((eventBlock) => ({
+    return events.map((eventBlock) => ({
       _id: eventBlock.originalEvent._id,
       startTime: eventBlock.startTime,
       endTime: eventBlock.endTime,
@@ -152,12 +144,12 @@ const CalendarWidget = ({
     }))
   }
 
-  const trackedTimeBlocks = useMemo(
-    () => convertProcessedToTimeBlocks(trackedEvents, true),
+  const trackedCanonicalBlocks = useMemo(
+    () => convertProcessedToTimeBlocks(trackedEvents),
     [trackedEvents]
   )
-  const googleCalendarTimeBlocks = useMemo(
-    () => convertProcessedToTimeBlocks(googleCalendarEvents, false),
+  const googleCalendarCanonicalBlocks = useMemo(
+    () => convertProcessedToTimeBlocks(googleCalendarEvents),
     [googleCalendarEvents]
   )
 
@@ -292,8 +284,8 @@ const CalendarWidget = ({
           </div>
         ) : (
           <DayTimeline
-            trackedTimeBlocks={trackedTimeBlocks}
-            googleCalendarTimeBlocks={googleCalendarTimeBlocks}
+            trackedTimeBlocks={trackedCanonicalBlocks}
+            googleCalendarTimeBlocks={googleCalendarCanonicalBlocks}
             onHourSelect={onHourSelect}
             selectedHour={selectedHour}
             currentTime={currentTime}

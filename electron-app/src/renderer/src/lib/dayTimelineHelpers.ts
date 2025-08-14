@@ -1,4 +1,4 @@
-export interface TimeBlock {
+export interface CanonicalBlock {
   _id?: string
   startTime: Date
   endTime: Date
@@ -17,32 +17,32 @@ export interface TimeBlock {
   onReject?: (e: React.MouseEvent) => void
 }
 
-export interface ActivityBlock {
+interface SlotActivity {
   duration: number
-  block: TimeBlock
+  block: CanonicalBlock
   eventIds?: string[] // Track event IDs that contributed to this activity
 }
 
 export const SLOT_DURATION_MINUTES = 10 // The duration of each time slot in minutes, was 5
 
-interface TimelineSlot {
+interface SlotActivityGroup {
   startMinute: number
   endMinute: number
-  mainActivity: TimeBlock | null
-  allActivities: Record<string, ActivityBlock>
+  mainActivity: CanonicalBlock | null
+  allActivities: Record<string, SlotActivity>
 }
 
-export interface EnrichedTimelineSegment extends TimeBlock {
+export interface VisualSegment extends CanonicalBlock {
   _id?: string
   startMinute: number
   endMinute: number
   heightPercentage: number
   topPercentage: number
-  allActivities: Record<string, ActivityBlock>
+  allActivities: Record<string, SlotActivity>
   type: 'window' | 'browser' | 'system' | 'manual' | 'calendar'
 }
 
-export interface DaySegment extends EnrichedTimelineSegment {
+export interface DaySegment extends VisualSegment {
   top: number
   height: number
   categoryName?: string
@@ -52,12 +52,14 @@ export interface DaySegment extends EnrichedTimelineSegment {
 
 const BROWSER_NAMES = ['Google Chrome', 'Safari', 'Firefox', 'Microsoft Edge', 'Arc']
 
-function mergeConsecutiveSlots(slots: TimelineSlot[]): (TimelineSlot & { durationMs: number })[] {
+function mergeConsecutiveSlots(
+  slots: SlotActivityGroup[]
+): (SlotActivityGroup & { durationMs: number })[] {
   if (slots.length === 0) {
     return []
   }
-  const mergedSlots: (TimelineSlot & { durationMs: number })[] = []
-  let currentMergedSlot: TimelineSlot & { durationMs: number } = {
+  const mergedSlots: (SlotActivityGroup & { durationMs: number })[] = []
+  let currentMergedSlot: SlotActivityGroup & { durationMs: number } = {
     ...slots[0],
     durationMs: slots[0].mainActivity ? SLOT_DURATION_MINUTES * 60 * 1000 : 0
   }
@@ -168,148 +170,158 @@ function groupOverlappingCalendarSegments(calendarSegments: DaySegment[]): DaySe
   })
 }
 
-export function getTimelineSegmentsForDay(
-  timeBlocks: TimeBlock[],
+function mapBlockToDirectDaySegment(
+  block: CanonicalBlock,
   timelineHeight: number,
-  isToday = false,
-  currentTime: Date | null = null
-): DaySegment[] {
-  if (timeBlocks.length === 0 || timelineHeight === 0) {
-    return []
+  totalMinutesInDay: number
+): DaySegment {
+  const startOfDay = new Date(block.startTime)
+  startOfDay.setHours(0, 0, 0, 0)
+  const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
+  const durationMinutes = block.durationMs / (1000 * 60)
+  const top = (startMinutes / totalMinutesInDay) * timelineHeight
+  const height = (durationMinutes / totalMinutesInDay) * timelineHeight
+
+  return {
+    ...block,
+    startMinute: startMinutes,
+    endMinute: startMinutes + durationMinutes,
+    topPercentage: (startMinutes / totalMinutesInDay) * 100,
+    heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
+    allActivities: { [block.name]: { duration: block.durationMs, block } },
+    top,
+    height,
+    isSuggestion: block.isSuggestion
   }
+}
 
-  const totalMinutesInDay = 24 * 60
-
-  // We need to process manual entries separately to ensure they render as single blocks
-  const nonAggregatedSegments: DaySegment[] = []
-  const otherBlocks: TimeBlock[] = []
-  const calendarBlocks: TimeBlock[] = []
+function partitionTimeBlocksByType(timeBlocks: CanonicalBlock[]): {
+  manualBlocks: CanonicalBlock[]
+  calendarBlocks: CanonicalBlock[]
+  activityBlocks: CanonicalBlock[]
+} {
+  const manualBlocks: CanonicalBlock[] = []
+  const calendarBlocks: CanonicalBlock[] = []
+  const activityBlocks: CanonicalBlock[] = []
 
   timeBlocks.forEach((block) => {
     if (block.type === 'manual') {
-      const startOfDay = new Date(block.startTime)
-      startOfDay.setHours(0, 0, 0, 0)
-      const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
-      const durationMinutes = block.durationMs / (1000 * 60)
-      const top = (startMinutes / totalMinutesInDay) * timelineHeight
-      const height = (durationMinutes / totalMinutesInDay) * timelineHeight
-
-      nonAggregatedSegments.push({
-        ...block,
-        startMinute: startMinutes,
-        endMinute: startMinutes + durationMinutes,
-        topPercentage: (startMinutes / totalMinutesInDay) * 100,
-        heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
-        allActivities: { [block.name]: { duration: block.durationMs, block } },
-        top,
-        height,
-        isSuggestion: block.isSuggestion
-      })
+      manualBlocks.push(block)
     } else if (block.type === 'calendar') {
       calendarBlocks.push(block)
     } else {
-      otherBlocks.push(block)
+      activityBlocks.push(block)
     }
   })
 
-  let calendarSegments: DaySegment[] = calendarBlocks.map((block) => {
-    const startOfDay = new Date(block.startTime)
-    startOfDay.setHours(0, 0, 0, 0)
-    const startMinutes = (block.startTime.getTime() - startOfDay.getTime()) / (1000 * 60)
-    const durationMinutes = block.durationMs / (1000 * 60)
-    const top = (startMinutes / totalMinutesInDay) * timelineHeight
-    const height = (durationMinutes / totalMinutesInDay) * timelineHeight
-    return {
-      ...block,
-      startMinute: startMinutes,
-      endMinute: startMinutes + durationMinutes,
-      topPercentage: (startMinutes / totalMinutesInDay) * 100,
-      heightPercentage: (durationMinutes / totalMinutesInDay) * 100,
-      allActivities: { [block.name]: { duration: block.durationMs, block } },
-      top,
-      height,
-      isSuggestion: block.isSuggestion
-    }
-  })
+  return { manualBlocks, calendarBlocks, activityBlocks }
+}
 
-  calendarSegments = groupOverlappingCalendarSegments(calendarSegments)
-
-  if (otherBlocks.length === 0) {
-    return [...nonAggregatedSegments, ...calendarSegments].sort((a, b) => a.top - b.top)
-  }
-
-  // Step 1: Create slots for the entire day for non-manual blocks
-  const slots: TimelineSlot[] = []
-  const slotsInDay = 24 * (60 / SLOT_DURATION_MINUTES)
-  const referenceDate = new Date(otherBlocks[0].startTime)
+function computeDayStartFromBlocks(blocks: CanonicalBlock[]): Date {
+  const referenceDate = new Date(blocks[0].startTime)
   const dayStart = new Date(referenceDate)
   dayStart.setHours(0, 0, 0, 0)
+  return dayStart
+}
 
-  for (let i = 0; i < slotsInDay; i++) {
-    const slotStart = new Date(dayStart.getTime() + i * SLOT_DURATION_MINUTES * 60 * 1000)
-    const slotEnd = new Date(slotStart.getTime() + SLOT_DURATION_MINUTES * 60 * 1000)
-    const activitiesInSlot: Record<string, ActivityBlock> = {}
+function accumulateActivitiesForSlot(
+  slotStartTime: Date,
+  slotEndTime: Date,
+  allDayBlocks: CanonicalBlock[]
+): Record<string, SlotActivity> {
+  const activitiesInSlot: Record<string, SlotActivity> = {}
 
-    otherBlocks.forEach((block) => {
-      const blockStart = block.startTime
-      const blockEnd = block.endTime
+  allDayBlocks.forEach((block) => {
+    const blockStart = block.startTime
+    const blockEnd = block.endTime
 
-      const overlapStart = new Date(Math.max(blockStart.getTime(), slotStart.getTime()))
-      const overlapEnd = new Date(Math.min(blockEnd.getTime(), slotEnd.getTime()))
-      const duration = overlapEnd.getTime() - overlapStart.getTime()
+    const overlapStart = new Date(Math.max(blockStart.getTime(), slotStartTime.getTime()))
+    const overlapEnd = new Date(Math.min(blockEnd.getTime(), slotEndTime.getTime()))
+    const duration = overlapEnd.getTime() - overlapStart.getTime()
 
-      if (duration > 0) {
-        const groupingKey =
-          BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
-        if (!activitiesInSlot[groupingKey]) {
-          activitiesInSlot[groupingKey] = {
-            duration: 0,
-            block,
-            eventIds: block.originalEventIds
-              ? [...block.originalEventIds]
-              : block._id
-                ? [block._id]
-                : []
-          }
-        } else {
-          // Merge event IDs when adding to existing activity
-          const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
-          const newEventIds = block.originalEventIds
+    if (duration > 0) {
+      const groupingKey =
+        BROWSER_NAMES.includes(block.name) && block.description ? block.description : block.name
+      if (!activitiesInSlot[groupingKey]) {
+        activitiesInSlot[groupingKey] = {
+          duration: 0,
+          block,
+          eventIds: block.originalEventIds
             ? [...block.originalEventIds]
             : block._id
               ? [block._id]
               : []
-          activitiesInSlot[groupingKey].eventIds = [
-            ...new Set([...existingEventIds, ...newEventIds])
-          ]
         }
-        activitiesInSlot[groupingKey].duration += duration
+      } else {
+        // Merge event IDs when adding to existing activity
+        const existingEventIds = activitiesInSlot[groupingKey].eventIds || []
+        const newEventIds = block.originalEventIds
+          ? [...block.originalEventIds]
+          : block._id
+            ? [block._id]
+            : []
+        activitiesInSlot[groupingKey].eventIds = [...new Set([...existingEventIds, ...newEventIds])]
       }
-    })
+      activitiesInSlot[groupingKey].duration += duration
+    }
+  })
 
-    const [mainActivityKey, mainActivityData] = Object.entries(activitiesInSlot).reduce(
-      (max, current) => (current[1].duration > max[1].duration ? current : max),
-      ['', { duration: 0, block: null as TimeBlock | null }]
-    )
+  return activitiesInSlot
+}
 
-    const displayBlock = mainActivityData.block
-      ? { ...mainActivityData.block, name: mainActivityKey }
-      : null
+function findMainActivity(
+  activitiesInSlot: Record<string, SlotActivity>
+): [string, SlotActivity | null] {
+  if (Object.keys(activitiesInSlot).length === 0) {
+    return ['', null]
+  }
+
+  const mainActivity = Object.entries(activitiesInSlot).reduce((max, current) =>
+    current[1].duration > max[1].duration ? current : max
+  )
+
+  return mainActivity
+}
+
+function buildSlotsForActivityBlocks(
+  activityBlocks: CanonicalBlock[],
+  dayStart: Date,
+  slotMinutes: number
+): SlotActivityGroup[] {
+  const slots: SlotActivityGroup[] = []
+  const slotsInDay = 24 * (60 / slotMinutes)
+
+  for (let i = 0; i < slotsInDay; i++) {
+    const slotStart = new Date(dayStart.getTime() + i * slotMinutes * 60 * 1000)
+    const slotEnd = new Date(slotStart.getTime() + slotMinutes * 60 * 1000)
+
+    const activitiesInSlot = accumulateActivitiesForSlot(slotStart, slotEnd, activityBlocks)
+
+    const [mainActivityKey, mainActivityData] = findMainActivity(activitiesInSlot)
+
+    const displayBlock =
+      mainActivityData && mainActivityData.block
+        ? { ...mainActivityData.block, name: mainActivityKey }
+        : null
 
     slots.push({
-      startMinute: i * SLOT_DURATION_MINUTES,
-      endMinute: (i + 1) * SLOT_DURATION_MINUTES,
+      startMinute: i * slotMinutes,
+      endMinute: (i + 1) * slotMinutes,
       mainActivity: displayBlock,
       allActivities: activitiesInSlot
     })
   }
 
-  // Step 2: Merge consecutive slots
-  const mergedSlots = mergeConsecutiveSlots(slots)
+  return slots
+}
 
-  // Step 3: Convert merged slots to day segments
-
-  const aggregatedSegments: DaySegment[] = mergedSlots
+function convertMergedSlotsToDaySegments(
+  mergedSlots: (SlotActivityGroup & { durationMs: number })[],
+  dayStart: Date,
+  timelineHeight: number,
+  totalMinutesInDay: number
+): DaySegment[] {
+  return mergedSlots
     .filter((slot) => slot.mainActivity)
     .map((slot) => {
       const block = slot.mainActivity!
@@ -319,13 +331,11 @@ export function getTimelineSegmentsForDay(
       const top = (startMinutes / totalMinutesInDay) * timelineHeight
       const height = (durationMinutes / totalMinutesInDay) * timelineHeight
 
-      // Create correct start/end times for the aggregated segment
       const startTime = new Date(dayStart.getTime() + startMinutes * 60000)
       const endTime = new Date(dayStart.getTime() + (startMinutes + durationMinutes) * 60000)
 
-      // Collect all event IDs from all activities in this slot
       const allEventIds: string[] = []
-      Object.values(slot.allActivities).forEach((activity) => {
+      Object.values(slot.allActivities).forEach((activity: SlotActivity) => {
         if (activity.eventIds) {
           allEventIds.push(...activity.eventIds)
         }
@@ -334,7 +344,6 @@ export function getTimelineSegmentsForDay(
 
       return {
         ...block,
-        // override the start and end times to be the correct start and end times for the aggregated segment
         startTime,
         endTime,
         startMinute: slot.startMinute,
@@ -349,29 +358,78 @@ export function getTimelineSegmentsForDay(
         isSuggestion: block.isSuggestion
       }
     })
+}
+
+function truncateLastNonManualSegmentIfOngoingToday(
+  segments: DaySegment[],
+  isToday: boolean,
+  currentTime: Date | null,
+  timelineHeight: number,
+  totalMinutesInDay: number
+) {
+  if (!isToday || !currentTime || segments.length === 0) return
+
+  const lastSegment = segments[segments.length - 1]
+  if (lastSegment.type === 'manual') return
+
+  const currentMinutes =
+    currentTime.getHours() * 60 + currentTime.getMinutes() + currentTime.getSeconds() / 60
+
+  if (lastSegment.startMinute < currentMinutes && lastSegment.endMinute > currentMinutes) {
+    lastSegment.endMinute = currentMinutes
+    const durationMinutes = lastSegment.endMinute - lastSegment.startMinute
+    lastSegment.height = (durationMinutes / totalMinutesInDay) * timelineHeight
+  }
+}
+
+export function getTimelineSegmentsForDay(
+  timeBlocks: CanonicalBlock[],
+  timelineHeight: number,
+  isToday = false,
+  currentTime: Date | null = null
+): DaySegment[] {
+  if (timeBlocks.length === 0 || timelineHeight === 0) {
+    return []
+  }
+
+  const totalMinutesInDay = 24 * 60
+
+  const { manualBlocks, calendarBlocks, activityBlocks } = partitionTimeBlocksByType(timeBlocks)
+
+  const nonAggregatedSegments: DaySegment[] = manualBlocks.map((block) =>
+    mapBlockToDirectDaySegment(block, timelineHeight, totalMinutesInDay)
+  )
+
+  let calendarSegments: DaySegment[] = calendarBlocks.map((block) =>
+    mapBlockToDirectDaySegment(block, timelineHeight, totalMinutesInDay)
+  )
+  calendarSegments = groupOverlappingCalendarSegments(calendarSegments)
+
+  if (activityBlocks.length === 0) {
+    return [...nonAggregatedSegments, ...calendarSegments].sort((a, b) => a.top - b.top)
+  }
+
+  const dayStart = computeDayStartFromBlocks(activityBlocks)
+  const slots = buildSlotsForActivityBlocks(activityBlocks, dayStart, SLOT_DURATION_MINUTES)
+  const mergedSlots = mergeConsecutiveSlots(slots)
+  const aggregatedSegments = convertMergedSlotsToDaySegments(
+    mergedSlots,
+    dayStart,
+    timelineHeight,
+    totalMinutesInDay
+  )
 
   const finalSegments = [...aggregatedSegments, ...nonAggregatedSegments, ...calendarSegments].sort(
     (a, b) => a.top - b.top
   )
 
-  if (isToday && currentTime && finalSegments.length > 0) {
-    const lastSegment = finalSegments[finalSegments.length - 1]
-
-    // Only adjust non-manual entries, as they are not slotted and should have correct end times.
-    if (lastSegment.type !== 'manual') {
-      const totalMinutesInDay = 24 * 60
-      const currentMinutes =
-        currentTime.getHours() * 60 + currentTime.getMinutes() + currentTime.getSeconds() / 60
-
-      // If the last segment from slots extends beyond the current time, truncate it.
-      // This prevents the "current activity" block from showing as longer than it is.
-      if (lastSegment.startMinute < currentMinutes && lastSegment.endMinute > currentMinutes) {
-        lastSegment.endMinute = currentMinutes
-        const durationMinutes = lastSegment.endMinute - lastSegment.startMinute
-        lastSegment.height = (durationMinutes / totalMinutesInDay) * timelineHeight
-      }
-    }
-  }
+  truncateLastNonManualSegmentIfOngoingToday(
+    finalSegments,
+    isToday,
+    currentTime,
+    timelineHeight,
+    totalMinutesInDay
+  )
 
   return finalSegments
 }

@@ -7,8 +7,8 @@ import { useTimeSelection } from '../../../hooks/useTimeSelection'
 import { hexToRgba } from '../../../lib/colors'
 import {
   getTimelineSegmentsForDay,
-  type DaySegment,
-  type TimeBlock
+  type CanonicalBlock,
+  type DaySegment
 } from '../../../lib/dayTimelineHelpers'
 import { convertYToTime } from '../../../lib/timePositioning'
 import { trpc } from '../../../utils/trpc'
@@ -18,8 +18,8 @@ import { TimelineGrid } from './TimelineGrid'
 import { TimelineOverlays } from './TimelineOverlays'
 
 interface DayTimelineProps {
-  trackedTimeBlocks: TimeBlock[]
-  googleCalendarTimeBlocks: TimeBlock[]
+  trackedTimeBlocks: CanonicalBlock[]
+  googleCalendarTimeBlocks: CanonicalBlock[]
   currentTime: Date
   dayForEntries: Date
   isToday: boolean
@@ -138,7 +138,7 @@ export const DayTimeline = ({
   const suggestionDaySegments = useMemo(() => {
     if (!suggestions) return []
 
-    const suggestionTimeBlocks: TimeBlock[] = (suggestions as ActivityEventSuggestion[]).map(
+    const suggestionTimeBlocks: CanonicalBlock[] = (suggestions as ActivityEventSuggestion[]).map(
       (s: ActivityEventSuggestion) => ({
         _id: s._id.toString(),
         type: 'manual',
@@ -660,7 +660,7 @@ export const DayTimeline = ({
           onDelete={handleModalDelete}
           startTime={modalState.startTime}
           endTime={modalState.endTime}
-          existingEntry={modalState.editingEntry as TimeBlock | null}
+          existingEntry={modalState.editingEntry as CanonicalBlock | null}
         />
       )}
     </div>

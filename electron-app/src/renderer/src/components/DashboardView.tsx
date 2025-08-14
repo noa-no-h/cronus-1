@@ -185,7 +185,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
 
   // TODO: dont re-fefetch every 30 seconds all events for day
   const {
-    data: eventsData,
+    data: activeWindowEventsData,
     isLoading: isLoadingFetchedEvents,
     refetch: refetchEvents
   } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
@@ -202,15 +202,15 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       setIsLoadingEvents(true)
       setGoogleCalendarProcessedEvents(null)
       setTrackedProcessedEvents(null)
-    } else if (eventsData && categories) {
+    } else if (activeWindowEventsData && categories) {
       // Process tracked events (existing logic)
-      const eventsWithParsedDates = eventsData.map((event) => ({
+      const eventsWithParsedDates = activeWindowEventsData.map((event) => ({
         ...event,
         lastCategorizationAt: event.lastCategorizationAt
           ? new Date(event.lastCategorizationAt)
           : undefined
       }))
-      const trackedBlocks = generateProcessedEventBlocks(eventsWithParsedDates, categories)
+      const canonicalBlocks = generateProcessedEventBlocks(eventsWithParsedDates, categories)
 
       const calendarEvents = calendarEventsData || []
 
@@ -221,7 +221,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
             .filter((block): block is ProcessedEventBlock => block !== null)
         : []
 
-      setTrackedProcessedEvents(trackedBlocks)
+      setTrackedProcessedEvents(canonicalBlocks)
       setGoogleCalendarProcessedEvents(googleCalendarBlocks)
       setIsLoadingEvents(false)
     } else {
@@ -230,7 +230,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       setIsLoadingEvents(false)
     }
   }, [
-    eventsData,
+    activeWindowEventsData,
     isLoadingFetchedEvents,
     categories,
     isLoadingCategories,

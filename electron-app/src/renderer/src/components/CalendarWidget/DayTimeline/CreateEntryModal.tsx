@@ -6,7 +6,7 @@ import { type Category } from 'shared/dist/types'
 import { z } from 'zod'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useCategorySelection } from '../../../hooks/useCategorySelection'
-import { TimeBlock } from '../../../lib/dayTimelineHelpers'
+import { CanonicalBlock } from '../../../lib/dayTimelineHelpers'
 import { trpc } from '../../../utils/trpc'
 import { CategoryBadge } from '../../CategoryBadge'
 import { CategoryForm } from '../../Settings/CategoryForm'
@@ -22,7 +22,7 @@ interface CreateEntryModalProps {
   endTime: { hour: number; minute: number } | null
   onSubmit: (data: { name: string; categoryId?: string }) => void
   onDelete: (id: string) => void
-  existingEntry: TimeBlock | null
+  existingEntry: CanonicalBlock | null
 }
 
 const formSchema = z.object({

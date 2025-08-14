@@ -1,7 +1,7 @@
 import { endOfDay, startOfDay } from 'date-fns'
 import { usePostHog } from 'posthog-js/react'
 import { useState } from 'react'
-import type { TimeBlock } from '../lib/dayTimelineHelpers'
+import type { CanonicalBlock } from '../lib/dayTimelineHelpers'
 import { trpc } from '../utils/trpc'
 import { toast } from './use-toast'
 
@@ -20,7 +20,7 @@ export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseMan
     isOpen: boolean
     startTime: { hour: number; minute: number } | null
     endTime: { hour: number; minute: number } | null
-    editingEntry: TimeBlock | null
+    editingEntry: CanonicalBlock | null
   }>({
     isOpen: false,
     startTime: null,
@@ -195,7 +195,7 @@ export const useManualEntry = ({ baseDate, onModalClose, token, userId }: UseMan
     })
   }
 
-  const handleSelectManualEntry = (entry: TimeBlock) => {
+  const handleSelectManualEntry = (entry: CanonicalBlock) => {
     setModalState({
       isOpen: true,
       startTime: null,
