@@ -24,6 +24,7 @@
     "2--------------------------------": "--------------------------------",
     "script:reset-activity-events": "bun run src/seeder/activity-events-reset.ts",
     "script:reset-activity-events:prod": "NODE_ENV=production bun run src/seeder/activity-events-reset.ts",
+    "script:count-events-for-day": "NODE_ENV=production bun run src/seeder/count-events-for-day.ts",
     "cron:generate-suggestions": "bun src/scripts/generateSuggestions.ts",
     "cron:churn-prevention": "bun src/scripts/churnPrevention.ts",
     "debug:env": "bun --print process.env",
