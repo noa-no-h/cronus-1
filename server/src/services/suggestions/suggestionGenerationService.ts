@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { ActiveWindowEventModel } from '../../models/activeWindowEvent';
 import { ActivityEventSuggestionModel } from '../../models/activityEventSuggestion';
-import { categorizeActivity } from '../categorization/categorizationService';
+import { categorizeCalendarActivity } from '../categorization/calendarCategorizationService';
 
 // This should ideally be a shared type. For now, defined here.
 export interface CalendarEvent {
@@ -10,6 +10,12 @@ export interface CalendarEvent {
   description: string;
   startTime: number; // Unix timestamp ms
   endTime: number; // Unix timestamp ms
+  attendees?: Array<{
+    email?: string;
+    displayName?: string;
+    organizer?: boolean;
+    responseStatus?: string;
+  }>; // Based on Google Calendar API attendees structure
 }
 
 export async function generateSuggestionsForUser(userId: string, calendarEvents: CalendarEvent[]) {
@@ -64,14 +70,7 @@ export async function generateSuggestionsForUser(userId: string, calendarEvents:
   const suggestionsToCreate = await Promise.all(
     eventsToSuggest.map(async (event) => {
       // a. Use AI to pick a category
-      const categorizationResult = await categorizeActivity(userId, {
-        ownerName: event.summary,
-        title: event.summary,
-        url: '',
-        content: event.description || '',
-        type: 'manual',
-        browser: null,
-      });
+      const categorizationResult = await categorizeCalendarActivity(userId, event);
 
       // b. Prepare the suggestion object for DB insertion
       return {

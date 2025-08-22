@@ -19,6 +19,7 @@
     "test:reset_categories": "bun test src/services/category-resetting/resetCategories.test.ts",
     "test:multi-purpose-apps": "bun test src/services/categorization/multiPurposeApps.test.ts",
     "test:category-suggestions": "bun test src/services/categorization/categorySuggestionService.test.ts",
+    "test:suggestions": "bun test src/services/suggestions/suggestionGenerationService.test.ts",
     "test:history": "bun test src/services/categorization/history.test.ts",
     "test:move": "bun test src/services/move/updateEventCategoryInDateRange.test.ts",
     "2--------------------------------": "--------------------------------",
@@ -27,8 +28,7 @@
     "script:count-events-for-day": "NODE_ENV=production bun run src/seeder/count-events-for-day.ts",
     "cron:generate-suggestions": "bun src/scripts/generateSuggestions.ts",
     "cron:churn-prevention": "bun src/scripts/churnPrevention.ts",
-    "debug:env": "bun --print process.env",
-    "test:suggestions": "bun test src/services/suggestions/suggestionGenerationService.test.ts"
+    "debug:env": "bun --print process.env"
   },
   "keywords": [],
   "author": "",
