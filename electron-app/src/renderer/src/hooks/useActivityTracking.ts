@@ -4,6 +4,7 @@ import { uploadActiveWindowEvent } from '../lib/activityUploader'
 import { showActivityMovedToast } from '../lib/custom-toasts'
 import { trpc } from '../utils/trpc'
 import { toast } from './use-toast'
+import { activityEventService } from '../lib/activityEventService'
 
 export interface ActivityToRecategorize {
   identifier: string
@@ -186,9 +187,14 @@ export function useActivityTracking({
   }, [token, openRecategorizeDialog, activeWindow])
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation({
-    onSuccess: () => {
-      trpcUtils.activeWindowEvents.getEventsForDateRange.invalidate()
-      // invalidating this because we modify the active window event in the backend
+    onSuccess: (data) => {
+       const eventWithParsedDates = {
+        ...data,
+        lastCategorizationAt: data.lastCategorizationAt
+          ? new Date(data.lastCategorizationAt)
+          : undefined
+       };
+      activityEventService.addEvent(eventWithParsedDates);
       trpcUtils.activeWindowEvents.getLatestEvent.invalidate()
     },
     onError: (error) => {

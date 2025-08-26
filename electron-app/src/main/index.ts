@@ -31,6 +31,7 @@ let mainWindow: BrowserWindow | null = null
 let floatingWindow: BrowserWindow | null = null
 
 let isTrackingPaused = false
+let interval : NodeJS.Timeout;
 
 function App() {
   async function initializeApp() {
@@ -106,15 +107,25 @@ function App() {
     // This will be started after onboarding is complete via IPC call
     // Store the callback for later use
     const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
-      if (
-        windowInfo &&
-        mainWindow &&
-        !mainWindow.isDestroyed() &&
-        !mainWindow.webContents.isDestroyed() &&
-        !isTrackingPaused
-      ) {
-        mainWindow.webContents.send('active-window-changed', windowInfo)
+      emitActiveWindowChanged(windowInfo);
+      if(interval){
+        clearInterval(interval);
       }
+      interval = setInterval(() => {
+        emitActiveWindowChanged(windowInfo);
+      }, 20000);
+    }
+
+    const emitActiveWindowChanged = (windowInfo: ActiveWindowDetails | null) => {
+       if (
+          windowInfo &&
+          mainWindow &&
+          !mainWindow.isDestroyed() &&
+          !mainWindow.webContents.isDestroyed() &&
+          !isTrackingPaused
+        ) {
+          mainWindow.webContents.send('active-window-changed', windowInfo)
+        }
     }
 
     // Make the callback available to IPC handlers

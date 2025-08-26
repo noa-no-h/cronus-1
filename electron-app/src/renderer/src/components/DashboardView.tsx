@@ -8,6 +8,7 @@ import { generateProcessedEventBlocks } from '../utils/eventProcessing'
 import { trpc } from '../utils/trpc'
 import ActivitiesByCategoryWidget from './ActivityList/ActivitiesByCategoryWidget'
 import CalendarWidget from './CalendarWidget/CalendarWidget'
+import { activityEventService } from '../lib/activityEventService'
 
 export interface ProcessedEventBlock {
   startTime: Date
@@ -87,6 +88,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
   >(null)
   const [isLoadingEvents, setIsLoadingEvents] = useState(true)
   const [selectedHour, setSelectedHour] = useState<number | null>(null)
+  const [events, setEvents] = useState<ActiveWindowEvent[]>([])
 
   const [startDateMs, setStartDateMs] = useState<number | null>(null)
   const [endDateMs, setEndDateMs] = useState<number | null>(null)
@@ -183,34 +185,38 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       }
     )
 
-  // TODO: dont re-fefetch every 30 seconds all events for day
-  const {
-    data: activeWindowEventsData,
-    isLoading: isLoadingFetchedEvents,
-    refetch: refetchEvents
-  } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
+  const { isLoading: isLoadingFetchedEvents, refetch: refetchEvents } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
     { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
     {
       enabled: !!token && startDateMs !== null && endDateMs !== null,
       refetchOnWindowFocus: true,
-      refetchInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
+      onSuccess: (data) => {
+        const eventsWithParsedDates = data.map((event) => ({
+        ...event,
+        lastCategorizationAt: event.lastCategorizationAt
+          ? new Date(event.lastCategorizationAt)
+          : undefined
+      }))
+        activityEventService.setEvents(eventsWithParsedDates)
+      }
     }
   )
+
+  useEffect(() => {
+    const subscription = activityEventService.events$.subscribe((data) => {
+      setEvents(data)
+    });
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
       setIsLoadingEvents(true)
       setGoogleCalendarProcessedEvents(null)
       setTrackedProcessedEvents(null)
-    } else if (activeWindowEventsData && categories) {
+    } else if (events && categories) {
       // Process tracked events (existing logic)
-      const eventsWithParsedDates = activeWindowEventsData.map((event) => ({
-        ...event,
-        lastCategorizationAt: event.lastCategorizationAt
-          ? new Date(event.lastCategorizationAt)
-          : undefined
-      }))
-      const canonicalBlocks = generateProcessedEventBlocks(eventsWithParsedDates, categories)
+      const canonicalBlocks = generateProcessedEventBlocks(events, categories)
 
       const calendarEvents = calendarEventsData || []
 
@@ -230,7 +236,7 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       setIsLoadingEvents(false)
     }
   }, [
-    activeWindowEventsData,
+    events,
     isLoadingFetchedEvents,
     categories,
     isLoadingCategories,
