@@ -12,7 +12,7 @@ import {
   setupProtocolHandlers,
   setupSingleInstanceLock
 } from './protocol'
-import { createFloatingWindow, createMainWindow, setIsAppQuitting, getIsAppQuitting } from './windows'
+import { createFloatingWindow, createMainWindow, setIsAppQuitting } from './windows'
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 // NODE_ENV set in build isn't present in the run-time app
@@ -31,7 +31,6 @@ let mainWindow: BrowserWindow | null = null
 let floatingWindow: BrowserWindow | null = null
 
 let isTrackingPaused = false
-let interval : NodeJS.Timeout;
 
 function App() {
   async function initializeApp() {
@@ -107,25 +106,15 @@ function App() {
     // This will be started after onboarding is complete via IPC call
     // Store the callback for later use
     const windowChangeCallback = (windowInfo: ActiveWindowDetails | null) => {
-      emitActiveWindowChanged(windowInfo);
-      if(interval){
-        clearInterval(interval);
+      if (
+        windowInfo &&
+        mainWindow &&
+        !mainWindow.isDestroyed() &&
+        !mainWindow.webContents.isDestroyed() &&
+        !isTrackingPaused
+      ) {
+        mainWindow.webContents.send('active-window-changed', windowInfo)
       }
-      interval = setInterval(() => {
-        emitActiveWindowChanged(windowInfo);
-      }, 20000);
-    }
-
-    const emitActiveWindowChanged = (windowInfo: ActiveWindowDetails | null) => {
-       if (
-          windowInfo &&
-          mainWindow &&
-          !mainWindow.isDestroyed() &&
-          !mainWindow.webContents.isDestroyed() &&
-          !isTrackingPaused
-        ) {
-          mainWindow.webContents.send('active-window-changed', windowInfo)
-        }
     }
 
     // Make the callback available to IPC handlers
@@ -183,7 +172,7 @@ function App() {
   // Handle app quit attempts (Cmd+Q, Dock → Quit, Menu → Quit)
   app.on('before-quit', (event) => {
     setIsAppQuitting(true)
-    
+
     // Only show quit modal for Cmd+Q when app is focused
     if (mainWindow && mainWindow.isFocused()) {
       event.preventDefault()
