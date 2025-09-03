@@ -33,13 +33,13 @@ export default function SecuritySection({ className, ...props }: ComponentProps<
             icon={<Image src={GdprLogo} alt="GDPR logo" className="size-full" />}
             title="GDPR Compliant"
             description={
-              <div className="block">
+              <>
                 Your data is protected under GDPR. We are committed to your privacy. Read our{' '}
                 <a href="https://cronushq.com/privacy" className="underline">
                   privacy policy
                 </a>
                 .
-              </div>
+              </>
             }
           />
           <SecurityCard
