@@ -68,11 +68,8 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: [
-      'http://localhost:3000',
-      'https://whatdidyougetdonetoday.ai',
-      'https://cronushq.com',
-      'https://whatdidyougetdonetoday-ai-client.onrender.com',
-      'https://PROJECT_SERVER_DOMAIN',
+      'http://localhost:3000', // For local development
+      // Add your own domains here if needed
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: cronus-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: cronus
+    networks:
+      - cronus-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: cronus-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/cronus
+      PORT: 3001
+      NODE_ENV: production
+      # Add your environment variables here:
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # AUTH_SECRET: ${AUTH_SECRET}
+      # GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      # GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      - mongodb
+    networks:
+      - cronus-network
+    volumes:
+      - ./server/.env:/app/.env:ro
+
+volumes:
+  mongodb_data:
+
+networks:
+  cronus-network:
+    driver: bridge

@@ -11,7 +11,7 @@ export function WelcomeStep() {
         OCR to extract text. The screenshot is deleted immediately. The extracted text is processed
         to analyze your activity. For more details, please read our{' '}
         <a
-          href="https://cronushq.com/privacy"
+          href="https://github.com/your-username/cronus-desktop-tracker#privacy"
           target="_blank"
           rel="noopener noreferrer"
           className="underline"

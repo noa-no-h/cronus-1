@@ -1,212 +1,313 @@
-# whatdidyougetdonetoday
+# Cronus - Self-Hosted Desktop Time Tracker
 
-A modern SaaS template with authentication, payments, and a beautiful UI. This template was originally built as an AI-powered spreadsheet tool, which is why you might notice some table-related naming conventions in the codebase.
+A powerful, AI-driven desktop time tracker that automatically categorizes your activities and provides detailed insights into your productivity patterns. Built with Electron, React, and Node.js, Cronus runs entirely on your own infrastructure for complete privacy and control.
 
-## Tech Stack
+## ✨ Features
 
-### Core Technologies
+- **🤖 AI-Powered Categorization**: Automatically categorizes activities using OpenAI GPT models
+- **📊 Detailed Analytics**: Track time spent across different apps and categories
+- **🔒 Privacy-First**: All data stays on your infrastructure - no external data sharing
+- **🖥️ Native macOS Integration**: Deep system integration with native window tracking
+- **📅 Calendar Integration**: Optional Google Calendar sync for comprehensive time tracking
+- **⚡ Real-Time Monitoring**: Live activity tracking with minimal system impact
+- **🎨 Beautiful UI**: Modern, responsive interface built with React and Tailwind CSS
 
-- 🚀 **Bun** - Fast JavaScript runtime and package manager
-- 🔄 **Monorepo Structure** with workspaces (client, server, shared)
-- 📱 **React** + **TypeScript** for the frontend
-- 🎨 **Tailwind CSS** + **Shadcn UI** for styling
-- 🔐 **tRPC** for type-safe API calls
-- 💳 **Stripe** for payments
-- 📊 **MongoDB** for database
+## 🏗️ Architecture
 
-### Key Libraries
+- **Desktop App**: Electron application with native macOS modules for window tracking
+- **Server**: Node.js/Express backend with tRPC for type-safe API communication
+- **Database**: MongoDB for data storage
+- **AI Integration**: OpenAI GPT models for intelligent activity categorization
 
-- **Craco** - Used for customizing Create React App configuration without ejecting
-- **Lucide React** - Icon library
-- **React Router** - Client-side routing
-- **React Query** - Data fetching and caching
-- **Zod** - Schema validation
+## 📋 Prerequisites
 
-## Project Structure
+Before setting up Cronus, ensure you have:
 
-```
-.
-├── client/                 # React frontend
-│   ├── src/               # Source code
-│   ├── craco.config.js    # Craco configuration for CRA customization
-│   └── package.json       # Frontend dependencies
-├── server/                # Backend server
-│   ├── src/              # Source code
-│   └── package.json      # Backend dependencies
-└── shared/               # Shared types and utilities
-    ├── types.ts         # Shared TypeScript types
-    └── package.json     # Shared package configuration
-├── electron-app/           # Electron desktop application
-│   ├── src/                # Source code (main, preload, renderer)
-│   └── package.json        # Electron app dependencies
-```
+- **Node.js** (v18 or higher) and **Bun** package manager
+- **MongoDB** database (local or cloud)
+- **OpenAI API key** for AI categorization features
+- **macOS** (required for native window tracking modules)
+- **Google OAuth credentials** (optional, for calendar integration)
 
-## Getting Started
+## 🚀 Quick Start
 
-### Prerequisites
-
-- Bun (latest version)
-- MongoDB
-- Stripe account
-- Google OAuth credentials
-
-### Environment Variables
-
-Contact the project maintainer to get the required environment variables. You'll need to set up:
-
-- MongoDB connection string
-- Stripe API keys
-- Google OAuth credentials
-- Other service-specific keys
-
-### Installation
-
-1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/whatdidyougetdonetoday-ai.git
-cd whatdidyougetdonetoday-ai
+git clone https://github.com/your-username/cronus-desktop-tracker.git
+cd cronus-desktop-tracker
 ```
 
-2. Install dependencies
+### 2. Install Dependencies
 
 ```bash
 bun install
 ```
 
-3. Start the development servers
+### 3. Environment Configuration
 
-For the frontend (in the client directory):
+#### Server Configuration
+Copy and configure the server environment file:
 
 ```bash
-cd client
-bun dev
+cp server/.env.example server/.env
 ```
 
-For the backend (in the server directory):
+Edit `server/.env` with your values:
 
+```bash
+# Database
+MONGODB_URI="mongodb://localhost:27017/cronus"
+
+# AI Features (Required)
+OPENAI_API_KEY="your_openai_api_key_here"
+
+# Authentication (Required for app to function)
+AUTH_SECRET="your_secure_random_string_here"
+
+# Google OAuth (Optional - for calendar integration)
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+
+# Stripe (Optional - remove if not using payments)
+STRIPE_SECRET_KEY="your_stripe_secret_key"
+STRIPE_WEBHOOK_SECRET="your_stripe_webhook_secret"
+STRIPE_PRICE_ID="your_stripe_price_id"
+
+# Email service (Optional)
+LOOPS_API_KEY="your_loops_api_key"
+
+# Server Configuration
+PORT="3001"
+CLIENT_URL="http://localhost:3000"
+```
+
+#### Electron App Configuration
+Copy the electron app environment file:
+
+```bash
+cp electron-app/.env.example electron-app/.env
+```
+
+The electron app will automatically connect to your local server at `http://localhost:3001`.
+
+### 4. Set Up MongoDB
+
+#### Option A: Local MongoDB
+Install and run MongoDB locally:
+
+```bash
+# macOS with Homebrew
+brew install mongodb-community
+brew services start mongodb-community
+
+# The default connection string is:
+# mongodb://localhost:27017/cronus
+```
+
+#### Option B: MongoDB Atlas (Cloud)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Create a new cluster
+3. Get your connection string and update `MONGODB_URI` in `server/.env`
+
+### 5. Get OpenAI API Key
+
+1. Visit [OpenAI API Keys](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. Add it to your `server/.env` file as `OPENAI_API_KEY`
+
+### 6. Build Shared Dependencies
+
+```bash
+bun run build:shared
+```
+
+### 7. Start the Application
+
+#### Terminal 1 - Start the Server:
 ```bash
 cd server
 bun dev
 ```
 
-### Running the Server and Electron App Together
-
-To run both the backend server and the Electron application concurrently for development:
-
+#### Terminal 2 - Start the Desktop App:
 ```bash
-bun run dev:electron-server
+cd electron-app  
+bun dev
 ```
 
-## Monorepo Structure
+The desktop app will launch automatically and connect to your local server.
 
-This project uses a monorepo structure with three main packages:
+## 🔧 Configuration Options
 
-### Client (`/client`)
+### Required Environment Variables
 
-- Built with Create React App + Craco
-- Uses Tailwind CSS for styling
-- Implements Shadcn UI components
-- Handles all frontend logic and UI
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/cronus` |
+| `OPENAI_API_KEY` | OpenAI API key for AI features | `sk-...` |
+| `AUTH_SECRET` | Secret for JWT token signing | Random 32+ character string |
 
-### Server (`/server`)
+### Optional Environment Variables
 
-- Bun-based backend
-- tRPC for type-safe API endpoints
-- MongoDB integration
-- Handles authentication and payments
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Not set |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Not set |
+| `PORT` | Server port | `3001` |
+| `CLIENT_URL` | Frontend URL for CORS | `http://localhost:3000` |
 
-### Shared (`/shared`)
+## 📦 Production Deployment
 
-- Contains shared TypeScript types
-- Used by both client and server
-- Ensures type safety across the stack
+### Building the Application
 
-### Electron App (`/electron-app`)
+```bash
+# Build all components
+bun run build
 
-- A desktop application built with Electron, React, and TypeScript.
-- Provides a native desktop experience.
-- For more details, see the [Electron App README](./electron-app/README.md).
+# Or build individually
+bun run build:shared
+bun run build:server  
+bun run build:electron
+```
 
-## Deployment
+### Server Deployment
 
-The application is set up as a monorepo with separate client and server packages:
+Deploy the `server/` directory to your preferred hosting platform:
 
-- Nextjs Client: Deploy the `nextjs-client` directory to a static hosting service
-- Admin Client: Deploy the `client` directory to a static hosting service
-- Backend: Deploy the `server` directory to a Node.js hosting service
+```bash
+cd server
+bun run build  # Compile TypeScript
+bun start      # Start the production server
+```
+
+### Desktop App Distribution
+
+Build the desktop application for distribution:
+
+```bash
+cd electron-app
+bun run build                    # Development build
+bun run build:local              # Local production build (unsigned)
+```
+
+For signed releases, see the [Electron App README](./electron-app/README.md) for detailed code signing instructions.
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+cronus-desktop-tracker/
+├── electron-app/           # Electron desktop application
+│   ├── src/
+│   │   ├── main/          # Electron main process
+│   │   ├── renderer/      # React frontend
+│   │   └── preload/       # Preload scripts
+├── server/                # Backend server
+│   ├── src/
+│   │   ├── routers/       # tRPC routers
+│   │   ├── models/        # Database models
+│   │   └── services/      # Business logic
+└── shared/                # Shared types and utilities
+```
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `bun dev:electron-server` | Run server + electron app together |
+| `bun run build` | Build all components |
+| `bun run format` | Format code with Prettier |
+| `bun run lint` | Lint code with ESLint |
+
+### Native Modules
+
+The app includes native macOS modules for window tracking. If you need to rebuild them:
+
+```bash
+cd electron-app
+bun run native-modules:rebuild:arm  # For Apple Silicon
+bun run native-modules:rebuild:x64  # For Intel Macs
+```
+
+## 🔒 Privacy & Security
+
+- **Local Data Storage**: All your activity data is stored in your own MongoDB database
+- **No External Data Sharing**: Your data never leaves your infrastructure
+- **Encryption**: JWT tokens for secure authentication
+- **Screenshot Privacy**: Screenshots are immediately deleted after text extraction
+- **Open Source**: Full transparency - audit the code yourself
+
+## ❓ Troubleshooting
+
+### Common Issues
+
+**MongoDB Connection Failed**
+```bash
+# Check if MongoDB is running
+brew services list | grep mongodb
+
+# Start MongoDB if not running
+brew services start mongodb-community
+```
+
+**OpenAI API Errors**
+- Verify your API key is correct and has sufficient credits
+- Check the OpenAI API status page for outages
+
+**Native Module Issues**
+```bash
+# Rebuild native modules
+cd electron-app
+bun run native-modules:rebuild:arm
+```
+
+**Permission Issues (macOS)**
+- The app requires Accessibility permissions to track window activity
+- System Preferences > Security & Privacy > Privacy > Accessibility
+
+### Logs and Debugging
+
+**Server logs**: Check terminal output where you started `bun dev`
+
+**Electron logs**: 
+- Development: Check DevTools console (View > Toggle Developer Tools)
+- Production: Logs are in `~/Library/Application Support/Cronus/logs/`
+
+**macOS system logs**:
+```bash
+# View native module logs in Console.app
+# Filter by subsystem: com.cronus.app
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Electron](https://electronjs.org/)
+- UI components from [shadcn/ui](https://ui.shadcn.com/)
+- AI categorization powered by [OpenAI](https://openai.com/)
+- Type-safe APIs with [tRPC](https://trpc.io/)
 
 ---
 
-## Deployment on Render
+## 📞 Support
 
-This project is set up for easy deployment on [Render](https://render.com/). Below are the recommended settings for both the client and server services.
+If you encounter any issues or have questions:
 
-### Client (Static Site)
+1. Check the [Troubleshooting](#troubleshooting) section
+2. Search existing [GitHub Issues](https://github.com/your-username/cronus-desktop-tracker/issues)
+3. Create a new issue with detailed information about your problem
 
-- **Root Directory:** `client`
-- **Publish Directory:** `client/build`
-- **Build Command:**
-
-  ```sh
-  cd client && bun install && bun add -d @craco/craco ajv ajv-keywords && bun run build
-  ```
-
-  This command installs dependencies, ensures required build tools are present, and builds the React app.
-
-- **Redirect and Rewrite Rules:**
-  To support client-side routing (React Router), add the following rule:
-
-  | Source | Destination | Action  |
-  | ------ | ----------- | ------- |
-  | /\*    | /index.html | Rewrite |
-
-  This ensures all routes are handled by your React app.
-
-### Server (Web Service)
-
-- **Root Directory:** `server`
-- **Build Command:**
-  ```sh
-  bun install && bun run build
-  ```
-- **Start Command:**
-  ```sh
-  bun start
-  ```
-
-> **Note:**
-> The previous project was called "deeptable" (as seen in the screenshots), so you may see references to that name in Render or in some configuration files. You can safely update these to your new project name.
-
----
-
-## Building and Running the Electron App
-
-The Electron app uses [Electron Builder](https://www.electron.build/) for packaging and distribution. For detailed instructions on building, code signing, and publishing new releases, please refer to the dedicated README in the Electron app directory:
-
-[**➡️ Electron App Build and Release Guide (`electron-app/README.md`)**](./electron-app/README.md)
-
-This guide covers:
-
-- Development builds
-- Production builds (signed `.app` and `.dmg`)
-- Code signing setup
-- Publishing releases with OTA updates to S3
-
-## Debugging
-
-### Viewing Logs on macOS
-
-The native Objective-C modules use Apple's Unified Logging system (`os_log`). To view these logs for debugging purposes:
-
-1. Open the **Console.app** on macOS.
-2. Start the Cronus application.
-3. In the search bar of the Console app, enter the following filter and press Enter:
-   `    subsystem:com.cronus.app`
-   This will display all log messages generated by the native modules, which is essential for diagnosing issues related to window tracking and native code execution.
-
-# Logos and Assets
-
-- App Icon is in [electron-app/build/icon.png](electron-app/build/icon.png)
-- Icon for Website is in [client/src/assets/icon.png](client/src/assets/icon.png)
-- Icon for Electron App (runtime) is in [electron-app/resources/icon.png](electron-app/resources/icon.png)
+**Made with ❤️ for productivity enthusiasts who value privacy and control over their data.**

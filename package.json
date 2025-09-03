@@ -1,13 +1,17 @@
 {
-  "name": "saas-template-may-2025",
+  "name": "cronus-desktop-tracker",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "description": "Self-hosted AI-powered desktop time tracker with automatic activity categorization",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cronus-desktop-tracker.git"
+  },
+  "keywords": ["time-tracking", "productivity", "electron", "ai", "self-hosted"],
   "workspaces": [
-    "client",
     "electron-app",
     "server",
-    "shared",
-    "scraper"
+    "shared"
   ],
   "scripts": {
     "dev": "bun --filter '*' dev",
@@ -16,9 +20,8 @@
     "rebuild:electron:arm": "bun --filter cronus-electron-app native-modules:rebuild:arm",
     "build:shared": "cd shared && bun run build",
     "build:server": "bun run build:shared && cd server && bun run build",
-    "build:client": "cd client && bun run build",
     "build:electron": "cd electron-app && bun run build",
-    "build": "bun run build:shared && bun run build:server && bun run build:client && bun run build:electron",
+    "build": "bun run build:shared && bun run build:server && bun run build:electron",
     "start": "bun --filter '*' start",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
