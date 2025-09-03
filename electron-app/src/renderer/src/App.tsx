@@ -2,6 +2,7 @@ import { usePostHog } from 'posthog-js/react'
 import React, { useCallback, useEffect, useState } from 'react'
 import { DashboardView } from './components/DashboardView'
 import DistractionStatusBar from './components/DistractionStatusBar'
+import { trpc } from './utils/trpc'
 import { TutorialModal } from './components/Onboarding/TutorialModal'
 import { OnboardingModal } from './components/OnboardingModal'
 import { QuitConfirmationModal } from './components/QuitConfirmationModal'
@@ -37,6 +38,64 @@ export function MainAppContent(): React.ReactElement {
   const [isTrackingPaused, setIsTrackingPaused] = useState(false)
   const [showQuitModal, setShowQuitModal] = useState(false)
   const [isSystemRestarting, setIsSystemRestarting] = useState(false)
+
+  // Fetch today's events for DistractionStatusBar
+  const [currentDayStartDateMs, setCurrentDayStartDateMs] = useState<number | null>(null)
+  const [currentDayEndDateMs, setCurrentDayEndDateMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    const updateDates = (): void => {
+      const now = new Date()
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+      setCurrentDayStartDateMs(startOfToday.getTime())
+      setCurrentDayEndDateMs(endOfToday.getTime())
+    }
+
+    updateDates()
+    const intervalId = setInterval(updateDates, 10000)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
+  const { data: todayEvents } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
+    {
+      token: token || '',
+      startDateMs: currentDayStartDateMs!,
+      endDateMs: currentDayEndDateMs!
+    },
+    {
+      enabled:
+        !!token &&
+        typeof token === 'string' &&
+        token.length > 0 &&
+        currentDayStartDateMs !== null &&
+        currentDayEndDateMs !== null,
+      refetchInterval: 30000,
+      onSuccess: (data) => {
+        console.log(
+          '🏠 App.tsx fetched today events:',
+          data?.length || 0,
+          'events',
+          `(${currentDayStartDateMs}-${currentDayEndDateMs})`
+        )
+      },
+      select: (data) => {
+        if (!data) {
+          return []
+        }
+        return data.map((event) => {
+          const e = event as any
+          return {
+            ...e,
+            lastCategorizationAt: e.lastCategorizationAt
+              ? new Date(e.lastCategorizationAt)
+              : undefined
+          }
+        })
+      }
+    }
+  )
 
   // Use the accessibility permission hook
   const { accessibilityPermissionChecked, missingAccessibilityPermissions } =
@@ -216,6 +275,7 @@ export function MainAppContent(): React.ReactElement {
               isSettingsOpen={isSettingsOpen}
               isTrackingPaused={isTrackingPaused}
               onToggleTracking={handleToggleTracking}
+              todayEvents={todayEvents as any}
             />
           </div>
         </div>

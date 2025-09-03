@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import React, { JSX, useEffect, useMemo, useRef, useState } from 'react'
 import { ActiveWindowDetails, ActiveWindowEvent, Category } from 'shared'
-import type { ActivityToRecategorize } from '../App'
+import type { ActivityToRecategorize } from '../hooks/useActivityTracking'
 import { useAuth } from '../contexts/AuthContext'
 import { useDistractionNotification } from '../hooks/useDistractionNotification'
 import { useDistractionSound } from '../hooks/useDistractionSound'
@@ -47,6 +47,7 @@ interface DistractionStatusBarProps {
   isSettingsOpen: boolean
   isTrackingPaused: boolean
   onToggleTracking: () => void
+  todayEvents?: ActiveWindowEvent[]
 }
 
 // Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
@@ -75,7 +76,8 @@ const arePropsEqual = (
     prevProps.onSettingsClick === nextProps.onSettingsClick &&
     prevProps.isSettingsOpen === nextProps.isSettingsOpen &&
     prevProps.isTrackingPaused === nextProps.isTrackingPaused &&
-    prevProps.onToggleTracking === nextProps.onToggleTracking
+    prevProps.onToggleTracking === nextProps.onToggleTracking &&
+    prevProps.todayEvents === nextProps.todayEvents
   )
 }
 
@@ -87,7 +89,8 @@ const DistractionStatusBar = ({
   onSettingsClick,
   isSettingsOpen,
   isTrackingPaused,
-  onToggleTracking
+  onToggleTracking,
+  todayEvents
 }: DistractionStatusBarProps): JSX.Element | null => {
   const { token } = useAuth()
   const [isNarrowView, setIsNarrowView] = useState(false)
@@ -183,55 +186,12 @@ const DistractionStatusBar = ({
       { enabled: !!token && typeof token === 'string' && token.length > 0 }
     )
 
-  const [currentDayStartDateMs, setCurrentDayStartDateMs] = React.useState<number | null>(null)
-  const [currentDayEndDateMs, setCurrentDayEndDateMs] = React.useState<number | null>(null)
-
-  React.useEffect(() => {
-    const updateDates = (): void => {
-      const now = new Date()
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
-      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0)
-      setCurrentDayStartDateMs(startOfToday.getTime())
-      setCurrentDayEndDateMs(endOfToday.getTime())
+  // todayEvents is now received as a prop from App.tsx
+  useEffect(() => {
+    if (todayEvents) {
+      console.log('📡 DistractionStatusBar received today events:', todayEvents.length, 'events (no duplicate query!)');
     }
-
-    updateDates()
-    const intervalId = setInterval(updateDates, 10000) // Check every 10 seconds
-
-    return () => clearInterval(intervalId)
-  }, [])
-
-  const { data: todayEvents, isLoading: isLoadingTodayEvents } =
-    trpc.activeWindowEvents.getEventsForDateRange.useQuery(
-      {
-        token: token || '',
-        startDateMs: currentDayStartDateMs!,
-        endDateMs: currentDayEndDateMs!
-      },
-      {
-        enabled:
-          !!token &&
-          typeof token === 'string' &&
-          token.length > 0 &&
-          currentDayStartDateMs !== null &&
-          currentDayEndDateMs !== null,
-        refetchInterval: 30000,
-        select: (data) => {
-          if (!data) {
-            return []
-          }
-          return data.map((event) => {
-            const e = event as unknown as ActiveWindowEvent
-            return {
-              ...e,
-              lastCategorizationAt: e.lastCategorizationAt
-                ? new Date(e.lastCategorizationAt)
-                : undefined
-            }
-          })
-        }
-      }
-    )
+  }, [todayEvents]);
 
   useDistractionSound(categoryDetails as Category | null | undefined)
 
@@ -418,7 +378,7 @@ const DistractionStatusBar = ({
         </div>
       </div>
       <div className="flex-shrink-0 text-right flex items-center gap-2 rounded-lg bg-gray-100 dark:bg-gray-800/50">
-        {isTrackingPaused && (
+        {isTrackingPaused ? (
           <Button
             className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
             variant="ghost"
@@ -427,6 +387,16 @@ const DistractionStatusBar = ({
           >
             <Play size={20} />
             {!isNarrowView && <span className="ml-2">Resume</span>}
+          </Button>
+        ) : (
+          <Button
+            className="hover:bg-gray-200 dark:hover:bg-gray-700/50"
+            variant="ghost"
+            onClick={handlePauseClick}
+            title="Pause Tracking"
+          >
+            <Pause size={20} />
+            {!isNarrowView && <span className="ml-2">Pause</span>}
           </Button>
         )}
 

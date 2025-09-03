@@ -183,6 +183,12 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       }
     )
 
+  // TEMPORARILY DISABLED to test optimization
+  const eventsData = [] as any[]
+  const isLoadingFetchedEvents = false
+  const refetchEvents = () => {}
+  
+  /*
   const {
     data: eventsData,
     isLoading: isLoadingFetchedEvents,
@@ -192,9 +198,16 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
     {
       enabled: !!token && startDateMs !== null && endDateMs !== null,
       refetchOnWindowFocus: true,
-      refetchInterval: getPollingInterval(REFRESH_EVENTS_INTERVAL_MS)
+      refetchInterval: false, // Temporarily disable to test optimization
+      onSuccess: (data) => {
+        const today = new Date()
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0).getTime()
+        const isToday = startDateMs === todayStart
+        console.log(`📊 DashboardView fetched ${isToday ? 'TODAY' : 'OTHER DATE'} events:`, data?.length || 0, 'events', `(${startDateMs}-${endDateMs})`, isToday ? '(Should be shared with DistractionStatusBar!)' : '')
+      }
     }
   )
+  */
 
   useEffect(() => {
     if (isLoadingFetchedEvents || isLoadingCategories || isLoadingCalendarEvents) {
