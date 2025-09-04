@@ -7,6 +7,10 @@ import { createPortal } from 'react-dom';
 import { trackDownloadStart } from '~/lib/analytics';
 import { Button } from './button';
 import { Input } from './input';
+import { Caveat } from 'next/font/google';
+import { X } from 'lucide-react';
+
+const caveat = Caveat({ subsets: ['latin'], weight: '700' });
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -105,28 +109,47 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
           onClick={onClose}
         >
           <motion.div
-            className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4"
+            className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full mx-4 font-serif relative"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Top-right close */}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="absolute top-3 right-3 rounded-full p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
             <div className="flex items-center justify-center gap-2 mb-4">
-              <Image
+              {/* <Image
                 src="/icons/apple.png"
                 alt="Apple Logo"
                 width={24}
                 height={24}
                 className="w-6 h-6"
-              />
-              <h2 className="text-2xl font-bold text-gray-900">Download Cronus</h2>
+              /> */}
+              {/* <h2 className="text-2xl font-bold text-gray-900">Download Cronus</h2> */}
             </div>
-            <p className="text-gray-600 mb-6 text-center">
-              Choose the version that matches your Mac:
-            </p>
 
-            <div className="flex flex-col space-y-4">
+            {/* Sunset/Hold Notice */}
+            <div className="rounded-md border border-neutral-200 bg-zinc-50 text-neutral-800 p-4 mb-2 text-sm leading-6">
+              Hello everyone, we’ve stopped operating Cronus. Thank you for your support. The
+              website remains available.
+            </div>
+            <div className={`${caveat.className} text-2xl text-neutral-700 mt-2`}>
+              Moritz & Arne
+            </div>
+
+            {/* <p className="text-gray-600 mb-6 text-center">
+              Choose the version that matches your Mac:
+            </p> */}
+
+            {/* <div className="flex flex-col space-y-4">
               <button
                 onClick={() => handleDownload(downloadUrls.armUrl, 'arm64')}
                 className="flex-1 px-4 py-3 bg-primary text-white rounded-lg hover:bg-dark-hover text-center font-semibold transition-all hover:scale-105"
@@ -139,10 +162,10 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
               >
                 Download for Intel
               </button>
-            </div>
+            </div> */}
 
             {/* Windows Waitlist Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            {/* <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Image
                   src="/icons/windows.png"
@@ -155,37 +178,36 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
               </div>
               <p className="text-sm text-gray-600 mb-4 text-center">
                 Join our waitlist to be notified when Windows version is available
+              </p> */}
+
+            {/* {!isSubmitted ? (
+              <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-3">
+                <Input
+                  ref={windowsWaitlistInputRef}
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full"
+                />
+                <Button type="submit" variant="outline" className="w-full">
+                  Join Waitlist
+                </Button>
+              </form>
+            ) : (
+              <p className="text-green-600 text-center text-sm">
+                Thanks for joining! We&apos;ll notify you when Windows version is ready.
               </p>
-
-              {!isSubmitted ? (
-                <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-3">
-                  <Input
-                    ref={windowsWaitlistInputRef}
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="w-full"
-                  />
-                  <Button type="submit" variant="outline" className="w-full">
-                    Join Waitlist
-                  </Button>
-                </form>
-              ) : (
-                <p className="text-green-600 text-center text-sm">
-                  Thanks for joining! We&apos;ll notify you when Windows version is ready.
-                </p>
-              )}
-            </div>
-
-            <button
+            )} */}
+            {/* Bottom cancel removed in favor of top-right close */}
+            {/* <button
               onClick={onClose}
               type="button"
               className="w-full mt-6 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
-            </button>
+            </button> */}
           </motion.div>
         </motion.div>
       )}
