@@ -21,7 +21,9 @@ export function useOnboardingCompletion({ token, steps }: UseOnboardingCompletio
   })
 
   const handleComplete = async (referralSource: string, onComplete: () => void) => {
-    console.log('🔍 [ONBOARDING MODAL DEBUG] handleComplete called - starting onboarding completion')
+    console.log(
+      '🔍 [ONBOARDING MODAL DEBUG] handleComplete called - starting onboarding completion'
+    )
     setIsCompleting(true)
 
     if (token && referralSource.trim()) {
@@ -40,8 +42,10 @@ export function useOnboardingCompletion({ token, steps }: UseOnboardingCompletio
     console.log('🔍 [ONBOARDING MODAL DEBUG] Starting window tracking')
     try {
       await window.api.enablePermissionRequests()
-      console.log('🔍 [ONBOARDING MODAL DEBUG] Permission requests enabled, adding delay before starting tracking')
-      await new Promise(resolve => setTimeout(resolve, 500))
+      console.log(
+        '🔍 [ONBOARDING MODAL DEBUG] Permission requests enabled, adding delay before starting tracking'
+      )
+      await new Promise((resolve) => setTimeout(resolve, 500))
       await window.api.startWindowTracking()
       console.log('🔍 [ONBOARDING MODAL DEBUG] Window tracking started successfully')
     } catch (error) {
@@ -49,7 +53,10 @@ export function useOnboardingCompletion({ token, steps }: UseOnboardingCompletio
     }
 
     const showedPosthogStep = steps.some((step) => step.id === 'posthog-opt-in-eu')
-    console.log('🔍 [ONBOARDING MODAL DEBUG] PostHog step check:', { showedPosthogStep, hasOptedInToPosthog })
+    console.log('🔍 [ONBOARDING MODAL DEBUG] PostHog step check:', {
+      showedPosthogStep,
+      hasOptedInToPosthog
+    })
     if (token && showedPosthogStep) {
       try {
         const optedOut = !hasOptedInToPosthog
@@ -67,7 +74,10 @@ export function useOnboardingCompletion({ token, steps }: UseOnboardingCompletio
 
         console.log('✅ [ONBOARDING MODAL DEBUG] PostHog tracking preference updated successfully.')
       } catch (error) {
-        console.error('❌ [ONBOARDING MODAL DEBUG] Failed to update PostHog tracking preference:', error)
+        console.error(
+          '❌ [ONBOARDING MODAL DEBUG] Failed to update PostHog tracking preference:',
+          error
+        )
       }
     }
 

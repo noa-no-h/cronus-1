@@ -45,79 +45,82 @@ export function useOnboardingSteps({
 }: UseOnboardingStepsProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
-  const baseSteps = useMemo(() => [
-    {
-      id: 'welcome',
-      title: 'We care about your privacy',
-      content: <WelcomeStep />
-    },
-    {
-      id: 'posthog-opt-in-eu',
-      title: 'PostHog Usage Analytics',
-      content: <PostHogOptInEuStep />
-    },
-    {
-      id: 'goals',
-      title: '',
-      content: <GoalInputForm onboardingMode={true} onComplete={onGoalsComplete} />
-    },
-    {
-      id: 'ai-categories',
-      title: 'Customize Your Categories',
-      content: (
-        <AiCategoryCustomization
-          onComplete={onCategoriesComplete}
-          goals={userGoals}
-          onLoadingChange={onAiCategoriesLoadingChange}
-        />
-      )
-    },
-    {
-      id: 'accessibility',
-      title: 'Enable Accessibility Permission',
-      content: (
-        <AccessibilityStep
-          permissionStatus={permissionStatus}
-          hasRequestedPermission={hasRequestedPermission}
-        />
-      )
-    },
-    {
-      id: 'screen-recording',
-      title: 'Enable Window OCR Permission',
-      content: (
-        <ScreenRecordingStep
-          screenRecordingStatus={screenRecordingStatus}
-          hasRequestedScreenRecording={hasRequestedScreenRecording}
-        />
-      )
-    },
-    {
-      id: 'complete',
-      title: "You're All Set!",
-      content: (
-        <CompleteStep
-          hasExistingReferral={hasExistingReferral}
-          referralSource={referralSource}
-          setReferralSource={setReferralSource}
-          handleNext={onNext}
-        />
-      )
-    }
-  ], [
-    userGoals,
-    permissionStatus,
-    hasRequestedPermission,
-    screenRecordingStatus,
-    hasRequestedScreenRecording,
-    hasExistingReferral,
-    referralSource,
-    setReferralSource,
-    onGoalsComplete,
-    onCategoriesComplete,
-    onNext,
-    onAiCategoriesLoadingChange
-  ])
+  const baseSteps = useMemo(
+    () => [
+      {
+        id: 'welcome',
+        title: 'We care about your privacy',
+        content: <WelcomeStep />
+      },
+      {
+        id: 'posthog-opt-in-eu',
+        title: 'PostHog Usage Analytics',
+        content: <PostHogOptInEuStep />
+      },
+      {
+        id: 'goals',
+        title: '',
+        content: <GoalInputForm onboardingMode={true} onComplete={onGoalsComplete} />
+      },
+      {
+        id: 'ai-categories',
+        title: 'Customize Your Categories',
+        content: (
+          <AiCategoryCustomization
+            onComplete={onCategoriesComplete}
+            goals={userGoals}
+            onLoadingChange={onAiCategoriesLoadingChange}
+          />
+        )
+      },
+      {
+        id: 'accessibility',
+        title: 'Enable Accessibility Permission',
+        content: (
+          <AccessibilityStep
+            permissionStatus={permissionStatus}
+            hasRequestedPermission={hasRequestedPermission}
+          />
+        )
+      },
+      {
+        id: 'screen-recording',
+        title: 'Enable Window OCR Permission',
+        content: (
+          <ScreenRecordingStep
+            screenRecordingStatus={screenRecordingStatus}
+            hasRequestedScreenRecording={hasRequestedScreenRecording}
+          />
+        )
+      },
+      {
+        id: 'complete',
+        title: "You're All Set!",
+        content: (
+          <CompleteStep
+            hasExistingReferral={hasExistingReferral}
+            referralSource={referralSource}
+            setReferralSource={setReferralSource}
+            handleNext={onNext}
+          />
+        )
+      }
+    ],
+    [
+      userGoals,
+      permissionStatus,
+      hasRequestedPermission,
+      screenRecordingStatus,
+      hasRequestedScreenRecording,
+      hasExistingReferral,
+      referralSource,
+      setReferralSource,
+      onGoalsComplete,
+      onCategoriesComplete,
+      onNext,
+      onAiCategoriesLoadingChange
+    ]
+  )
 
   const steps = useMemo(() => {
     return baseSteps.filter((step) => {

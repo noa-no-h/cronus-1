@@ -9,7 +9,7 @@
 Cronus automatically tracks your desktop activity and uses AI to categorize your time into meaningful insights:
 
 - **🤖 Intelligent Categorization**: OpenAI GPT models automatically organize your activities
-- **📊 Beautiful Analytics**: Visual insights into your productivity patterns  
+- **📊 Beautiful Analytics**: Visual insights into your productivity patterns
 - **🔒 Privacy-First**: All data stays on your computer and servers
 - **⚡ Effortless Tracking**: Native macOS integration with minimal system impact
 - **📅 Calendar Integration**: Sync with Google Calendar for comprehensive time tracking
@@ -24,9 +24,10 @@ Cronus automatically tracks your desktop activity and uses AI to categorize your
 ### Prerequisites
 
 Before starting, ensure you have:
+
 - **macOS** (required for window tracking)
 - **Bun package manager** ([install here](https://bun.sh/))
-- **Homebrew** ([install here](https://brew.sh/)) 
+- **Homebrew** ([install here](https://brew.sh/))
 - **OpenAI API account** ([sign up here](https://platform.openai.com/))
 
 ---
@@ -98,7 +99,7 @@ MONGODB_URI="mongodb://localhost:27017/cronus"
 # AI Features - REQUIRED
 OPENAI_API_KEY="your_openai_api_key_here"
 
-# Authentication - REQUIRED  
+# Authentication - REQUIRED
 AUTH_SECRET="your_secure_random_32_character_string_here"
 
 # Optional Services (you can leave these as-is for testing)
@@ -168,6 +169,7 @@ bun dev
 ```
 
 **Expected output**:
+
 ```
 Server running on port 3001
 Connected to MongoDB: mongodb://localhost:27017/cronus
@@ -211,7 +213,7 @@ After completing the steps above, you should see:
 ```
 cronus-desktop-tracker/
 ├── electron-app/           # Desktop application
-│   ├── src/main/          # Electron main process  
+│   ├── src/main/          # Electron main process
 │   ├── src/renderer/      # React UI components
 │   └── src/preload/       # Preload scripts
 ├── server/                # Backend API server
@@ -227,7 +229,7 @@ cronus-desktop-tracker/
 ```bash
 # Development
 bun dev:electron-server    # Start both server and app together
-bun run build:shared      # Build shared dependencies  
+bun run build:shared      # Build shared dependencies
 bun run build:server      # Build server for production
 bun run build:electron    # Build electron app
 
@@ -239,14 +241,14 @@ bun run typecheck        # Verify TypeScript types
 
 ### Environment Variables Reference
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `MONGODB_URI` | ✅ | MongoDB connection string | `mongodb://localhost:27017/cronus` |
-| `OPENAI_API_KEY` | ✅ | OpenAI API key for categorization | `sk-...` |
-| `AUTH_SECRET` | ✅ | JWT signing secret | 32+ character random string |
-| `GOOGLE_CLIENT_ID` | ❌ | Google OAuth client ID | For calendar integration |
-| `GOOGLE_CLIENT_SECRET` | ❌ | Google OAuth client secret | For calendar integration |
-| `PORT` | ❌ | Server port | `3001` (default) |
+| Variable               | Required | Description                       | Example                            |
+| ---------------------- | -------- | --------------------------------- | ---------------------------------- |
+| `MONGODB_URI`          | ✅       | MongoDB connection string         | `mongodb://localhost:27017/cronus` |
+| `OPENAI_API_KEY`       | ✅       | OpenAI API key for categorization | `sk-...`                           |
+| `AUTH_SECRET`          | ✅       | JWT signing secret                | 32+ character random string        |
+| `GOOGLE_CLIENT_ID`     | ❌       | Google OAuth client ID            | For calendar integration           |
+| `GOOGLE_CLIENT_SECRET` | ❌       | Google OAuth client secret        | For calendar integration           |
+| `PORT`                 | ❌       | Server port                       | `3001` (default)                   |
 
 ---
 
@@ -259,6 +261,7 @@ bun run typecheck        # Verify TypeScript types
 **Problem**: Server shows "MongoDB connection error"
 
 **Solution**:
+
 ```bash
 # Check if MongoDB is running
 brew services list | grep mongodb
@@ -275,6 +278,7 @@ tail -f /opt/homebrew/var/log/mongodb/mongo.log
 **Problem**: Activities aren't being categorized
 
 **Solutions**:
+
 - Verify your API key is correct in `server/.env`
 - Check your OpenAI account has available credits
 - Visit [OpenAI Status](https://status.openai.com/) for service issues
@@ -284,6 +288,7 @@ tail -f /opt/homebrew/var/log/mongodb/mongo.log
 **Problem**: Desktop app crashes or won't launch
 
 **Solution**:
+
 ```bash
 # Rebuild native modules
 cd electron-app
@@ -299,6 +304,7 @@ rm -rf node_modules/.cache
 **Problem**: Window tracking doesn't work
 
 **Solution**:
+
 1. Open **System Preferences** > **Security & Privacy** > **Privacy**
 2. Click **Accessibility** in the left sidebar
 3. Click the lock icon and enter your password
@@ -309,6 +315,7 @@ rm -rf node_modules/.cache
 **Problem**: "Port 3001 is already in use"
 
 **Solution**:
+
 ```bash
 # Find what's using port 3001
 lsof -i :3001
@@ -356,6 +363,7 @@ If you encounter issues:
 Deploy your server to Render.com for reliable, managed hosting:
 
 **1. Prepare for Deployment**
+
 ```bash
 # Ensure your code is ready
 bun run build:shared
@@ -365,6 +373,7 @@ bun run build:server
 **2. Create Render Services**
 
 **Main Server Service:**
+
 - **Repository**: Connect your GitHub repository
 - **Branch**: `opensource-desktop-app`
 - **Root Directory**: `server`
@@ -373,6 +382,7 @@ bun run build:server
 - **Instance Type**: Starter ($7/month is sufficient)
 
 **Environment Variables for Render:**
+
 ```env
 MONGODB_URI=your_mongodb_atlas_connection_string
 OPENAI_API_KEY=your_openai_api_key
@@ -387,7 +397,7 @@ NODE_ENV=production
 
 Create a second Render service for background tasks:
 
-- **Service Type**: Background Worker  
+- **Service Type**: Background Worker
 - **Repository**: Same repository
 - **Branch**: `opensource-desktop-app`
 - **Root Directory**: `server`
@@ -397,24 +407,27 @@ Create a second Render service for background tasks:
 **Cron Job Options:**
 
 **Option A: Suggestions Generation (Daily)**
+
 ```bash
 # Start Command for daily suggestions
 while true; do bun run cron:generate-suggestions; sleep 86400; done
 ```
 
-**Option B: Churn Prevention Emails (Daily)**  
+**Option B: Churn Prevention Emails (Daily)**
+
 ```bash
 # Start Command for churn prevention
 while true; do bun run cron:churn-prevention; sleep 86400; done
 ```
 
 **Option C: Combined Background Worker (Recommended)**
+
 ```bash
 # Start Command for both cron jobs
-while true; do 
-  bun run cron:generate-suggestions; 
-  bun run cron:churn-prevention; 
-  sleep 86400; 
+while true; do
+  bun run cron:generate-suggestions;
+  bun run cron:churn-prevention;
+  sleep 86400;
 done
 ```
 
@@ -424,6 +437,7 @@ done
 - **Churn Prevention**: Sends re-engagement emails to users who haven't been active (requires LOOPS_API_KEY)
 
 **Environment Variables for Cron Jobs:**
+
 ```env
 # Required for both
 MONGODB_URI=your_mongodb_connection_string
@@ -442,17 +456,20 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 #### Alternative Cloud Providers
 
 **Railway.app:**
+
 - Root Directory: `server`
-- Build Command: `bun install && bun run build`  
+- Build Command: `bun install && bun run build`
 - Start Command: `bun start`
 
 **DigitalOcean App Platform:**
+
 - Component Type: Web Service
 - Source Directory: `/server`
 - Build Command: `bun install && bun run build`
 - Run Command: `bun start`
 
 **Heroku:**
+
 ```bash
 # Add Node.js buildpack
 heroku buildpacks:add heroku/nodejs
@@ -466,12 +483,14 @@ git subtree push --prefix=server heroku main
 After deploying your server, update the electron app to connect to your production server:
 
 **Edit `electron-app/.env`:**
+
 ```env
 VITE_SERVER_URL=https://your-server-name.onrender.com
 # Replace with your actual Render URL
 ```
 
 **Test Your Production Setup:**
+
 ```bash
 # Rebuild shared dependencies
 bun run build:shared
@@ -523,7 +542,7 @@ For code signing and distribution, see the [Electron App README](./electron-app/
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
 
 - Setting up the development environment
-- Code style guidelines  
+- Code style guidelines
 - Pull request process
 - Issue reporting
 

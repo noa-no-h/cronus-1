@@ -7,7 +7,7 @@ export function useOnboardingQueries() {
   const [userGoals, setUserGoals] = useState('')
   const [isAiCategoriesLoading, setIsAiCategoriesLoading] = useState(false)
   const [referralSource, setReferralSource] = useState('')
-  
+
   const { token } = useAuth()
   const utils = trpc.useUtils()
 
@@ -22,10 +22,10 @@ export function useOnboardingQueries() {
 
   const { data: userProjectsAndGoals, isLoading: isLoadingGoals } =
     trpc.user.getUserProjectsAndGoals.useQuery({ token: token || '' }, { enabled: !!token })
-  
+
   const { data: hasCategories, isLoading: isLoadingHasCategories } =
     trpc.category.hasCategories.useQuery({ token: token || '' }, { enabled: !!token })
-  
+
   const { data: existingReferralSource, isLoading: isLoadingReferral } =
     trpc.user.getUserReferralSource.useQuery({ token: token || '' }, { enabled: !!token })
 

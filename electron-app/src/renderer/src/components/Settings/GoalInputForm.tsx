@@ -139,7 +139,9 @@ const GoalInputForm = ({
       aria-label={!onboardingMode && !isEditing ? 'Click to edit your goals' : undefined}
     >
       <CardHeader>
-        <CardTitle className="text-xl text-card-foreground">Explain your current work & goals</CardTitle>
+        <CardTitle className="text-xl text-card-foreground">
+          Explain your current work & goals
+        </CardTitle>
         <CardDescription>
           What is your job? What are your hobbies and projects? Details help our AI differentiate
           between your activities and distractions.

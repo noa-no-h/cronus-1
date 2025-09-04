@@ -118,9 +118,12 @@ export const EventSegments: React.FC<EventSegmentsProps> = ({
     if (!token) return
 
     // Use the originalEventIds from the segment if available, otherwise fall back to segment._id
-    const eventIdsToDelete = segment.originalEventIds && segment.originalEventIds.length > 0 
-      ? segment.originalEventIds 
-      : segment._id ? [segment._id] : []
+    const eventIdsToDelete =
+      segment.originalEventIds && segment.originalEventIds.length > 0
+        ? segment.originalEventIds
+        : segment._id
+          ? [segment._id]
+          : []
 
     if (eventIdsToDelete.length === 0) {
       console.error('No event IDs found for segment deletion:', segment)

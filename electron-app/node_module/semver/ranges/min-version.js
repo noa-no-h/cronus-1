@@ -33,7 +33,7 @@ const minVersion = (range, loose) => {
             compver.prerelease.push(0)
           }
           compver.raw = compver.format()
-          /* fallthrough */
+        /* fallthrough */
         case '':
         case '>=':
           if (!setMin || gt(compver, setMin)) {

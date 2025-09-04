@@ -18,19 +18,19 @@ const CalendarCategoryChoiceSchema = z.object({
   chosenCategoryName: z.string(),
   reasoning: z
     .string()
-    .describe(
-      'Brief explanation of why this category fits the calendar event. Max 15 words.'
-    ),
+    .describe('Brief explanation of why this category fits the calendar event. Max 15 words.'),
 });
 
 function buildCalendarEventContent(calendarEvent: CalendarEvent): string {
   let content = calendarEvent.description || '';
-  
+
   if (calendarEvent.attendees && calendarEvent.attendees.length > 1) {
-    const attendeeEmails = calendarEvent.attendees.map(a => a.email || a.displayName || 'Unknown').filter(Boolean);
+    const attendeeEmails = calendarEvent.attendees
+      .map((a) => a.email || a.displayName || 'Unknown')
+      .filter(Boolean);
     content += `\nAttendees: ${calendarEvent.attendees.length} people (${attendeeEmails.join(', ')})`;
   }
-  
+
   return content;
 }
 
@@ -96,7 +96,10 @@ Respond with the category name and brief reasoning.`,
     });
 
     if (!response.output_parsed || 'refusal' in response.output_parsed) {
-      console.warn('OpenAI response issue or refusal selecting calendar category:', response.output_parsed);
+      console.warn(
+        'OpenAI response issue or refusal selecting calendar category:',
+        response.output_parsed
+      );
       return null;
     }
 

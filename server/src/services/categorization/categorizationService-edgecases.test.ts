@@ -650,11 +650,11 @@ Booking reference: ABCD123`;
     // Assert: Should be categorized as either "Other work" or "Brighter", not "Distraction"
     const receivedCategory = simonCategories.find((c) => c._id === result.categoryId);
     const acceptedCategories = ['Other work', 'Brighter'];
-    
+
     console.log('Flight booking test - Category Name:', receivedCategory?.name);
     console.log('Flight booking test - LLM Summary:', result.llmSummary);
     console.log('Flight booking test - Category Reasoning:', result.categoryReasoning);
-    
+
     expect(acceptedCategories).toContain(receivedCategory?.name);
   }, 30000); // Increased timeout for LLM call
 

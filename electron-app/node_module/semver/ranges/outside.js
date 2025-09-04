@@ -69,8 +69,7 @@ const outside = (version, range, hilo, options) => {
 
     // If the lowest version comparator has an operator and our version
     // is less than it then it isn't higher than the range
-    if ((!low.operator || low.operator === comp) &&
-        ltefn(version, low.semver)) {
+    if ((!low.operator || low.operator === comp) && ltefn(version, low.semver)) {
       return false
     } else if (low.operator === ecomp && ltfn(version, low.semver)) {
       return false

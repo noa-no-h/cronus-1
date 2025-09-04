@@ -10,7 +10,9 @@ interface UseAccessibilityPermissionReturn {
   missingAccessibilityPermissions: boolean
 }
 
-export function useAccessibilityPermission({ token }: UseAccessibilityPermissionProps): UseAccessibilityPermissionReturn {
+export function useAccessibilityPermission({
+  token
+}: UseAccessibilityPermissionProps): UseAccessibilityPermissionReturn {
   const [accessibilityPermissionChecked, setAccessibilityPermissionChecked] = useState(false)
   const [missingAccessibilityPermissions, setMissingAccessibilityPermissions] = useState(false)
 

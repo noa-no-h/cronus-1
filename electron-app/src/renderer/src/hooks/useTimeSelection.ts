@@ -85,7 +85,7 @@ export const useTimeSelection = (
           if (segment.type === 'calendar') {
             continue
           }
-          
+
           if (isDraggingDown) {
             // When dragging down, stop at the top of any existing segment
             if (segment.top > startY && segment.top < currentY) {

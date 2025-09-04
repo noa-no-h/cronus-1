@@ -4,7 +4,7 @@ const SPACE_CHARACTERS = /\s+/g
 
 // hoisted class for cyclic dependency
 class Range {
-  constructor (range, options) {
+  constructor(range, options) {
     options = parseOptions(options)
 
     if (range instanceof Range) {
@@ -39,11 +39,11 @@ class Range {
     this.set = this.raw
       .split('||')
       // map the range to a 2d array of comparators
-      .map(r => this.parseRange(r.trim()))
+      .map((r) => this.parseRange(r.trim()))
       // throw out any comparator lists that are empty
       // this generally means that it was not a valid range, which is allowed
       // in loose mode, but will still throw if the WHOLE range is invalid.
-      .filter(c => c.length)
+      .filter((c) => c.length)
 
     if (!this.set.length) {
       throw new TypeError(`Invalid SemVer Range: ${this.raw}`)
@@ -53,7 +53,7 @@ class Range {
     if (this.set.length > 1) {
       // keep the first one, in case they're all null sets
       const first = this.set[0]
-      this.set = this.set.filter(c => !isNullSet(c[0]))
+      this.set = this.set.filter((c) => !isNullSet(c[0]))
       if (this.set.length === 0) {
         this.set = [first]
       } else if (this.set.length > 1) {
@@ -70,7 +70,7 @@ class Range {
     this.formatted = undefined
   }
 
-  get range () {
+  get range() {
     if (this.formatted === undefined) {
       this.formatted = ''
       for (let i = 0; i < this.set.length; i++) {
@@ -89,15 +89,15 @@ class Range {
     return this.formatted
   }
 
-  format () {
+  format() {
     return this.range
   }
 
-  toString () {
+  toString() {
     return this.range
   }
 
-  parseRange (range) {
+  parseRange(range) {
     // memoize range parsing for performance.
     // this is a very hot path, and fully deterministic.
     const memoOpts =
@@ -132,15 +132,15 @@ class Range {
 
     let rangeList = range
       .split(' ')
-      .map(comp => parseComparator(comp, this.options))
+      .map((comp) => parseComparator(comp, this.options))
       .join(' ')
       .split(/\s+/)
       // >=0.0.0 is equivalent to *
-      .map(comp => replaceGTE0(comp, this.options))
+      .map((comp) => replaceGTE0(comp, this.options))
 
     if (loose) {
       // in loose mode, throw out any that are not valid comparators
-      rangeList = rangeList.filter(comp => {
+      rangeList = rangeList.filter((comp) => {
         debug('loose invalid filter', comp, this.options)
         return !!comp.match(re[t.COMPARATORLOOSE])
       })
@@ -151,7 +151,7 @@ class Range {
     // if more than one comparator, remove any * comparators
     // also, don't include the same comparator more than once
     const rangeMap = new Map()
-    const comparators = rangeList.map(comp => new Comparator(comp, this.options))
+    const comparators = rangeList.map((comp) => new Comparator(comp, this.options))
     for (const comp of comparators) {
       if (isNullSet(comp)) {
         return [comp]
@@ -167,7 +167,7 @@ class Range {
     return result
   }
 
-  intersects (range, options) {
+  intersects(range, options) {
     if (!(range instanceof Range)) {
       throw new TypeError('a Range is required')
     }
@@ -190,7 +190,7 @@ class Range {
   }
 
   // if ANY of the sets match ALL of its comparators, then pass
-  test (version) {
+  test(version) {
     if (!version) {
       return false
     }
@@ -226,12 +226,12 @@ const {
   t,
   comparatorTrimReplace,
   tildeTrimReplace,
-  caretTrimReplace,
+  caretTrimReplace
 } = require('../internal/re')
 const { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = require('../internal/constants')
 
-const isNullSet = c => c.value === '<0.0.0-0'
-const isAny = c => c.value === ''
+const isNullSet = (c) => c.value === '<0.0.0-0'
+const isAny = (c) => c.value === ''
 
 // take a set of comparators and determine whether there
 // exists a version which can satisfy it
@@ -267,7 +267,7 @@ const parseComparator = (comp, options) => {
   return comp
 }
 
-const isX = id => !id || id.toLowerCase() === 'x' || id === '*'
+const isX = (id) => !id || id.toLowerCase() === 'x' || id === '*'
 
 // ~, ~> --> * (any, kinda silly)
 // ~2, ~2.x, ~2.x.x, ~>2, ~>2.x ~>2.x.x --> >=2.0.0 <3.0.0-0
@@ -299,12 +299,10 @@ const replaceTilde = (comp, options) => {
       ret = `>=${M}.${m}.0 <${M}.${+m + 1}.0-0`
     } else if (pr) {
       debug('replaceTilde pr', pr)
-      ret = `>=${M}.${m}.${p}-${pr
-      } <${M}.${+m + 1}.0-0`
+      ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`
     } else {
       // ~1.2.3 == >=1.2.3 <1.3.0-0
-      ret = `>=${M}.${m}.${p
-      } <${M}.${+m + 1}.0-0`
+      ret = `>=${M}.${m}.${p} <${M}.${+m + 1}.0-0`
     }
 
     debug('tilde return', ret)
@@ -350,29 +348,23 @@ const replaceCaret = (comp, options) => {
       debug('replaceCaret pr', pr)
       if (M === '0') {
         if (m === '0') {
-          ret = `>=${M}.${m}.${p}-${pr
-          } <${M}.${m}.${+p + 1}-0`
+          ret = `>=${M}.${m}.${p}-${pr} <${M}.${m}.${+p + 1}-0`
         } else {
-          ret = `>=${M}.${m}.${p}-${pr
-          } <${M}.${+m + 1}.0-0`
+          ret = `>=${M}.${m}.${p}-${pr} <${M}.${+m + 1}.0-0`
         }
       } else {
-        ret = `>=${M}.${m}.${p}-${pr
-        } <${+M + 1}.0.0-0`
+        ret = `>=${M}.${m}.${p}-${pr} <${+M + 1}.0.0-0`
       }
     } else {
       debug('no pr')
       if (M === '0') {
         if (m === '0') {
-          ret = `>=${M}.${m}.${p
-          }${z} <${M}.${m}.${+p + 1}-0`
+          ret = `>=${M}.${m}.${p}${z} <${M}.${m}.${+p + 1}-0`
         } else {
-          ret = `>=${M}.${m}.${p
-          }${z} <${M}.${+m + 1}.0-0`
+          ret = `>=${M}.${m}.${p}${z} <${M}.${+m + 1}.0-0`
         }
       } else {
-        ret = `>=${M}.${m}.${p
-        } <${+M + 1}.0.0-0`
+        ret = `>=${M}.${m}.${p} <${+M + 1}.0.0-0`
       }
     }
 
@@ -454,8 +446,7 @@ const replaceXRange = (comp, options) => {
     } else if (xm) {
       ret = `>=${M}.0.0${pr} <${+M + 1}.0.0-0`
     } else if (xp) {
-      ret = `>=${M}.${m}.0${pr
-      } <${M}.${+m + 1}.0-0`
+      ret = `>=${M}.${m}.0${pr} <${M}.${+m + 1}.0-0`
     }
 
     debug('xRange return', ret)
@@ -469,16 +460,12 @@ const replaceXRange = (comp, options) => {
 const replaceStars = (comp, options) => {
   debug('replaceStars', comp, options)
   // Looseness is ignored here.  star is always as loose as it gets!
-  return comp
-    .trim()
-    .replace(re[t.STAR], '')
+  return comp.trim().replace(re[t.STAR], '')
 }
 
 const replaceGTE0 = (comp, options) => {
   debug('replaceGTE0', comp, options)
-  return comp
-    .trim()
-    .replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], '')
+  return comp.trim().replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], '')
 }
 
 // This function is passed to string.replace(re[t.HYPHENRANGE])
@@ -487,9 +474,7 @@ const replaceGTE0 = (comp, options) => {
 // 1.2.3 - 3.4 => >=1.2.0 <3.5.0-0 Any 3.4.x will do
 // 1.2 - 3.4 => >=1.2.0 <3.5.0-0
 // TODO build?
-const hyphenReplace = incPr => ($0,
-  from, fM, fm, fp, fpr, fb,
-  to, tM, tm, tp, tpr) => {
+const hyphenReplace = (incPr) => ($0, from, fM, fm, fp, fpr, fb, to, tM, tm, tp, tpr) => {
   if (isX(fM)) {
     from = ''
   } else if (isX(fm)) {
@@ -540,9 +525,11 @@ const testSet = (set, version, options) => {
 
       if (set[i].semver.prerelease.length > 0) {
         const allowed = set[i].semver
-        if (allowed.major === version.major &&
-            allowed.minor === version.minor &&
-            allowed.patch === version.patch) {
+        if (
+          allowed.major === version.major &&
+          allowed.minor === version.minor &&
+          allowed.patch === version.patch
+        ) {
           return true
         }
       }

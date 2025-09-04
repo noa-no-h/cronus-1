@@ -7,12 +7,14 @@ const { safeRe: re, t } = require('../internal/re')
 const parseOptions = require('../internal/parse-options')
 const { compareIdentifiers } = require('../internal/identifiers')
 class SemVer {
-  constructor (version, options) {
+  constructor(version, options) {
     options = parseOptions(options)
 
     if (version instanceof SemVer) {
-      if (version.loose === !!options.loose &&
-        version.includePrerelease === !!options.includePrerelease) {
+      if (
+        version.loose === !!options.loose &&
+        version.includePrerelease === !!options.includePrerelease
+      ) {
         return version
       } else {
         version = version.version
@@ -22,9 +24,7 @@ class SemVer {
     }
 
     if (version.length > MAX_LENGTH) {
-      throw new TypeError(
-        `version is longer than ${MAX_LENGTH} characters`
-      )
+      throw new TypeError(`version is longer than ${MAX_LENGTH} characters`)
     }
 
     debug('SemVer', version, options)
@@ -78,7 +78,7 @@ class SemVer {
     this.format()
   }
 
-  format () {
+  format() {
     this.version = `${this.major}.${this.minor}.${this.patch}`
     if (this.prerelease.length) {
       this.version += `-${this.prerelease.join('.')}`
@@ -86,11 +86,11 @@ class SemVer {
     return this.version
   }
 
-  toString () {
+  toString() {
     return this.version
   }
 
-  compare (other) {
+  compare(other) {
     debug('SemVer.compare', this.version, this.options, other)
     if (!(other instanceof SemVer)) {
       if (typeof other === 'string' && other === this.version) {
@@ -106,7 +106,7 @@ class SemVer {
     return this.compareMain(other) || this.comparePre(other)
   }
 
-  compareMain (other) {
+  compareMain(other) {
     if (!(other instanceof SemVer)) {
       other = new SemVer(other, this.options)
     }
@@ -118,7 +118,7 @@ class SemVer {
     )
   }
 
-  comparePre (other) {
+  comparePre(other) {
     if (!(other instanceof SemVer)) {
       other = new SemVer(other, this.options)
     }
@@ -151,7 +151,7 @@ class SemVer {
     } while (++i)
   }
 
-  compareBuild (other) {
+  compareBuild(other) {
     if (!(other instanceof SemVer)) {
       other = new SemVer(other, this.options)
     }
@@ -177,14 +177,16 @@ class SemVer {
 
   // preminor will bump the version up to the next minor release, and immediately
   // down to pre-release. premajor and prepatch work the same way.
-  inc (release, identifier, identifierBase) {
+  inc(release, identifier, identifierBase) {
     if (release.startsWith('pre')) {
       if (!identifier && identifierBase === false) {
         throw new Error('invalid increment argument: identifier is empty')
       }
       // Avoid an invalid semver results
       if (identifier) {
-        const match = `-${identifier}`.match(this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE])
+        const match = `-${identifier}`.match(
+          this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE]
+        )
         if (!match || match[1] !== identifier) {
           throw new Error(`invalid identifier: ${identifier}`)
         }
@@ -233,11 +235,7 @@ class SemVer {
         // Otherwise increment major.
         // 1.0.0-5 bumps to 1.0.0
         // 1.1.0 bumps to 2.0.0
-        if (
-          this.minor !== 0 ||
-          this.patch !== 0 ||
-          this.prerelease.length === 0
-        ) {
+        if (this.minor !== 0 || this.patch !== 0 || this.prerelease.length === 0) {
           this.major++
         }
         this.minor = 0

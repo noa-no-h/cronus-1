@@ -188,13 +188,13 @@ export function useActivityTracking({
 
   const eventCreationMutation = trpc.activeWindowEvents.create.useMutation({
     onSuccess: (data) => {
-       const eventWithParsedDates = {
+      const eventWithParsedDates = {
         ...data,
         lastCategorizationAt: data.lastCategorizationAt
           ? new Date(data.lastCategorizationAt)
           : undefined
-       };
-      activityEventService.addEvent(eventWithParsedDates);
+      }
+      activityEventService.addEvent(eventWithParsedDates)
       trpcUtils.activeWindowEvents.getLatestEvent.invalidate()
     },
     onError: (error) => {

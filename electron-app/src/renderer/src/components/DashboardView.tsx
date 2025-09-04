@@ -185,27 +185,28 @@ export function DashboardView({ className }: { className?: string }): ReactEleme
       }
     )
 
-  const { isLoading: isLoadingFetchedEvents, refetch: refetchEvents } = trpc.activeWindowEvents.getEventsForDateRange.useQuery(
-    { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
-    {
-      enabled: !!token && startDateMs !== null && endDateMs !== null,
-      refetchOnWindowFocus: true,
-      onSuccess: (data) => {
-        const eventsWithParsedDates = data.map((event) => ({
-        ...event,
-        lastCategorizationAt: event.lastCategorizationAt
-          ? new Date(event.lastCategorizationAt)
-          : undefined
-      }))
-        activityEventService.setEvents(eventsWithParsedDates)
+  const { isLoading: isLoadingFetchedEvents, refetch: refetchEvents } =
+    trpc.activeWindowEvents.getEventsForDateRange.useQuery(
+      { token: token || '', startDateMs: startDateMs!, endDateMs: endDateMs! },
+      {
+        enabled: !!token && startDateMs !== null && endDateMs !== null,
+        refetchOnWindowFocus: true,
+        onSuccess: (data) => {
+          const eventsWithParsedDates = data.map((event) => ({
+            ...event,
+            lastCategorizationAt: event.lastCategorizationAt
+              ? new Date(event.lastCategorizationAt)
+              : undefined
+          }))
+          activityEventService.setEvents(eventsWithParsedDates)
+        }
       }
-    }
-  )
+    )
 
   useEffect(() => {
     const subscription = activityEventService.events$.subscribe((data) => {
       setEvents(data)
-    });
+    })
     return () => subscription.unsubscribe()
   }, [])
 

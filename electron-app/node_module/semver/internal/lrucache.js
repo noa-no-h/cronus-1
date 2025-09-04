@@ -1,12 +1,12 @@
 'use strict'
 
 class LRUCache {
-  constructor () {
+  constructor() {
     this.max = 1000
     this.map = new Map()
   }
 
-  get (key) {
+  get(key) {
     const value = this.map.get(key)
     if (value === undefined) {
       return undefined
@@ -18,11 +18,11 @@ class LRUCache {
     }
   }
 
-  delete (key) {
+  delete(key) {
     return this.map.delete(key)
   }
 
-  set (key, value) {
+  set(key, value) {
     const deleted = this.delete(key)
 
     if (!deleted && value !== undefined) {

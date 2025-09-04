@@ -39,7 +39,7 @@ export const SelectionBox: React.FC<SelectionBoxProps> = ({
       if (segment.type === 'calendar') {
         continue
       }
-      
+
       if (isDraggingDown) {
         // When dragging down, check if we're hitting the top of an existing segment
         if (segment.top > startY && segment.top < currentY) {

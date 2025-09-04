@@ -70,25 +70,16 @@ export function ManualUpdateSettings() {
   return (
     <div className="bg-muted/30 rounded-lg p-6 border border-border">
       <h2 className="text-xl font-semibold mb-4">App Updates</h2>
-      <p className="text-muted-foreground mb-4">
-        Check for and install app updates manually.
-      </p>
-      
+      <p className="text-muted-foreground mb-4">Check for and install app updates manually.</p>
+
       <div className="flex items-center gap-4">
-        <Button
-          onClick={handleCheckForUpdates}
-          disabled={isChecking}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={handleCheckForUpdates} disabled={isChecking} variant="outline" size="sm">
           <RefreshCw className={`w-4 h-4 mr-2 ${isChecking ? 'animate-spin' : ''}`} />
           Check for Updates
         </Button>
-        
+
         {getStatusMessage() && (
-          <span className={`text-sm ${getStatusColor()}`}>
-            {getStatusMessage()}
-          </span>
+          <span className={`text-sm ${getStatusColor()}`}>{getStatusMessage()}</span>
         )}
       </div>
     </div>

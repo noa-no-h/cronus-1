@@ -145,15 +145,17 @@ const simpleSubset = (sub, dom, options) => {
   let hasDomLT, hasDomGT
   // if the subset has a prerelease, we need a comparator in the superset
   // with the same tuple and a prerelease, or it's not a subset
-  let needDomLTPre = lt &&
-    !options.includePrerelease &&
-    lt.semver.prerelease.length ? lt.semver : false
-  let needDomGTPre = gt &&
-    !options.includePrerelease &&
-    gt.semver.prerelease.length ? gt.semver : false
+  let needDomLTPre =
+    lt && !options.includePrerelease && lt.semver.prerelease.length ? lt.semver : false
+  let needDomGTPre =
+    gt && !options.includePrerelease && gt.semver.prerelease.length ? gt.semver : false
   // exception: <1.2.3-0 is the same as <1.2.3
-  if (needDomLTPre && needDomLTPre.prerelease.length === 1 &&
-      lt.operator === '<' && needDomLTPre.prerelease[0] === 0) {
+  if (
+    needDomLTPre &&
+    needDomLTPre.prerelease.length === 1 &&
+    lt.operator === '<' &&
+    needDomLTPre.prerelease[0] === 0
+  ) {
     needDomLTPre = false
   }
 
@@ -162,10 +164,13 @@ const simpleSubset = (sub, dom, options) => {
     hasDomLT = hasDomLT || c.operator === '<' || c.operator === '<='
     if (gt) {
       if (needDomGTPre) {
-        if (c.semver.prerelease && c.semver.prerelease.length &&
-            c.semver.major === needDomGTPre.major &&
-            c.semver.minor === needDomGTPre.minor &&
-            c.semver.patch === needDomGTPre.patch) {
+        if (
+          c.semver.prerelease &&
+          c.semver.prerelease.length &&
+          c.semver.major === needDomGTPre.major &&
+          c.semver.minor === needDomGTPre.minor &&
+          c.semver.patch === needDomGTPre.patch
+        ) {
           needDomGTPre = false
         }
       }
@@ -180,10 +185,13 @@ const simpleSubset = (sub, dom, options) => {
     }
     if (lt) {
       if (needDomLTPre) {
-        if (c.semver.prerelease && c.semver.prerelease.length &&
-            c.semver.major === needDomLTPre.major &&
-            c.semver.minor === needDomLTPre.minor &&
-            c.semver.patch === needDomLTPre.patch) {
+        if (
+          c.semver.prerelease &&
+          c.semver.prerelease.length &&
+          c.semver.major === needDomLTPre.major &&
+          c.semver.minor === needDomLTPre.minor &&
+          c.semver.patch === needDomLTPre.patch
+        ) {
           needDomLTPre = false
         }
       }
@@ -228,10 +236,7 @@ const higherGT = (a, b, options) => {
     return b
   }
   const comp = compare(a.semver, b.semver, options)
-  return comp > 0 ? a
-    : comp < 0 ? b
-    : b.operator === '>' && a.operator === '>=' ? b
-    : a
+  return comp > 0 ? a : comp < 0 ? b : b.operator === '>' && a.operator === '>=' ? b : a
 }
 
 // <=1.2.3 is higher than <1.2.3
@@ -240,10 +245,7 @@ const lowerLT = (a, b, options) => {
     return b
   }
   const comp = compare(a.semver, b.semver, options)
-  return comp < 0 ? a
-    : comp > 0 ? b
-    : b.operator === '<' && a.operator === '<=' ? b
-    : a
+  return comp < 0 ? a : comp > 0 ? b : b.operator === '<' && a.operator === '<=' ? b : a
 }
 
 module.exports = subset

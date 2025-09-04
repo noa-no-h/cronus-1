@@ -34,11 +34,11 @@ const coerce = (version, options) => {
     // coercible string can be more right-ward without the same terminus.
     const coerceRtlRegex = options.includePrerelease ? re[t.COERCERTLFULL] : re[t.COERCERTL]
     let next
-    while ((next = coerceRtlRegex.exec(version)) &&
-        (!match || match.index + match[0].length !== version.length)
+    while (
+      (next = coerceRtlRegex.exec(version)) &&
+      (!match || match.index + match[0].length !== version.length)
     ) {
-      if (!match ||
-            next.index + next[0].length !== match.index + match[0].length) {
+      if (!match || next.index + next[0].length !== match.index + match[0].length) {
         match = next
       }
       coerceRtlRegex.lastIndex = next.index + next[1].length + next[2].length

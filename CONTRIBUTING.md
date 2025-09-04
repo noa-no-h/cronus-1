@@ -19,16 +19,19 @@ Thank you for your interest in contributing to Cronus! This document provides gu
 ## 🏗️ Development Workflow
 
 ### Branch Strategy
+
 - Create feature branches from `main`: `git checkout -b feature/your-feature-name`
 - Use descriptive branch names: `feature/ai-categorization-improvements`, `fix/mongodb-connection-error`
 
 ### Code Style
+
 - **TypeScript**: All code must be properly typed
 - **Prettier**: Code is automatically formatted with Prettier
 - **ESLint**: Follow the existing linting rules
 - **Consistent naming**: Use camelCase for variables/functions, PascalCase for components/classes
 
 ### Running the Development Environment
+
 ```bash
 # Start server and electron app together
 bun run dev:electron-server
@@ -37,11 +40,12 @@ bun run dev:electron-server
 # Terminal 1:
 cd server && bun dev
 
-# Terminal 2:  
+# Terminal 2:
 cd electron-app && bun dev
 ```
 
 ### Testing
+
 - Write tests for new functionality
 - Ensure existing tests pass before submitting PR
 - Test on macOS (required for native modules)
@@ -49,7 +53,9 @@ cd electron-app && bun dev
 ## 📝 Pull Request Process
 
 ### Before Submitting
+
 1. **Ensure your code follows the style guide**:
+
    ```bash
    bun run format        # Format code
    bun run lint          # Check linting
@@ -68,26 +74,31 @@ cd electron-app && bun dev
 
 ### Pull Request Guidelines
 
-1. **Create a clear title**: 
+1. **Create a clear title**:
    - ✅ `feat: Add custom category colors in settings`
    - ✅ `fix: Resolve MongoDB connection timeout issue`
    - ❌ `Update stuff`
 
 2. **Provide detailed description**:
+
    ```markdown
    ## Description
+
    Brief description of what this PR does
-   
+
    ## Changes Made
+
    - Specific change 1
    - Specific change 2
-   
+
    ## Testing
+
    - [ ] Tested locally on macOS
    - [ ] Verified MongoDB connection works
    - [ ] Checked OpenAI API integration
-   
+
    ## Screenshots (if UI changes)
+
    [Include screenshots of UI changes]
    ```
 
@@ -107,14 +118,17 @@ When reporting bugs, please include:
 - **Environment setup**: Local MongoDB vs Atlas, OpenAI API key setup, etc.
 
 ### Bug Report Template
+
 ```markdown
 **Environment:**
+
 - macOS: [version]
-- Node.js: [version] 
+- Node.js: [version]
 - Bun: [version]
 - MongoDB: [local/Atlas]
 
 **Steps to Reproduce:**
+
 1. Start the application
 2. Navigate to...
 3. Click on...
@@ -128,7 +142,9 @@ When reporting bugs, please include:
 
 **Console Logs:**
 ```
+
 [paste console errors here]
+
 ```
 
 **Additional Context:**
@@ -147,22 +163,26 @@ We welcome feature requests! Please:
 ## 🔧 Development Guidelines
 
 ### Code Organization
+
 - **Components**: Place React components in appropriate directories
 - **Services**: Business logic goes in `server/src/services/`
 - **Types**: Shared types in `shared/src/types.ts`
 - **Utilities**: Helper functions in appropriate `lib/` directories
 
 ### Database Changes
+
 - **Migrations**: Create migration scripts for schema changes
 - **Backward compatibility**: Ensure changes don't break existing data
 - **Indexes**: Add appropriate indexes for query performance
 
 ### API Changes
+
 - **tRPC**: Maintain type safety across client-server boundary
 - **Validation**: Use Zod schemas for input validation
 - **Error handling**: Provide meaningful error messages
 
 ### Native Modules
+
 - **macOS only**: Native modules are macOS-specific
 - **Rebuild after changes**: Use rebuild scripts after native code changes
 - **Permission handling**: Properly handle macOS permissions
@@ -170,6 +190,7 @@ We welcome feature requests! Please:
 ## 🧪 Testing Guidelines
 
 ### Areas to Test
+
 - **Authentication flow**: Login/logout functionality
 - **Activity tracking**: Window detection and categorization
 - **Database operations**: CRUD operations work correctly
@@ -178,6 +199,7 @@ We welcome feature requests! Please:
 - **Electron app**: Building and running desktop app
 
 ### Test Environment Setup
+
 ```bash
 # Set up test MongoDB (or use existing)
 export MONGODB_URI="mongodb://localhost:27017/cronus-test"
@@ -213,6 +235,7 @@ bun test
 ## 🏆 Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributor list
 - Release notes for significant contributions
 - README acknowledgments section
