@@ -349,34 +349,152 @@ If you encounter issues:
 
 ## 🏗️ Production Deployment
 
-### Building for Distribution
+### 🌐 Cloud Server Deployment (Recommended)
 
+#### Render.com Deployment
+
+Deploy your server to Render.com for reliable, managed hosting:
+
+**1. Prepare for Deployment**
 ```bash
-# Build all components
-bun run build
-
-# Create distributable app (macOS)
-cd electron-app
-bun run build:local  # Unsigned local build
-bun run build       # Full production build (requires signing)
+# Ensure your code is ready
+bun run build:shared
+bun run build:server
 ```
 
-### Server Deployment
+**2. Create Render Services**
 
-Deploy the `server/` directory to your preferred hosting platform:
+**Main Server Service:**
+- **Repository**: Connect your GitHub repository
+- **Branch**: `opensource-desktop-app`
+- **Root Directory**: `server`
+- **Build Command**: `bun install && bun run build`
+- **Start Command**: `bun start`
+- **Instance Type**: Starter ($7/month is sufficient)
 
-```bash
-# Compile server for production
-cd server  
-bun run build
-
-# Start production server
-NODE_ENV=production bun start
+**Environment Variables for Render:**
+```env
+MONGODB_URI=your_mongodb_atlas_connection_string
+OPENAI_API_KEY=your_openai_api_key
+AUTH_SECRET=your_32_character_random_string
+GOOGLE_CLIENT_ID=your_google_client_id (optional)
+GOOGLE_CLIENT_SECRET=your_google_client_secret (optional)
+PORT=3001
+NODE_ENV=production
 ```
 
-### Docker Deployment
+**3. Set Up Cron Jobs (Separate Service)**
 
-Use the included Docker setup for easy deployment:
+Create a second Render service for background tasks:
+
+- **Service Type**: Background Worker  
+- **Repository**: Same repository
+- **Branch**: `opensource-desktop-app`
+- **Root Directory**: `server`
+- **Build Command**: `bun install && bun run build`
+- **Start Command**: See cron job commands below
+
+**Cron Job Options:**
+
+**Option A: Suggestions Generation (Daily)**
+```bash
+# Start Command for daily suggestions
+while true; do bun run cron:generate-suggestions; sleep 86400; done
+```
+
+**Option B: Churn Prevention Emails (Daily)**  
+```bash
+# Start Command for churn prevention
+while true; do bun run cron:churn-prevention; sleep 86400; done
+```
+
+**Option C: Combined Background Worker (Recommended)**
+```bash
+# Start Command for both cron jobs
+while true; do 
+  bun run cron:generate-suggestions; 
+  bun run cron:churn-prevention; 
+  sleep 86400; 
+done
+```
+
+**What These Cron Jobs Do:**
+
+- **Suggestions Generation**: Analyzes user calendar events and generates productivity suggestions based on activity patterns
+- **Churn Prevention**: Sends re-engagement emails to users who haven't been active (requires LOOPS_API_KEY)
+
+**Environment Variables for Cron Jobs:**
+```env
+# Required for both
+MONGODB_URI=your_mongodb_connection_string
+OPENAI_API_KEY=your_openai_api_key
+
+# Required for churn prevention emails
+LOOPS_API_KEY=your_loops_api_key
+
+# Required for suggestions (calendar integration)
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+> **Note**: You can run the server without cron jobs. They're optional features that enhance the user experience but aren't required for core functionality.
+
+#### Alternative Cloud Providers
+
+**Railway.app:**
+- Root Directory: `server`
+- Build Command: `bun install && bun run build`  
+- Start Command: `bun start`
+
+**DigitalOcean App Platform:**
+- Component Type: Web Service
+- Source Directory: `/server`
+- Build Command: `bun install && bun run build`
+- Run Command: `bun start`
+
+**Heroku:**
+```bash
+# Add Node.js buildpack
+heroku buildpacks:add heroku/nodejs
+
+# Deploy
+git subtree push --prefix=server heroku main
+```
+
+#### Update Desktop App Configuration
+
+After deploying your server, update the electron app to connect to your production server:
+
+**Edit `electron-app/.env`:**
+```env
+VITE_SERVER_URL=https://your-server-name.onrender.com
+# Replace with your actual Render URL
+```
+
+**Test Your Production Setup:**
+```bash
+# Rebuild shared dependencies
+bun run build:shared
+
+# Start the desktop app (connects to production server)
+cd electron-app && bun dev
+```
+
+### 🚀 Quick Production Setup Checklist
+
+If you want to deploy to production right away:
+
+- [ ] **MongoDB Atlas**: Create free cluster, get connection string
+- [ ] **OpenAI Account**: Get API key with credits
+- [ ] **Render Account**: Sign up at render.com
+- [ ] **Deploy Main Server**: Use settings above, add environment variables
+- [ ] **Deploy Cron Worker**: Optional, use combined background worker
+- [ ] **Update Desktop App**: Set `VITE_SERVER_URL` to your Render URL
+- [ ] **Test**: Create account, verify activity tracking works
+
+### 🐳 Docker Deployment
+
+Use the included Docker setup for self-hosting:
 
 ```bash
 # Start MongoDB and server with Docker
@@ -385,6 +503,18 @@ docker-compose up -d
 # The desktop app connects to your dockerized server
 cd electron-app && bun dev
 ```
+
+### 📱 Desktop App Distribution
+
+Build the desktop application for distribution:
+
+```bash
+cd electron-app
+bun run build:local              # Local production build (unsigned)
+bun run build                    # Full production build (requires signing)
+```
+
+For code signing and distribution, see the [Electron App README](./electron-app/README.md).
 
 ---
 
