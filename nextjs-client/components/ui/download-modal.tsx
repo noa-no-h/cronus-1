@@ -138,8 +138,17 @@ const DownloadModal: React.FC<DownloadModalProps> = ({
 
             {/* Sunset/Hold Notice */}
             <div className="rounded-md border border-neutral-200 bg-zinc-50 text-neutral-800 p-4 mb-2 text-sm leading-6">
-              Hello everyone, we’ve stopped operating Cronus. Thank you for your support. The
-              website remains available.
+              Hello everyone! We've stopped operating Cronus as a hosted service, but the project lives on as open source. 
+              Thank you for your support! The website remains available, and we'd love for you to{' '}
+              <a 
+                href="https://github.com/moritzWa/cronus" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                contribute to the project on GitHub
+              </a>
+              .
             </div>
             <div className={`${caveat.className} text-2xl text-neutral-700 mt-2`}>
               Moritz & Arne
