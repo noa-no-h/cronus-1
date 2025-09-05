@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { ActiveWindowEvent } from '../../../shared/types';
 import { safeVerifyToken, safeVerifyTokenWithVersionTracking } from '../lib/authUtils';
 import { ActiveWindowEventModel } from '../models/activeWindowEvent';
+import { canonicalBlockService } from '../services/canonicalBlockService';
 import { updateEventCategoryInDateRange as updateEventCategoryInDateRangeService } from '../services/move/updateEventCategoryInDateRange';
 import { publicProcedure, router } from '../trpc';
 
@@ -84,6 +85,10 @@ export const activeWindowEventsRouter = router({
 
     try {
       const savedEvent = await ActiveWindowEventModel.create(eventToSave);
+
+      // Do not await this, let it run in the background
+      await canonicalBlockService.upsertFromEvent(savedEvent).catch(console.error);
+
       return savedEvent.toObject() as ActiveWindowEvent;
     } catch (error) {
       console.error('Error saving active window event:', error);
