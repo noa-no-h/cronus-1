@@ -25,6 +25,21 @@ interface Windows {
   floatingWindow: BrowserWindow | null
 }
 
+// Helper function to format duration for display
+function formatDurationForDisplay(ms: number): string {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m`
+  } else if (minutes > 0) {
+    return `${minutes}m`
+  } else {
+    return `${seconds}s`
+  }
+}
+
 export function registerIpcHandlers(
   windows: Windows,
   recreateFloatingWindow: () => void,
@@ -387,6 +402,37 @@ export function registerIpcHandlers(
     }
 
     app.quit()
+  })
+
+  // SketchyBar integration - export category data to JSON file
+  ipcMain.handle('export-categories-for-sketchybar', async (_event, categoryData: any[], mostRecentCategoryId?: string | null) => {
+    try {
+      const tempDir = app.getPath('temp')
+      const dataPath = join(tempDir, 'cronus-category-data.json')
+      
+      const exportData = {
+        timestamp: new Date().toISOString(),
+        mostRecentCategoryId: mostRecentCategoryId,
+        categories: categoryData.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          color: cat.color,
+          emoji: cat.emoji,
+          isProductive: cat.isProductive,
+          totalDurationMs: cat.totalDurationMs,
+          // Format duration for display
+          formattedDuration: formatDurationForDisplay(cat.totalDurationMs)
+        }))
+      }
+      
+      await fs.writeFile(dataPath, JSON.stringify(exportData, null, 2))
+      logMainToFile('Exported category data for SketchyBar', { dataPath, categoriesCount: categoryData.length, mostRecentCategory: mostRecentCategoryId })
+      
+      return { success: true, path: dataPath }
+    } catch (error) {
+      logMainToFile('Failed to export category data for SketchyBar', { error: String(error) })
+      return { success: false, error: String(error) }
+    }
   })
 
   // ipcMain.handle(

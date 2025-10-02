@@ -233,7 +233,65 @@ const ActivitiesByCategoryWidget = ({
     })
 
     setProcessedData(finalResult)
+    
+    // Find the most recent category (from the latest event)
+    let mostRecentCategoryId: string | null = null
+    if (todayProcessedEvents && todayProcessedEvents.length > 0) {
+      // Sort events by timestamp descending to get the most recent
+      const sortedEvents = [...todayProcessedEvents].sort((a, b) => 
+        b.startTime.getTime() - a.startTime.getTime()
+      )
+      mostRecentCategoryId = sortedEvents[0]?.categoryId || null
+    }
+    
+    // Export category data for SketchyBar integration
+    if (finalResult.length > 0 && window.api?.exportCategoriesForSketchybar) {
+      window.api.exportCategoriesForSketchybar(finalResult, mostRecentCategoryId).catch(console.error)
+    }
   }, [categories, todayProcessedEvents, isLoadingCategories, isLoadingEventsProp])
+
+  // Periodic sync for SketchyBar every minute
+  useEffect(() => {
+    if (processedData.length > 0 && window.api?.exportCategoriesForSketchybar) {
+      const interval = setInterval(() => {
+        // Find most recent category for periodic updates too
+        let mostRecentCategoryId: string | null = null
+        if (todayProcessedEvents && todayProcessedEvents.length > 0) {
+          const sortedEvents = [...todayProcessedEvents].sort((a, b) => 
+            b.startTime.getTime() - a.startTime.getTime()
+          )
+          mostRecentCategoryId = sortedEvents[0]?.categoryId || null
+        }
+        window.api.exportCategoriesForSketchybar(processedData, mostRecentCategoryId).catch(console.error)
+      }, 60000) // 60 seconds
+
+      return () => clearInterval(interval)
+    }
+    // Return undefined for the else case
+    return undefined
+  }, [processedData, todayProcessedEvents])
+
+  // Periodic sync for SketchyBar - update every minute
+  useEffect(() => {
+    const syncToSketchyBar = () => {
+      if (processedData.length > 0 && window.api?.exportCategoriesForSketchybar) {
+        // Find most recent category
+        let mostRecentCategoryId: string | null = null
+        if (todayProcessedEvents && todayProcessedEvents.length > 0) {
+          const sortedEvents = [...todayProcessedEvents].sort((a, b) => 
+            b.startTime.getTime() - a.startTime.getTime()
+          )
+          mostRecentCategoryId = sortedEvents[0]?.categoryId || null
+        }
+        window.api.exportCategoriesForSketchybar(processedData, mostRecentCategoryId).catch(console.error)
+      }
+    }
+
+    // Set up interval to sync every minute
+    const interval = setInterval(syncToSketchyBar, 60000) // 60 seconds
+    
+    return () => clearInterval(interval)
+  }, [processedData, todayProcessedEvents])
 
   const handleFaviconError = (identifier: string): void => {
     setFaviconErrors((prev) => new Set(prev).add(identifier))

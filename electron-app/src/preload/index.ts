@@ -97,6 +97,10 @@ const api = {
   //   userData: { id: string; email: string; username: string; subscription: boolean } | null
   // ) => ipcRenderer.invoke('set-sentry-user', userData)
 
+  // SketchyBar integration
+  exportCategoriesForSketchybar: (categoryData: any[], mostRecentCategoryId?: string | null) => 
+    ipcRenderer.invoke('export-categories-for-sketchybar', categoryData, mostRecentCategoryId),
+
   // Add these two methods for quit confirmation
   confirmQuit: () => ipcRenderer.invoke('confirm-quit')
 }

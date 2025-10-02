@@ -88,6 +88,10 @@ declare global {
       getAppIconPath: (appName: string) => Promise<string | null>
       redactSensitiveContent: (content: string) => Promise<string>
       // setSentryUser: (userData: { id: string; email: string; username: string; subscription: boolean } | null) => Promise<void>
+      
+      // SketchyBar integration
+      exportCategoriesForSketchybar: (categoryData: any[], mostRecentCategoryId?: string | null) => Promise<{ success: boolean; path?: string; error?: string }>
+      
       confirmQuit: () => Promise<void>
   
     }
