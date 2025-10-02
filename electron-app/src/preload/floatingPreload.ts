@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
 import { Category } from 'shared/dist/types.js'
 
 // Define the structure of the data being sent
-interface FloatingStatusUpdate {
+export interface FloatingStatusUpdate {
   latestStatus: 'productive' | 'unproductive' | 'maybe' | null
   dailyProductiveMs: number
   dailyUnproductiveMs: number
@@ -12,6 +12,8 @@ interface FloatingStatusUpdate {
   activityName?: string
   activityUrl?: string
   categoryReasoning?: string
+  totalDurationMs?: number
+
 }
 
 export interface ActivityToRecategorize {

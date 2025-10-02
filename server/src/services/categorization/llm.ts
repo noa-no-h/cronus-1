@@ -4,7 +4,17 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 
-const openai = new OpenAI(); // Ensure OPENAI_API_KEY is set
+
+// Update OpenAI client to use OpenRouter
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY || '', // Use OpenRouter API key
+  baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': 'http://localhost:5173', // Your app URL
+    'X-Title': 'Cronus Productivity Tracker', // Your app name
+  },
+});
+
 
 // NEW Zod schema for LLM output: Expecting the name of one of the user's categories
 const CategoryChoiceSchema = z.object({
@@ -128,25 +138,65 @@ export async function getOpenAICategoryChoice(
     activityDetails
   );
 
-  try {
-    const response = await openai.responses.parse({
-      // changing this to gpt-4o-mini will cause the "car Instagram profile" test to fail lol
-      model: 'gpt-4o-2024-08-06',
-      temperature: 0, // Deterministic output
-      input: promptInput,
-      text: {
-        format: zodTextFormat(CategoryChoiceSchema, 'category_choice'),
-      },
-    });
+  // Add this to your prompt builder:
+  promptInput[promptInput.length - 1].content += `
+Respond ONLY in this JSON format:
+{
+  "chosenCategoryName": "<category name>",
+  "summary": "<short summary>",
+  "reasoning": "<short reasoning>"
+}
+`;
 
-    if (!response.output_parsed || 'refusal' in response.output_parsed) {
-      console.warn('OpenAI response issue or refusal selecting category:', response.output_parsed);
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'x-ai/grok-4-fast:free',
+      messages: promptInput,
+      temperature: 0,
+      max_tokens: 200,
+    });
+    const content = response.choices[0]?.message?.content || '';
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(content);
+    } catch (e) {
+      console.error('Failed to parse LLM output as JSON:', content);
       return null;
     }
-
-    return response.output_parsed;
-  } catch (error) {
-    console.error('Error getting OpenAI category choice:', error);
+    if (
+      typeof parsed === 'object' &&
+      typeof parsed.chosenCategoryName === 'string' &&
+      typeof parsed.summary === 'string' &&
+      typeof parsed.reasoning === 'string'
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch (error: unknown) {
+    // Type-safe error handling
+    console.error('OpenRouter API error:', 
+      typeof error === 'object' && error !== null ? 
+        JSON.stringify({
+          status: (error as any).status,
+          message: (error as any).message,
+          name: (error as any).name
+        }) : 
+        error
+    );
+    
+    // Safe way to access nested response data
+    if (
+      typeof error === 'object' && 
+      error !== null && 
+      'response' in error && 
+      (error as any).response && 
+      'data' in (error as any).response
+    ) {
+      console.error('Response:', (error as any).response.data);
+    } else {
+      console.error('No detailed response data available');
+    }
+    
     return null;
   }
 }
@@ -181,14 +231,14 @@ BROWSER: ${activityDetails.browser || ''}
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
     return response.choices[0]?.message?.content?.trim() || null;
   } catch (error) {
-    console.error('Error getting OpenAI summary for block:', error);
+    console.error('Error getting OpenRouter summary for block:', error);
     return null;
   }
 }
@@ -208,7 +258,7 @@ export async function isTitleInformative(title: string): Promise<boolean> {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 3,
       temperature: 0,
@@ -236,7 +286,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
@@ -248,12 +298,6 @@ export async function generateActivitySummary(activityData: any): Promise<string
   }
 }
 
-/**
- * Suggest a single emoji for a category using OpenAI.
- * @param name The category name
- * @param description The category description (optional)
- * @returns The suggested emoji as a string, or null if failed
- */
 export async function getEmojiForCategory(
   name: string,
   description?: string
@@ -270,9 +314,9 @@ export async function getEmojiForCategory(
   ];
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-2024-08-06',
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt,
-      max_tokens: 10, // Increased max_tokens to accommodate more complex emojis
+      max_tokens: 10,
       temperature: 0,
     });
     const emoji = response.choices[0]?.message?.content?.trim() || null;

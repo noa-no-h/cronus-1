@@ -37,6 +37,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from './ui/dropdown-menu'
+import { data } from 'react-router-dom'
+import { id } from 'date-fns/locale'
+import { processActivityEvents } from '../lib/activityProcessing'
+import type { ProcessedCategory } from '../lib/activityProcessing'
+import { getCurrentCategoryMsToday } from '../components/ActivityList/ActivitiesByCategoryWidget'
 
 interface DistractionStatusBarProps {
   activeWindow: ActiveWindowDetails | null
@@ -49,8 +54,6 @@ interface DistractionStatusBarProps {
   onToggleTracking: () => void
 }
 
-// Props comparison can be simplified or removed if activeWindow prop changes don't directly trigger new data fetching logic
-// For now, let's keep it, but its role might change.
 const arePropsEqual = (
   prevProps: DistractionStatusBarProps,
   nextProps: DistractionStatusBarProps
@@ -242,7 +245,9 @@ const DistractionStatusBar = ({
 
   useEffect(() => {
     const sendUpdate = async (): Promise<void> => {
+      console.log('DEBUG: sendUpdate called')
       if (!latestEvent || !userCategories || !todayEvents || !window.electron?.ipcRenderer) {
+        console.log('DEBUG: Missing required data', { latestEvent, userCategories, todayEvents })
         return
       }
 
@@ -271,6 +276,110 @@ const DistractionStatusBar = ({
         : displayWindowInfo.url
       const activityName = displayWindowInfo.ownerName
 
+      // Calculate total duration for current category today and get top categories
+      let totalDurationMs = 0
+      let topCategories: Array<{id: string, name: string, color: string, durationMs: number}> = []
+
+      if (userCategories && todayEvents) {
+        try {
+          // Get all categories to build a processed version of events
+          const categoriesMap = new Map<string, Category>(
+            (userCategories as unknown as Category[] || []).map((cat: Category) => [cat._id, cat])
+          )
+          
+          // 1. Count events by category
+          const categoryEventCounts = new Map<string, number>()
+          const productiveCategories = new Set<string>()
+          const unproductiveCategories = new Set<string>()
+          
+          todayEvents.forEach(event => {
+            if (event.categoryId) {
+              // Count this event for its category
+              categoryEventCounts.set(
+                event.categoryId, 
+                (categoryEventCounts.get(event.categoryId) || 0) + 1
+              )
+              
+              // Track which categories are productive vs unproductive
+              const category = categoriesMap.get(event.categoryId)
+              if (category) {
+                if (category.isProductive === true) {
+                  productiveCategories.add(event.categoryId)
+                } else if (category.isProductive === false) {
+                  unproductiveCategories.add(event.categoryId)
+                }
+              }
+            }
+          })
+          
+          // 2. Calculate productive and unproductive event counts
+          const totalProductiveEvents = Array.from(productiveCategories).reduce(
+            (sum, catId) => sum + (categoryEventCounts.get(catId) || 0), 
+            0
+          )
+          
+          const totalUnproductiveEvents = Array.from(unproductiveCategories).reduce(
+            (sum, catId) => sum + (categoryEventCounts.get(catId) || 0), 
+            0
+          )
+          
+          console.log('DEBUG: Event counts', {
+            totalProductiveEvents,
+            totalUnproductiveEvents,
+            dailyProductiveMs,
+            dailyUnproductiveMs
+          })
+          
+          // 3. Calculate durations for all categories based on proportions
+          const categoryDurations = new Map<string, number>()
+          
+          categoryEventCounts.forEach((eventCount, categoryId) => {
+            const category = categoriesMap.get(categoryId)
+            if (!category) return
+            
+            let duration = 0
+            if (category.isProductive === true && totalProductiveEvents > 0) {
+              // Proportion of all productive events
+              const proportion = eventCount / totalProductiveEvents
+              duration = Math.round(dailyProductiveMs * proportion)
+            } 
+            else if (category.isProductive === false && totalUnproductiveEvents > 0) {
+              // Proportion of all unproductive events
+              const proportion = eventCount / totalUnproductiveEvents
+              duration = Math.round(dailyUnproductiveMs * proportion)
+            }
+            // For neutral categories, we could do something else if needed
+            
+            categoryDurations.set(categoryId, duration)
+          })
+          
+          // 4. If we have the current category, get its duration
+          if (categoryDetailsForFloatingWindow) {
+            totalDurationMs = categoryDurations.get(categoryDetailsForFloatingWindow._id) || 0
+            console.log(`DEBUG: Current category ${categoryDetailsForFloatingWindow.name} duration: ${totalDurationMs}ms`)
+          }
+          
+          // 5. Get top 3 categories by duration
+          topCategories = Array.from(categoryDurations.entries())
+            .map(([id, durationMs]) => {
+              const category = categoriesMap.get(id)
+              return {
+                id,
+                name: category?.name || 'Unknown',
+                color: category?.color || '#888888',
+                durationMs
+              }
+            })
+            .sort((a, b) => b.durationMs - a.durationMs)
+            .slice(0, 3)
+            
+          console.log('DEBUG: Top 3 categories:', topCategories)
+          
+        } catch (error) {
+          console.error('DEBUG: Error calculating durations:', error)
+        }
+      }
+
       const dataToSend = {
         latestStatus,
         dailyProductiveMs,
@@ -281,20 +390,29 @@ const DistractionStatusBar = ({
         activityName,
         activityUrl: displayWindowInfo.url,
         categoryReasoning: latestEvent?.categoryReasoning,
-        isTrackingPaused
+        isTrackingPaused,
+        totalDurationMs,
+        topCategories // Add this new field
       }
+
+      console.log('DEBUG: dataToSend for floating window:', dataToSend)
 
       const currentDataString = JSON.stringify(dataToSend)
 
       if (currentDataString === lastSentData.current) {
+        console.log('DEBUG: Data unchanged, not sending update.')
         return // Data hasn't changed, no need to send.
       }
 
       if (window.api?.getFloatingWindowVisibility) {
         const isVisible = await window.api.getFloatingWindowVisibility()
+        console.log('DEBUG: Floating window visibility:', isVisible)
         if (isVisible) {
           window.electron.ipcRenderer.send('update-floating-window-status', dataToSend)
+          console.log('DEBUG: Sent update to floating window')
           lastSentData.current = currentDataString
+        } else {
+          console.log('DEBUG: Floating window not visible, not sending update')
         }
       }
     }

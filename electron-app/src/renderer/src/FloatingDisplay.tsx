@@ -18,6 +18,9 @@ interface FloatingStatusUpdate {
   activityUrl?: string
   categoryReasoning?: string
   isTrackingPaused?: boolean
+  totalDurationMs?: number
+  topCategories?: Array<{id: string, name: string, color: string, durationMs: number}>
+
 }
 
 // Helper to format milliseconds to HH:MM:SS
@@ -45,6 +48,23 @@ const FloatingDisplay: React.FC = () => {
     url?: string
     categoryReasoning?: string
   }>({})
+  const [totalDurationMs, setTotalDurationMs] = useState<number>(0)
+  const [topCategories, setTopCategories] = useState<Array<{id: string, name: string, color: string, durationMs: number}>>([])
+  
+  // Add log on component render
+  console.log('[FloatingDisplay] Component rendered, totalDurationMs:', totalDurationMs)
+  
+  // Add a specific useEffect to monitor changes to totalDurationMs
+  useEffect(() => {
+    console.log('[FloatingDisplay] totalDurationMs changed:', totalDurationMs)
+    // Log detailed info about the current state
+    console.log('[FloatingDisplay] Current state context:', { 
+      totalDurationMs,
+      hasCategory: !!currentCategoryDetails,
+      isVisible,
+      categoryName: currentCategoryDetails?.name || 'No category'
+    })
+  }, [totalDurationMs, currentCategoryDetails, isVisible])
 
   const draggableRef = useRef<HTMLDivElement>(null)
   const dragStartInfoRef = useRef<{ initialMouseX: number; initialMouseY: number } | null>(null)
@@ -52,6 +72,19 @@ const FloatingDisplay: React.FC = () => {
   useEffect(() => {
     if (window.floatingApi) {
       const cleanup = window.floatingApi.onStatusUpdate((data: FloatingStatusUpdate) => {
+        console.log('[FloatingDisplay] Received status update:', data)
+
+        // More verbose logging about totalDurationMs
+        console.log('[FloatingDisplay] DEBUGGING totalDurationMs:')
+        console.log('  - Raw value:', data.totalDurationMs)
+        console.log('  - Type:', typeof data.totalDurationMs)
+        console.log('  - Is truthy?', !!data.totalDurationMs)
+        console.log('  - Is greater than zero?', (data.totalDurationMs || 0) > 0)
+        console.log('  - Stringified:', JSON.stringify(data.totalDurationMs))
+        
+        // Check full structure of the data object
+        console.log('[FloatingDisplay] Full data structure:', JSON.stringify(data))
+
         setLatestStatus(data.latestStatus)
         setDisplayedProductiveTimeMs(data.dailyProductiveMs)
         setDailyUnproductiveMs(data.dailyUnproductiveMs)
@@ -65,6 +98,14 @@ const FloatingDisplay: React.FC = () => {
           categoryReasoning: data.categoryReasoning
         })
         setIsVisible(true)
+        
+        // Set totalDurationMs with more logging
+        const finalTotalDurationValue = data.totalDurationMs || 0
+        console.log('[FloatingDisplay] Setting totalDurationMs to:', finalTotalDurationValue)
+        setTotalDurationMs(finalTotalDurationValue)
+        setTopCategories(data.topCategories || [])
+
+        console.log('[FloatingDisplay] Total Duration MS:', data.totalDurationMs)
       })
       return cleanup
     }
@@ -94,6 +135,41 @@ const FloatingDisplay: React.FC = () => {
       }
     }
   }, [latestStatus, isTrackingPaused])
+
+  // Auto-increment totalDurationMs for current category
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | undefined
+
+    // Only increment if:
+    // 1. We have a current category
+    // 2. Tracking isn't paused
+    // 3. We're in a productive or unproductive status (not waiting)
+    if (currentCategoryDetails && !isTrackingPaused && latestStatus) {
+      intervalId = setInterval(() => {
+        // Increment by 1 second
+        setTotalDurationMs(prev => prev + 1000)
+        
+        // Also update the matching category in topCategories if it exists
+        setTopCategories(prevCategories => {
+          if (!currentCategoryDetails) return prevCategories;
+          
+          return prevCategories.map(cat => {
+            if (cat.id === currentCategoryDetails._id) {
+              // This is the current category, increment its time
+              return { ...cat, durationMs: cat.durationMs + 1000 };
+            }
+            return cat;
+          });
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [currentCategoryDetails, isTrackingPaused, latestStatus]);
 
   const handleGlobalMouseMove = useCallback((event: globalThis.MouseEvent) => {
     if (!dragStartInfoRef.current || !window.floatingApi) return
@@ -226,6 +302,13 @@ const FloatingDisplay: React.FC = () => {
     return null
   }
 
+  // Add debugging before render
+  console.log('[FloatingDisplay] Pre-render state:', { 
+    totalDurationMs, 
+    shouldShowTotal: totalDurationMs > 0 && !!currentCategoryDetails,
+    currentCategoryDetails
+  })
+
   return (
     <div
       ref={draggableRef}
@@ -283,6 +366,38 @@ const FloatingDisplay: React.FC = () => {
           disabled={!currentCategoryDetails}
         />
       </div>
+      {/* Add this block to display today's category time */}
+      {totalDurationMs > 0 && currentCategoryDetails && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground bg-background/90 px-2 py-0.5 rounded-md shadow flex items-center gap-1">
+          
+          <span
+            className="w-2 h-2 rounded-full inline-block"
+            style={{ backgroundColor: currentCategoryDetails.color }}
+          />
+          <span className="font-medium">{currentCategoryDetails.name}:</span>
+          <span>{formatMsToTime(totalDurationMs)}</span>
+        </div>
+      )}
+      {/* Show top categories side by side */}
+      {topCategories.length > 0 && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 transform text-[10px] text-muted-foreground bg-background/90 px-2 py-0.5 rounded-md shadow">
+          <div className="flex flex-row items-center gap-2">
+            {topCategories.slice(0, 3).map((cat, index) => (
+              <div key={cat.id} className="flex items-center gap-1 whitespace-nowrap">
+                <span
+                  className="w-2 h-2 rounded-full inline-block flex-shrink-0"
+                  style={{ backgroundColor: cat.color }}
+                />
+                <span className="font-medium max-w-[50px] truncate">{cat.name}:</span>
+                <span className="flex-shrink-0">{formatMsToTime(cat.durationMs)}</span>
+                {index < 2 && index < topCategories.length - 1 && (
+                  <span className="text-muted-foreground/50">|</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

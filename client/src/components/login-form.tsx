@@ -48,7 +48,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     const token = localStorage.getItem('accessToken');
     if (token && userData) {
       // Admin dashboard access restriction for existing tokens
-      const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com', 'noa@noanoa.space'];
       if (!allowedEmails.includes(userData.email)) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
@@ -71,7 +71,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         });
 
         // Admin dashboard access restriction
-        const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+        const allowedEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com', 'noa@noanoa.space'];
         if (!allowedEmails.includes(response.user.email)) {
           alert('Access denied: This admin dashboard is restricted to authorized users only.');
           return;

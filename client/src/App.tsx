@@ -119,6 +119,17 @@ function AppContent() {
             }
           />
           <Route
+            path="/signup"
+            element={
+              <>
+                <Navbar />
+                <div className="container mx-auto px-4 py-8 pt-24">
+                  <LoginPage />
+                </div>
+              </>
+            }
+          />
+          <Route
             path="/waitlist-form"
             element={
               <>

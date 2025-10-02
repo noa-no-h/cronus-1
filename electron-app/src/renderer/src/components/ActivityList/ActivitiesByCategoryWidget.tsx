@@ -483,3 +483,22 @@ const ActivitiesByCategoryWidget = ({
 }
 
 export default React.memo(ActivitiesByCategoryWidget)
+
+// Example: get current category for the active activity
+export function getCurrentCategoryMsToday(
+  processedData: ProcessedCategory[],
+  currentActivityIdentifier: string,
+  currentItemType: 'app' | 'website'
+): number {
+  for (const cat of processedData) {
+    if (
+      cat.activities.some(
+        (act) =>
+          act.identifier === currentActivityIdentifier && act.itemType === currentItemType
+      )
+    ) {
+      return cat.totalDurationMs
+    }
+  }
+  return 0
+}

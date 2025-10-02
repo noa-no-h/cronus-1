@@ -1,6 +1,15 @@
+import path from 'path';
 import dotenv from 'dotenv';
-dotenv.config(); // This will load .env from the current directory (server/)
 
+// Force reload the .env file
+dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
+
+console.log('Environment variables reloaded:', {
+  openRouterKeyExists: !!process.env.OPENROUTER_API_KEY,
+  openRouterKeyFirstChars: process.env.OPENROUTER_API_KEY?.substring(0, 4) + '...',
+});
+
+// At the very top of your entry file:
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { findSensitiveValues, scrub } from '@zapier/secret-scrubber';
 import cors from 'cors';

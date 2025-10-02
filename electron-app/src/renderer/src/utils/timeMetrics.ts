@@ -35,3 +35,4 @@ export function calculateProductivityMetrics(
 
   return { dailyProductiveMs, dailyUnproductiveMs }
 }
+

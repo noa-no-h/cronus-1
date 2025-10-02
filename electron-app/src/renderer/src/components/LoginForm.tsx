@@ -9,11 +9,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { cn } from '../lib/utils'
 
+console.log("\n\nCONSOLE LOG!! (LoginForm.tsx loaded)\n\n")
 interface LoginFormProps extends React.ComponentPropsWithoutRef<'div'> {
   onLoginSuccess?: () => void
 }
 
 export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProps) {
+  console.log('[LoginForm] window.location.origin:', window.location.origin);
   const { theme } = useTheme()
   const posthog = usePostHog()
   const isDarkMode =
@@ -35,32 +37,41 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
   const { loginWithGoogleCode } = useAuth()
 
   useEffect(() => {
+    console.log('[LoginForm] useEffect running');
+    if (!window.api) {
+      console.error('[LoginForm] window.api is undefined!');
+      return;
+    }
     window.api
       .getEnvVariables()
       .then((envVars) => {
-        setIsDev(!!envVars.isDev) // Ensure it's a boolean
+        console.log('[LoginForm] envVars loaded:', envVars);
+        setIsDev(!!envVars.isDev); // Ensure it's a boolean
 
         if (envVars.GOOGLE_CLIENT_ID) {
-          setGoogleClientId(envVars.GOOGLE_CLIENT_ID)
+          console.log('[LoginForm] GOOGLE_CLIENT_ID found');
+          setGoogleClientId(envVars.GOOGLE_CLIENT_ID);
         } else {
-          console.error('GOOGLE_CLIENT_ID not found in envVars from main process')
+          console.error('[LoginForm] GOOGLE_CLIENT_ID not found in envVars from main process');
         }
 
         if (envVars.isDev) {
+          console.log('[LoginForm] isDev is true, skipping CLIENT_URL');
           // We don't need CLIENT_URL in dev mode for the popup code flow
-          return
+          return;
         }
 
         if (envVars.CLIENT_URL) {
-          setClientUrl(envVars.CLIENT_URL)
+          console.log('[LoginForm] CLIENT_URL found');
+          setClientUrl(envVars.CLIENT_URL);
         } else {
-          console.error('CLIENT_URL not found for production mode')
+          console.error('[LoginForm] CLIENT_URL not found for production mode');
         }
       })
       .catch((err) => {
-        console.error('Error fetching env vars from main process:', err)
-      })
-  }, [])
+        console.error('[LoginForm] Error fetching env vars from main process:', err);
+      });
+  }, []);
 
   // Handler for PRODUCTION browser-based flow
   const handleProdLoginClick = useCallback(() => {
@@ -70,21 +81,25 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       return
     }
 
-    const redirectWebAppSiteUri = `${clientUrl}/electron-callback`
+    const redirectWebAppSiteUri = `${clientUrl}/electron-callback`;
 
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-    authUrl.searchParams.set('client_id', googleClientId)
-    authUrl.searchParams.set('redirect_uri', redirectWebAppSiteUri)
-    authUrl.searchParams.set('response_type', 'code')
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', googleClientId);
+    authUrl.searchParams.set('redirect_uri', redirectWebAppSiteUri);
+    authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set(
       'scope',
       'openid profile email https://www.googleapis.com/auth/calendar.readonly'
       // 'openid profile email'
-    )
-    authUrl.searchParams.set('access_type', 'offline')
-    authUrl.searchParams.set('prompt', 'consent') // Important to get a refresh token every time
+    );
+    authUrl.searchParams.set('access_type', 'offline');
+    authUrl.searchParams.set('prompt', 'consent'); // Important to get a refresh token every time
 
-    window.api.openExternalUrl(authUrl.toString())
+    // Log the redirect URI and full OAuth URL
+    console.log('Google OAuth redirect_uri:', redirectWebAppSiteUri);
+    console.log('Full Google OAuth URL:', authUrl.toString());
+
+    window.api.openExternalUrl(authUrl.toString());
   }, [googleClientId, clientUrl])
 
   const handleGoogleCodeSuccess = useCallback(

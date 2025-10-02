@@ -127,7 +127,8 @@ export function registerIpcHandlers(
         dailyUnproductiveMs: number
         categoryName?: string
         categoryDetails?: Category
-        isTrackingPaused?: boolean
+        isTrackingPaused?: boolean,
+        totalDurationMs?: number  // Make sure this field is populated
       }
     ) => {
       if (
@@ -184,14 +185,17 @@ export function registerIpcHandlers(
   })
 
   ipcMain.handle('get-env-vars', () => {
-    return {
+    const env = {
       isDev: is.dev,
+      MAIN_VITE_OPENAI_API_KEY: import.meta.env.MAIN_VITE_OPENAI_API_KEY,
+      MAIN_VITE_OPENROUTER_API_KEY: import.meta.env.MAIN_VITE_OPENROUTER_API_KEY,
       GOOGLE_CLIENT_ID: import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID,
       POSTHOG_KEY: import.meta.env.MAIN_VITE_POSTHOG_KEY,
       CLIENT_URL: import.meta.env.MAIN_VITE_CLIENT_URL,
       POSTHOG_HOST: import.meta.env.MAIN_VITE_POSTHOG_HOST,
       GOOGLE_CLIENT_SECRET: import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET
     }
+    return env
   })
 
   ipcMain.handle('get-app-version', () => {
@@ -396,3 +400,29 @@ export function registerIpcHandlers(
   //   }
   // )
 }
+
+// Make the floating window disappear and reappear every minute
+export function startFloatingWindowBlinker(windows: Windows) {
+  setInterval(() => {
+    if (
+      windows.floatingWindow &&
+      !windows.floatingWindow.isDestroyed() &&
+      windows.floatingWindow.isVisible()
+    ) {
+      windows.floatingWindow.hide()
+      setTimeout(() => {
+        if (
+          windows.floatingWindow &&
+          !windows.floatingWindow.isDestroyed() &&
+          !windows.floatingWindow.isVisible()
+        ) {
+          windows.floatingWindow.showInactive() // <-- does not steal focus
+        }
+      }, 100)
+    }
+  }, 60 * 1000) // every 60 seconds
+}
+
+// Call this function after creating the floating window and registering IPC handlers
+// Example usage (in your main process entry point):
+// startFloatingWindowBlinker(windows)

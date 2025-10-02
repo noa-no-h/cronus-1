@@ -297,7 +297,7 @@ export const userRouter = router({
       const user = await UserModel.findById(decoded.userId);
 
       // Simple admin check - only allow specific emails
-      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com', 'noa@noanoa.space'];
       if (!user || !adminEmails.includes(user.email)) {
         throw new Error('Access denied: Admin privileges required');
       }
@@ -373,7 +373,7 @@ export const userRouter = router({
       const user = await UserModel.findById(decoded.userId);
 
       // Simple admin check
-      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com'];
+      const adminEmails = ['wallawitsch@gmail.com', 'arne.strickmann@googlemail.com', 'noa@noanoa.space'];
       if (!user || !adminEmails.includes(user.email)) {
         throw new Error('Access denied: Admin privileges required');
       }

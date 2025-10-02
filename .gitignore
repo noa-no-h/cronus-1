@@ -26,6 +26,8 @@ client/build
 .env.development
 .env.production
 .env.production.local
+.env.example
+.env
 
 # logs
 npm-debug.log*

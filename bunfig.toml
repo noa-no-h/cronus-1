@@ -1,0 +1,3 @@
+[install]
+# Add package names that are allowed to run lifecycle scripts.
+trustedDependencies = ["aws-sdk", "core-js", "electron-builder"]

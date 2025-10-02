@@ -1,10 +1,11 @@
+console.log('CRONUS MAIN INDEX.TS EXECUTED - DEBUG LOG')
 import { is, optimizer } from '@electron-toolkit/utils'
 import dotenv from 'dotenv'
 import { app, BrowserWindow, session } from 'electron'
 import { ActiveWindowDetails } from 'shared/dist/types.js'
 import { nativeWindows } from '../native-modules/native-windows'
 import { initializeAutoUpdater, registerAutoUpdaterHandlers } from './auto-updater'
-import { registerIpcHandlers } from './ipc'
+import { registerIpcHandlers, startFloatingWindowBlinker } from './ipc'
 import { initializeLoggers } from './logging'
 import {
   getUrlToHandleOnReady,
@@ -16,7 +17,9 @@ import { createFloatingWindow, createMainWindow, setIsAppQuitting } from './wind
 
 // Explicitly load .env files to ensure production run-time app uses the correct .env file
 // NODE_ENV set in build isn't present in the run-time app
-dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
+
+const result = dotenv.config({ path: is.dev ? '.env.development' : '.env.production' })
+
 
 // Initialize Sentry
 // if (!is.dev) {
@@ -101,6 +104,9 @@ function App() {
 
     registerIpcHandlers(windows, recreateFloatingWindow, recreateMainWindow)
     registerAutoUpdaterHandlers()
+
+    // Start the floating window blinker
+    //startFloatingWindowBlinker(windows)
 
     // Don't start observing active window changes immediately
     // This will be started after onboarding is complete via IPC call
