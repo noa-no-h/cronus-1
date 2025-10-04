@@ -82,21 +82,30 @@ void RequestPermissionMethod(const Napi::CallbackInfo& info) {
 Napi::Value GetAppIconPathMethod(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
   
+  // Check arguments
   if (info.Length() < 1 || !info[0].IsString()) {
     Napi::TypeError::New(env, "Expected string argument for app name").ThrowAsJavaScriptException();
     return env.Null();
   }
   
   std::string appName = info[0].As<Napi::String>().Utf8Value();
-  NSString *nsAppName = [NSString stringWithUTF8String:appName.c_str()];
+  if (appName.empty()) {
+    return env.Null();
+  }
   
+  NSString *nsAppName = [NSString stringWithUTF8String:appName.c_str()];
+  if (!nsAppName) {
+    return env.Null();
+  }
+  
+  // Get icon path - getAppIconPath already has its own internal error handling
   NSString *iconPath = getAppIconPath(nsAppName);
   
   if (iconPath) {
     return Napi::String::New(env, [iconPath UTF8String]);
-  } else {
-    return env.Null();
   }
+    
+  return env.Null();
 }
 
 Napi::Object NativeWindows(Napi::Env env, Napi::Object exports) {

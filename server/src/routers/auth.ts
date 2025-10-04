@@ -412,7 +412,8 @@ export const authRouter = router({
           console.log('Using redirect URI for desktop flow:', redirectUri);
           tokenOptions.redirect_uri = redirectUri;
         } else {
-          const redirectUri = 'http://localhost:5173';
+          // Use the dynamically configured port from the environment
+          const redirectUri = process.env.CLIENT_URL || 'http://localhost:5174';
           console.log('Using redirect URI for dev popup flow:', redirectUri);
           tokenOptions.redirect_uri = redirectUri;
         }

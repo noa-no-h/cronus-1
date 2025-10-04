@@ -59,20 +59,24 @@ function App() {
 
     mainWindow = createMainWindow(getUrlToHandleOnReady, (url) => handleAppUrl(url, mainWindow))
     initializeAutoUpdater(mainWindow)
-    // Don't create floating window automatically on startup
-    // floatingWindow = createFloatingWindow(() => mainWindow)
+    floatingWindow = createFloatingWindow(() => mainWindow)
 
     mainWindow.on('closed', () => {
       mainWindow = null
       windows.mainWindow = null
     })
 
-    // Floating window will be created on demand when user requests it
-    
+    if (floatingWindow) {
+      floatingWindow.on('closed', () => {
+        floatingWindow = null
+        windows.floatingWindow = null
+      })
+    }
+
     // Create windows object that IPC handlers will reference
     const windows: { mainWindow: BrowserWindow | null; floatingWindow: BrowserWindow | null } = {
       mainWindow,
-      floatingWindow: null // Start with no floating window
+      floatingWindow
     }
 
     const recreateMainWindow = (): BrowserWindow => {
@@ -83,17 +87,18 @@ function App() {
     }
 
     const recreateFloatingWindow = (): void => {
-      // Always create a new floating window when requested
-      floatingWindow = createFloatingWindow(() => mainWindow)
-      // Update the windows object reference for IPC handlers
-      windows.floatingWindow = floatingWindow
+      if (!floatingWindow) {
+        floatingWindow = createFloatingWindow(() => mainWindow)
+        // Update the windows object reference for IPC handlers
+        windows.floatingWindow = floatingWindow
 
-      // Set up closed event handler for the new floating window
-      if (floatingWindow) {
-        floatingWindow.on('closed', () => {
-          floatingWindow = null
-          windows.floatingWindow = null
-        })
+        // Set up closed event handler for the new floating window
+        if (floatingWindow) {
+          floatingWindow.on('closed', () => {
+            floatingWindow = null
+            windows.floatingWindow = null
+          })
+        }
       }
     }
 

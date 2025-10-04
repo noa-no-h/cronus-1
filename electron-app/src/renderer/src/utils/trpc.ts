@@ -6,6 +6,9 @@ import { refreshAccessToken } from '../lib/auth'
 // For now, hardcoding the server URL. Consider using ipcRenderer to get it from main process if needed.
 const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
 
+// Check if we're in build/production mode
+const isBuildMode = import.meta.env.MODE === 'production'
+
 export const trpc = createTRPCReact<AppRouter>()
 
 let isRefreshing = false
@@ -23,6 +26,15 @@ export const createTrpcClient = () =>
           }
         },
         fetch: async (url, options = {}) => {
+          // If we're in build mode, return a mock response to prevent actual server calls
+          if (isBuildMode) {
+            console.log('🏗️ Build mode detected, skipping server call to:', url.toString())
+            return new Response(JSON.stringify({ result: { data: null } }), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            })
+          }
+          
           const response = await fetch(url, options)
 
           // For 5xx server errors, we should not proceed with token refresh logic

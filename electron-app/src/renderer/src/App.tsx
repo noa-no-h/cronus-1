@@ -126,8 +126,6 @@ export function MainAppContent(): React.ReactElement {
   }, [])
 
   // Auto-show floating window only after user completes onboarding and is authenticated
-  // DISABLED: User preference is to not auto-show floating window on startup
-  /*
   useEffect(() => {
     const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding') === 'true'
 
@@ -140,7 +138,6 @@ export function MainAppContent(): React.ReactElement {
       window.electron.ipcRenderer.send('show-floating-window')
     }
   }, [isAuthenticated, showOnboarding])
-  */
 
   const handleTutorialClose = (): void => {
     setShowTutorial(false)
