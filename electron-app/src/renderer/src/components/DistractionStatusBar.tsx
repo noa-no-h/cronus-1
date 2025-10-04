@@ -135,7 +135,7 @@ const DistractionStatusBar = ({
       { token: token || '' },
       {
         enabled: !!token && typeof token === 'string' && token.length > 0,
-        refetchInterval: 1000, // Poll every 1 second
+        refetchInterval: 30000, // Changed from 1000ms (1s) to 30000ms (30s) for better battery life
         select: (data) => {
           if (!data) {
             return null
@@ -199,7 +199,7 @@ const DistractionStatusBar = ({
     }
 
     updateDates()
-    const intervalId = setInterval(updateDates, 10000) // Check every 10 seconds
+    const intervalId = setInterval(updateDates, 60000) // Changed from 10000 to 60000 (60 seconds) for better battery life
 
     return () => clearInterval(intervalId)
   }, [])
