@@ -1,21 +1,78 @@
 import OpenAI from 'openai';
-import { zodTextFormat } from 'openai/helpers/zod';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 
-
-// Update OpenAI client to use Cerebras
-const openai = new OpenAI({
+// Update OpenAI client to use Cerebras Cloud
+const cerebras = new OpenAI({
   apiKey: process.env.CEREBRAS_API_KEY || '', // Use Cerebras API key
-  baseURL: 'https://api.cerebras.ai/v1',
-  defaultHeaders: {
-    'User-Agent': 'Cronus Productivity Tracker', // Required by Cerebras
-  },
+  baseURL: 'https://api.cerebras.com/v1',
+  timeout: 30000, // 30 seconds timeout (default is usually 10s)
 });
 
+// Define the model to be used across all functions
+const CEREBRAS_LLAMA_MODEL = 'llama-3.3-70b';
 
-// NEW Zod schema for LLM output: Expecting the name of one of the user's categories
+// Configure retry mechanism for connection issues
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 2000; // 2 seconds between retries
+
+// Enhanced logging for Cerebras API
+console.log(`LLM service initialized with Cerebras API, model: ${CEREBRAS_LLAMA_MODEL}`);
+if (!process.env.CEREBRAS_API_KEY) {
+  console.warn('WARNING: CEREBRAS_API_KEY environment variable not set!');
+}
+
+/**
+ * Helper function to retry API calls with exponential backoff
+ */
+async function retryApiCall<T>(
+  apiCall: () => Promise<T>,
+  maxRetries: number = MAX_RETRIES
+): Promise<T> {
+  let lastError: any = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await apiCall();
+    } catch (error) {
+      lastError = error;
+      console.warn(`Cerebras API call failed (attempt ${attempt + 1}/${maxRetries + 1}):`, 
+        typeof error === 'object' && error !== null ? 
+          JSON.stringify({
+            message: (error as any).message,
+            name: (error as any).name,
+            status: (error as any).status,
+            code: (error as any).code,
+          }) : 
+          error
+      );
+      
+      // Diagnose common connection issues
+      if (typeof error === 'object' && error !== null) {
+        if ((error as any).name === 'Error' && (error as any).message === 'Connection error.') {
+          console.error('Connection error detected - possible network issues or Cerebras API endpoint unreachable');
+        } else if ((error as any).status === 401 || (error as any).code === 'invalid_api_key') {
+          console.error('Authentication error - check your CEREBRAS_API_KEY validity');
+        } else if ((error as any).status === 429) {
+          console.error('Rate limit exceeded - too many requests to Cerebras API');
+        } else if ((error as any).status >= 500) {
+          console.error('Cerebras API server error - service may be experiencing issues');
+        }
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt);
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
+// Zod schema for LLM output: Expecting the name of one of the user's categories
 const CategoryChoiceSchema = z.object({
   chosenCategoryName: z.string(),
   summary: z
@@ -101,6 +158,7 @@ EXAMPLES OF CORRECT CATEGORIZATION:
 - Activity: Drafting emails for unrelated side project. Goal: "Working on new social app". Categories: "Work Communication", "Distraction". Correct Category: "Distraction".
 - Activity: Adjusting System Settings and view Cronus. Goal: "Finish my biophysics PHD etc". Categories: "Work", "Distraction". Correct Category: "Work".
 - Activity: Staff Meeting. Goal: "CPA work". Categories: "Work", "Distraction". Correct Category: "Work".
+- Activity: Staff Meeting. Goal: "CPA work". Categories: "Work", "Distraction". Correct Category: "Work".
 - Activity: Meet - HOLD for Performance Management Training. Goals: N/Y. Categories: "Work", "Distraction". Correct Category: "Work".
 - Activity: Looking at buying washing machine. Goal: "Study for Law degree, working in part-time job administering AirBnb appartments". Categories: "Studies", "AirBnb Management", "Distraction". Correct Category: "AirBnb Management".
 - Activity: Looking at flight booking site. Goal: "Source manufacturers for my lamp product (Brighter), learn ML for job opportunities". Categories: "Other work", "Brighter", "Distraction". Reasoning: User is likely planning work related travel to source manufacturers. Correct Category: "Brighter".
@@ -121,23 +179,21 @@ Respond with the category name and your reasoning.
   ];
 }
 
-// TODO: could add Retry Logic with Consistency Check
+// Renamed back to original to fix export error
 export async function getOpenAICategoryChoice(
   userProjectsAndGoals: string,
-  userCategories: Pick<CategoryType, 'name' | 'description'>[], // Pass only name and description for the prompt
+  userCategories: Pick<CategoryType, 'name' | 'description'>[],
   activityDetails: Pick<
     ActiveWindowDetails,
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<z.infer<typeof CategoryChoiceSchema> | null> {
-  // Returns the chosen category NAME or null if error/no choice
   const promptInput = _buildOpenAICategoryChoicePromptInput(
     userProjectsAndGoals,
     userCategories,
     activityDetails
   );
 
-  // Add this to your prompt builder:
   promptInput[promptInput.length - 1].content += `
 Respond ONLY in this JSON format:
 {
@@ -148,12 +204,16 @@ Respond ONLY in this JSON format:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'llama-3.3-70b', // Cerebras model name
-      messages: promptInput,
-      temperature: 0,
-      max_tokens: 200,
-    });
+    // Try with Cerebras with retries
+    const response = await retryApiCall(
+      () => cerebras.chat.completions.create({
+        model: CEREBRAS_LLAMA_MODEL,
+        messages: promptInput,
+        temperature: 0,
+        max_tokens: 200,
+      })
+    );
+    
     const content = response.choices[0]?.message?.content || '';
     let parsed: any = null;
     try {
@@ -164,6 +224,7 @@ Respond ONLY in this JSON format:
     }
     if (
       typeof parsed === 'object' &&
+      parsed !== null &&
       typeof parsed.chosenCategoryName === 'string' &&
       typeof parsed.summary === 'string' &&
       typeof parsed.reasoning === 'string'
@@ -172,18 +233,17 @@ Respond ONLY in this JSON format:
     }
     return null;
   } catch (error: unknown) {
-    // Type-safe error handling
     console.error('Cerebras API error:', 
       typeof error === 'object' && error !== null ? 
         JSON.stringify({
           status: (error as any).status,
           message: (error as any).message,
-          name: (error as any).name
+          name: (error as any).name,
+          code: (error as any).code,
         }) : 
         error
     );
     
-    // Safe way to access nested response data
     if (
       typeof error === 'object' && 
       error !== null && 
@@ -200,15 +260,12 @@ Respond ONLY in this JSON format:
   }
 }
 
-// fallback for title
-
 export async function getOpenAISummaryForBlock(
   activityDetails: Pick<
     ActiveWindowDetails,
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<string | null> {
-  // You can use a similar prompt structure as getOpenAICategoryChoice, but focused on summarization
   const prompt = [
     {
       role: 'system' as const,
@@ -229,12 +286,15 @@ BROWSER: ${activityDetails.browser || ''}
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 50,
-      temperature: 0.3,
-    });
+    // Use the retry mechanism
+    const response = await retryApiCall(
+      () => cerebras.chat.completions.create({
+        model: CEREBRAS_LLAMA_MODEL,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 50,
+        temperature: 0.3,
+      })
+    );
     return response.choices[0]?.message?.content?.trim() || null;
   } catch (error) {
     console.error('Error getting Cerebras summary for block:', error);
@@ -256,16 +316,19 @@ export async function isTitleInformative(title: string): Promise<boolean> {
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 3,
-      temperature: 0,
-    });
+    // Use the retry mechanism
+    const response = await retryApiCall(
+      () => cerebras.chat.completions.create({
+        model: CEREBRAS_LLAMA_MODEL,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 3,
+        temperature: 0,
+      })
+    );
     const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
-    const result = answer?.startsWith('yes') ?? false;
-    return result;
+    return answer?.startsWith('yes') ?? false;
   } catch (error) {
+    console.error('Error checking title with Cerebras API:', error);
     return false;
   }
 }
@@ -284,15 +347,18 @@ export async function generateActivitySummary(activityData: any): Promise<string
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 50,
-      temperature: 0.3,
-    });
-    const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
-    return generatedTitle;
+    // Use the retry mechanism
+    const response = await retryApiCall(
+      () => cerebras.chat.completions.create({
+        model: CEREBRAS_LLAMA_MODEL,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 50,
+        temperature: 0.3,
+      })
+    );
+    return response.choices[0]?.message?.content?.trim() || '';
   } catch (error) {
+    console.error('Error generating summary with Cerebras API:', error);
     return '';
   }
 }
@@ -312,24 +378,24 @@ export async function getEmojiForCategory(
     },
   ];
   try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt,
-      max_tokens: 10,
-      temperature: 0,
-    });
+    // Use the retry mechanism
+    const response = await retryApiCall(
+      () => cerebras.chat.completions.create({
+        model: CEREBRAS_LLAMA_MODEL,
+        messages: prompt,
+        max_tokens: 10,
+        temperature: 0,
+      })
+    );
     const emoji = response.choices[0]?.message?.content?.trim() || null;
-    // More robust validation: check if it's a single emoji character or sequence
-    // This regex broadly matches various unicode emoji patterns.
     const emojiRegex =
       /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
     if (emoji && emojiRegex.test(emoji) && emoji.length <= 10) {
-      // Keep a length check, but regex is primary
       return emoji;
     }
     return null;
   } catch (error) {
-    console.error('Error getting emoji for category:', error);
+    console.error('Error getting emoji for category with Cerebras API:', error);
     return null;
   }
 }
