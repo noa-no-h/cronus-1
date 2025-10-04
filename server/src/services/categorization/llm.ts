@@ -5,12 +5,13 @@ import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 
 
-// Update OpenAI client to use Cerebras
+// Update OpenAI client to use OpenRouter
 const openai = new OpenAI({
-  apiKey: process.env.CEREBRAS_API_KEY || '', // Use Cerebras API key
-  baseURL: 'https://api.cerebras.ai/v1',
+  apiKey: process.env.OPENROUTER_API_KEY || '', // Use OpenRouter API key
+  baseURL: 'https://openrouter.ai/api/v1',
   defaultHeaders: {
-    'User-Agent': 'Cronus Productivity Tracker', // Required by Cerebras
+    'HTTP-Referer': 'http://localhost:5173', // Your app URL
+    'X-Title': 'Cronus Productivity Tracker', // Your app name
   },
 });
 
@@ -149,7 +150,7 @@ Respond ONLY in this JSON format:
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'llama-3.3-70b', // Cerebras model name
+      model: 'x-ai/grok-4-fast:free',
       messages: promptInput,
       temperature: 0,
       max_tokens: 200,
@@ -173,7 +174,7 @@ Respond ONLY in this JSON format:
     return null;
   } catch (error: unknown) {
     // Type-safe error handling
-    console.error('Cerebras API error:', 
+    console.error('OpenRouter API error:', 
       typeof error === 'object' && error !== null ? 
         JSON.stringify({
           status: (error as any).status,
@@ -230,14 +231,14 @@ BROWSER: ${activityDetails.browser || ''}
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
     return response.choices[0]?.message?.content?.trim() || null;
   } catch (error) {
-    console.error('Error getting Cerebras summary for block:', error);
+    console.error('Error getting OpenRouter summary for block:', error);
     return null;
   }
 }
@@ -257,7 +258,7 @@ export async function isTitleInformative(title: string): Promise<boolean> {
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 3,
       temperature: 0,
@@ -285,7 +286,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
@@ -313,7 +314,7 @@ export async function getEmojiForCategory(
   ];
   try {
     const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
+      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
       messages: prompt,
       max_tokens: 10,
       temperature: 0,

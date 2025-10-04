@@ -3,30 +3,7 @@
 
 #define MyLog(format, ...) fprintf(stderr, "%s\n", [[NSString stringWithFormat:format, ##__VA_ARGS__] UTF8String])
 
-// In-memory cache for app icon paths
-static NSMutableDictionary *iconPathCache = nil;
-static NSTimeInterval lastAppListUpdate = 0;
-static const NSTimeInterval APP_LIST_CACHE_DURATION = 30.0; // Cache for 30 seconds
-
 NSString* getAppIconPath(NSString* appName) {
-    // Initialize cache if needed
-    if (!iconPathCache) {
-        iconPathCache = [[NSMutableDictionary alloc] init];
-    }
-    
-    // Check cache first
-    NSString *cachedPath = [iconPathCache objectForKey:appName];
-    if (cachedPath) {
-        // Verify the cached file still exists
-        NSFileManager *fileManager = [NSFileManager defaultManager];
-        if ([fileManager fileExistsAtPath:cachedPath]) {
-            return cachedPath;
-        } else {
-            // Remove stale cache entry
-            [iconPathCache removeObjectForKey:appName];
-        }
-    }
-    
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
     
     // Create icons directory if it doesn't exist
@@ -56,23 +33,12 @@ NSString* getAppIconPath(NSString* appName) {
     // Check if icon already exists
     if ([fileManager fileExistsAtPath:iconPath]) {
         // MyLog(@"✅ Using cached icon for %@: %@", appName, iconPath);
-        // Cache the path for future use
-        [iconPathCache setObject:iconPath forKey:appName];
         return iconPath;
     }
     
-    // Check if we need to refresh the app list (expensive operation)
-    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
-    static NSArray *cachedRunningApps = nil;
-    
-    if (!cachedRunningApps || (currentTime - lastAppListUpdate) > APP_LIST_CACHE_DURATION) {
-        cachedRunningApps = [workspace runningApplications];
-        lastAppListUpdate = currentTime;
-        // MyLog(@"🔄 Refreshed running apps cache (%lu apps)", (unsigned long)[cachedRunningApps count]);
-    }
-
     // Try to find the app and get its icon
-    for (NSRunningApplication *app in cachedRunningApps) {
+    NSArray *runningApps = [workspace runningApplications];
+    for (NSRunningApplication *app in runningApps) {
         if ([app.localizedName isEqualToString:appName] || 
             [app.bundleIdentifier containsString:appName.lowercaseString]) {
             
@@ -105,8 +71,6 @@ NSString* getAppIconPath(NSString* appName) {
                         }
                         
                         // MyLog(@"🎨 Generated icon file for %@ (%lu bytes): %@", appName, (unsigned long)pngData.length, iconPath);
-                        // Cache the successful path
-                        [iconPathCache setObject:iconPath forKey:appName];
                         return iconPath;
                     } else {
                         // MyLog(@"🚨 Failed to convert icon to PNG data for %@", appName);

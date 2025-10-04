@@ -92,7 +92,7 @@
         [_browserTabCheckTimer release];
         _browserTabCheckTimer = nil;
     }
-    _browserTabCheckTimer = [[NSTimer scheduledTimerWithTimeInterval:60.0  // Changed from 10.0 to 60.0 seconds for better battery life
+    _browserTabCheckTimer = [[NSTimer scheduledTimerWithTimeInterval:10.0
                                                                 target:self
                                                               selector:@selector(performBrowserTabCheck)
                                                               userInfo:nil

@@ -20,10 +20,6 @@ interface AppIconProps {
   className?: string
 }
 
-// Global cache to prevent duplicate native calls across component instances
-const globalIconCache = new Map<string, string | null>()
-const iconLoadingPromises = new Map<string, Promise<string | null>>()
-
 const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' }) => {
   const [iconError, setIconError] = useState(false)
   const [nativeIconDataUrl, setNativeIconDataUrl] = useState<string | null>(null)
@@ -60,69 +56,36 @@ const AppIcon: React.FC<AppIconProps> = ({ appName, size = 24, className = '' })
 
   // Load native icon if no curated icon found
   useEffect(() => {
-    if (!iconSrc && !iconError) {
-      // Check global cache first
-      const cacheKey = appName
-      if (globalIconCache.has(cacheKey)) {
-        const cachedDataUrl = globalIconCache.get(cacheKey)
-        setNativeIconDataUrl(cachedDataUrl || null)
-        return
-      }
-
-      // Check if we're already loading this icon
-      if (iconLoadingPromises.has(cacheKey)) {
-        iconLoadingPromises.get(cacheKey)?.then((dataUrl) => {
-          setNativeIconDataUrl(dataUrl)
+    if (!iconSrc && !nativeIconDataUrl && !isLoadingNativeIcon) {
+      setIsLoadingNativeIcon(true)
+      window.api
+        .getAppIconPath(appName)
+        .then((path) => {
+          if (path) {
+            // Convert file path to data URL to avoid CSP issues
+            window.api
+              .readFile(path)
+              .then((fileData) => {
+                if (fileData) {
+                  // Convert the file data to a data URL
+                  const base64 = btoa(String.fromCharCode(...new Uint8Array(fileData)))
+                  const dataUrl = `data:image/png;base64,${base64}`
+                  setNativeIconDataUrl(dataUrl)
+                }
+              })
+              .catch((error) => {
+                console.error('Failed to read icon file:', error)
+              })
+          }
         })
-        return
-      }
-
-      // Start loading if not already in progress
-      if (!isLoadingNativeIcon) {
-        setIsLoadingNativeIcon(true)
-        
-        const loadPromise = window.api
-          .getAppIconPath(appName)
-          .then((path) => {
-            if (path) {
-              return window.api
-                .readFile(path)
-                .then((fileData) => {
-                  if (fileData) {
-                    // Convert the file data to a data URL
-                    const base64 = btoa(String.fromCharCode(...new Uint8Array(fileData)))
-                    const dataUrl = `data:image/png;base64,${base64}`
-                    return dataUrl
-                  }
-                  return null
-                })
-                .catch((error) => {
-                  console.error('Failed to read icon file:', error)
-                  return null
-                })
-            }
-            return null
-          })
-          .catch((error) => {
-            console.error('Failed to get native icon for', appName, error)
-            return null
-          })
-
-        iconLoadingPromises.set(cacheKey, loadPromise)
-
-        loadPromise
-          .then((dataUrl) => {
-            // Cache the result (even if null)
-            globalIconCache.set(cacheKey, dataUrl)
-            setNativeIconDataUrl(dataUrl)
-          })
-          .finally(() => {
-            setIsLoadingNativeIcon(false)
-            iconLoadingPromises.delete(cacheKey)
-          })
-      }
+        .catch((error) => {
+          console.error('Failed to get native icon for', appName, error)
+        })
+        .finally(() => {
+          setIsLoadingNativeIcon(false)
+        })
     }
-  }, [appName, iconSrc, iconError, isLoadingNativeIcon])
+  }, [appName, iconSrc, nativeIconDataUrl, isLoadingNativeIcon])
 
   // Show curated icon if available
   if (iconSrc && !iconError) {
