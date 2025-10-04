@@ -47,7 +47,7 @@ export function createFloatingWindow(
     resizable: false,
     maximizable: false,
     fullscreenable: false,
-    show: false,
+    show: false, // This ensures the window starts hidden
     type: process.platform === 'darwin' ? 'panel' : 'normal',
     webPreferences: {
       preload: join(__dirname, '../preload/floatingPreload.js'),

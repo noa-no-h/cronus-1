@@ -24,20 +24,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken'))
-  const [isLoading, setIsLoading] = useState<boolean>(import.meta.env.MODE === 'production' ? false : true)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [justLoggedIn, setJustLoggedIn] = useState(false)
   const posthog = usePostHog()
 
   const { toast } = useToast()
 
   const trpcUtils = trpc.useContext()
-  
-  // Skip server checks during build process
-  useEffect(() => {
-    if (import.meta.env.MODE === 'production') {
-      setIsLoading(false)
-    }
-  }, [])
 
   const {
     data: _fetchedUser,
@@ -47,8 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   } = trpc.auth.getUser.useQuery(
     { token: token! },
     {
-      // Disable the query during build process
-      enabled: !!token && !user && import.meta.env.MODE !== 'production',
+      enabled: !!token && !user,
       retry: 1,
       onSuccess: (data) => {
         if (token) {
@@ -88,9 +80,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }): JSX.Element
   )
 
   useEffect(() => {
-    // In build/production mode or if there's no token, we can skip loading state
     const storedToken = localStorage.getItem('accessToken')
-    if (!storedToken || import.meta.env.MODE === 'production') {
+    if (!storedToken) {
       setIsLoading(false)
     }
   }, [])

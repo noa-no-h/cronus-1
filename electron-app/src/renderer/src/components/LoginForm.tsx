@@ -81,19 +81,8 @@ export function LoginForm({ className, onLoginSuccess, ...props }: LoginFormProp
       return
     }
 
-    // Use the correct redirect URI that matches what's registered in Google Cloud Console
-    // Make sure this exact URI is registered in the Google Cloud Console
     const redirectWebAppSiteUri = `${clientUrl}/electron-callback`;
-    
-    console.log('Using redirect URI:', redirectWebAppSiteUri);
-    console.log('Using client URL:', clientUrl);
-    console.log('Using Google Client ID:', googleClientId);
-    
-    // Show a warning if it looks like the redirect URI might not match what's in Google Cloud Console
-    if (!clientUrl.startsWith('https://') && !clientUrl.includes('localhost')) {
-      console.warn(`WARNING: Client URL (${clientUrl}) doesn't use HTTPS or localhost. This might cause OAuth redirect issues.`);
-    }
-    
+
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', googleClientId);
     authUrl.searchParams.set('redirect_uri', redirectWebAppSiteUri);

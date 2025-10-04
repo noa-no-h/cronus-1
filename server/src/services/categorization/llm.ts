@@ -1,22 +1,18 @@
 import OpenAI from 'openai';
-import { zodTextFormat } from 'openai/helpers/zod';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 
-
-// Update OpenAI client to use OpenRouter
-const openai = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY || '', // Use OpenRouter API key
-  baseURL: 'https://openrouter.ai/api/v1',
-  defaultHeaders: {
-    'HTTP-Referer': 'http://localhost:5173', // Your app URL
-    'X-Title': 'Cronus Productivity Tracker', // Your app name
-  },
+// Update OpenAI client to use Cerebras Cloud
+const cerebras = new OpenAI({
+  apiKey: process.env.CEREBRAS_API_KEY || '', // Use Cerebras API key
+  baseURL: 'https://api.cerebras.com/v1',
 });
 
+// Define the model to be used across all functions
+const CEREBRAS_LLAMA_MODEL = 'llama-3-8b-instruct';
 
-// NEW Zod schema for LLM output: Expecting the name of one of the user's categories
+// Zod schema for LLM output: Expecting the name of one of the user's categories
 const CategoryChoiceSchema = z.object({
   chosenCategoryName: z.string(),
   summary: z
@@ -122,23 +118,21 @@ Respond with the category name and your reasoning.
   ];
 }
 
-// TODO: could add Retry Logic with Consistency Check
+// Renamed back to original to fix export error
 export async function getOpenAICategoryChoice(
   userProjectsAndGoals: string,
-  userCategories: Pick<CategoryType, 'name' | 'description'>[], // Pass only name and description for the prompt
+  userCategories: Pick<CategoryType, 'name' | 'description'>[],
   activityDetails: Pick<
     ActiveWindowDetails,
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<z.infer<typeof CategoryChoiceSchema> | null> {
-  // Returns the chosen category NAME or null if error/no choice
   const promptInput = _buildOpenAICategoryChoicePromptInput(
     userProjectsAndGoals,
     userCategories,
     activityDetails
   );
 
-  // Add this to your prompt builder:
   promptInput[promptInput.length - 1].content += `
 Respond ONLY in this JSON format:
 {
@@ -149,8 +143,8 @@ Respond ONLY in this JSON format:
 `;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'x-ai/grok-4-fast:free',
+    const response = await cerebras.chat.completions.create({
+      model: CEREBRAS_LLAMA_MODEL,
       messages: promptInput,
       temperature: 0,
       max_tokens: 200,
@@ -165,6 +159,7 @@ Respond ONLY in this JSON format:
     }
     if (
       typeof parsed === 'object' &&
+      parsed !== null &&
       typeof parsed.chosenCategoryName === 'string' &&
       typeof parsed.summary === 'string' &&
       typeof parsed.reasoning === 'string'
@@ -173,8 +168,7 @@ Respond ONLY in this JSON format:
     }
     return null;
   } catch (error: unknown) {
-    // Type-safe error handling
-    console.error('OpenRouter API error:', 
+    console.error('Cerebras API error:', 
       typeof error === 'object' && error !== null ? 
         JSON.stringify({
           status: (error as any).status,
@@ -184,7 +178,6 @@ Respond ONLY in this JSON format:
         error
     );
     
-    // Safe way to access nested response data
     if (
       typeof error === 'object' && 
       error !== null && 
@@ -201,15 +194,13 @@ Respond ONLY in this JSON format:
   }
 }
 
-// fallback for title
-
+// Renamed back to original to fix export error
 export async function getOpenAISummaryForBlock(
   activityDetails: Pick<
     ActiveWindowDetails,
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<string | null> {
-  // You can use a similar prompt structure as getOpenAICategoryChoice, but focused on summarization
   const prompt = [
     {
       role: 'system' as const,
@@ -230,15 +221,15 @@ BROWSER: ${activityDetails.browser || ''}
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
+    const response = await cerebras.chat.completions.create({
+      model: CEREBRAS_LLAMA_MODEL,
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
     return response.choices[0]?.message?.content?.trim() || null;
   } catch (error) {
-    console.error('Error getting OpenRouter summary for block:', error);
+    console.error('Error getting Cerebras summary for block:', error);
     return null;
   }
 }
@@ -257,16 +248,16 @@ export async function isTitleInformative(title: string): Promise<boolean> {
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
+    const response = await cerebras.chat.completions.create({
+      model: CEREBRAS_LLAMA_MODEL,
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 3,
       temperature: 0,
     });
     const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
-    const result = answer?.startsWith('yes') ?? false;
-    return result;
+    return answer?.startsWith('yes') ?? false;
   } catch (error) {
+    console.error('Error checking title with Cerebras API:', error);
     return false;
   }
 }
@@ -285,15 +276,15 @@ export async function generateActivitySummary(activityData: any): Promise<string
   ];
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
+    const response = await cerebras.chat.completions.create({
+      model: CEREBRAS_LLAMA_MODEL,
       messages: prompt as ChatCompletionMessageParam[],
       max_tokens: 50,
       temperature: 0.3,
     });
-    const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
-    return generatedTitle;
+    return response.choices[0]?.message?.content?.trim() || '';
   } catch (error) {
+    console.error('Error generating summary with Cerebras API:', error);
     return '';
   }
 }
@@ -313,24 +304,22 @@ export async function getEmojiForCategory(
     },
   ];
   try {
-    const response = await openai.chat.completions.create({
-      model: 'x-ai/grok-4-fast:free', // OpenRouter model name
+    const response = await cerebras.chat.completions.create({
+      model: CEREBRAS_LLAMA_MODEL,
       messages: prompt,
       max_tokens: 10,
       temperature: 0,
     });
     const emoji = response.choices[0]?.message?.content?.trim() || null;
-    // More robust validation: check if it's a single emoji character or sequence
-    // This regex broadly matches various unicode emoji patterns.
     const emojiRegex =
       /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
     if (emoji && emojiRegex.test(emoji) && emoji.length <= 10) {
-      // Keep a length check, but regex is primary
       return emoji;
     }
     return null;
   } catch (error) {
-    console.error('Error getting emoji for category:', error);
+    console.error('Error getting emoji for category with Cerebras API:', error);
     return null;
   }
 }
+
