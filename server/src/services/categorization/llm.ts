@@ -4,15 +4,90 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 
+// LLM Models configuration
+interface ModelConfig {
+  provider: 'cerebras' | 'anthropic' | 'other';
+  modelName: string;
+  client: OpenAI;
+}
 
-// Update OpenAI client to use Cerebras
-const openai = new OpenAI({
-  apiKey: process.env.CEREBRAS_API_KEY || '', // Use Cerebras API key
+// Configure Cerebras client
+const cerebrasClient = new OpenAI({
+  apiKey: process.env.CEREBRAS_API_KEY || '',
   baseURL: 'https://api.cerebras.ai/v1',
   defaultHeaders: {
-    'User-Agent': 'Cronus Productivity Tracker', // Required by Cerebras
+    'User-Agent': 'Cronus Productivity Tracker',
   },
 });
+
+// Available models registry - only keep the high quality models
+const availableModels: ModelConfig[] = [
+  {
+    provider: 'cerebras',
+    modelName: 'llama-3.3-70b',
+    client: cerebrasClient,
+  },
+  {
+    provider: 'cerebras',
+    modelName: 'gpt-oss-120b',
+    client: cerebrasClient,
+  },
+  {
+    provider: 'cerebras',
+    modelName: 'llama-4-maverick-17b-128e-instruct',
+    client: cerebrasClient,
+  },
+  {
+    provider: 'cerebras',
+    modelName: 'qwen-3-235b-a22b-instruct-2507',
+    client: cerebrasClient,
+  },
+  {
+    provider: 'cerebras',
+    modelName: 'qwen-3-32b',
+    client: cerebrasClient,
+  },
+];
+
+// Default model to use first
+let currentModelIndex = 0;
+
+// Helper function to get the next model when failover is needed
+function getNextModel(): ModelConfig {
+  currentModelIndex = (currentModelIndex + 1) % availableModels.length;
+  return availableModels[currentModelIndex];
+}
+
+// Get current model
+function getCurrentModel(): ModelConfig {
+  return availableModels[currentModelIndex];
+}
+
+// Helper function to clean LLM responses
+export function cleanLLMResponse(content: string): string {
+  // First check for full markdown code blocks
+  const codeBlockRegex = /```(?:\w+)?\s*([\s\S]*?)\s*```/;
+  const match = content.match(codeBlockRegex);
+  
+  if (match && match[1]) {
+    console.log("[LLM] Cleaned markdown code block from response");
+    return match[1].trim();
+  }
+  
+  // If no code block found, check if the response starts with ```json and remove it
+  if (content.trim().startsWith("```json")) {
+    console.log("[LLM] Removed starting markdown code block syntax from response");
+    return content.trim().replace(/^```json\s*/, "").replace(/\s*```\s*$/, "");
+  }
+  
+  // Check if content ends with ``` (closing markdown block)
+  if (content.trim().endsWith("```")) {
+    console.log("[LLM] Removed ending markdown code block syntax from response");
+    return content.trim().replace(/\s*```\s*$/, "");
+  }
+  
+  return content.trim();
+}
 
 
 // NEW Zod schema for LLM output: Expecting the name of one of the user's categories
@@ -121,7 +196,7 @@ Respond with the category name and your reasoning.
   ];
 }
 
-// TODO: could add Retry Logic with Consistency Check
+// Retry mechanism with model failover
 export async function getOpenAICategoryChoice(
   userProjectsAndGoals: string,
   userCategories: Pick<CategoryType, 'name' | 'description'>[], // Pass only name and description for the prompt
@@ -137,67 +212,121 @@ export async function getOpenAICategoryChoice(
     activityDetails
   );
 
-  // Add this to your prompt builder:
+  // Add this to your prompt builder with explicit instructions to avoid markdown formatting:
   promptInput[promptInput.length - 1].content += `
-Respond ONLY in this JSON format:
+Respond ONLY in this JSON format WITHOUT any markdown code block formatting (no \`\`\` symbols):
 {
   "chosenCategoryName": "<category name>",
   "summary": "<short summary>",
   "reasoning": "<short reasoning>"
 }
+
+IMPORTANT: Return ONLY the raw JSON without any markdown code block formatting or additional text.
 `;
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'llama-3.3-70b', // Cerebras model name
-      messages: promptInput,
-      temperature: 0,
-      max_tokens: 200,
-    });
-    const content = response.choices[0]?.message?.content || '';
-    let parsed: any = null;
+  // Get the initial model
+  let currentModelConfig = getCurrentModel();
+  const MAX_RETRIES = availableModels.length; // Try each model once
+  let retryCount = 0;
+  
+  while (retryCount < MAX_RETRIES) {
     try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      console.error('Failed to parse LLM output as JSON:', content);
-      return null;
+      console.log(`[LLM] Attempting categorization with model: ${currentModelConfig.modelName}`);
+      
+      const response = await currentModelConfig.client.chat.completions.create({
+        model: currentModelConfig.modelName,
+        messages: promptInput,
+        temperature: 0,
+        max_tokens: 200,
+      });
+      
+      let content = response.choices[0]?.message?.content || '';
+      let parsed: any = null;
+      
+      // Clean up content if it's wrapped in markdown code blocks
+      content = cleanLLMResponse(content);
+
+      try {
+        parsed = JSON.parse(content);
+      } catch (e) {
+        console.error(`[LLM] Failed to parse output from ${currentModelConfig.modelName} as JSON:`, content);
+        
+        // Try to salvage the response by looking for a JSON structure anywhere in the content
+        try {
+          const jsonPattern = /{[\s\S]*?"chosenCategoryName"[\s\S]*?}/g;
+          const possibleJson = content.match(jsonPattern);
+          if (possibleJson && possibleJson[0]) {
+            console.log(`[LLM] Attempting to parse extracted JSON pattern: ${possibleJson[0]}`);
+            parsed = JSON.parse(possibleJson[0]);
+          }
+        } catch (innerError) {
+          console.error(`[LLM] Failed second attempt to parse JSON from content`);
+        }
+        
+        // If we still don't have valid parsed data, try next model
+        if (!parsed) {
+          currentModelConfig = getNextModel();
+          retryCount++;
+          continue;
+        }
+      }
+      
+      if (
+        typeof parsed === 'object' &&
+        typeof parsed.chosenCategoryName === 'string' &&
+        typeof parsed.summary === 'string' &&
+        typeof parsed.reasoning === 'string'
+      ) {
+        return parsed;
+      }
+      
+      // If response format is invalid, try next model
+      console.error(`[LLM] Invalid response format from ${currentModelConfig.modelName}`);
+      currentModelConfig = getNextModel();
+      retryCount++;
+      
+    } catch (error: unknown) {
+      // Check if it's a rate limit error (429)
+      const status = typeof error === 'object' && error !== null ? (error as any).status : null;
+      
+      if (status === 429) {
+        console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        currentModelConfig = getNextModel();
+        retryCount++;
+        continue;
+      }
+      
+      // For other errors, log them but still try next model
+      console.error(`[LLM] Error with ${currentModelConfig.modelName}:`, 
+        typeof error === 'object' && error !== null ? 
+          JSON.stringify({
+            status: (error as any).status,
+            message: (error as any).message,
+            name: (error as any).name
+          }) : 
+          error
+      );
+      
+      // Safe way to access nested response data
+      if (
+        typeof error === 'object' && 
+        error !== null && 
+        'response' in error && 
+        (error as any).response && 
+        'data' in (error as any).response
+      ) {
+        console.error('Response:', (error as any).response.data);
+      }
+      
+      // Try next model
+      currentModelConfig = getNextModel();
+      retryCount++;
     }
-    if (
-      typeof parsed === 'object' &&
-      typeof parsed.chosenCategoryName === 'string' &&
-      typeof parsed.summary === 'string' &&
-      typeof parsed.reasoning === 'string'
-    ) {
-      return parsed;
-    }
-    return null;
-  } catch (error: unknown) {
-    // Type-safe error handling
-    console.error('Cerebras API error:', 
-      typeof error === 'object' && error !== null ? 
-        JSON.stringify({
-          status: (error as any).status,
-          message: (error as any).message,
-          name: (error as any).name
-        }) : 
-        error
-    );
-    
-    // Safe way to access nested response data
-    if (
-      typeof error === 'object' && 
-      error !== null && 
-      'response' in error && 
-      (error as any).response && 
-      'data' in (error as any).response
-    ) {
-      console.error('Response:', (error as any).response.data);
-    } else {
-      console.error('No detailed response data available');
-    }
-    
-    return null;
   }
+  
+  // If we've tried all models and none worked
+  console.error(`[LLM] All ${MAX_RETRIES} LLM models failed for categorization`);
+  return null;
 }
 
 // fallback for title
@@ -228,18 +357,63 @@ BROWSER: ${activityDetails.browser || ''}
     },
   ];
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 50,
-      temperature: 0.3,
-    });
-    return response.choices[0]?.message?.content?.trim() || null;
-  } catch (error) {
-    console.error('Error getting Cerebras summary for block:', error);
-    return null;
+  // Get the initial model
+  let currentModelConfig = getCurrentModel();
+  const MAX_RETRIES = availableModels.length;
+  let retryCount = 0;
+  
+  while (retryCount < MAX_RETRIES) {
+    try {
+      console.log(`[LLM] Attempting summary with model: ${currentModelConfig.modelName}`);
+      
+      const response = await currentModelConfig.client.chat.completions.create({
+        model: currentModelConfig.modelName,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 50,
+        temperature: 0.3,
+      });
+      
+      const content = response.choices[0]?.message?.content;
+      return content ? cleanLLMResponse(content) : null;
+      
+    } catch (error: unknown) {
+      // Check if it's a rate limit error (429)
+      const status = typeof error === 'object' && error !== null ? (error as any).status : null;
+      
+      if (status === 429) {
+        console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        currentModelConfig = getNextModel();
+        retryCount++;
+        // Only continue if we have models left to try
+        if (retryCount < MAX_RETRIES) {
+          continue;
+        }
+      }
+      
+      console.error(`[LLM] Error with ${currentModelConfig.modelName} for summary:`, 
+        typeof error === 'object' && error !== null ? 
+          JSON.stringify({
+            status: (error as any).status,
+            message: (error as any).message,
+            name: (error as any).name
+          }) : 
+          error
+      );
+      
+      // Try next model
+      currentModelConfig = getNextModel();
+      retryCount++;
+      
+      // If we've tried all models, break the loop
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+    }
   }
+  
+  // If we've tried all models and none worked
+  console.error(`[LLM] All ${MAX_RETRIES} LLM models failed for summary`);
+  return null;
 }
 
 export async function isTitleInformative(title: string): Promise<boolean> {
@@ -255,19 +429,54 @@ export async function isTitleInformative(title: string): Promise<boolean> {
     },
   ];
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 3,
-      temperature: 0,
-    });
-    const answer = response.choices[0]?.message?.content?.trim().toLowerCase();
-    const result = answer?.startsWith('yes') ?? false;
-    return result;
-  } catch (error) {
-    return false;
+  // Get the initial model
+  let currentModelConfig = getCurrentModel();
+  const MAX_RETRIES = availableModels.length;
+  let retryCount = 0;
+  
+  while (retryCount < MAX_RETRIES) {
+    try {
+      console.log(`[LLM] Checking title with model: ${currentModelConfig.modelName}`);
+      
+      const response = await currentModelConfig.client.chat.completions.create({
+        model: currentModelConfig.modelName,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 3,
+        temperature: 0,
+      });
+      
+      const content = response.choices[0]?.message?.content;
+      const cleanedResponse = content ? cleanLLMResponse(content).toLowerCase() : '';
+      const result = cleanedResponse.startsWith('yes');
+      return result;
+      
+    } catch (error: unknown) {
+      // Check if it's a rate limit error (429)
+      const status = typeof error === 'object' && error !== null ? (error as any).status : null;
+      
+      if (status === 429) {
+        console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        currentModelConfig = getNextModel();
+        retryCount++;
+        if (retryCount < MAX_RETRIES) {
+          continue;
+        }
+      }
+      
+      console.error(`[LLM] Error with ${currentModelConfig.modelName} for title check:`, error);
+      
+      // Try next model if available
+      currentModelConfig = getNextModel();
+      retryCount++;
+      
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+    }
   }
+  
+  // Default to false if all models failed
+  return false;
 }
 
 export async function generateActivitySummary(activityData: any): Promise<string> {
@@ -283,18 +492,52 @@ export async function generateActivitySummary(activityData: any): Promise<string
     },
   ];
 
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt as ChatCompletionMessageParam[],
-      max_tokens: 50,
-      temperature: 0.3,
-    });
-    const generatedTitle = response.choices[0]?.message?.content?.trim() || '';
-    return generatedTitle;
-  } catch (error) {
-    return '';
+  // Get the initial model
+  let currentModelConfig = getCurrentModel();
+  const MAX_RETRIES = availableModels.length;
+  let retryCount = 0;
+  
+  while (retryCount < MAX_RETRIES) {
+    try {
+      console.log(`[LLM] Generating summary with model: ${currentModelConfig.modelName}`);
+      
+      const response = await currentModelConfig.client.chat.completions.create({
+        model: currentModelConfig.modelName,
+        messages: prompt as ChatCompletionMessageParam[],
+        max_tokens: 50,
+        temperature: 0.3,
+      });
+      
+      const content = response.choices[0]?.message?.content;
+      return content ? cleanLLMResponse(content) : '';
+      
+    } catch (error: unknown) {
+      // Check if it's a rate limit error (429)
+      const status = typeof error === 'object' && error !== null ? (error as any).status : null;
+      
+      if (status === 429) {
+        console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        currentModelConfig = getNextModel();
+        retryCount++;
+        if (retryCount < MAX_RETRIES) {
+          continue;
+        }
+      }
+      
+      console.error(`[LLM] Error with ${currentModelConfig.modelName} for activity summary:`, error);
+      
+      // Try next model if available
+      currentModelConfig = getNextModel();
+      retryCount++;
+      
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
+    }
   }
+  
+  // Return empty string if all models failed
+  return '';
 }
 
 export async function getEmojiForCategory(
@@ -311,25 +554,67 @@ export async function getEmojiForCategory(
       content: `Suggest a single emoji (just the emoji, no text) for a category with the following details.\nName: ${name}\nDescription: ${description || ''}`,
     },
   ];
-  try {
-    const response = await openai.chat.completions.create({
-      model: 'llama3.1-8b', // Cerebras model name
-      messages: prompt,
-      max_tokens: 10,
-      temperature: 0,
-    });
-    const emoji = response.choices[0]?.message?.content?.trim() || null;
-    // More robust validation: check if it's a single emoji character or sequence
-    // This regex broadly matches various unicode emoji patterns.
-    const emojiRegex =
-      /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
-    if (emoji && emojiRegex.test(emoji) && emoji.length <= 10) {
-      // Keep a length check, but regex is primary
-      return emoji;
+  
+  // Get the initial model
+  let currentModelConfig = getCurrentModel();
+  const MAX_RETRIES = availableModels.length;
+  let retryCount = 0;
+  
+  // Emoji validation regex
+  const emojiRegex =
+    /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+  
+  while (retryCount < MAX_RETRIES) {
+    try {
+      console.log(`[LLM] Getting emoji with model: ${currentModelConfig.modelName}`);
+      
+      const response = await currentModelConfig.client.chat.completions.create({
+        model: currentModelConfig.modelName,
+        messages: prompt,
+        max_tokens: 10,
+        temperature: 0,
+      });
+      
+      const content = response.choices[0]?.message?.content;
+      const emoji = content ? cleanLLMResponse(content) : null;
+      
+      if (emoji && emojiRegex.test(emoji) && emoji.length <= 10) {
+        return emoji;
+      } else {
+        console.warn(`[LLM] Invalid emoji response from ${currentModelConfig.modelName}: "${emoji}"`);
+        // Try next model if response isn't a valid emoji
+        currentModelConfig = getNextModel();
+        retryCount++;
+        if (retryCount < MAX_RETRIES) {
+          continue;
+        }
+      }
+      
+    } catch (error: unknown) {
+      // Check if it's a rate limit error (429)
+      const status = typeof error === 'object' && error !== null ? (error as any).status : null;
+      
+      if (status === 429) {
+        console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        currentModelConfig = getNextModel();
+        retryCount++;
+        if (retryCount < MAX_RETRIES) {
+          continue;
+        }
+      }
+      
+      console.error(`[LLM] Error with ${currentModelConfig.modelName} for emoji generation:`, error);
+      
+      // Try next model if available
+      currentModelConfig = getNextModel();
+      retryCount++;
+      
+      if (retryCount >= MAX_RETRIES) {
+        break;
+      }
     }
-    return null;
-  } catch (error) {
-    console.error('Error getting emoji for category:', error);
-    return null;
   }
+  
+  console.error(`[LLM] All ${MAX_RETRIES} LLM models failed for emoji generation`);
+  return null;
 }
