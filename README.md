@@ -1,5 +1,15 @@
 # Cronus
 
+
+From Noa:
+
+bun run build
+
+bun run dev 
+
+not within electron-app but the full directory
+
+
 **Understand where your time went and reduce distractions.**
 
 ![Cronus in action](./nextjs-client/public/action.gif)

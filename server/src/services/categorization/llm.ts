@@ -3,6 +3,7 @@ import { zodTextFormat } from 'openai/helpers/zod';
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
+import { tokenTracker } from '../tracking/tokenUsageTracker';
 
 // LLM Models configuration
 interface ModelConfig {
@@ -240,6 +241,25 @@ IMPORTANT: Return ONLY the raw JSON without any markdown code block formatting o
         max_tokens: 200,
       });
       
+      // Track token usage
+      if (response.usage) {
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+          endpoint: 'categorization',
+          success: true
+        });
+        
+        // Log token usage
+        console.log(
+          `[TokenUsage] ${currentModelConfig.modelName} categorization: ` +
+          `${response.usage.prompt_tokens} prompt + ${response.usage.completion_tokens} completion = ` +
+          `${response.usage.total_tokens} total tokens`
+        );
+      }
+      
       let content = response.choices[0]?.message?.content || '';
       let parsed: any = null;
       
@@ -291,6 +311,17 @@ IMPORTANT: Return ONLY the raw JSON without any markdown code block formatting o
       
       if (status === 429) {
         console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        
+        // Track rate limit as a failed request
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: 0,  // We don't know exactly how many tokens were in the failed request
+          completionTokens: 0,
+          totalTokens: 0,
+          endpoint: 'categorization',
+          success: false
+        });
+        
         currentModelConfig = getNextModel();
         retryCount++;
         continue;
@@ -306,6 +337,16 @@ IMPORTANT: Return ONLY the raw JSON without any markdown code block formatting o
           }) : 
           error
       );
+      
+      // Track other errors
+      tokenTracker.trackUsage({
+        model: currentModelConfig.modelName,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        endpoint: 'categorization',
+        success: false
+      });
       
       // Safe way to access nested response data
       if (
@@ -373,6 +414,24 @@ BROWSER: ${activityDetails.browser || ''}
         temperature: 0.3,
       });
       
+      // Track token usage
+      if (response.usage) {
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+          endpoint: 'summary',
+          success: true
+        });
+        
+        console.log(
+          `[TokenUsage] ${currentModelConfig.modelName} summary: ` +
+          `${response.usage.prompt_tokens} prompt + ${response.usage.completion_tokens} completion = ` +
+          `${response.usage.total_tokens} total tokens`
+        );
+      }
+      
       const content = response.choices[0]?.message?.content;
       return content ? cleanLLMResponse(content) : null;
       
@@ -382,6 +441,17 @@ BROWSER: ${activityDetails.browser || ''}
       
       if (status === 429) {
         console.warn(`[LLM] Rate limit (429) hit for ${currentModelConfig.modelName}, switching models...`);
+        
+        // Track rate limit as a failed request
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+          endpoint: 'summary',
+          success: false
+        });
+        
         currentModelConfig = getNextModel();
         retryCount++;
         // Only continue if we have models left to try
@@ -399,6 +469,16 @@ BROWSER: ${activityDetails.browser || ''}
           }) : 
           error
       );
+      
+      // Track other errors
+      tokenTracker.trackUsage({
+        model: currentModelConfig.modelName,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        endpoint: 'summary',
+        success: false
+      });
       
       // Try next model
       currentModelConfig = getNextModel();
@@ -444,6 +524,18 @@ export async function isTitleInformative(title: string): Promise<boolean> {
         max_tokens: 3,
         temperature: 0,
       });
+      
+      // Track token usage
+      if (response.usage) {
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+          endpoint: 'titleCheck',
+          success: true
+        });
+      }
       
       const content = response.choices[0]?.message?.content;
       const cleanedResponse = content ? cleanLLMResponse(content).toLowerCase() : '';
@@ -507,6 +599,23 @@ export async function generateActivitySummary(activityData: any): Promise<string
         max_tokens: 50,
         temperature: 0.3,
       });
+      
+      // Track token usage
+      if (response.usage) {
+        tokenTracker.trackUsage({
+          model: currentModelConfig.modelName,
+          promptTokens: response.usage.prompt_tokens,
+          completionTokens: response.usage.completion_tokens,
+          totalTokens: response.usage.total_tokens,
+          endpoint: 'activitySummary',
+          success: true
+        });
+        
+        console.log(
+          `[TokenUsage] ${currentModelConfig.modelName} activity summary: ` +
+          `${response.usage.total_tokens} total tokens`
+        );
+      }
       
       const content = response.choices[0]?.message?.content;
       return content ? cleanLLMResponse(content) : '';

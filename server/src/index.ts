@@ -36,6 +36,7 @@ import { categoryRouter } from './routers/categoryRouter';
 import { paymentsRouter } from './routers/payments';
 import { statisticsRouter } from './routers/statistics';
 import { suggestionsRouter } from './routers/suggestions';
+import { tokenUsageRouter } from './routers/tokenUsageRouter';
 import { userRouter } from './routers/user';
 import { waitlistRouter } from './routers/waitlist';
 
@@ -59,6 +60,7 @@ export const appRouter = router({
   suggestions: suggestionsRouter,
   waitlist: waitlistRouter,
   statistics: statisticsRouter,
+  tokenUsage: tokenUsageRouter,
 });
 
 export type AppRouter = typeof appRouter;

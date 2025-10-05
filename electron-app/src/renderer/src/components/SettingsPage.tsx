@@ -12,6 +12,7 @@ import { MultiPurposeAppsSettings } from './Settings/MultiPurposeAppsSettings'
 import PauseTrackingSettings from './Settings/PauseTrackingSettings'
 import { PermissionsStatus } from './Settings/PermissionsStatus'
 import { ThemeSwitcher } from './Settings/ThemeSwitcher'
+import TokenUsageSettings from './Settings/TokenUsageSettings'
 import { AppInformation } from './Settings/VersionDisplay'
 import { Button } from './ui/button'
 
@@ -105,6 +106,7 @@ export const SettingsPage = memo(function SettingsPage({
         <GoogleCalendarSettings />
         <ManualUpdateSettings />
         <DisableUsageAnalyticsSettings />
+        <TokenUsageSettings token={localStorage.getItem('accessToken')} />
         <LogOutButtonSection user={user} logout={logout} onResetOnboarding={onResetOnboarding} />
         <AppInformation onShowPermissions={handleShowPermissions} />
         {showPermissions && <PermissionsStatus />}
