@@ -33,6 +33,10 @@ export interface TokenUsageStats {
     completionTokens: number;
     requests: number;
   }>;
+  dailyLimit: number;
+  remainingToday: number;
+  estimatedCallsLeft: number;
+  averageTokensPerCall: number;
   lastUpdated: Date;
 }
 
@@ -48,6 +52,11 @@ class TokenUsageTracker {
   private totalTokensUsed: number = 0;
   private logFile: string;
   private statsFile: string;
+  
+  // Default daily token limit (1 million)
+  private dailyTokenLimit: number = 1000000;
+  // Default average tokens per call
+  private avgTokensPerCall: number = 1400;
   
   constructor() {
     // Define log file paths - store them in the user's home directory under .cronus
@@ -198,6 +207,21 @@ class TokenUsageTracker {
     // Update total tokens
     this.totalTokensUsed += usage.totalTokens;
     
+    // Log remaining tokens if this is a successful call
+    if (usage.success) {
+      // Update the average tokens per call with a simple moving average
+      this.avgTokensPerCall = (this.avgTokensPerCall * 0.9) + (usage.totalTokens * 0.1);
+      
+      // Calculate and log remaining tokens
+      const todayTotal = this.dailyStats[today].totalTokens;
+      const remaining = Math.max(0, this.dailyTokenLimit - todayTotal);
+      const estimatedCalls = Math.floor(remaining / this.avgTokensPerCall);
+      
+      console.log(`[TokenTracker] ${usage.model}: ${usage.promptTokens} prompt + ${usage.completionTokens} completion = ${usage.totalTokens} total tokens`);
+      console.log(`[TokenTracker] Today: ${todayTotal.toLocaleString()}/${this.dailyTokenLimit.toLocaleString()} tokens (${Math.round(todayTotal / this.dailyTokenLimit * 100)}% used)`);
+      console.log(`[TokenTracker] Remaining: ~${estimatedCalls} more calls (assuming ~${Math.round(this.avgTokensPerCall)} tokens/call)`);
+    }
+    
     // Save data periodically (every 10 calls)
     if (this.usageLogs.length >= 10) {
       this.saveData();
@@ -249,12 +273,55 @@ class TokenUsageTracker {
    * Get complete token usage statistics
    */
   getTokenUsageStats(): TokenUsageStats {
+    // Calculate remaining tokens and calls
+    const todayUsage = this.getTodayUsage();
+    const usedToday = todayUsage ? todayUsage.totalTokens : 0;
+    const remaining = Math.max(0, this.dailyTokenLimit - usedToday);
+    const estimatedCalls = Math.floor(remaining / this.avgTokensPerCall);
+    
     return {
       totalTokensUsed: this.totalTokensUsed,
       dailyUsage: this.dailyStats,
       modelUsage: this.modelStats,
+      dailyLimit: this.dailyTokenLimit,
+      remainingToday: remaining,
+      estimatedCallsLeft: estimatedCalls,
+      averageTokensPerCall: this.avgTokensPerCall,
       lastUpdated: new Date()
     };
+  }
+  
+  /**
+   * Set the daily token limit
+   */
+  setDailyLimit(limit: number): void {
+    this.dailyTokenLimit = limit;
+    console.log(`[TokenTracker] Daily limit set to ${limit.toLocaleString()} tokens`);
+  }
+  
+  /**
+   * Set the average tokens per call for estimation
+   */
+  setAvgTokensPerCall(avg: number): void {
+    this.avgTokensPerCall = avg;
+    console.log(`[TokenTracker] Average tokens per call set to ${avg.toLocaleString()}`);
+  }
+  
+  /**
+   * Log the current usage status including limits
+   */
+  logUsageStatus(): void {
+    const stats = this.getTokenUsageStats();
+    const todayUsage = this.getTodayUsage();
+    const usedToday = todayUsage ? todayUsage.totalTokens : 0;
+    
+    console.log('========== TOKEN USAGE STATUS ==========');
+    console.log(`Daily Limit: ${stats.dailyLimit.toLocaleString()} tokens`);
+    console.log(`Used Today: ${usedToday.toLocaleString()} tokens (${Math.round(usedToday / stats.dailyLimit * 100)}%)`);
+    console.log(`Remaining: ${stats.remainingToday.toLocaleString()} tokens`);
+    console.log(`Avg. Per Call: ${stats.averageTokensPerCall.toLocaleString()} tokens`);
+    console.log(`Est. Calls Left: ${stats.estimatedCallsLeft.toLocaleString()} calls`);
+    console.log('=========================================');
   }
 }
 

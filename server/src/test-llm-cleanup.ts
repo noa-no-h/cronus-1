@@ -1,5 +1,5 @@
 // Test for JSON parsing with Markdown code blocks
-import { cleanLLMResponse } from './services/categorization/llm';
+import { cleanLLMResponse } from './services/categorization/llm-huggingface';
 
 // Test different markdown-formatted responses
 function testCleanLLMResponse() {

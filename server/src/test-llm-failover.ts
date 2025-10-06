@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { getOpenAICategoryChoice, getEmojiForCategory } from './services/categorization/llm';
+import { getCategoryChoice, getEmoji } from './services/categorization/llm-impl';
 import { ActiveWindowDetails, Category } from '../../shared/types';
 
 async function testLLMFailover() {
@@ -31,7 +31,7 @@ async function testLLMFailover() {
   
   try {
     console.log('Testing category choice with failover...');
-    const categoryResult = await getOpenAICategoryChoice(
+    const categoryResult = await getCategoryChoice(
       userProjectsAndGoals,
       userCategories,
       activityDetails
@@ -39,8 +39,8 @@ async function testLLMFailover() {
     
     console.log('Category choice result:', categoryResult);
     
-    console.log('Testing emoji generation with failover...');
-    const emoji = await getEmojiForCategory('Coding', 'Programming and development work');
+  console.log('Testing emoji generation with failover...');
+  const emoji = await getEmoji('Coding', 'Programming and development work');
     
     console.log('Emoji result:', emoji);
     
