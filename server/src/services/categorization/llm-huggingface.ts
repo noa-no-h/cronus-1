@@ -3,6 +3,7 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 import { tokenTracker } from '../tracking/tokenUsageTracker';
+import { redactActivityDetails } from './redaction-helper';
 
 // LLM Models configuration
 interface ModelConfig {
@@ -105,7 +106,13 @@ function _buildHuggingFaceCategoryChoicePromptInput(
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ) {
-  const { ownerName, title, url, content, type, browser } = activityDetails;
+  // Redact any sensitive information before sending to external API
+  const redactedActivityDetails = redactActivityDetails(activityDetails, {
+    redactionText: '[PRIVATE_INFO_REDACTED]',
+    logCounts: true
+  });
+  
+  const { ownerName, title, url, content, type, browser } = redactedActivityDetails;
 
   const categoryListForPrompt = userCategories
     .map((cat) => `- "${cat.name}"${cat.description ? ': ' + cat.description : ''}`)
@@ -367,6 +374,12 @@ export async function getHuggingFaceSummaryForBlock(
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<string | null> {
+  // Redact any sensitive information before sending to external API
+  const redactedActivityDetails = redactActivityDetails(activityDetails, {
+    redactionText: '[PRIVATE_INFO_REDACTED]',
+    logCounts: true
+  });
+
   // You can use a similar prompt structure as getOpenAICategoryChoice, but focused on summarization
   const prompt = [
     {
@@ -377,12 +390,12 @@ Provide a concise, one-line summary of what the user was likely doing in this ti
     {
       role: 'user' as const,
       content: `
-APP: ${activityDetails.ownerName}
-TITLE: ${activityDetails.title || ''}
-URL: ${activityDetails.url || ''}
-CONTENT: ${activityDetails.content ? activityDetails.content.slice(0, 1000) : ''}
-TYPE: ${activityDetails.type}
-BROWSER: ${activityDetails.browser || ''}
+APP: ${redactedActivityDetails.ownerName}
+TITLE: ${redactedActivityDetails.title || ''}
+URL: ${redactedActivityDetails.url || ''}
+CONTENT: ${redactedActivityDetails.content ? redactedActivityDetails.content.slice(0, 1000) : ''}
+TYPE: ${redactedActivityDetails.type}
+BROWSER: ${redactedActivityDetails.browser || ''}
 `,
     },
   ];
@@ -561,6 +574,13 @@ export async function isTitleInformative(title: string): Promise<boolean> {
 }
 
 export async function generateActivitySummary(activityData: any): Promise<string> {
+  // Redact any sensitive information in the activity data 
+  const redactedActivityData = typeof activityData === 'object' ?
+    redactActivityDetails(activityData, {
+      redactionText: '[PRIVATE_INFO_REDACTED]',
+      logCounts: true
+    }) : activityData;
+
   const prompt = [
     {
       role: 'system' as const,
@@ -569,7 +589,7 @@ export async function generateActivitySummary(activityData: any): Promise<string
     },
     {
       role: 'user' as const,
-      content: `ACTIVITY DATA: ${JSON.stringify(activityData)}`,
+      content: `ACTIVITY DATA: ${JSON.stringify(redactedActivityData)}`,
     },
   ];
 
