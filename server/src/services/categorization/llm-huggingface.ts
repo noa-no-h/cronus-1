@@ -5,6 +5,13 @@ import { ActiveWindowDetails, Category as CategoryType } from '../../../../share
 import { tokenTracker } from '../tracking/tokenUsageTracker';
 import { redactActivityDetails } from './redaction-helper';
 
+// Reset token counters for Hugging Face models when module loads
+tokenTracker.resetProviderUsage('huggingface');
+tokenTracker.resetProviderUsage('meta-llama');
+tokenTracker.resetProviderUsage('mistralai');
+tokenTracker.resetProviderUsage('deepseek');
+tokenTracker.resetProviderUsage('google/gemma');
+
 // LLM Models configuration
 interface ModelConfig {
   provider: string;

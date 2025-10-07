@@ -1,6 +1,12 @@
 // Unified implementation wrapper for LLM functions.
 // Edit only `forceImplementation` or set `LLM_IMPLEMENTATION` in the environment to switch.
 
+// Import the token tracker to reset daily usage when loaded
+import { tokenTracker } from '../tracking/tokenUsageTracker';
+
+// Reset daily usage when the implementation is loaded (start fresh each time)
+tokenTracker.resetDailyUsage();
+
 const forceImplementation: 'openai' | 'huggingface' | 'gemini' | null = 'gemini'; // set null to 'openai' to force
 // Add debug logging to see which implementation is chosen
 const impl = (forceImplementation || (process.env.LLM_IMPLEMENTATION as any) || 'openai') as 'openai' | 'huggingface' | 'gemini';
@@ -80,14 +86,13 @@ export function getEmoji(...args: any[]) {
 
 // Allow runtime switching if needed
 export function setImplementation(provider: 'openai' | 'huggingface' | 'gemini') {
+  // Reset usage counters when switching implementation
+  tokenTracker.resetDailyUsage();
+  
   if (provider === 'huggingface') {
     backend = require('./llm-huggingface');
   } else if (provider === 'gemini') {
-    try {
-      backend = require('./llm-gemini-native');
-    } catch (e) {
-      backend = require('./llm-gemini-actual');
-    }
+    backend = require('./llm-gemini-actual');
   } else {
     backend = require('./llm');
   }

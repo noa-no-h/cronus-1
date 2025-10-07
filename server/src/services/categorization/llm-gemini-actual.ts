@@ -19,6 +19,10 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 // Debug initialization
 console.log('[LLM-Gemini-Actual] Initializing module with Gemini 1.5 models');
 
+// Reset token counters for this provider when module loads
+tokenTracker.resetProviderUsage('gemini');
+tokenTracker.resetProviderUsage('models/gemini');
+
 // Initialize client with OpenAI-compatible Gemini endpoint
 const client = new OpenAI({
   apiKey: process.env.GEMINI_API_KEY || '',

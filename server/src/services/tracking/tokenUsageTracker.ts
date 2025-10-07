@@ -323,6 +323,80 @@ class TokenUsageTracker {
     console.log(`Est. Calls Left: ${stats.estimatedCallsLeft.toLocaleString()} calls`);
     console.log('=========================================');
   }
+
+  /**
+   * Reset daily usage statistics for the current day
+   * This is useful when switching between different providers
+   */
+  resetDailyUsage(): void {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // If we have usage for today, subtract it from the total
+    if (this.dailyStats[today]) {
+      this.totalTokensUsed -= this.dailyStats[today].totalTokens;
+      
+      // Also subtract from model stats
+      Object.entries(this.dailyStats[today].byModel).forEach(([model, tokens]) => {
+        if (this.modelStats[model]) {
+          this.modelStats[model].totalTokens -= tokens;
+        }
+      });
+      
+      // Reset today's stats
+      this.dailyStats[today] = {
+        date: today,
+        totalTokens: 0,
+        byModel: {},
+        byEndpoint: {},
+        requests: 0,
+        failures: 0
+      };
+      
+      console.log(`[TokenTracker] Reset usage statistics for ${today}`);
+      
+      // Save the updated stats
+      this.saveData();
+    }
+  }
+  
+  /**
+   * Reset usage for a specific LLM provider
+   * Useful when switching between different LLM implementations
+   */
+  resetProviderUsage(providerPrefix: string): void {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Check if we have stats for today
+    if (this.dailyStats[today]) {
+      // Get all models for this provider
+      const providerModels = Object.keys(this.dailyStats[today].byModel)
+        .filter(model => model.startsWith(providerPrefix));
+      
+      // Subtract usage for these models
+      let tokensRemoved = 0;
+      providerModels.forEach(model => {
+        const modelTokens = this.dailyStats[today].byModel[model] || 0;
+        tokensRemoved += modelTokens;
+        
+        // Update model stats
+        if (this.modelStats[model]) {
+          this.modelStats[model].totalTokens -= modelTokens;
+        }
+        
+        // Remove from today's stats
+        delete this.dailyStats[today].byModel[model];
+      });
+      
+      // Update total tokens
+      this.dailyStats[today].totalTokens -= tokensRemoved;
+      this.totalTokensUsed -= tokensRemoved;
+      
+      console.log(`[TokenTracker] Reset usage statistics for provider: ${providerPrefix} (removed ${tokensRemoved.toLocaleString()} tokens)`);
+      
+      // Save the updated stats
+      this.saveData();
+    }
+  }
 }
 
 // Singleton instance

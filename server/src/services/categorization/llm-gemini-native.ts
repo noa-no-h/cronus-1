@@ -21,13 +21,17 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 // Debug initialization
 console.log('[LLM-Gemini-Native] Initializing module with Google Generative AI SDK');
 
+// Reset token counters for this provider when module loads
+tokenTracker.resetProviderUsage('gemini');
+tokenTracker.resetProviderUsage('gemma');
+
 // Initialize client with Google Generative AI SDK
 const googleAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Model configuration - use specific models
 const MODEL_CONFIG = {
   primary: 'gemma-3-27b-it',
-  fallbacks: ['gemini-1.5-flash', 'gemini-pro']
+  fallbacks: []
 };
 
 // Debug flag (set to true to see more detailed logs)

@@ -5,6 +5,11 @@ import { z } from 'zod';
 import { ActiveWindowDetails, Category as CategoryType } from '../../../../shared/types';
 import { tokenTracker } from '../tracking/tokenUsageTracker';
 
+// Reset token counters for OpenAI/Cerebras models when module loads
+tokenTracker.resetProviderUsage('cerebras');
+tokenTracker.resetProviderUsage('gpt');
+tokenTracker.resetProviderUsage('anthropic');
+
 // LLM Models configuration
 interface ModelConfig {
   provider: 'cerebras' | 'anthropic' | 'other';
