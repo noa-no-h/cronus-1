@@ -52,6 +52,7 @@
     "@google/generative-ai": "^0.24.1",
     "@types/papaparse": "^5.3.15",
     "@zapier/secret-scrubber": "^1.1.2",
+    "axios": "^1.12.2",
     "cheerio": "^1.0.0",
     "dotenv": "^17.2.1",
     "lucide-react": "^0.483.0",

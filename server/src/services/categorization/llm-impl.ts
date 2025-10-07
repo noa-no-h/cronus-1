@@ -2,19 +2,46 @@
 // Edit only `forceImplementation` or set `LLM_IMPLEMENTATION` in the environment to switch.
 
 const forceImplementation: 'openai' | 'huggingface' | 'gemini' | null = 'gemini'; // set null to 'openai' to force
+// Add debug logging to see which implementation is chosen
 const impl = (forceImplementation || (process.env.LLM_IMPLEMENTATION as any) || 'openai') as 'openai' | 'huggingface' | 'gemini';
+console.log(`[LLM-IMPL] Using implementation: ${impl} (forceImplementation=${forceImplementation}, env=${process.env.LLM_IMPLEMENTATION})`);
 
 // Load the appropriate backend module
 let backend: any;
 function loadBackend() {
-  if (impl === 'huggingface') {
-    backend = require('./llm-huggingface');
-  } else if (impl === 'gemini') {
-    backend = require('./llm-gemini');
-  } else {
-    backend = require('./llm');
+  try {
+    if (impl === 'huggingface') {
+      console.log('[LLM-IMPL] Loading Hugging Face implementation');
+      backend = require('./llm-huggingface');
+    } else if (impl === 'gemini') {
+      console.log('[LLM-IMPL] Loading Gemini implementation');
+      try {
+        // Try native implementation first
+        backend = require('./llm-gemini-native');
+        console.log('[LLM-IMPL] Successfully loaded native Gemini implementation');
+      } catch (nativeError) {
+        console.error('[LLM-IMPL] Error loading native Gemini implementation:', nativeError);
+        console.log('[LLM-IMPL] Falling back to OpenAI compatibility implementation');
+        try {
+          backend = require('./llm-gemini-actual');
+          console.log('[LLM-IMPL] Successfully loaded Gemini OpenAI compatibility implementation');
+        } catch (compatError) {
+          console.error('[LLM-IMPL] Error loading Gemini OpenAI compatibility implementation:', compatError);
+          throw new Error('Failed to load any Gemini implementation');
+        }
+      }
+    } else {
+      console.log('[LLM-IMPL] Loading OpenAI implementation');
+      backend = require('./llm');
+    }
+    console.log(`[LLM-IMPL] Successfully loaded ${impl} implementation`);
+    return backend;
+  } catch (error) {
+    console.error(`[LLM-IMPL] Error loading ${impl} implementation:`, error);
+    // Fall back to OpenAI if there's an error
+    console.log('[LLM-IMPL] Falling back to OpenAI implementation due to error');
+    return require('./llm');
   }
-  return backend;
 }
 
 // Initialize backend
@@ -56,7 +83,11 @@ export function setImplementation(provider: 'openai' | 'huggingface' | 'gemini')
   if (provider === 'huggingface') {
     backend = require('./llm-huggingface');
   } else if (provider === 'gemini') {
-    backend = require('./llm-gemini');
+    try {
+      backend = require('./llm-gemini-native');
+    } catch (e) {
+      backend = require('./llm-gemini-actual');
+    }
   } else {
     backend = require('./llm');
   }
