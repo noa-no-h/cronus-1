@@ -59,8 +59,18 @@ export async function categorizeActivity(
   let categoryReasoning: string | null = null;
   let llmSummary: string | null = null;
 
-  if (choice) {
-    const { chosenCategoryName, reasoning, summary } = choice;
+  if (
+    choice &&
+    typeof choice === 'object' &&
+    'chosenCategoryName' in choice &&
+    'reasoning' in choice &&
+    'summary' in choice
+  ) {
+    const { chosenCategoryName, reasoning, summary } = choice as {
+      chosenCategoryName: string;
+      reasoning: string;
+      summary: string;
+    };
     const matchedCategory = userCategories.find(
       (cat) => cat.name.toLowerCase() === chosenCategoryName.toLowerCase()
     );
@@ -77,7 +87,7 @@ export async function categorizeActivity(
       );
     }
   } else {
-    console.log('[CategorizationService] LLM did not choose a category.');
+    console.log('[CategorizationService] LLM did not choose a category or returned unexpected result.', choice);
   }
 
   // TODO: I dont think this should ever run bc when the entry is created it's usually below 10min
@@ -87,7 +97,7 @@ export async function categorizeActivity(
 
   if (isLongBlock && isReasoningMissingOrShort) {
   const summary = await getSummaryForBlock(activeWindow);
-    if (summary) {
+    if (typeof summary === 'string') {
       categoryReasoning = summary;
     }
   }

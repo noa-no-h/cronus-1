@@ -37,11 +37,15 @@ async function testGeminiIntegration() {
   
   try {
     const result = await getCategoryChoice(userProjectsAndGoals, userCategories, activityDetails);
-    
+    type ChoiceResult = { categoryName: string; summary: string; reasoning: string };
+    const safeResult = (result && typeof result === 'object' && 'categoryName' in result && 'summary' in result && 'reasoning' in result)
+      ? (result as ChoiceResult)
+      : { categoryName: '', summary: '', reasoning: '' };
+
     console.log('=== API Call Successful ===');
-    console.log('Chosen Category:', result.categoryName);
-    console.log('Summary:', result.summary);
-    console.log('Reasoning:', result.reasoning);
+    console.log('Chosen Category:', safeResult.categoryName);
+    console.log('Summary:', safeResult.summary);
+    console.log('Reasoning:', safeResult.reasoning);
     console.log('\nTest completed successfully!');
   } catch (error) {
     console.error('=== API Call Failed ===');

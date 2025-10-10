@@ -57,7 +57,8 @@ export async function getSummaryForBlock(
     'ownerName' | 'title' | 'url' | 'content' | 'type' | 'browser'
   >
 ): Promise<string | null> {
-  return LLMImpl.getSummaryForBlock(activityDetails);
+  const result = await LLMImpl.getSummaryForBlock(activityDetails);
+  return typeof result === 'string' || result === null ? result : null;
 }
 
 /**
@@ -65,7 +66,8 @@ export async function getSummaryForBlock(
  * Uses the currently selected LLM provider
  */
 export async function checkTitleInformative(title: string): Promise<boolean> {
-  return LLMImpl.isTitleInformative(title);
+  const result = await LLMImpl.isTitleInformative(title);
+  return typeof result === 'boolean' ? result : false;
 }
 
 /**
@@ -73,7 +75,8 @@ export async function checkTitleInformative(title: string): Promise<boolean> {
  * Uses the currently selected LLM provider
  */
 export async function generateSummaryForActivity(activityData: any): Promise<string> {
-  return LLMImpl.generateSummaryForActivity(activityData);
+  const result = await LLMImpl.generateSummaryForActivity(activityData);
+  return typeof result === 'string' ? result : '';
 }
 
 /**
@@ -84,5 +87,6 @@ export async function getEmoji(
   name: string,
   description?: string
 ): Promise<string | null> {
-  return LLMImpl.getEmoji(name, description);
+  const result = await LLMImpl.getEmoji(name, description);
+  return typeof result === 'string' || result === null ? result : null;
 }

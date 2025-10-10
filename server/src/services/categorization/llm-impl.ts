@@ -4,48 +4,65 @@
 // Import the token tracker to reset daily usage when loaded
 import { tokenTracker } from '../tracking/tokenUsageTracker';
 
+// --- DEBUG TOGGLE ---
+// Set this to true to enable debug logs, false to only log errors
+export const DEBUG = false;
+
+function logDebug(...args: unknown[]) {
+  if (DEBUG) {
+    // eslint-disable-next-line no-console
+    console.log('[LLM-IMPL]', ...args);
+  }
+}
+
+function logError(...args: unknown[]) {
+  // Always log errors
+  // eslint-disable-next-line no-console
+  console.error('[LLM-IMPL]', ...args);
+}
+
 // Reset daily usage when the implementation is loaded (start fresh each time)
 tokenTracker.resetDailyUsage();
 
 const forceImplementation: 'openai' | 'huggingface' | 'gemini' | null = 'gemini'; // set null to 'openai' to force
 // Add debug logging to see which implementation is chosen
 const impl = (forceImplementation || (process.env.LLM_IMPLEMENTATION as any) || 'openai') as 'openai' | 'huggingface' | 'gemini';
-console.log(`[LLM-IMPL] Using implementation: ${impl} (forceImplementation=${forceImplementation}, env=${process.env.LLM_IMPLEMENTATION})`);
+logDebug(`Using implementation: ${impl} (forceImplementation=${forceImplementation}, env=${process.env.LLM_IMPLEMENTATION})`);
 
 // Load the appropriate backend module
 let backend: any;
 function loadBackend() {
   try {
     if (impl === 'huggingface') {
-      console.log('[LLM-IMPL] Loading Hugging Face implementation');
+  logDebug('Loading Hugging Face implementation');
       backend = require('./llm-huggingface');
     } else if (impl === 'gemini') {
-      console.log('[LLM-IMPL] Loading Gemini implementation');
+  logDebug('Loading Gemini implementation');
       try {
         // Try native implementation first
         backend = require('./llm-gemini-native');
-        console.log('[LLM-IMPL] Successfully loaded native Gemini implementation');
+  logDebug('Successfully loaded native Gemini implementation');
       } catch (nativeError) {
-        console.error('[LLM-IMPL] Error loading native Gemini implementation:', nativeError);
-        console.log('[LLM-IMPL] Falling back to OpenAI compatibility implementation');
+  logError('Error loading native Gemini implementation:', nativeError);
+  logDebug('Falling back to OpenAI compatibility implementation');
         try {
           backend = require('./llm-gemini-actual');
-          console.log('[LLM-IMPL] Successfully loaded Gemini OpenAI compatibility implementation');
+          logDebug('Successfully loaded Gemini OpenAI compatibility implementation');
         } catch (compatError) {
-          console.error('[LLM-IMPL] Error loading Gemini OpenAI compatibility implementation:', compatError);
+          logError('Error loading Gemini OpenAI compatibility implementation:', compatError);
           throw new Error('Failed to load any Gemini implementation');
         }
       }
     } else {
-      console.log('[LLM-IMPL] Loading OpenAI implementation');
+  logDebug('Loading OpenAI implementation');
       backend = require('./llm');
     }
-    console.log(`[LLM-IMPL] Successfully loaded ${impl} implementation`);
+  logDebug(`Successfully loaded ${impl} implementation`);
     return backend;
   } catch (error) {
-    console.error(`[LLM-IMPL] Error loading ${impl} implementation:`, error);
-    // Fall back to OpenAI if there's an error
-    console.log('[LLM-IMPL] Falling back to OpenAI implementation due to error');
+  logError(`Error loading ${impl} implementation:`, error);
+  // Fall back to OpenAI if there's an error
+  logError('Falling back to OpenAI implementation due to error');
     return require('./llm');
   }
 }
@@ -53,35 +70,57 @@ function loadBackend() {
 // Initialize backend
 backend = loadBackend();
 
-// Function-based exports to ensure we always get the correct function from the backend
-export function getCategoryChoice(...args: any[]) {
+
+// --- LLM CACHE ---
+const LLM_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const llmCache = new Map();
+
+function getCacheKey(fnName: string, args: unknown[]): string {
+  // Use function name and JSON-stringified arguments as the cache key
+  return fnName + ':' + JSON.stringify(args);
+}
+
+async function getOrCache<T>(fnName: string, fn: (...args: unknown[]) => Promise<T> | T, args: unknown[]): Promise<T> {
+  const key = getCacheKey(fnName, args);
+  const cached = llmCache.get(key);
+  const now = Date.now();
+  if (cached && (now - cached.timestamp) < LLM_CACHE_TTL) {
+    return cached.value;
+  }
+  const result = await fn(...args);
+  llmCache.set(key, { value: result, timestamp: now });
+  return result;
+}
+
+// Function-based exports to ensure we always get the correct function from the backend, with caching
+export function getCategoryChoice(...args: unknown[]): Promise<unknown> {
   const fn = backend.getCategoryChoice || backend.getHuggingFaceCategoryChoice || backend.getOpenAICategoryChoice;
   if (!fn) throw new Error('No category choice function available in the LLM implementation');
-  return fn(...args);
+  return getOrCache('getCategoryChoice', fn, args);
 }
 
-export function getSummaryForBlock(...args: any[]) {
+export function getSummaryForBlock(...args: unknown[]): Promise<unknown> {
   const fn = backend.getSummaryForBlock || backend.getHuggingFaceSummaryForBlock || backend.getOpenAISummaryForBlock;
   if (!fn) throw new Error('No summary function available in the LLM implementation');
-  return fn(...args);
+  return getOrCache('getSummaryForBlock', fn, args);
 }
 
-export function isTitleInformative(...args: any[]) {
+export function isTitleInformative(...args: unknown[]): Promise<unknown> {
   const fn = backend.isTitleInformative || (backend as any).isTitleInformative;
   if (!fn) throw new Error('No title informativeness function available in the LLM implementation');
-  return fn(...args);
+  return getOrCache('isTitleInformative', fn, args);
 }
 
-export function generateSummaryForActivity(...args: any[]) {
+export function generateSummaryForActivity(...args: unknown[]): Promise<unknown> {
   const fn = backend.generateActivitySummary || backend.generateSummaryForActivity;
   if (!fn) throw new Error('No activity summary function available in the LLM implementation');
-  return fn(...args);
+  return getOrCache('generateSummaryForActivity', fn, args);
 }
 
-export function getEmoji(...args: any[]) {
+export function getEmoji(...args: unknown[]): Promise<unknown> {
   const fn = backend.getEmoji || backend.getEmojiForCategory;
   if (!fn) throw new Error('No emoji function available in the LLM implementation');
-  return fn(...args);
+  return getOrCache('getEmoji', fn, args);
 }
 
 // Allow runtime switching if needed
@@ -99,5 +138,5 @@ export function setImplementation(provider: 'openai' | 'huggingface' | 'gemini')
   
   // Because we're using function-based exports, they'll automatically pick up
   // the new backend next time they're called
-  console.log(`[LLM-IMPL] Switched implementation to: ${provider}`);
+  logDebug(`Switched implementation to: ${provider}`);
 }
