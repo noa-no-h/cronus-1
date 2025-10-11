@@ -3,6 +3,7 @@ import { ActiveWindowDetails, Category as CategoryType } from '../../../../share
 import { CategoryModel } from '../../models/category';
 import { checkActivityHistory } from './history';
 import { getCategoryChoice, getSummaryForBlock } from './llm-impl';
+import { redactSensitiveInfo } from './redaction-helper';
 
 export interface CategorizationResult {
   categoryId: string | null;
@@ -48,11 +49,22 @@ export async function categorizeActivity(
     description: c.description,
   }));
 
+
+  // Redact sensitive info from activeWindow fields before sending to LLM
+  const redactedActiveWindow = {
+    ...activeWindow,
+    title: redactSensitiveInfo(activeWindow.title).text,
+    url: redactSensitiveInfo(activeWindow.url).text,
+    content: redactSensitiveInfo(activeWindow.content).text
+  };
+  // Debug: log what will be sent to the LLM
+  // console.log('[CategorizationService] Redacted activeWindow for LLM:', redactedActiveWindow);
+
   // TODO-maybe: could add "unclear" here and then check the screenshot etc
   const choice = await getCategoryChoice(
     userProjectsAndGoals,
     categoryNamesForLLM,
-    activeWindow
+    redactedActiveWindow
   );
 
   let determinedCategoryId: string | null = null;
@@ -96,7 +108,7 @@ export async function categorizeActivity(
   const isReasoningMissingOrShort = !categoryReasoning || categoryReasoning.length < 10;
 
   if (isLongBlock && isReasoningMissingOrShort) {
-  const summary = await getSummaryForBlock(activeWindow);
+    const summary = await getSummaryForBlock(redactedActiveWindow);
     if (typeof summary === 'string') {
       categoryReasoning = summary;
     }

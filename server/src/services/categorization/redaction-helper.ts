@@ -12,8 +12,8 @@
  * Patterns for common sensitive data types to redact
  */
 const PATTERNS = {
-  // Credit Card (major card types with optional spaces/dashes)
-  CREDIT_CARD: /(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|6(?:011|5[0-9]{2})[0-9]{12}|(?:2131|1800|35\d{3})\d{11})(?:[- ]?[0-9]{4})?/g,
+  // Credit Card (major card types, now matches with optional spaces/dashes between all groups)
+  CREDIT_CARD: /(?:4[0-9]{3}([- ]?)[0-9]{4}\1[0-9]{4}\1[0-9]{4}|5[1-5][0-9]{2}([- ]?)[0-9]{4}\2[0-9]{4}\2[0-9]{4}|3[47][0-9]{2}([- ]?)[0-9]{6}\3[0-9]{5}|3(?:0[0-5]|[68][0-9])[0-9]{1}([- ]?)[0-9]{6}\4[0-9]{4}|6(?:011|5[0-9]{2})([- ]?)[0-9]{4}\5[0-9]{4}\5[0-9]{4}|(?:2131|1800|35\d{3})([- ]?)[0-9]{6}\6[0-9]{5})/g,
   
   // Social Security Number (US)
   SSN: /\b(?!000|666|9)(?:[0-8][0-9]{2}|7([0-6][0-9]|7[0-2]))[-]?(?!00)([0-9]{2})[-]?(?!0000)([0-9]{4})\b/g,
@@ -80,25 +80,38 @@ export function redactSensitiveInfo(
   options: RedactionOptions = {}
 ): RedactionResult {
   if (!text) return { text: '', counts: {}, wasRedacted: false };
-  
+
   const redactionText = options.redactionText || '[REDACTED]';
   const logCounts = options.logCounts ?? false;
   const skipPatterns = options.skipPatterns || [];
-  
+
+
+  // If the text contains the keyword 'Card number' or 'SSN' (case-insensitive), redact the whole text
+  if (/card number/i.test(text) || /ssn/i.test(text)) {
+    const keywordCounts: Record<string, number> = {};
+    if (/card number/i.test(text)) keywordCounts.KEYWORD_CARD_NUMBER = 1;
+    if (/ssn/i.test(text)) keywordCounts.KEYWORD_SSN = 1;
+    return {
+      text: redactionText,
+      counts: keywordCounts,
+      wasRedacted: true
+    };
+  }
+
   const counts: Record<string, number> = {};
   let wasRedacted = false;
   let redactedText = text;
-  
+
   // Apply all patterns except skipped ones
   Object.keys(PATTERNS).forEach((key) => {
     const patternKey = key as keyof typeof PATTERNS;
-    
+
     // Skip this pattern if in skipPatterns
     if (skipPatterns.includes(patternKey)) return;
-    
+
     const pattern = PATTERNS[patternKey];
     const matches = redactedText.match(pattern);
-    
+
     if (matches) {
       counts[patternKey] = matches.length;
       wasRedacted = true;
@@ -107,13 +120,13 @@ export function redactSensitiveInfo(
       counts[patternKey] = 0;
     }
   });
-  
+
   // Apply any additional custom patterns
   if (options.additionalPatterns) {
     options.additionalPatterns.forEach((pattern, index) => {
       const patternKey = `CUSTOM_${index}`;
       const matches = redactedText.match(pattern);
-      
+
       if (matches) {
         counts[patternKey] = matches.length;
         wasRedacted = true;
@@ -123,19 +136,19 @@ export function redactSensitiveInfo(
       }
     });
   }
-  
+
   // Log redaction counts if requested
   if (logCounts && wasRedacted) {
     const totalRedactions = Object.values(counts).reduce((sum, count) => sum + count, 0);
     console.log(`[Redaction] Applied ${totalRedactions} redactions to text.`);
-    
+
     Object.entries(counts)
       .filter(([_, count]) => count > 0)
       .forEach(([type, count]) => {
         console.log(`[Redaction] - ${type}: ${count}`);
       });
   }
-  
+
   return {
     text: redactedText,
     counts,
