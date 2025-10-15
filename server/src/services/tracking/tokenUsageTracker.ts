@@ -217,9 +217,9 @@ class TokenUsageTracker {
       const remaining = Math.max(0, this.dailyTokenLimit - todayTotal);
       const estimatedCalls = Math.floor(remaining / this.avgTokensPerCall);
       
-      console.log(`[TokenTracker] ${usage.model}: ${usage.promptTokens} prompt + ${usage.completionTokens} completion = ${usage.totalTokens} total tokens`);
-      console.log(`[TokenTracker] Today: ${todayTotal.toLocaleString()}/${this.dailyTokenLimit.toLocaleString()} tokens (${Math.round(todayTotal / this.dailyTokenLimit * 100)}% used)`);
-      console.log(`[TokenTracker] Remaining: ~${estimatedCalls} more calls (assuming ~${Math.round(this.avgTokensPerCall)} tokens/call)`);
+  console.error(`[TokenTracker] ${usage.model}: ${usage.promptTokens} prompt + ${usage.completionTokens} completion = ${usage.totalTokens} total tokens`);
+  console.error(`[TokenTracker] Today: ${todayTotal.toLocaleString()}/${this.dailyTokenLimit.toLocaleString()} tokens (${Math.round(todayTotal / this.dailyTokenLimit * 100)}% used)`);
+  console.error(`[TokenTracker] Remaining: ~${estimatedCalls} more calls (assuming ~${Math.round(this.avgTokensPerCall)} tokens/call)`);
     }
     
     // Save data periodically (every 10 calls)
@@ -296,7 +296,7 @@ class TokenUsageTracker {
    */
   setDailyLimit(limit: number): void {
     this.dailyTokenLimit = limit;
-    console.log(`[TokenTracker] Daily limit set to ${limit.toLocaleString()} tokens`);
+  console.error(`[TokenTracker] Daily limit set to ${limit.toLocaleString()} tokens`);
   }
   
   /**
@@ -304,7 +304,7 @@ class TokenUsageTracker {
    */
   setAvgTokensPerCall(avg: number): void {
     this.avgTokensPerCall = avg;
-    console.log(`[TokenTracker] Average tokens per call set to ${avg.toLocaleString()}`);
+  console.error(`[TokenTracker] Average tokens per call set to ${avg.toLocaleString()}`);
   }
   
   /**
@@ -315,13 +315,13 @@ class TokenUsageTracker {
     const todayUsage = this.getTodayUsage();
     const usedToday = todayUsage ? todayUsage.totalTokens : 0;
     
-    console.log('========== TOKEN USAGE STATUS ==========');
-    console.log(`Daily Limit: ${stats.dailyLimit.toLocaleString()} tokens`);
-    console.log(`Used Today: ${usedToday.toLocaleString()} tokens (${Math.round(usedToday / stats.dailyLimit * 100)}%)`);
-    console.log(`Remaining: ${stats.remainingToday.toLocaleString()} tokens`);
-    console.log(`Avg. Per Call: ${stats.averageTokensPerCall.toLocaleString()} tokens`);
-    console.log(`Est. Calls Left: ${stats.estimatedCallsLeft.toLocaleString()} calls`);
-    console.log('=========================================');
+  console.error('========== TOKEN USAGE STATUS ==========');
+  console.error(`Daily Limit: ${stats.dailyLimit.toLocaleString()} tokens`);
+  console.error(`Used Today: ${usedToday.toLocaleString()} tokens (${Math.round(usedToday / stats.dailyLimit * 100)}%)`);
+  console.error(`Remaining: ${stats.remainingToday.toLocaleString()} tokens`);
+  console.error(`Avg. Per Call: ${stats.averageTokensPerCall.toLocaleString()} tokens`);
+  console.error(`Est. Calls Left: ${stats.estimatedCallsLeft.toLocaleString()} calls`);
+  console.error('=========================================');
   }
 
   /**
@@ -352,7 +352,7 @@ class TokenUsageTracker {
         failures: 0
       };
       
-      console.log(`[TokenTracker] Reset usage statistics for ${today}`);
+  console.error(`[TokenTracker] Reset usage statistics for ${today}`);
       
       // Save the updated stats
       this.saveData();
@@ -391,7 +391,7 @@ class TokenUsageTracker {
       this.dailyStats[today].totalTokens -= tokensRemoved;
       this.totalTokensUsed -= tokensRemoved;
       
-      console.log(`[TokenTracker] Reset usage statistics for provider: ${providerPrefix} (removed ${tokensRemoved.toLocaleString()} tokens)`);
+  console.error(`[TokenTracker] Reset usage statistics for provider: ${providerPrefix} (removed ${tokensRemoved.toLocaleString()} tokens)`);
       
       // Save the updated stats
       this.saveData();
