@@ -24,9 +24,9 @@ function logError(...args: unknown[]) {
 // Reset daily usage when the implementation is loaded (start fresh each time)
 tokenTracker.resetDailyUsage();
 
-const forceImplementation: 'openai' | 'huggingface' | 'gemini' | null = 'gemini'; // set null to 'openai' to force
+const forceImplementation: 'openai' | 'huggingface' | 'gemini' | 'ollama' | null = 'ollama'; // set null to 'openai' to force
 // Add debug logging to see which implementation is chosen
-const impl = (forceImplementation || (process.env.LLM_IMPLEMENTATION as any) || 'openai') as 'openai' | 'huggingface' | 'gemini';
+const impl = (forceImplementation || (process.env.LLM_IMPLEMENTATION as any) || 'openai') as 'openai' | 'huggingface' | 'gemini' | 'ollama';
 logDebug(`Using implementation: ${impl} (forceImplementation=${forceImplementation}, env=${process.env.LLM_IMPLEMENTATION})`);
 
 // Load the appropriate backend module
@@ -53,6 +53,9 @@ function loadBackend() {
           throw new Error('Failed to load any Gemini implementation');
         }
       }
+    } else if (impl === 'ollama') {
+  console.log('[LLM-IMPL] Loading Ollama implementation');
+      backend = require('./llm-ollama');
     } else {
   logDebug('Loading OpenAI implementation');
       backend = require('./llm');
